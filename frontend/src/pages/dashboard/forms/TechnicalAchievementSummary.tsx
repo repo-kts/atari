@@ -7,7 +7,6 @@ import { useTechnicalSummary, useTechnicalSummaryFilters } from '@/hooks/useTech
 import { useAlert } from '@/hooks/useAlert'
 import { ParticipantAchievement, TechnicalAchievementSummaryData } from '@/services/technicalAchievementSummaryApi'
 import { exportApi } from '@/services/exportApi'
-import { DatePicker } from '@/components/ui/date-picker'
 
 /** Template key the backend dispatches on — see exportController.js. */
 const TAS_TEMPLATE_KEY = 'technical-achievement-summary-report'
@@ -136,7 +135,7 @@ function buildExportTables(sections: TechnicalAchievementSummaryData['sections']
     return [
         {
             title: 'OFT',
-            headers: ['Target', 'Achievement', 'No. of Location', 'No. of Trials', 'Farmers Target', ...PARTICIPANT_EXPORT_HEADERS],
+            headers: ['Target', 'Achievement', 'No. of Location', 'No. of Trials', 'Farmer Target', ...PARTICIPANT_EXPORT_HEADERS],
             row: [
                 sections.oft.target,
                 sections.oft.achievement,
@@ -148,7 +147,7 @@ function buildExportTables(sections: TechnicalAchievementSummaryData['sections']
         },
         {
             title: 'FLD',
-            headers: ['Target', 'Achievement', 'Area', 'Farmers Target', ...PARTICIPANT_EXPORT_HEADERS],
+            headers: ['Target', 'Achievement', 'Area', 'Farmer Target', ...PARTICIPANT_EXPORT_HEADERS],
             row: [
                 sections.fld.target,
                 sections.fld.achievement,
@@ -159,7 +158,7 @@ function buildExportTables(sections: TechnicalAchievementSummaryData['sections']
         },
         {
             title: 'Training',
-            headers: ['Target', 'Achievement', 'Participants Target', ...PARTICIPANT_EXPORT_HEADERS],
+            headers: ['Target', 'Achievement', 'Farmer Target', ...PARTICIPANT_EXPORT_HEADERS],
             row: [
                 sections.training.target,
                 sections.training.achievement,
@@ -169,7 +168,7 @@ function buildExportTables(sections: TechnicalAchievementSummaryData['sections']
         },
         {
             title: 'Extension Activities',
-            headers: ['Target', 'Achievement', 'Participants Target', ...PARTICIPANT_EXPORT_HEADERS],
+            headers: ['Target', 'Achievement', 'Farmer Target', ...PARTICIPANT_EXPORT_HEADERS],
             row: [
                 sections.extension.target,
                 sections.extension.achievement,
@@ -239,20 +238,11 @@ export const TechnicalAchievementSummary: React.FC = () => {
     const { data: filterOptions, isLoading: isFilterLoading, error: filterError } = useTechnicalSummaryFilters(true)
     const canFilterByKvk = Boolean(filterOptions?.canFilterByKvk && user)
 
-    const [fromDate, setFromDate] = useState<string>('')
-    const [toDate, setToDate] = useState<string>('')
+    const [selectedYear, setSelectedYear] = useState<string>('')
     const [selectedKvkId, setSelectedKvkId] = useState<string>('')
     const [appliedYear, setAppliedYear] = useState<number | null>(null)
     const [appliedKvkId, setAppliedKvkId] = useState<number | undefined>(undefined)
     const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null)
-
-    const today = useMemo(() => new Date(), [])
-    const todayIso = useMemo(() => {
-        const y = today.getFullYear()
-        const m = String(today.getMonth() + 1).padStart(2, '0')
-        const d = String(today.getDate()).padStart(2, '0')
-        return `${y}-${m}-${d}`
-    }, [today])
 
     useEffect(() => {
         if (!filterOptions) return
@@ -260,6 +250,7 @@ export const TechnicalAchievementSummary: React.FC = () => {
 
         const defaultYear = filterOptions.defaultReportingYear || new Date().getFullYear()
         setAppliedYear(defaultYear)
+        setSelectedYear(String(defaultYear))
     }, [filterOptions, appliedYear])
 
     const summaryParams = useMemo(() => {
@@ -276,12 +267,7 @@ export const TechnicalAchievementSummary: React.FC = () => {
     } = useTechnicalSummary(summaryParams, Boolean(filterOptions))
 
     const handleApplyFilter = () => {
-        if (!fromDate || !toDate) return
-        const from = new Date(fromDate)
-        const to = new Date(toDate)
-        if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from > to) return
-
-        const year = from.getUTCFullYear()
+        const year = Number(selectedYear)
         if (!Number.isInteger(year) || year <= 0) return
 
         setAppliedYear(year)
@@ -363,32 +349,20 @@ export const TechnicalAchievementSummary: React.FC = () => {
                     <h2 className="text-[44px] font-semibold text-[#212121] mb-4 leading-tight">Technical Achievement Summary</h2>
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end mb-4">
-                        <div className={isFilterLoading ? 'opacity-50 pointer-events-none' : ''}>
-                            <DatePicker
-                                label="From Date"
-                                value={fromDate}
-                                onChange={(v) => {
-                                    setFromDate(v)
-                                    if (toDate && v && new Date(v) > new Date(toDate)) {
-                                        setToDate(v)
-                                    }
-                                }}
-                                max={todayIso}
+                        <div>
+                            <label className="block text-sm font-medium text-[#212121] mb-2">Reporting Year</label>
+                            <select
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(e.target.value)}
+                                className="w-full px-3 py-2 border border-[#E0E0E0] rounded-lg bg-white"
                                 disabled={isFilterLoading}
-                                placeholder="Select start date"
-                            />
-                        </div>
-
-                        <div className={isFilterLoading ? 'opacity-50 pointer-events-none' : ''}>
-                            <DatePicker
-                                label="To Date"
-                                value={toDate}
-                                onChange={(v) => setToDate(v)}
-                                min={fromDate || undefined}
-                                max={todayIso}
-                                disabled={isFilterLoading}
-                                placeholder="Select end date"
-                            />
+                            >
+                                {(filterOptions?.years || []).map((year) => (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         {canFilterByKvk && (
@@ -479,13 +453,13 @@ export const TechnicalAchievementSummary: React.FC = () => {
                                         <th rowSpan={3} className={TH}>Achievement</th>
                                         <th rowSpan={3} className={TH}>No. of Location</th>
                                         <th rowSpan={3} className={TH}>No. of Trials</th>
-                                        <th rowSpan={3} className={TH}>Target</th>
+                                        <th rowSpan={3} className={TH}>Farmer Target</th>
                                         <th colSpan={11} className={TH}>Achievement</th>
 
                                         <th rowSpan={3} className={TH}>Target</th>
                                         <th rowSpan={3} className={TH}>Achievement</th>
                                         <th rowSpan={3} className={TH}>Area</th>
-                                        <th rowSpan={3} className={TH}>Target</th>
+                                        <th rowSpan={3} className={TH}>Farmer Target</th>
                                         <th colSpan={11} className={TH}>Achievement</th>
                                     </tr>
                                     <tr>
@@ -532,12 +506,12 @@ export const TechnicalAchievementSummary: React.FC = () => {
                                     <tr>
                                         <th rowSpan={3} className={TH}>Target</th>
                                         <th rowSpan={3} className={TH}>Achievement</th>
-                                        <th rowSpan={3} className={TH}>Target</th>
+                                        <th rowSpan={3} className={TH}>Farmer Target</th>
                                         <th colSpan={11} className={TH}>Achievement</th>
 
                                         <th rowSpan={3} className={TH}>Target</th>
                                         <th rowSpan={3} className={TH}>Achievement</th>
-                                        <th rowSpan={3} className={TH}>Target</th>
+                                        <th rowSpan={3} className={TH}>Farmer Target</th>
                                         <th colSpan={11} className={TH}>Achievement</th>
                                     </tr>
                                     <tr>

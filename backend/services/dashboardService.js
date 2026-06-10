@@ -8,6 +8,8 @@ const {
   parseYearParam,
   buildLoginLogWhere,
 } = require('../utils/dashboardScope.js');
+const { OFT_STATUS } = require('../constants/oftStatus.js');
+const { FLD_STATUS } = require('../constants/fldStatus.js');
 
 function toNumber(value) {
   const num = Number(value);
@@ -125,8 +127,18 @@ const dashboardService = {
     const achKvk = buildAchievementWhere(actor, resolvedKvkId);
     const listWhere = buildKvkListingWhere(actor, resolvedKvkId);
 
-    const oftWhere = { ...achKvk, ...oftDateClause(yearMode) };
-    const fldWhere = { ...achKvk, ...fldDateClause(yearMode) };
+    // Transfer-to-next-year clones the record; the stale source row would
+    // double-count the same trial, so only ongoing/completed rows count.
+    const oftWhere = {
+      ...achKvk,
+      status: { not: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR },
+      ...oftDateClause(yearMode),
+    };
+    const fldWhere = {
+      ...achKvk,
+      ongoingCompleted: { not: FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR },
+      ...fldDateClause(yearMode),
+    };
     const oftCompletedWhere = { ...oftWhere, status: 'COMPLETED' };
     const fldCompletedWhere = { ...fldWhere, ongoingCompleted: 'COMPLETED' };
     const trainingWhere = { ...achKvk, ...trainingDateClause(yearMode) };
@@ -224,7 +236,8 @@ const dashboardService = {
         _count: { _all: true },
       }),
       prisma.userLoginActivity.findMany({
-        where: buildLoginLogWhere(actor),
+        // Hide activity of soft-deleted users.
+        where: { ...buildLoginLogWhere(actor), user: { is: { deletedAt: null } } },
         orderBy: [{ eventAt: 'desc' }, { logId: 'desc' }],
         take: 12,
         select: {
@@ -263,12 +276,10 @@ const dashboardService = {
     const oftStatusByKvk = buildStatusMap(oftStatusGroup, 'status', {
       ONGOING: 'ongoing',
       COMPLETED: 'completed',
-      TRANSFERRED_TO_NEXT_YEAR: 'ongoing',
     });
     const fldStatusByKvk = buildStatusMap(fldStatusGroup, 'ongoingCompleted', {
       ONGOING: 'ongoing',
       COMPLETED: 'completed',
-      TRANSFERRED_TO_NEXT_YEAR: 'ongoing',
     });
 
     const trainingCompletedByKvk = new Map(

@@ -1,8 +1,10 @@
 const prisma = require('../../../config/prisma.js');
 const { applyCreatedAtFilters } = require('../aboutkvkReport/commonFilters.js');
+const { OFT_STATUS } = require('../../../constants/oftStatus.js');
 
 async function getOftSummaryData(kvkId, filters = {}) {
-    const where = { kvkId };
+    // Transferred rows are stale clones of the same trial — exclude to avoid double counting.
+    const where = { kvkId, status: { not: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR } };
     applyCreatedAtFilters(where, filters);
 
     return await prisma.kvkoft.findMany({
@@ -46,7 +48,7 @@ async function getOftSummaryData(kvkId, filters = {}) {
 }
 
 async function getOftDetailCards(kvkId, filters = {}) {
-    const where = { kvkId };
+    const where = { kvkId, status: { not: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR } };
     applyCreatedAtFilters(where, filters);
 
     const rows = await prisma.kvkoft.findMany({
