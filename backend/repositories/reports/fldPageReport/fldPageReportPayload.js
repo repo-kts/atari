@@ -22,14 +22,21 @@ function totalFarmers(r) {
 }
 
 function inferYearLabel(records) {
+    // Standalone export fallback (the consolidated all-report derives the label
+    // from the selected filter). Never emit a future year (#223): data may carry
+    // a future expectedCompletionDate. Use the most recent non-future data year,
+    // else '' so the heading omits the year rather than fabricating one.
+    const currentYear = new Date().getFullYear();
+    const years = [];
     for (const r of records) {
         const ry = r.reportingYear;
-        if (typeof ry === 'string' && ry.length >= 4) {
-            const y = parseInt(ry.slice(0, 4), 10);
-            if (Number.isFinite(y)) return String(y);
-        }
+        let y = null;
+        if (ry instanceof Date) y = ry.getFullYear();
+        else if (typeof ry === 'string' && ry.length >= 4) y = parseInt(ry.slice(0, 4), 10);
+        if (Number.isFinite(y) && y <= currentYear) years.push(y);
     }
-    return String(new Date().getFullYear());
+    if (years.length === 0) return '';
+    return String(Math.max(...years));
 }
 
 function weightedYield(rows, pick) {

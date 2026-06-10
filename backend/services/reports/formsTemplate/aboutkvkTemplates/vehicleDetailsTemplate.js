@@ -46,10 +46,11 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection) {
         const vehicle = this._pickValue(row, ['Vehicle', 'vehicleName']) || '-'
         const registrationNo = this._pickValue(row, ['Registration No.', 'registrationNo']) || '-'
         const yearOfPurchase = this._pickValue(row, ['Year of purchase', 'yearOfPurchase']) || '-'
-        const cost = this._pickValue(row, ['Cost (Rs.)', 'totalCost']) || '-'
-        const totalRun = this._pickValue(row, ['Total Run(km/hrs)', 'totalRun']) || '-'
+        const dash = (v) => (v === null || v === undefined || v === '' ? '-' : v)
+        const cost = dash(this._pickValue(row, ['Cost (Rs.)', 'totalCost']))
+        const totalRun = dash(this._pickValue(row, ['Total Run(km/hrs)', 'totalRun']))
         const presentStatus = this._pickValue(row, ['Present status', 'presentStatus']) || '-'
-        const repairingCost = this._pickValue(row, ['Repairing Cost', 'repairingCost']) || '-'
+        const repairingCost = dash(this._pickValue(row, ['Repairing Cost', 'repairingCost']))
         const fundingSource = this._pickValue(row, ['Funding Source', 'sourceOfFunding']) || '-'
 
         html += `

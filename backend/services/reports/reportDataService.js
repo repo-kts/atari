@@ -111,6 +111,9 @@ class ReportDataService {
             case 'kvkStaffTransferred':
                 rawData = await reportRepository.getKvkStaffTransferred(effectiveKvkId, sectionFilters);
                 break;
+            case 'kvkLandDetails':
+                rawData = await reportRepository.getKvkLandDetails(effectiveKvkId, sectionFilters);
+                break;
             case 'kvkInfrastructure':
                 rawData = await reportRepository.getKvkInfrastructure(effectiveKvkId, sectionFilters);
                 break;

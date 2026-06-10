@@ -314,6 +314,11 @@ export const KvkReportPage: React.FC = () => {
         scope?: ReportScope | null,
         format: 'pdf' | 'excel' | 'docx' = 'pdf'
     ) => {
+        if (!sectionIds || sectionIds.length === 0) {
+            setError('Please select at least one report module.');
+            toast({ title: 'No modules selected', message: 'Select at least one report module to continue.', variant: 'error', autoCloseDelay: 2500 });
+            return;
+        }
         try {
             setDownloadingFormat(format);
             setError(null);
@@ -363,6 +368,11 @@ export const KvkReportPage: React.FC = () => {
         filters: ReportFilters,
         scope?: ReportScope | null
     ) => {
+        if (!sectionIds || sectionIds.length === 0) {
+            setError('Please select at least one report module.');
+            toast({ title: 'No modules selected', message: 'Select at least one report module to preview.', variant: 'error', autoCloseDelay: 2500 });
+            return;
+        }
         try {
             setIsGenerating(true);
             setError(null);
