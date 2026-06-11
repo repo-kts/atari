@@ -1,5 +1,5 @@
 const prisma = require('../../../config/prisma.js');
-const { applyCreatedAtFilters } = require('./commonFilters.js');
+const { applyCreatedAtFilters, applyDateFilters } = require('./commonFilters.js');
 
 async function getKvkLandDetails(kvkId, filters = {}) {
     const where = { kvkId };
@@ -62,28 +62,42 @@ async function getKvkVehicles(kvkId, filters = {}) {
     });
 }
 
+// §1.4.B Vehicle Status — reporting-year status rows from KvkVehicleDetail
+// (the base KvkVehicle has no reportingYear, so the old query threw and the
+// whole section was dropped). Year-wise; includes KVK for the aggregated view.
 async function getKvkVehicleDetails(kvkId, filters = {}) {
-    const where = {
-        kvkId,
-        reportingYear: {
-            not: null,
-        },
-    };
-    applyCreatedAtFilters(where, filters);
+    const where = {};
+    if (kvkId) where.kvkId = kvkId;
+    applyDateFilters(where, filters, 'reportingYear');
 
-    return await prisma.kvkVehicle.findMany({
+    const rows = await prisma.kvkVehicleDetail.findMany({
         where,
         include: {
-            kvk: {
-                select: { kvkId: true, kvkName: true },
-            },
+            kvk: { select: { kvkId: true, kvkName: true } },
+            vehicle: { select: { vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
+            vehicleStatus: { select: { statusLabel: true } },
+            assetFundingSource: { select: { name: true } },
         },
         orderBy: [
             { reportingYear: 'desc' },
-            { yearOfPurchase: 'desc' },
-            { vehicleName: 'asc' },
+            { vehicleId: 'asc' },
         ],
     });
+
+    return rows.map((d) => ({
+        reportingYear: d.reportingYear,
+        kvkId: d.kvkId,
+        kvk: d.kvk,
+        kvkName: d.kvk?.kvkName || '',
+        vehicleName: d.vehicle?.vehicleName || '',
+        registrationNo: d.vehicle?.registrationNo || '',
+        yearOfPurchase: d.vehicle?.yearOfPurchase ?? '',
+        totalCost: d.vehicle?.totalCost ?? '',
+        totalRun: d.totalRun ?? '',
+        presentStatus: d.vehicleStatus?.statusLabel ?? '',
+        repairingCost: d.repairingCost ?? '',
+        sourceOfFunding: d.assetFundingSource?.name ?? '',
+    }));
 }
 
 async function getKvkEquipments(kvkId, filters = {}) {
@@ -121,28 +135,45 @@ async function getKvkEquipments(kvkId, filters = {}) {
     });
 }
 
+// §1.5.B Equipment Status — reporting-year status rows from KvkEquipmentDetail.
 async function getKvkEquipmentRecords(kvkId, filters = {}) {
-    const where = {
-        kvkId,
-        reportingYear: {
-            not: null,
-        },
-    };
-    applyCreatedAtFilters(where, filters);
+    const where = {};
+    if (kvkId) where.kvkId = kvkId;
+    applyDateFilters(where, filters, 'reportingYear');
 
-    return await prisma.kvkEquipment.findMany({
+    const rows = await prisma.kvkEquipmentDetail.findMany({
         where,
         include: {
-            kvk: {
-                select: { kvkId: true, kvkName: true },
+            kvk: { select: { kvkId: true, kvkName: true } },
+            equipment: {
+                select: {
+                    equipmentName: true,
+                    yearOfPurchase: true,
+                    totalCost: true,
+                    equipmentMaster: { select: { name: true } },
+                },
             },
+            equipmentStatus: { select: { statusLabel: true } },
+            assetFundingSource: { select: { name: true } },
         },
         orderBy: [
             { reportingYear: 'desc' },
-            { yearOfPurchase: 'desc' },
-            { equipmentName: 'asc' },
+            { equipmentId: 'asc' },
         ],
     });
+
+    return rows.map((d) => ({
+        reportingYear: d.reportingYear,
+        kvkId: d.kvkId,
+        kvk: d.kvk,
+        kvkName: d.kvk?.kvkName || '',
+        equipmentName: d.equipment?.equipmentName || d.equipment?.equipmentMaster?.name || '',
+        yearOfPurchase: d.equipment?.yearOfPurchase ?? '',
+        totalCost: d.equipment?.totalCost ?? '',
+        presentStatus: d.equipmentStatus?.statusLabel ?? '',
+        repairingCost: d.repairingCost ?? '',
+        sourceOfFunding: d.assetFundingSource?.name ?? '',
+    }));
 }
 
 module.exports = {
