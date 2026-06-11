@@ -78,6 +78,7 @@ const MODULES = [
   { menuName: 'All Masters', subMenuName: 'Season Master', moduleCode: 'all_masters_season_master' },
   { menuName: 'All Masters', subMenuName: 'Sanctioned Post Master', moduleCode: 'all_masters_sanctioned_post_master' },
   { menuName: 'All Masters', subMenuName: 'Staff Category Master', moduleCode: 'all_masters_staff_category_master' },
+  { menuName: 'All Masters', subMenuName: 'Job Type Master', moduleCode: 'all_masters_job_type_master' },
   { menuName: 'All Masters', subMenuName: 'Pay Level Master', moduleCode: 'all_masters_pay_level_master' },
   { menuName: 'All Masters', subMenuName: 'Pay Scale Master', moduleCode: 'all_masters_pay_scale_master' },
   { menuName: 'All Masters', subMenuName: 'Asset Funding Source Master', moduleCode: 'all_masters_asset_funding_source_master' },

@@ -1,6 +1,6 @@
 const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
-const { yearLabelFromFilters } = require('../aboutkvkReport/commonFilters.js');
+const { yearLabelFromFilters } = require('../reportYearLabel.js');
 const { FLD_STATUS } = require('../../../constants/fldStatus.js');
 
 function safeInt(v) {
@@ -20,8 +20,8 @@ function totalFarmersFromRow(r) {
 
 function applyReportingYear(where, filters) {
     // KvkFldIntroduction has no `reportingYear` column — filtering on it threw a
-    // Prisma validation error, which dropped the whole FLD section whenever a
-    // year/range was selected (#227). Filter on the real event date `startDate`.
+    // Prisma validation error, which dropped the whole FLD section on
+    // year/range select (#227). Filter on the real event date `startDate`.
     const ry = buildReportingYearFilter(filters);
     if (ry) where.startDate = ry;
 }
@@ -96,12 +96,22 @@ function mergeFldResultsForRows(rows) {
     };
 }
 
+// Fixed sector column order for the state-wise FLD table (#232). Exactly these,
+// in this order — no "Agriculture" column. Records with other sectors are not
+// shown as state-wise columns (they still appear in the category breakdown).
+const FLD_SECTOR_ORDER = [
+    'Crop Production',
+    'Horticultural Crops',
+    'Livestock & Fisheries',
+    'Other Enterprises',
+    'Women Empowerment',
+    'Farm Implements and Machinery',
+    'Crop Hybrid Varieties',
+];
+
 function buildSectionA(records) {
-    // State-wise table columns are SECTORS (Crop Production, Horticultural Crops,
-    // Livestock & Fisheries, …) — see Table 00 in the official report.
-    const sectors = [...new Set(records.map((r) => r.sectorName))].sort((a, b) =>
-        a.localeCompare(b, undefined, { sensitivity: 'base' }),
-    );
+    // State-wise table columns are SECTORS in a fixed canonical order (#232).
+    const sectors = FLD_SECTOR_ORDER;
     const states = [...new Set(records.map((r) => r.stateName))].sort((a, b) =>
         a.localeCompare(b, undefined, { sensitivity: 'base' }),
     );
@@ -234,7 +244,7 @@ function buildDetailRowsForCategory(catRecords) {
 
 function buildPayloadFromRecords(records, filters = {}) {
     const norm = records.map((r) => (typeof r.stateName === 'string' ? r : normalizePrismaRow(r)));
-    // Year label comes from the selected filter (not the data) — see #223.
+    // Year label from the selected filter, not the data (#231/#223).
     const yearLabel = yearLabelFromFilters(filters);
     if (norm.length === 0) {
         return {

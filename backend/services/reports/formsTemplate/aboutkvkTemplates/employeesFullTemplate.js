@@ -21,6 +21,9 @@ function renderEmployeesFullSection(section, data, sectionId, isFirstSection) {
                 <th>Pay Scale with Present Basic</th>
                 <th>Date of joining</th>
                 <th>Category (SC/ST/ OBC/ General)</th>
+                <th>Job Type</th>
+                <th>Mobile</th>
+                <th>Email</th>
             </tr>
         </thead>
         <tbody>`
@@ -43,6 +46,9 @@ function renderEmployeesFullSection(section, data, sectionId, isFirstSection) {
             row,
             ['Category (SC/ST/ OBC/ General)', 'staffCategory.categoryName']
         ) || '-'
+        const jobType = this._pickValue(row, ['Job Type', 'jobType']) || '-'
+        const mobile = this._pickValue(row, ['Mobile', 'mobile']) || '-'
+        const email = this._pickValue(row, ['Email', 'email']) || '-'
 
         html += `
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
@@ -55,6 +61,9 @@ function renderEmployeesFullSection(section, data, sectionId, isFirstSection) {
                 <td>${this._escapeHtml(String(pay))}</td>
                 <td>${this._escapeHtml(String(doj))}</td>
                 <td>${this._escapeHtml(String(category))}</td>
+                <td>${this._escapeHtml(String(jobType))}</td>
+                <td>${this._escapeHtml(String(mobile))}</td>
+                <td>${this._escapeHtml(String(email))}</td>
             </tr>`
     })
 

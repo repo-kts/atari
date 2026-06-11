@@ -4,7 +4,7 @@
  */
 const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
-const { yearLabelFromFilters } = require('../aboutkvkReport/commonFilters.js');
+const { yearLabelFromFilters } = require('../reportYearLabel.js');
 
 const DEBUG = process.env.DEBUG_TRAINING_CAPACITY_REPORT === '1' || process.env.DEBUG_TRAINING_CAPACITY_REPORT === 'true';
 
@@ -152,7 +152,7 @@ function buildPayloadFromRecords(records, filters = {}) {
             return looksNormalized ? r : normalizePrismaRow(r);
         })
         : [];
-    // Year label from the selected filter, not the data — see #223.
+    // Year label from the selected filter, not the data (#231/#223).
     const yearLabel = yearLabelFromFilters(filters);
 
     if (norm.length === 0) {

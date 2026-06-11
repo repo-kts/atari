@@ -460,15 +460,53 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.ACCOUNT_TYPE && (
-                <FormInput
-                    label="Account Type"
-                    required
-                    value={formData.accountType ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, accountType: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter account type"
-                />
+                <>
+                    <FormInput
+                        label="Account Type"
+                        required
+                        value={formData.accountType ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, accountType: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter account type"
+                    />
+                    <FormSelect
+                        label='Is "Other" option (lets users type a custom value in forms)'
+                        value={String(formData.isOther ?? false)}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+                            setFormData((prev: any) => ({ ...prev, isOther: e.target.value === 'true' }))
+                        }, [setFormData])}
+                        options={[
+                            { value: 'false', label: 'No' },
+                            { value: 'true', label: 'Yes' },
+                        ]}
+                    />
+                </>
+            )}
+
+            {entityType === ENTITY_TYPES.JOB_TYPE && (
+                <>
+                    <FormInput
+                        label="Job Type"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter job type"
+                    />
+                    <FormSelect
+                        label='Is "Other" option (lets users type a custom value in forms)'
+                        value={String(formData.isOther ?? false)}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+                            setFormData((prev: any) => ({ ...prev, isOther: e.target.value === 'true' }))
+                        }, [setFormData])}
+                        options={[
+                            { value: 'false', label: 'No' },
+                            { value: 'true', label: 'Yes' },
+                        ]}
+                    />
+                </>
             )}
 
             {entityType === ENTITY_TYPES.PROGRAMME_TYPE && (

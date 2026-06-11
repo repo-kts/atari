@@ -185,6 +185,20 @@ export interface StaffCategoryFormData {
     categoryName: string;
 }
 
+export interface JobType {
+    jobTypeId: number;
+    name: string;
+    isOther?: boolean;
+    _count?: {
+        staff: number;
+    };
+}
+
+export interface JobTypeFormData {
+    name: string;
+    isOther?: boolean;
+}
+
 export interface PayLevelFormData {
     levelName: string;
 }
@@ -381,10 +395,12 @@ export interface EnterpriseTypeFormData {
 export interface AccountType {
     accountTypeId: number;
     accountType: string;
+    isOther?: boolean;
 }
 
 export interface AccountTypeFormData {
     accountType: string;
+    isOther?: boolean;
 }
 
 export interface ProgrammeType {
@@ -484,6 +500,17 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<StaffCategory>>(`${BASE_URL}/staff-category/${id}`, data),
     deleteStaffCategory: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/staff-category/${id}`),
+
+    getJobTypes: () =>
+        apiClient.get<PaginatedResponse<JobType>>(`${BASE_URL}/job-type`),
+    getJobTypeById: (id: number) =>
+        apiClient.get<ApiResponse<JobType>>(`${BASE_URL}/job-type/${id}`),
+    createJobType: (data: JobTypeFormData) =>
+        apiClient.post<ApiResponse<JobType>>(`${BASE_URL}/job-type`, data),
+    updateJobType: (id: number, data: Partial<JobTypeFormData>) =>
+        apiClient.put<ApiResponse<JobType>>(`${BASE_URL}/job-type/${id}`, data),
+    deleteJobType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/job-type/${id}`),
 
     getPayLevels: () =>
         apiClient.get<PaginatedResponse<PayLevel>>(`${BASE_URL}/pay-level`),

@@ -6,6 +6,7 @@ import type {
     SeasonFormData,
     SanctionedPostFormData,
     StaffCategoryFormData,
+    JobTypeFormData,
     PayLevelFormData,
     PayScaleFormData,
     AssetFundingSourceFormData,
@@ -200,6 +201,50 @@ export function useStaffCategories() {
         mutationFn: (id: number) => otherMastersApi.deleteStaffCategory(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.STAFF_CATEGORY);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useJobTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['job-types'],
+        queryFn: () => otherMastersApi.getJobTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: JobTypeFormData) => otherMastersApi.createJobType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.JOB_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<JobTypeFormData> }) =>
+            otherMastersApi.updateJobType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.JOB_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteJobType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.JOB_TYPE);
         },
     });
 

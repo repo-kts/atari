@@ -1,6 +1,18 @@
 const prisma = require('../../../config/prisma.js');
 const { applyDateFilters } = require('../aboutkvkReport/commonFilters.js');
 const { OFT_STATUS } = require('../../../constants/oftStatus.js');
+const s3 = require('../../../services/storage/s3Service.js');
+
+// Resolve an OFT result photograph (S3 key) to a presigned URL the report
+// templates can embed. Returns null when no photo or S3 isn't configured (#241).
+async function resolvePhotoUrl(key) {
+    if (!key || !s3.isConfigured()) return null;
+    try {
+        return await s3.presignGet({ key });
+    } catch {
+        return null;
+    }
+}
 
 async function getOftSummaryData(kvkId, filters = {}) {
     // Transferred rows are stale clones of the same trial — exclude to avoid double counting.
@@ -107,14 +119,18 @@ async function getOftDetailCards(kvkId, filters = {}) {
     // completion date), so oftEndDate is always null. Fall back to it so the
     // report's "OFT End on" is populated instead of showing "-".
     // BUT: an ONGOING OFT has no end date yet — don't show the expected
-    // completion date as if the trial had ended.
-    return rows.map((r) => ({
+    // completion date as if the trial had ended (#222). Also resolve the result
+    // photograph to a presigned URL for embedding (#241).
+    return Promise.all(rows.map(async (r) => ({
         ...r,
         oftEndDate:
-            r.status === 'ONGOING'
+            r.status === OFT_STATUS.ONGOING
                 ? r.oftEndDate ?? null
                 : r.oftEndDate ?? r.expectedCompletionDate ?? null,
-    }));
+        resultReport: r.resultReport
+            ? { ...r.resultReport, photographUrl: await resolvePhotoUrl(r.resultReport.photographPath) }
+            : r.resultReport,
+    })));
 }
 
 /**

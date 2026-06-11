@@ -65,7 +65,7 @@ function renderSectionA(payload) {
       </tr>`;
 
     return `
-  <div class="fld-subtitle">A. Overall achievements of FLDs conducted during the year ${esc(y)}</div>
+  <div class="fld-subtitle">A. Overall achievements of FLDs conducted${y ? ` for ${esc(y)}` : ''}</div>
   <table class="fld-tbl">
     <thead>
       <tr>
@@ -136,7 +136,7 @@ function renderSectionB(payload) {
   ${renderDetailTable(cat.rows)}`).join('');
 
     return `
-  <div class="fld-subtitle">B. Details of FLDs conducted during the year ${esc(payload.yearLabel || '')}</div>
+  <div class="fld-subtitle">B. Details of FLDs conducted${payload.yearLabel ? ` for ${esc(payload.yearLabel)}` : ''}</div>
   ${blocks}
   <div class="fld-foot">
     * Economics to be worked out based on total cost of production per unit area and not on critical inputs alone.<br/>

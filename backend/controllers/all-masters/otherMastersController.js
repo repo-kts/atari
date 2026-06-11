@@ -161,6 +161,12 @@ exports.createStaffCategory = create('staff-category');
 exports.updateStaffCategory = update('staff-category');
 exports.deleteStaffCategory = deleteEntity('staff-category');
 
+exports.getAllJobTypes = getAll('job-type');
+exports.getJobTypeById = getById('job-type');
+exports.createJobType = create('job-type');
+exports.updateJobType = update('job-type');
+exports.deleteJobType = deleteEntity('job-type');
+
 exports.getAllPayLevels = getAll('pay-level');
 exports.getPayLevelById = getById('pay-level');
 exports.createPayLevel = create('pay-level');

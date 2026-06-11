@@ -8,6 +8,7 @@ const sections: FeatureSection[] = [
         icon: <Users className="w-5 h-5" />,
         items: [
             { label: 'Staff Category Master', path: '/all-master/staff-category' },
+            { label: 'Job Type Master', path: '/all-master/job-type' },
             { label: 'Pay Level Master', path: '/all-master/pay-level' },
             { label: 'Pay Scale Master', path: '/all-master/pay-scale' },
             { label: 'Sanctioned Post Master', path: '/all-master/sanctioned-post' },

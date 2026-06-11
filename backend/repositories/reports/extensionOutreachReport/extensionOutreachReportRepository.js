@@ -3,7 +3,7 @@
  */
 const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
-const { yearLabelFromFilters } = require('../aboutkvkReport/commonFilters.js');
+const { yearLabelFromFilters } = require('../reportYearLabel.js');
 
 function safeInt(v) {
     if (v === null || v === undefined || v === '') return 0;
@@ -209,7 +209,7 @@ function buildPayloadFromRecords(records, filters = {}) {
     const norm = Array.isArray(records)
         ? records.map((r) => normalizeFlexibleRow(r))
         : [];
-    // Year label from the selected filter, not the data — see #223.
+    // Year label from the selected filter, not the data (#231/#223).
     const yearLabel = yearLabelFromFilters(filters);
 
     if (norm.length === 0) {

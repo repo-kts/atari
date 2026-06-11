@@ -2,10 +2,12 @@ const { getSectionConfig, getAllSections, buildSectionNumbering } = require('../
 const { renderSimpleTableSection } = require('./formsTemplate/aboutkvkTemplates/simpleTableTemplate.js');
 const { renderEmployeeContactsSection } = require('./formsTemplate/aboutkvkTemplates/employeeContactsTemplate.js');
 const { renderEmployeesFullSection } = require('./formsTemplate/aboutkvkTemplates/employeesFullTemplate.js');
+const { renderStaffTransferredSection } = require('./formsTemplate/aboutkvkTemplates/staffTransferredTemplate.js');
 const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/vehiclesTemplate.js');
 const { renderLandDetailsSection } = require('./formsTemplate/aboutkvkTemplates/landDetailsTemplate.js');
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
 const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
+const { renderEquipmentDetailsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentDetailsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
 const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
 const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
@@ -57,6 +59,7 @@ const { renderNfSoilDataInformationSection } = require('./formsTemplate/projectT
 const { renderNfBudgetExpenditureInformationSection } = require('./formsTemplate/projectTemplates/nfBudgetExpenditureInformationTemplate.js');
 const { renderFldPageReportSection } = require('./formsTemplate/achievementTemplates/fldPageReportTemplate.js');
 const { renderFldStateCategoryReportSection } = require('./formsTemplate/achievementTemplates/fldStateCategoryReportTemplate.js');
+const { renderTechnicalAchievementSummarySection } = require('./formsTemplate/achievementTemplates/technicalAchievementSummaryTemplate.js');
 const { renderTrainingCapacityReportSection } = require('./formsTemplate/achievementTemplates/trainingCapacityReportTemplate.js');
 const { renderTrainingsPageReportSection } = require('./formsTemplate/achievementTemplates/trainingsPageReportTemplate.js');
 const { renderExtensionOutreachReportSection } = require('./formsTemplate/achievementTemplates/extensionOutreachReportTemplate.js');
@@ -146,11 +149,13 @@ class ReportTemplateService {
             'about-kvk-bank-accounts': renderSimpleTableSection.bind(this),
             'about-kvk-employee-contacts': renderEmployeeContactsSection.bind(this),
             'about-kvk-employees-full': renderEmployeesFullSection.bind(this),
+            'about-kvk-staff-transferred': renderStaffTransferredSection.bind(this),
             'about-kvk-vehicles': renderVehiclesSection.bind(this),
             'about-kvk-vehicle-details': renderVehicleDetailsSection.bind(this),
             'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-record': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
+            'about-kvk-equipment-details-table': renderEquipmentDetailsSection.bind(this),
             'oft-summary': renderOftSummarySection.bind(this),
             'oft-detail-cards': renderOftDetailCardsSection.bind(this),
             'oft-combined': renderOftCombinedSection.bind(this),
@@ -190,6 +195,7 @@ class ReportTemplateService {
             'nf-budget-expenditure-information': renderNfBudgetExpenditureInformationSection.bind(this),
             'fld-page-report': renderFldPageReportSection.bind(this),
             'fld-state-category-report': renderFldStateCategoryReportSection.bind(this),
+            'technical-achievement-summary': renderTechnicalAchievementSummarySection.bind(this),
             'training-capacity-report': renderTrainingCapacityReportSection.bind(this),
             'trainings-page-report': renderTrainingsPageReportSection.bind(this),
             'extension-outreach-report': renderExtensionOutreachReportSection.bind(this),
@@ -973,12 +979,21 @@ class ReportTemplateService {
             return null;
         }
 
-        for (const path of candidatePaths) {
-            const value = path.includes('.')
-                ? this._getNestedValue(obj, path)
-                : obj[path];
+        const usable = (v) => v !== null && v !== undefined && v !== '';
 
-            if (value !== null && value !== undefined && value !== '') {
+        for (const path of candidatePaths) {
+            // Try the literal key FIRST. Transformed report rows are keyed by
+            // display name, some of which contain a dot (e.g. "Cost (Rs.)").
+            // Treating those as dotted nested paths split them on "." and lost
+            // the value. Only fall back to nested traversal when there is no
+            // literal property and the path actually looks nested (e.g.
+            // "kvk.kvkName").
+            let value = obj[path];
+            if (!usable(value) && path.includes('.')) {
+                value = this._getNestedValue(obj, path);
+            }
+
+            if (usable(value)) {
                 return value;
             }
         }

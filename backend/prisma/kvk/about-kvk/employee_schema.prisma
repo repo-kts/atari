@@ -13,6 +13,10 @@ model KvkStaff {
   payScaleId                  Int?                        @map("pay_scale_id")
   dateOfJoining               DateTime                    @map("date_of_joining")
   jobType                     JobType?                    @map("job_type")
+  // Optional master-backed job type (kept alongside the enum for back-compat).
+  jobTypeMasterId             Int?                        @map("job_type_master_id")
+  // Free-text value when the selected job type is the "Other" option (#237).
+  jobTypeOther                String?                     @map("job_type_other")
   allowances                  String?                     @map("allowances")
   transferStatus              TransferStatus              @default(ACTIVE) @map("transfer_status")
   sourceKvkIds                Json?                       @map("source_kvk_ids")
@@ -35,9 +39,11 @@ model KvkStaff {
   payScale                    PayScaleMaster?             @relation(fields: [payScaleId], references: [payScaleId], onDelete: SetNull)
   sanctionedPost              SanctionedPost?             @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
   staffCategory               StaffCategoryMaster?        @relation(fields: [staffCategoryId], references: [staffCategoryId])
+  jobTypeMaster               JobTypeMaster?              @relation(fields: [jobTypeMasterId], references: [jobTypeId], onDelete: SetNull)
   transferHistory             StaffTransferHistory[]
 
   @@index([kvkId])
+  @@index([jobTypeMasterId])
   @@index([sanctionedPostId])
   @@index([disciplineId])
   @@index([staffName])

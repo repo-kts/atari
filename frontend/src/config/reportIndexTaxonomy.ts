@@ -43,7 +43,8 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                 label: 'Employee Information',
                 features: [
                     { label: 'Employee Details', sectionId: '1.3' },
-                    { label: 'Staff Transferred', sectionId: '1.4' },
+                    { label: 'All KVK Staff', sectionId: '1.4' },
+                    { label: 'Staff Transferred', sectionId: '1.11' },
                 ],
             },
             {
@@ -79,7 +80,7 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
             {
                 label: 'Technical Achievement',
                 features: [
-                    { label: 'Technical Achievement Summary', sectionId: '' },
+                    { label: 'Technical Achievement Summary', sectionId: '2.1' },
                 ],
             },
             {
@@ -301,10 +302,23 @@ export function buildTaxonomyView(
 
     const groups = chapter.groups.map((group, gi) => {
         const groupNo = `${chapterNo}.${gi + 1}`
+        // Collapse features that map to the SAME report section into a single
+        // selectable row. Several sub-views (e.g. FLD Summary / State-wise /
+        // Details) are produced by one section, so listing them as separate
+        // checkboxes made one click select all of them at once (#233).
+        // Keep the first label for each distinct sectionId; empty-sectionId
+        // (not-yet-backed) rows are always kept so they still show as disabled.
+        const seen = new Set<string>()
+        const deduped = group.features.filter((f) => {
+            if (!f.sectionId) return true
+            if (seen.has(f.sectionId)) return false
+            seen.add(f.sectionId)
+            return true
+        })
         return {
             number: groupNo,
             label: group.label,
-            features: group.features.map((f, fi) => ({
+            features: deduped.map((f, fi) => ({
                 number: `${groupNo}.${String.fromCharCode(65 + fi)}`,
                 label: f.label,
                 sectionId: f.sectionId,

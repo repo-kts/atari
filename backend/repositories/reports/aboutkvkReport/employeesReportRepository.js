@@ -8,7 +8,7 @@ async function getKvkEmployees(kvkId, filters = {}) {
     };
     applyCreatedAtFilters(where, filters);
 
-    return await prisma.kvkStaff.findMany({
+    const rows = await prisma.kvkStaff.findMany({
         where,
         include: {
             kvk: {
@@ -26,9 +26,16 @@ async function getKvkEmployees(kvkId, filters = {}) {
             staffCategory: {
                 select: { staffCategoryId: true, categoryName: true },
             },
+            jobTypeMaster: { select: { name: true } },
         },
         orderBy: { staffName: 'asc' },
     });
+
+    // Display job type: master name → "Other" specify text → legacy enum.
+    return rows.map((r) => ({
+        ...r,
+        jobType: r.jobTypeMaster?.name || r.jobTypeOther || r.jobType || '',
+    }));
 }
 
 async function getKvkEmployeeHeads(kvkId, filters = {}) {

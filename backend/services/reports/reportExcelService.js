@@ -1,6 +1,7 @@
 const ExcelJS = require('exceljs');
 const reportTemplateService = require('./reportTemplateService.js');
 const { parseSectionHtml } = require('../../utils/htmlReportTableParser.js');
+const { fetchImageBuffer } = require('../../utils/fetchImageBuffer.js');
 
 /**
  * Report Excel Service
@@ -109,9 +110,9 @@ function writeTable(ws, table, startRow, widthTracker) {
     return rowIdx;
 }
 
-/** Write a section's headings + all its tables into a worksheet. */
-function writeSection(ws, chunk) {
-    const { headings, tables } = parseSectionHtml(chunk.html);
+/** Write a section's headings + all its tables (+ images) into a worksheet. */
+async function writeSection(ws, chunk) {
+    const { headings, tables, images = [] } = parseSectionHtml(chunk.html);
     const widthTracker = {};
     let rowIdx = 1;
 
@@ -130,7 +131,7 @@ function writeSection(ws, chunk) {
     }
     rowIdx += 1; // spacer
 
-    if (tables.length === 0) {
+    if (tables.length === 0 && images.length === 0) {
         ws.getCell(rowIdx, 1).value = 'No data available for this section.';
         ws.getCell(rowIdx, 1).font = { italic: true, color: { argb: 'FF888888' } };
         ws.getColumn(1).width = 40;
@@ -145,6 +146,19 @@ function writeSection(ws, chunk) {
     for (const [colStr, width] of Object.entries(widthTracker)) {
         ws.getColumn(Number(colStr)).width = width;
     }
+
+    // Embed images (e.g. OFT result photographs) below the tables (#241).
+    for (const src of images) {
+        const img = await fetchImageBuffer(src);
+        if (!img) continue;
+        const imageId = ws.workbook.addImage({ buffer: img.buffer, extension: img.extension });
+        ws.addImage(imageId, {
+            tl: { col: 0, row: rowIdx },
+            ext: { width: 320, height: 220 },
+        });
+        rowIdx += 14; // leave vertical space for the image
+    }
+
     ws.views = [{ state: 'frozen', ySplit: 0 }];
 }
 
@@ -243,7 +257,7 @@ class ReportExcelService {
                 properties: { tabColor: { argb: chapterColor.get(chunk.chapter) } },
                 pageSetup: { fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
             });
-            writeSection(ws, chunk);
+            await writeSection(ws, chunk);
         }
 
         writeIndexSheet(indexSheet, kvkInfo, numbering, sheetBySectionId);
