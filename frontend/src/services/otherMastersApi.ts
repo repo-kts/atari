@@ -188,6 +188,7 @@ export interface StaffCategoryFormData {
 export interface JobType {
     jobTypeId: number;
     name: string;
+    isOther?: boolean;
     _count?: {
         staff: number;
     };
@@ -195,6 +196,7 @@ export interface JobType {
 
 export interface JobTypeFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface PayLevelFormData {
@@ -393,10 +395,12 @@ export interface EnterpriseTypeFormData {
 export interface AccountType {
     accountTypeId: number;
     accountType: string;
+    isOther?: boolean;
 }
 
 export interface AccountTypeFormData {
     accountType: string;
+    isOther?: boolean;
 }
 
 export interface ProgrammeType {
