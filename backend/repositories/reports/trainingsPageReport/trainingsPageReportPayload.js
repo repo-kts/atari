@@ -62,15 +62,21 @@ function sortStr(a, b) {
 }
 
 function inferYearLabel(records) {
+    // Standalone export fallback. Never fabricate the current year / a future
+    // year (#223): use the most recent non-future fiscal start year from data,
+    // else '' so the heading omits the year.
+    const currentYear = new Date().getFullYear();
+    const years = [];
     for (const r of records) {
         if (!r.startDate) continue;
         const d = new Date(r.startDate);
         if (Number.isNaN(d.getTime())) continue;
         const month = d.getMonth() + 1;
         const startYear = month >= 4 ? d.getFullYear() : d.getFullYear() - 1;
-        return String(startYear);
+        if (startYear <= currentYear) years.push(startYear);
     }
-    return String(new Date().getFullYear());
+    if (years.length === 0) return '';
+    return String(Math.max(...years));
 }
 
 function getTrainingTypeName(r) {

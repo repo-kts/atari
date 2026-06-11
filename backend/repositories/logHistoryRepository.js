@@ -16,14 +16,23 @@ const logHistoryRepository = {
    * @returns {Promise<{logs: object[], total: number}>}
    */
   listActivityLogs: async ({ where, skip, take, orderBy }) => {
+    // Hide activity of soft-deleted users, but keep anonymous rows
+    // (userId is null for e.g. failed logins with unknown emails — a
+    // bare relation filter would silently drop those audit entries).
+    const scopedWhere = {
+      AND: [
+        where,
+        { OR: [{ userId: null }, { user: { is: { deletedAt: null } } }] },
+      ],
+    };
     const [logs, total] = await Promise.all([
       prisma.userLoginActivity.findMany({
-        where,
+        where: scopedWhere,
         orderBy,
         skip,
         take,
       }),
-      prisma.userLoginActivity.count({ where }),
+      prisma.userLoginActivity.count({ where: scopedWhere }),
     ]);
 
     return { logs, total };
@@ -59,6 +68,7 @@ const logHistoryRepository = {
       where: {
         ...where,
         userId: { not: null },
+        user: { is: { deletedAt: null } },
       },
       select: {
         userId: true,

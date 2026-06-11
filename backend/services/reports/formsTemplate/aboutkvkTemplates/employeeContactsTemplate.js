@@ -15,7 +15,6 @@ function renderEmployeeContactsSection(section, data, sectionId, isFirstSection)
                 <th class="s-no">S.No.</th>
                 <th>KVK</th>
                 <th>Name</th>
-                <th>Residence</th>
                 <th>Mobile</th>
                 <th>Email</th>
             </tr>
@@ -25,7 +24,6 @@ function renderEmployeeContactsSection(section, data, sectionId, isFirstSection)
     records.forEach((row, index) => {
         const kvkName = this._pickValue(row, ['KVK', 'kvk.kvkName']) || '-'
         const name = this._pickValue(row, ['Name', 'staffName']) || '-'
-        const residence = this._pickValue(row, ['Residence', 'residence']) || '-'
         const mobile = this._pickValue(row, ['Mobile', 'mobile']) || '-'
         const email = this._pickValue(row, ['Email', 'email']) || '-'
 
@@ -34,7 +32,6 @@ function renderEmployeeContactsSection(section, data, sectionId, isFirstSection)
                 <td class="s-no">${index + 1}.</td>
                 <td>${this._escapeHtml(String(kvkName))}</td>
                 <td>${this._escapeHtml(String(name))}</td>
-                <td>${this._escapeHtml(String(residence))}</td>
                 <td>${this._escapeHtml(String(mobile))}</td>
                 <td>${this._escapeHtml(String(email))}</td>
             </tr>`

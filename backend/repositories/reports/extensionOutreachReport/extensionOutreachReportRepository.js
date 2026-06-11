@@ -209,7 +209,7 @@ function buildPayloadFromRecords(records, filters = {}) {
     const norm = Array.isArray(records)
         ? records.map((r) => normalizeFlexibleRow(r))
         : [];
-    // Year label from the selected filter, not the data (#231).
+    // Year label from the selected filter, not the data (#231/#223).
     const yearLabel = yearLabelFromFilters(filters);
 
     if (norm.length === 0) {

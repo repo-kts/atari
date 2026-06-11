@@ -1,6 +1,18 @@
 const prisma = require('../../../config/prisma.js');
 const { applyCreatedAtFilters } = require('./commonFilters.js');
 
+async function getKvkLandDetails(kvkId, filters = {}) {
+    const where = { kvkId };
+    // Land holdings are current-state (no reporting date) — no date filtering.
+    return await prisma.kvkLandDetail.findMany({
+        where,
+        include: {
+            kvk: { select: { kvkId: true, kvkName: true } },
+        },
+        orderBy: { landId: 'asc' },
+    });
+}
+
 async function getKvkInfrastructure(kvkId, filters = {}) {
     const where = { kvkId };
     applyCreatedAtFilters(where, filters);
@@ -134,6 +146,7 @@ async function getKvkEquipmentRecords(kvkId, filters = {}) {
 }
 
 module.exports = {
+    getKvkLandDetails,
     getKvkInfrastructure,
     getKvkVehicles,
     getKvkVehicleDetails,

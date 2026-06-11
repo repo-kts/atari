@@ -1,9 +1,9 @@
 const prisma = require('../../../config/prisma.js');
-const { applyCreatedAtFilters } = require('../aboutkvkReport/commonFilters.js');
+const { applyDateFilters } = require('../aboutkvkReport/commonFilters.js');
 
 async function getKisanSarathi(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'reportingYear');
 
     return await prisma.kisanSarathi.findMany({
         where,
@@ -16,7 +16,7 @@ async function getKisanSarathi(kvkId, filters = {}) {
 
 async function getMobileApp(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'reportingYear');
 
     return await prisma.mobileApp.findMany({
         where,
@@ -29,7 +29,7 @@ async function getMobileApp(kvkId, filters = {}) {
 
 async function getKmas(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'reportingYear');
 
     return await prisma.kmas.findMany({
         where,
@@ -42,7 +42,7 @@ async function getKmas(kvkId, filters = {}) {
 
 async function getWebPortal(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'reportingYear');
 
     return await prisma.webPortal.findMany({
         where,
@@ -55,7 +55,7 @@ async function getWebPortal(kvkId, filters = {}) {
 
 async function getMsgDetails(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'reportingYear');
 
     return await prisma.msgDetails.findMany({
         where,

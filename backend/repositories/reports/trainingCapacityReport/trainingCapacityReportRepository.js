@@ -152,7 +152,7 @@ function buildPayloadFromRecords(records, filters = {}) {
             return looksNormalized ? r : normalizePrismaRow(r);
         })
         : [];
-    // Year label from the selected filter, not the data (#231).
+    // Year label from the selected filter, not the data (#231/#223).
     const yearLabel = yearLabelFromFilters(filters);
 
     if (norm.length === 0) {

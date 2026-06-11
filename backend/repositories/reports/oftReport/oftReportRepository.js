@@ -1,5 +1,6 @@
 const prisma = require('../../../config/prisma.js');
-const { applyCreatedAtFilters } = require('../aboutkvkReport/commonFilters.js');
+const { applyDateFilters } = require('../aboutkvkReport/commonFilters.js');
+const { OFT_STATUS } = require('../../../constants/oftStatus.js');
 const s3 = require('../../../services/storage/s3Service.js');
 
 // Resolve an OFT result photograph (S3 key) to a presigned URL the report
@@ -14,8 +15,9 @@ async function resolvePhotoUrl(key) {
 }
 
 async function getOftSummaryData(kvkId, filters = {}) {
-    const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    // Transferred rows are stale clones of the same trial — exclude to avoid double counting.
+    const where = { kvkId, status: { not: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR } };
+    applyDateFilters(where, filters, 'oftStartDate');
 
     return await prisma.kvkoft.findMany({
         where,
@@ -58,8 +60,8 @@ async function getOftSummaryData(kvkId, filters = {}) {
 }
 
 async function getOftDetailCards(kvkId, filters = {}) {
-    const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    const where = { kvkId, status: { not: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR } };
+    applyDateFilters(where, filters, 'oftStartDate');
 
     const rows = await prisma.kvkoft.findMany({
         where,
@@ -116,9 +118,15 @@ async function getOftDetailCards(kvkId, filters = {}) {
     // The OFT form doesn't capture a dedicated end date yet (only the expected
     // completion date), so oftEndDate is always null. Fall back to it so the
     // report's "OFT End on" is populated instead of showing "-".
+    // BUT: an ONGOING OFT has no end date yet — don't show the expected
+    // completion date as if the trial had ended (#222). Also resolve the result
+    // photograph to a presigned URL for embedding (#241).
     return Promise.all(rows.map(async (r) => ({
         ...r,
-        oftEndDate: r.oftEndDate ?? r.expectedCompletionDate ?? null,
+        oftEndDate:
+            r.status === OFT_STATUS.ONGOING
+                ? r.oftEndDate ?? null
+                : r.oftEndDate ?? r.expectedCompletionDate ?? null,
         resultReport: r.resultReport
             ? { ...r.resultReport, photographUrl: await resolvePhotoUrl(r.resultReport.photographPath) }
             : r.resultReport,

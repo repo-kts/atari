@@ -6,6 +6,7 @@ const {
     getKvkStaffTransferred,
 } = require('./employeesReportRepository.js');
 const {
+    getKvkLandDetails,
     getKvkInfrastructure,
     getKvkVehicles,
     getKvkVehicleDetails,
@@ -19,6 +20,7 @@ module.exports = {
     getKvkEmployees,
     getKvkEmployeeHeads,
     getKvkStaffTransferred,
+    getKvkLandDetails,
     getKvkInfrastructure,
     getKvkVehicles,
     getKvkVehicleDetails,

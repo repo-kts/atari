@@ -31,7 +31,14 @@ function _formatMonthYear(dateValue) {
  */
 function _formatTechnologiesHtml(technologies, escapeHtml) {
     if (!Array.isArray(technologies) || technologies.length === 0) return '-';
-    return technologies.map(tech => {
+    // Only render options the user actually filled in. The form exposes a fixed
+    // set of slots (FP, TO1..TO5, CD, CV); empty ones (e.g. CD:, CV:, TO3:) must
+    // not show as blank labelled rows.
+    const filled = technologies.filter(
+        (tech) => (tech.details || '').trim() !== ''
+    );
+    if (filled.length === 0) return '-';
+    return filled.map(tech => {
         const label = tech.optionKey === 'FP'
             ? 'Farmer Practice'
             : (tech.optionName || tech.optionKey || '-');

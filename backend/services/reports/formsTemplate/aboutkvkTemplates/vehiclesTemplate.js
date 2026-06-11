@@ -28,6 +28,9 @@ function renderVehiclesSection(section, data, sectionId, isFirstSection) {
         <tbody>`
 
     records.forEach((row, index) => {
+        // Use ?? so a legitimate 0 (e.g. gifted/free vehicle) renders as "0"
+        // instead of "-": _pickValue returns null when absent, 0 otherwise.
+        const dash = (v) => (v === null || v === undefined || v === '' ? '-' : v)
         const kvk = this._pickValue(row, ['KVK', 'kvk.kvkName']) || '-'
         const type = this._pickValue(row, ['Type of vehicle', 'vehicleName']) || '-'
         const reg = this._pickValue(row, ['Registration No.', 'registrationNo']) || '-'

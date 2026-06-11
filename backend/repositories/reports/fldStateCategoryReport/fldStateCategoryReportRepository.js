@@ -1,6 +1,7 @@
 const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
 const { yearLabelFromFilters } = require('../reportYearLabel.js');
+const { FLD_STATUS } = require('../../../constants/fldStatus.js');
 
 function safeInt(v) {
     if (v === null || v === undefined || v === '') return 0;
@@ -18,8 +19,9 @@ function totalFarmersFromRow(r) {
 }
 
 function applyReportingYear(where, filters) {
-    // KvkFldIntroduction has no `reportingYear` column — filtering on it threw
-    // and dropped the FLD section on year-select. Filter on `startDate`.
+    // KvkFldIntroduction has no `reportingYear` column — filtering on it threw a
+    // Prisma validation error, which dropped the whole FLD section on
+    // year/range select (#227). Filter on the real event date `startDate`.
     const ry = buildReportingYearFilter(filters);
     if (ry) where.startDate = ry;
 }
@@ -242,7 +244,7 @@ function buildDetailRowsForCategory(catRecords) {
 
 function buildPayloadFromRecords(records, filters = {}) {
     const norm = records.map((r) => (typeof r.stateName === 'string' ? r : normalizePrismaRow(r)));
-    // Year label from the selected filter, not the data (#231).
+    // Year label from the selected filter, not the data (#231/#223).
     const yearLabel = yearLabelFromFilters(filters);
     if (norm.length === 0) {
         return {
@@ -279,7 +281,8 @@ function buildPayloadFromRecords(records, filters = {}) {
 }
 
 async function fetchFldRecords(kvkId, filters = {}) {
-    const where = {};
+    // Transferred rows are stale clones of the same demonstration — exclude to avoid double counting.
+    const where = { ongoingCompleted: { not: FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR } };
     if (kvkId) where.kvkId = kvkId;
     applyReportingYear(where, filters);
 

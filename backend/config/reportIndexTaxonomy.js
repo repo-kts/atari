@@ -45,8 +45,8 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'Land & Infrastructure Information',
                 features: [
                     { label: 'Infrastructure Details', sectionId: '1.5' },
-                    { label: 'Land Details', sectionId: '1.5' },
-                    { label: 'Staff Quarters Details', sectionId: '1.5' },
+                    { label: 'Land Details', sectionId: '1.10' },
+                    { label: 'Staff Quarters Details', sectionId: '4.13' },
                 ],
             },
             {
