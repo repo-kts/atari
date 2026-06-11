@@ -49,6 +49,32 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'job-type': {
+        model: 'jobTypeMaster',
+        idField: 'jobTypeId',
+        nameField: 'name',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
+        includes: {
+            _count: {
+                select: {
+                    staff: true,
+                },
+            },
+        },
+    },
+    'account-type': {
+        model: 'accountTypeMaster',
+        idField: 'accountTypeId',
+        nameField: 'accountType',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
+        includes: {
+            _count: {
+                select: {
+                    bankAccounts: true,
+                },
+            },
+        },
+    },
     'pay-level': {
         model: 'payLevelMaster',
         idField: 'payLevelId',
