@@ -1,7 +1,8 @@
 model KvkBankAccount {
   bankAccountId Int         @id @default(autoincrement()) @map("bank_account_id")
   kvkId         Int
-  accountType   AccountType @map("account_type")
+  // Legacy enum, now optional — new records use the master FK below (#237).
+  accountType   AccountType? @map("account_type")
   // Optional master-backed account type (kept alongside the enum for back-compat).
   accountTypeMasterId Int?  @map("account_type_master_id")
   // Free-text value when the selected account type is the "Other" option (#237).

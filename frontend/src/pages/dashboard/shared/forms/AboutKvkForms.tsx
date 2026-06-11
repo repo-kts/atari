@@ -12,10 +12,8 @@ import {
     useKvkEquipmentsForDropdown,
     useVehiclePresentStatuses,
     useEquipmentPresentStatuses,
-    enumToOptions,
-    AccountTypeEnum
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useEquipmentTypes, useEquipmentMasters } from '@/hooks/useOtherMastersData'
+import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useEquipmentTypes, useEquipmentMasters, useAccountTypes, useJobTypes } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
@@ -67,6 +65,8 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: assetFundingSources = [] } = useAssetFundingSources()
     const { data: equipmentTypes = [] } = useEquipmentTypes()
     const { data: equipmentMasters = [] } = useEquipmentMasters()
+    const { data: accountTypes = [] } = useAccountTypes()
+    const { data: jobTypes = [] } = useJobTypes()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
     const reportingYear = formData.reportingYear ? new Date(formData.reportingYear).toISOString() : undefined
@@ -117,6 +117,26 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         const name = String(selected?.name || '').trim().toLowerCase()
         return name === 'others' || name === 'other'
     }, [infraMasters, formData.infraMasterId])
+    const accountTypeOptions = React.useMemo(
+        () => toOptions(accountTypes as any[], 'accountTypeId', 'accountType'),
+        [accountTypes],
+    )
+    const isOtherAccountTypeSelected = React.useMemo(
+        () => Boolean((accountTypes as any[]).find(
+            (a) => String(a.accountTypeId) === String(formData.accountTypeMasterId),
+        )?.isOther),
+        [accountTypes, formData.accountTypeMasterId],
+    )
+    const jobTypeOptions = React.useMemo(
+        () => toOptions(jobTypes as any[], 'jobTypeId', 'name'),
+        [jobTypes],
+    )
+    const isOtherJobTypeSelected = React.useMemo(
+        () => Boolean((jobTypes as any[]).find(
+            (j) => String(j.jobTypeId) === String(formData.jobTypeMasterId),
+        )?.isOther),
+        [jobTypes, formData.jobTypeMasterId],
+    )
     const equipmentTypeOptions = React.useMemo(
         () => toOptions(equipmentTypes as any[], 'equipmentTypeId', 'name'),
         [equipmentTypes],
@@ -263,10 +283,29 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <FormSelect
                         label="Account Type"
                         required
-                        value={formData.accountType ?? ''}
-                        onChange={(e) => setFormData({ ...formData, accountType: e.target.value })}
-                        options={enumToOptions(AccountTypeEnum)}
+                        value={formData.accountTypeMasterId ?? ''}
+                        onChange={(e) => {
+                            const accountTypeMasterId = e.target.value ? parseInt(e.target.value) : null
+                            const isOther = Boolean((accountTypes as any[]).find(
+                                (a) => String(a.accountTypeId) === String(accountTypeMasterId),
+                            )?.isOther)
+                            setFormData({
+                                ...formData,
+                                accountTypeMasterId,
+                                // Clear specify text whenever the chosen option isn't "Other".
+                                accountTypeOther: isOther ? formData.accountTypeOther : '',
+                            })
+                        }}
+                        options={accountTypeOptions}
                     />
+                    {isOtherAccountTypeSelected && (
+                        <FormInput
+                            label="Please specify account type"
+                            required
+                            value={formData.accountTypeOther ?? ''}
+                            onChange={(e) => setFormData({ ...formData, accountTypeOther: e.target.value })}
+                        />
+                    )}
                     <FormInput
                         label="Account Name"
                         required
@@ -402,13 +441,27 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <div className="grid grid-cols-2 gap-6 mt-6">
                             <FormSelect
                                 label="Job Type"
-                                value={formData.jobType ?? ''}
-                                onChange={(e) => setFormData({ ...formData, jobType: e.target.value || '' })}
-                                options={[
-                                    { value: 'PERMANENT', label: 'Permanent' },
-                                    { value: 'TEMPORARY', label: 'Temporary' }
-                                ]}
+                                value={formData.jobTypeMasterId ?? ''}
+                                onChange={(e) => {
+                                    const jobTypeMasterId = e.target.value ? parseInt(e.target.value) : null
+                                    const isOther = Boolean((jobTypes as any[]).find(
+                                        (j) => String(j.jobTypeId) === String(jobTypeMasterId),
+                                    )?.isOther)
+                                    setFormData({
+                                        ...formData,
+                                        jobTypeMasterId,
+                                        jobTypeOther: isOther ? formData.jobTypeOther : '',
+                                    })
+                                }}
+                                options={jobTypeOptions}
                             />
+                            {isOtherJobTypeSelected && (
+                                <FormInput
+                                    label="Please specify job type"
+                                    value={formData.jobTypeOther ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, jobTypeOther: e.target.value })}
+                                />
+                            )}
                             <FormSelect
                                 label="Pay Level"
                                 value={formData.payLevelId ?? ''}

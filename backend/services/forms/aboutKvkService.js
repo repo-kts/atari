@@ -386,9 +386,9 @@ class AboutKvkService {
         const requiredFields = {
             'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
             // Note: universityId is required as per the newest form requirements
-            'kvk-bank-accounts': ['kvkId', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
-            'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId'],
-            'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId'],
+            'kvk-bank-accounts': ['kvkId', 'accountType', 'accountTypeMasterId', 'accountTypeOther', 'accountName', 'bankName', 'location', 'accountNumber'],
+            'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'jobTypeMasterId', 'jobTypeOther'],
+            'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'jobTypeMasterId', 'jobTypeOther'],
             'kvk-infrastructure': ['kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
             'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost'],
             'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'vehicleStatusId'],
