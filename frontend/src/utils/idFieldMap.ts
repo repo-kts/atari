@@ -39,6 +39,7 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
 
     // Employee Masters
     [ENTITY_TYPES.STAFF_CATEGORY]: 'staffCategoryId',
+    [ENTITY_TYPES.JOB_TYPE]: 'jobTypeId',
     [ENTITY_TYPES.PAY_LEVEL]: 'payLevelId',
     [ENTITY_TYPES.PAY_SCALE]: 'payScaleId',
     [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: 'assetFundingSourceId',
