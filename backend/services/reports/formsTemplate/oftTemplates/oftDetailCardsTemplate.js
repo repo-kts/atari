@@ -192,7 +192,9 @@ function _renderResultsSection(resultReport) {
     if (!resultReport) return '';
 
     const tables = resultReport.tables;
-    const hasContent = (Array.isArray(tables) && tables.length > 0) || resultReport.resultText;
+    const hasContent = (Array.isArray(tables) && tables.length > 0)
+        || resultReport.resultText
+        || resultReport.photographUrl;
 
     if (!hasContent) return '';
 
@@ -215,6 +217,15 @@ function _renderResultsSection(resultReport) {
             <p style="margin:12px 0 0 0;font-size:9pt;">
                 <em><strong>Result:</strong></em> ${this._escapeHtml(resultReport.resultText)}
             </p>`;
+    }
+
+    // Result photograph (#241)
+    if (resultReport.photographUrl) {
+        html += `
+            <div style="margin:12px 0 0 0;">
+                <img src="${this._escapeHtml(resultReport.photographUrl)}" alt="OFT result photograph"
+                     style="max-width:60%;max-height:260px;border:0.5px solid #ccc;" />
+            </div>`;
     }
 
     html += `

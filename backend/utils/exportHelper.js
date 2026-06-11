@@ -78,10 +78,27 @@ async function generatePDF(html) {
             console.log(`Generating PDF for HTML of size: ${Math.round(html.length / 1024)} KB`);
         }
 
-        await page.setContent(html, { 
+        await page.setContent(html, {
             waitUntil: 'domcontentloaded',
             timeout: 60000 // Increased timeout for larger content
         });
+        // Wait for any <img> (e.g. embedded OFT result photos via presigned URLs)
+        // to finish loading before rendering — domcontentloaded does not wait for
+        // images. Bounded so a broken/slow image never hangs PDF generation (#241).
+        try {
+            await page.evaluate(async () => {
+                const imgs = Array.from(document.images || []);
+                await Promise.all(imgs.map((img) => {
+                    if (img.complete) return null;
+                    return new Promise((resolve) => {
+                        const done = () => resolve();
+                        img.addEventListener('load', done, { once: true });
+                        img.addEventListener('error', done, { once: true });
+                        setTimeout(done, 8000);
+                    });
+                }));
+            });
+        } catch (_) {}
         // Ensure print media so header/footer render consistently
         try {
             await page.emulateMediaType('print');

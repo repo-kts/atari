@@ -1,5 +1,17 @@
 const prisma = require('../../../config/prisma.js');
 const { applyCreatedAtFilters } = require('../aboutkvkReport/commonFilters.js');
+const s3 = require('../../../services/storage/s3Service.js');
+
+// Resolve an OFT result photograph (S3 key) to a presigned URL the report
+// templates can embed. Returns null when no photo or S3 isn't configured (#241).
+async function resolvePhotoUrl(key) {
+    if (!key || !s3.isConfigured()) return null;
+    try {
+        return await s3.presignGet({ key });
+    } catch {
+        return null;
+    }
+}
 
 async function getOftSummaryData(kvkId, filters = {}) {
     const where = { kvkId };
@@ -104,10 +116,13 @@ async function getOftDetailCards(kvkId, filters = {}) {
     // The OFT form doesn't capture a dedicated end date yet (only the expected
     // completion date), so oftEndDate is always null. Fall back to it so the
     // report's "OFT End on" is populated instead of showing "-".
-    return rows.map((r) => ({
+    return Promise.all(rows.map(async (r) => ({
         ...r,
         oftEndDate: r.oftEndDate ?? r.expectedCompletionDate ?? null,
-    }));
+        resultReport: r.resultReport
+            ? { ...r.resultReport, photographUrl: await resolvePhotoUrl(r.resultReport.photographPath) }
+            : r.resultReport,
+    })));
 }
 
 /**
