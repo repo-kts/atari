@@ -256,6 +256,21 @@ const reportConfig = {
 
         // ── Achievements ───────────────────────────────────
         {
+            id: '2.1',
+            title: 'Technical Achievement Summary',
+            description: 'Target vs achievement across OFT, FLD, Training, Extension and Production',
+            subsection: true,
+            parentSectionId: '2',
+            dataSource: 'technicalAchievementSummary',
+            format: 'custom',
+            customTemplate: 'technical-achievement-summary',
+            filters: {
+                dateFields: ['startDate'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [],
+        },
+        {
             id: '2.2',
             title: 'OFT Summary',
             description: 'Technology Assessed by KVK - sector-wise thematic area summary',

@@ -80,7 +80,7 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
             {
                 label: 'Technical Achievement',
                 features: [
-                    { label: 'Technical Achievement Summary', sectionId: '' },
+                    { label: 'Technical Achievement Summary', sectionId: '2.1' },
                 ],
             },
             {
