@@ -1,6 +1,7 @@
 const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
 const { yearLabelFromFilters } = require('../aboutkvkReport/commonFilters.js');
+const { FLD_STATUS } = require('../../../constants/fldStatus.js');
 
 function safeInt(v) {
     if (v === null || v === undefined || v === '') return 0;
@@ -270,7 +271,8 @@ function buildPayloadFromRecords(records, filters = {}) {
 }
 
 async function fetchFldRecords(kvkId, filters = {}) {
-    const where = {};
+    // Transferred rows are stale clones of the same demonstration — exclude to avoid double counting.
+    const where = { ongoingCompleted: { not: FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR } };
     if (kvkId) where.kvkId = kvkId;
     applyReportingYear(where, filters);
 

@@ -34,6 +34,8 @@ export interface UpdateUserData {
   name?: string;
   email?: string;
   phoneNumber?: string | null;
+  /** Optional admin password reset; omit to keep the current password */
+  password?: string;
   roleId?: number;
   zoneId?: number | null;
   stateId?: number | null;
