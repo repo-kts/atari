@@ -15,9 +15,11 @@ const {
     InternalHyperlink,
     Bookmark,
     PageBreak,
+    ImageRun,
 } = require('docx');
 const reportTemplateService = require('./reportTemplateService.js');
 const { parseSectionHtml } = require('../../utils/htmlReportTableParser.js');
+const { fetchImageBuffer } = require('../../utils/fetchImageBuffer.js');
 
 /**
  * Report Word (DOCX) Service
@@ -111,8 +113,8 @@ function buildDocxTable(table) {
 }
 
 /** Build the document children for one section chunk. */
-function buildSectionChildren(chunk, isFirst) {
-    const { headings, tables } = parseSectionHtml(chunk.html);
+async function buildSectionChildren(chunk, isFirst) {
+    const { headings, tables, images = [] } = parseSectionHtml(chunk.html);
     const out = [];
     const title = `${chunk.featureNumber || chunk.sectionNumber} ${chunk.featureTitle || chunk.sectionTitle}`.trim();
 
@@ -127,13 +129,24 @@ function buildSectionChildren(chunk, isFirst) {
         out.push(new Paragraph({ children: [new TextRun({ text: h, italics: true, color: '555555' })] }));
     }
 
-    if (tables.length === 0) {
+    if (tables.length === 0 && images.length === 0) {
         out.push(new Paragraph({ children: [new TextRun({ text: 'No data available for this section.', italics: true, color: '888888' })] }));
         return out;
     }
     for (const table of tables) {
         out.push(buildDocxTable(table));
         out.push(new Paragraph({ children: [] })); // spacer
+    }
+    // Embed images (e.g. OFT result photographs) (#241).
+    for (const src of images) {
+        const img = await fetchImageBuffer(src);
+        if (!img) continue;
+        out.push(new Paragraph({
+            children: [new ImageRun({
+                data: img.buffer,
+                transformation: { width: 320, height: 220 },
+            })],
+        }));
     }
     return out;
 }
@@ -196,9 +209,9 @@ class ReportWordService {
         const body = [
             ...buildFrontMatter(kvkInfo, numbering, renderedSectionIds),
         ];
-        chunks.forEach((chunk, i) => {
-            body.push(...buildSectionChildren(chunk, i === 0));
-        });
+        for (let i = 0; i < chunks.length; i += 1) {
+            body.push(...await buildSectionChildren(chunks[i], i === 0));
+        }
 
         const doc = new Document({
             creator: generatedBy,

@@ -83,6 +83,17 @@ function parseTable(innerHtml) {
     return rows.length ? { rows } : null;
 }
 
+function extractImages(cleanHtml) {
+    const images = [];
+    const imgRe = /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
+    let m;
+    while ((m = imgRe.exec(cleanHtml))) {
+        const src = decodeEntities(m[1]).trim();
+        if (src && !images.includes(src)) images.push(src);
+    }
+    return images;
+}
+
 function parseSectionHtml(html) {
     const clean = String(html || '').replace(/<style[\s\S]*?<\/style>/gi, '');
     const headings = extractHeadings(clean);
@@ -93,7 +104,8 @@ function parseSectionHtml(html) {
         const table = parseTable(m[1]);
         if (table) tables.push(table);
     }
-    return { headings, tables };
+    const images = extractImages(clean);
+    return { headings, tables, images };
 }
 
 module.exports = { parseSectionHtml, stripTags, decodeEntities };
