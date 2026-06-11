@@ -53,24 +53,12 @@ const ENTITY_CONFIG = {
         model: 'jobTypeMaster',
         idField: 'jobTypeId',
         nameField: 'name',
+        extraFields: ['isOther'],
         allowDeleteWithDependents: true, // onDelete: SetNull configured
         includes: {
             _count: {
                 select: {
                     staff: true,
-                },
-            },
-        },
-    },
-    'account-type': {
-        model: 'accountTypeMaster',
-        idField: 'accountTypeId',
-        nameField: 'accountType',
-        allowDeleteWithDependents: true, // onDelete: SetNull configured
-        includes: {
-            _count: {
-                select: {
-                    bankAccounts: true,
                 },
             },
         },
@@ -385,6 +373,7 @@ const ENTITY_CONFIG = {
         model: 'accountTypeMaster',
         idField: 'accountTypeId',
         nameField: 'accountType',
+        extraFields: ['isOther'],
         includes: {},
     },
     'programme-type': {

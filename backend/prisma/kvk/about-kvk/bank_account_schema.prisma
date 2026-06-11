@@ -4,6 +4,8 @@ model KvkBankAccount {
   accountType   AccountType @map("account_type")
   // Optional master-backed account type (kept alongside the enum for back-compat).
   accountTypeMasterId Int?  @map("account_type_master_id")
+  // Free-text value when the selected account type is the "Other" option (#237).
+  accountTypeOther    String? @map("account_type_other")
   accountName   String      @map("account_name")
   bankName      String      @map("bank_name")
   location      String      @map("location")

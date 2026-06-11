@@ -15,6 +15,8 @@ model KvkStaff {
   jobType                     JobType?                    @map("job_type")
   // Optional master-backed job type (kept alongside the enum for back-compat).
   jobTypeMasterId             Int?                        @map("job_type_master_id")
+  // Free-text value when the selected job type is the "Other" option (#237).
+  jobTypeOther                String?                     @map("job_type_other")
   allowances                  String?                     @map("allowances")
   transferStatus              TransferStatus              @default(ACTIVE) @map("transfer_status")
   sourceKvkIds                Json?                       @map("source_kvk_ids")
