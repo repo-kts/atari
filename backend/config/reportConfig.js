@@ -78,25 +78,6 @@ const reportConfig = {
             ],
         },
         {
-            id: '1.3',
-            title: 'Employee Details',
-            description: 'Heads of KVKs (position order = 1)',
-            subsection: true,
-            parentSectionId: '1',
-            dataSource: 'kvkEmployeesHeads',
-            format: 'custom',
-            customTemplate: 'about-kvk-employee-contacts',
-            filters: {
-                dateFields: ['createdAt'],
-            },
-            fields: [
-                { dbField: 'kvk.kvkName', displayName: 'KVK' },
-                { dbField: 'staffName', displayName: 'Name' },
-                { dbField: 'mobile', displayName: 'Mobile' },
-                { dbField: 'email', displayName: 'Email' },
-            ],
-        },
-        {
             id: '1.4',
             title: 'All KVK staff Details',
             description: 'All active employees/staff of the KVK',
