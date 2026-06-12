@@ -30,13 +30,13 @@ const KVK_ALLOWED_KEYS = [
 ] as const;
 
 const BANK_ACCOUNT_ALLOWED_KEYS = [
-    'kvkId', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber',
+    'kvkId', 'bankAccountTypeMasterId', 'accountTypeOther', 'accountName', 'bankName', 'location', 'accountNumber',
 ] as const;
 
 const STAFF_ALLOWED_KEYS = [
     'kvkId', 'staffName', 'email', 'mobile', 'dateOfBirth', 'photoPath', 'resumePath',
     'sanctionedPostId', 'positionOrder', 'disciplineId', 'payScaleId', 'dateOfJoining',
-    'jobType', 'allowances', 'transferStatus', 'sourceKvkIds', 'originalKvkId',
+    'jobTypeMasterId', 'jobTypeOther', 'allowances', 'transferStatus', 'sourceKvkIds', 'originalKvkId',
     'staffCategoryId', 'payLevelId', 'attachmentIds',
 ] as const;
 
@@ -64,17 +64,6 @@ const EQUIPMENT_DETAIL_ALLOWED_KEYS = [
 const LAND_DETAIL_ALLOWED_KEYS = [
     'kvkId', 'item', 'areaHa',
 ] as const;
-
-function normalizeBankAccountType(value: unknown): 'KVK' | 'REVOLVING_FUND' | 'OTHER' {
-    const normalized = String(value ?? '')
-        .trim()
-        .toUpperCase()
-        .replace(/\s+/g, '_');
-
-    if (normalized === 'REVOLVING_FUND') return 'REVOLVING_FUND';
-    if (normalized === 'OTHER') return 'OTHER';
-    return 'KVK';
-}
 
 function pickAllowedFields<TData>(
     data: Partial<TData>,
@@ -116,13 +105,6 @@ function createSanitizedPutEndpoint<TData, TResponse = TData>(
     };
 }
 
-function normalizeBankAccountPayload(payload: Record<string, unknown>): Record<string, unknown> {
-    const normalized = { ...payload };
-    if (normalized.accountType !== undefined) {
-        normalized.accountType = normalizeBankAccountType(normalized.accountType);
-    }
-    return normalized;
-}
 
 function normalizeCommonStringFields(payload: Record<string, unknown>): Record<string, unknown> {
     const normalized = { ...payload };
@@ -184,13 +166,11 @@ export const aboutKvkApi = {
     getKvkBankAccountById: createGetByIdEndpoint<KvkBankAccount>('/bank-accounts'),
     createKvkBankAccount: createSanitizedPostEndpoint<KvkBankAccountFormData, KvkBankAccount>(
         '/bank-accounts',
-        BANK_ACCOUNT_ALLOWED_KEYS,
-        normalizeBankAccountPayload
+        BANK_ACCOUNT_ALLOWED_KEYS
     ),
     updateKvkBankAccount: createSanitizedPutEndpoint<KvkBankAccountFormData, KvkBankAccount>(
         '/bank-accounts',
-        BANK_ACCOUNT_ALLOWED_KEYS,
-        normalizeBankAccountPayload
+        BANK_ACCOUNT_ALLOWED_KEYS
     ),
     deleteKvkBankAccount: createDeleteEndpoint('/bank-accounts'),
 

@@ -199,6 +199,20 @@ export interface JobTypeFormData {
     isOther?: boolean;
 }
 
+export interface BankAccountType {
+    bankAccountTypeId: number;
+    name: string;
+    isOther?: boolean;
+    _count?: {
+        bankAccounts: number;
+    };
+}
+
+export interface BankAccountTypeFormData {
+    name: string;
+    isOther?: boolean;
+}
+
 export interface PayLevelFormData {
     levelName: string;
 }
@@ -511,6 +525,17 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<JobType>>(`${BASE_URL}/job-type/${id}`, data),
     deleteJobType: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/job-type/${id}`),
+
+    getBankAccountTypes: () =>
+        apiClient.get<PaginatedResponse<BankAccountType>>(`${BASE_URL}/bank-account-type`),
+    getBankAccountTypeById: (id: number) =>
+        apiClient.get<ApiResponse<BankAccountType>>(`${BASE_URL}/bank-account-type/${id}`),
+    createBankAccountType: (data: BankAccountTypeFormData) =>
+        apiClient.post<ApiResponse<BankAccountType>>(`${BASE_URL}/bank-account-type`, data),
+    updateBankAccountType: (id: number, data: Partial<BankAccountTypeFormData>) =>
+        apiClient.put<ApiResponse<BankAccountType>>(`${BASE_URL}/bank-account-type/${id}`, data),
+    deleteBankAccountType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/bank-account-type/${id}`),
 
     getPayLevels: () =>
         apiClient.get<PaginatedResponse<PayLevel>>(`${BASE_URL}/pay-level`),

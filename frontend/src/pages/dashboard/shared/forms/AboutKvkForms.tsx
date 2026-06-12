@@ -13,7 +13,7 @@ import {
     useVehiclePresentStatuses,
     useEquipmentPresentStatuses,
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useEquipmentTypes, useEquipmentMasters, useAccountTypes, useJobTypes } from '@/hooks/useOtherMastersData'
+import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useEquipmentTypes, useEquipmentMasters, useBankAccountTypes, useJobTypes } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
@@ -65,7 +65,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: assetFundingSources = [] } = useAssetFundingSources()
     const { data: equipmentTypes = [] } = useEquipmentTypes()
     const { data: equipmentMasters = [] } = useEquipmentMasters()
-    const { data: accountTypes = [] } = useAccountTypes()
+    const { data: bankAccountTypes = [] } = useBankAccountTypes()
     const { data: jobTypes = [] } = useJobTypes()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
@@ -118,14 +118,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         return name === 'others' || name === 'other'
     }, [infraMasters, formData.infraMasterId])
     const accountTypeOptions = React.useMemo(
-        () => toOptions(accountTypes as any[], 'accountTypeId', 'accountType'),
-        [accountTypes],
+        () => toOptions(bankAccountTypes as any[], 'bankAccountTypeId', 'name'),
+        [bankAccountTypes],
     )
     const isOtherAccountTypeSelected = React.useMemo(
-        () => Boolean((accountTypes as any[]).find(
-            (a) => String(a.accountTypeId) === String(formData.accountTypeMasterId),
+        () => Boolean((bankAccountTypes as any[]).find(
+            (a) => String(a.bankAccountTypeId) === String(formData.bankAccountTypeMasterId),
         )?.isOther),
-        [accountTypes, formData.accountTypeMasterId],
+        [bankAccountTypes, formData.bankAccountTypeMasterId],
     )
     const jobTypeOptions = React.useMemo(
         () => toOptions(jobTypes as any[], 'jobTypeId', 'name'),
@@ -283,15 +283,15 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <FormSelect
                         label="Account Type"
                         required
-                        value={formData.accountTypeMasterId ?? ''}
+                        value={formData.bankAccountTypeMasterId ?? ''}
                         onChange={(e) => {
-                            const accountTypeMasterId = e.target.value ? parseInt(e.target.value) : null
-                            const isOther = Boolean((accountTypes as any[]).find(
-                                (a) => String(a.accountTypeId) === String(accountTypeMasterId),
+                            const bankAccountTypeMasterId = e.target.value ? parseInt(e.target.value) : null
+                            const isOther = Boolean((bankAccountTypes as any[]).find(
+                                (a) => String(a.bankAccountTypeId) === String(bankAccountTypeMasterId),
                             )?.isOther)
                             setFormData({
                                 ...formData,
-                                accountTypeMasterId,
+                                bankAccountTypeMasterId,
                                 // Clear specify text whenever the chosen option isn't "Other".
                                 accountTypeOther: isOther ? formData.accountTypeOther : '',
                             })

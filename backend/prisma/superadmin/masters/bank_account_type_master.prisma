@@ -1,0 +1,14 @@
+// Bank account type master (Saving / Current / Revolving Fund / Other …).
+// Distinct from AccountTypeMaster, which is the district-level-data "items"
+// master. Used by KvkBankAccount.
+model BankAccountTypeMaster {
+  bankAccountTypeId Int              @id @default(autoincrement()) @map("bank_account_type_id")
+  name              String           @unique @map("name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther           Boolean          @default(false) @map("is_other")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  bankAccounts      KvkBankAccount[]
+
+  @@map("bank_account_type_master")
+}

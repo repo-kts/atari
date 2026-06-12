@@ -509,6 +509,31 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                 </>
             )}
 
+            {entityType === ENTITY_TYPES.BANK_ACCOUNT_TYPE && (
+                <>
+                    <FormInput
+                        label="Bank Account Type"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter bank account type (e.g. Saving)"
+                    />
+                    <FormSelect
+                        label='Is "Other" option (lets users type a custom value in forms)'
+                        value={String(formData.isOther ?? false)}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+                            setFormData((prev: any) => ({ ...prev, isOther: e.target.value === 'true' }))
+                        }, [setFormData])}
+                        options={[
+                            { value: 'false', label: 'No' },
+                            { value: 'true', label: 'Yes' },
+                        ]}
+                    />
+                </>
+            )}
+
             {entityType === ENTITY_TYPES.PROGRAMME_TYPE && (
                 <FormInput
                     label="Programme Type"

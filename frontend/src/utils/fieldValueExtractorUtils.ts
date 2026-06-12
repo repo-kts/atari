@@ -679,6 +679,18 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
+    // Bank account type — master-backed (relation name) → "Other" specify text.
+    [FIELD_NAMES.ACCOUNT_TYPE]: {
+        extractor: (item: any) =>
+            item.bankAccountType?.name || item.accountTypeOther || null,
+        priority: 7,
+    },
+    // Job type — master-backed (relation name) → "Other" specify text.
+    [FIELD_NAMES.JOB_TYPE]: {
+        extractor: (item: any) =>
+            item.jobTypeMaster?.name || item.jobTypeOther || null,
+        priority: 7,
+    },
     [FIELD_NAMES.PROJECT_NAME]: {
         extractor: (item: any) => {
             const masterName = item.projectName?.projectName || item.projectName;

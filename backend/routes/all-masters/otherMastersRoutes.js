@@ -62,6 +62,12 @@ router.post('/job-type',    requirePermission('all_masters_job_type_master', 'AD
 router.put('/job-type/:id', requirePermission('all_masters_job_type_master', 'EDIT'),   otherMastersController.updateJobType);
 router.delete('/job-type/:id', requirePermission('all_masters_job_type_master', 'DELETE'), otherMastersController.deleteJobType);
 
+router.get('/bank-account-type',     otherMastersController.getAllBankAccountTypes);
+router.get('/bank-account-type/:id', otherMastersController.getBankAccountTypeById);
+router.post('/bank-account-type',    requirePermission('all_masters_bank_account_type_master', 'ADD'),    otherMastersController.createBankAccountType);
+router.put('/bank-account-type/:id', requirePermission('all_masters_bank_account_type_master', 'EDIT'),   otherMastersController.updateBankAccountType);
+router.delete('/bank-account-type/:id', requirePermission('all_masters_bank_account_type_master', 'DELETE'), otherMastersController.deleteBankAccountType);
+
 router.get('/pay-level',     otherMastersController.getAllPayLevels);
 router.get('/pay-level/:id', otherMastersController.getPayLevelById);
 router.post('/pay-level',    requirePermission('all_masters_pay_level_master', 'ADD'),    otherMastersController.createPayLevel);
