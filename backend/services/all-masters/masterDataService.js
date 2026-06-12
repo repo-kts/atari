@@ -1,5 +1,6 @@
 const masterDataRepository = require('../../repositories/all-masters/masterDataRepository.js');
 const prisma = require('../../config/prisma.js');
+const { normalizeListLimit, DEFAULT_MASTER_LIST_PAGE_SIZE } = require('../../constants/masterListPagination.js');
 
 /**
  * Generic Master Data Service
@@ -243,7 +244,7 @@ async function getAllEntities(entityName, options = {}) {
     try {
         const { data, total } = await masterDataRepository.findAll(entityName, options);
         const page = parseInt(options.page) || 1;
-        const limit = parseInt(options.limit) || 20;
+        const limit = normalizeListLimit(options.limit, DEFAULT_MASTER_LIST_PAGE_SIZE);
         const totalPages = Math.ceil(total / limit);
 
         return {
