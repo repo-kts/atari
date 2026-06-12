@@ -501,6 +501,22 @@ class ReportAggregationService {
             };
         }
 
+        if (sectionConfig.dataSource === 'technicalAchievementSummary') {
+            const { mergeTechnicalAchievementSummaries } = require('../../repositories/reports/technicalAchievementSummaryReport/index.js');
+            // Each KVK returns a pre-aggregated object, not a record array — sum
+            // them into one object so the §2.1 template renders combined totals.
+            const merged = mergeTechnicalAchievementSummaries(validData.map((sd) => sd.data));
+            return {
+                sectionId,
+                data: merged,
+                metadata: {
+                    recordCount: validData.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
         // For custom format sections (OFT, etc.), combine all array data
         if (sectionConfig.format === 'custom') {
             const allRows = [];

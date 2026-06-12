@@ -2,41 +2,88 @@
  * Technical Achievement Summary (§2.1).
  * Target vs Achievement across the main activity blocks + caste×gender
  * beneficiary demographics where captured. Bound to reportTemplateService.
+ *
+ * Rendered as wide merged-header grids (matching the on-screen report): each
+ * block is one table with a section title, a left group of activity metrics and
+ * a right group of farmer/participant demographics broken down by
+ * General/OBC/SC/ST × M/F plus a Total. The same HTML drives PDF (Puppeteer),
+ * Word and Excel — the latter two parse this HTML and reproduce the merges.
  */
 function n(v) { return v === null || v === undefined || v === '' ? 0 : v; }
 
-function demoTable(esc, demo) {
-    if (!demo) return '';
-    const d = demo;
-    const row = (label, m, f, t) =>
-        `<tr><td class="L">${label}</td><td>${m}</td><td>${f}</td><td>${t}</td></tr>`;
+// The 11 demographic data cells (General M/F, OBC M/F, SC M/F, ST M/F,
+// Total M/F/T) from a sumCaste-shaped object.
+function participantCells(demo) {
+    const d = demo || {};
+    const c = (x) => `<td>${n(x)}</td>`;
+    return (
+        c(d.gm) + c(d.gf) +
+        c(d.om) + c(d.of) +
+        c(d.sm) + c(d.sf) +
+        c(d.stm) + c(d.stf) +
+        c(d.totM) + c(d.totF) +
+        `<td style="font-weight:bold;">${n(d.totT)}</td>`
+    );
+}
+
+// Category header row (spans the 11 demographic columns).
+const CATEGORY_HEADER_ROW =
+    '<tr><th colspan="2">General</th><th colspan="2">OBC</th>' +
+    '<th colspan="2">SC</th><th colspan="2">ST</th><th colspan="3">Total</th></tr>';
+
+// M/F (and Total T) header row under each category.
+const GENDER_HEADER_ROW =
+    '<tr><th>M</th><th>F</th><th>M</th><th>F</th><th>M</th><th>F</th>' +
+    '<th>M</th><th>F</th><th>M</th><th>F</th><th>T</th></tr>';
+
+/**
+ * Render one activity block as a grid table.
+ *   title        section heading (e.g. 'OFT')
+ *   subtitle     optional line under the title (e.g. 'No. of Technologies Tested')
+ *   leftLabel    label spanning the activity-metric columns (e.g. 'No. of OFTs')
+ *   leftCols     [[label, value], …] activity metrics
+ *   rightLabel   label spanning the demographic columns (e.g. 'No. of Farmers')
+ *   farmerTarget if not null, adds a 'Farmer Target' column before Achievement
+ *   demo         sumCaste-shaped demographics object
+ */
+function gridBlock(esc, { title, subtitle, leftLabel, leftCols, rightLabel, farmerTarget, demo }) {
+    const leftN = leftCols.length;
+    const farmerTargetCol = farmerTarget !== null && farmerTarget !== undefined;
+    const rightN = farmerTargetCol ? 12 : 11; // +1 for the Farmer Target column
+    const totalCols = leftN + rightN;
+
+    const leftHeadCells = leftCols
+        .map(([label]) => `<th rowspan="3">${esc(label)}</th>`)
+        .join('');
+    const farmerTargetHead = farmerTargetCol ? '<th rowspan="3">Farmer Target</th>' : '';
+    const leftDataCells = leftCols.map(([, value]) => `<td>${n(value)}</td>`).join('');
+    const farmerTargetData = farmerTargetCol ? `<td>${n(farmerTarget)}</td>` : '';
+
     return `
-        <table class="data-table" style="width:auto;margin-top:6px;font-size:8pt;">
-            <thead><tr><th>Category</th><th>Male</th><th>Female</th><th>Total</th></tr></thead>
+        <table class="data-table" style="margin-top:10px;font-size:9pt;text-align:center;">
+            <thead>
+                <tr><th colspan="${totalCols}" style="font-size:11pt;">${esc(title)}</th></tr>
+                ${subtitle ? `<tr><th colspan="${totalCols}">${esc(subtitle)}</th></tr>` : ''}
+                <tr>
+                    <th colspan="${leftN}">${esc(leftLabel)}</th>
+                    <th colspan="${rightN}">${esc(rightLabel)}</th>
+                </tr>
+                <tr>
+                    ${leftHeadCells}
+                    ${farmerTargetHead}
+                    <th colspan="11">Achievement</th>
+                </tr>
+                ${CATEGORY_HEADER_ROW}
+                ${GENDER_HEADER_ROW}
+            </thead>
             <tbody>
-                ${row('General', n(d.gm), n(d.gf), n(d.gm) + n(d.gf))}
-                ${row('OBC', n(d.om), n(d.of), n(d.om) + n(d.of))}
-                ${row('SC', n(d.sm), n(d.sf), n(d.sm) + n(d.sf))}
-                ${row('ST', n(d.stm), n(d.stf), n(d.stm) + n(d.stf))}
-                <tr style="font-weight:bold;">${`<td class="L">Total</td><td>${n(d.totM)}</td><td>${n(d.totF)}</td><td>${n(d.totT)}</td>`}</tr>
+                <tr>
+                    ${leftDataCells}
+                    ${farmerTargetData}
+                    ${participantCells(demo)}
+                </tr>
             </tbody>
         </table>`;
-}
-
-function kv(esc, pairs) {
-    return `
-        <table class="data-table" style="width:auto;font-size:9pt;">
-            <tbody>${pairs.map(([k, v]) => `<tr><td class="L" style="font-weight:bold;">${esc(k)}</td><td>${esc(String(v))}</td></tr>`).join('')}</tbody>
-        </table>`;
-}
-
-function block(esc, title, kvPairs, demo) {
-    return `
-        <div style="margin:14px 0;">
-            <h2 class="section-subtitle">${esc(title)}</h2>
-            ${kv(esc, kvPairs)}
-            ${demo ? demoTable(esc, demo) : ''}
-        </div>`;
 }
 
 function renderTechnicalAchievementSummarySection(section, data, sectionId, isFirstSection) {
@@ -54,39 +101,82 @@ function renderTechnicalAchievementSummarySection(section, data, sectionId, isFi
     <h1 class="section-title">${esc(section.id)} ${esc(section.title)}</h1>`;
 
     if (d.oft) {
-        html += block(esc, 'OFT', [
-            ['Target', n(d.oft.target)],
-            ['Achievement (No. of OFTs)', n(d.oft.achievement)],
-            ['No. of Locations', n(d.oft.locations)],
-            ['No. of Trials', n(d.oft.trials)],
-        ], null);
+        html += gridBlock(esc, {
+            title: 'OFT',
+            subtitle: 'No. of Technologies Tested',
+            leftLabel: 'No. of OFTs',
+            leftCols: [
+                ['Target', d.oft.target],
+                ['Achievement', d.oft.achievement],
+                ['No. of Location', d.oft.locations],
+                ['No. of Trials', d.oft.trials],
+            ],
+            rightLabel: 'No. of Farmers',
+            farmerTarget: d.oft.farmerTarget,
+            demo: d.oft.farmers,
+        });
     }
+
     if (d.fld) {
-        html += block(esc, 'FLD', [
-            ['Target', n(d.fld.target)],
-            ['Achievement (No. of FLDs)', n(d.fld.achievement)],
-            ['No. of Demonstrations', n(d.fld.demos)],
-            ['Area (ha)', n(d.fld.area)],
-        ], d.fld.farmers);
+        html += gridBlock(esc, {
+            title: 'FLD',
+            subtitle: 'No. of Technologies Demonstrated',
+            leftLabel: 'Number of FLDs',
+            leftCols: [
+                ['Target', d.fld.target],
+                ['Achievement', d.fld.achievement],
+                ['Area', d.fld.area],
+            ],
+            rightLabel: 'Number of Farmers',
+            farmerTarget: d.fld.farmerTarget,
+            demo: d.fld.farmers,
+        });
     }
+
     if (d.training) {
-        html += block(esc, 'Training', [
-            ['Target (No. of Courses)', n(d.training.target)],
-            ['Achievement (No. of Courses)', n(d.training.courses)],
-        ], d.training.participants);
+        html += gridBlock(esc, {
+            title: 'Training',
+            subtitle: 'Number of Courses',
+            leftLabel: 'Number of Courses',
+            leftCols: [
+                ['Target', d.training.target],
+                ['Achievement', d.training.courses],
+            ],
+            rightLabel: 'Number of Participants',
+            farmerTarget: d.training.farmerTarget,
+            demo: d.training.participants,
+        });
     }
+
     if (d.extension) {
-        html += block(esc, 'Extension Activities', [
-            ['Target (No. of Activities)', n(d.extension.target)],
-            ['Achievement (No. of Activities)', n(d.extension.activities)],
-        ], d.extension.participants);
+        html += gridBlock(esc, {
+            title: 'Extension Activities',
+            subtitle: 'Number of Activities',
+            leftLabel: 'Number of Activities',
+            leftCols: [
+                ['Target', d.extension.target],
+                ['Achievement', d.extension.activities],
+            ],
+            rightLabel: 'Number of Participants',
+            farmerTarget: d.extension.farmerTarget,
+            demo: d.extension.participants,
+        });
     }
+
     for (const p of (d.production || [])) {
-        html += block(esc, `Production / Supply — ${p.category}`, [
-            ['Target', n(p.target)],
-            ['Quantity', n(p.quantity)],
-            ['Value (Rs.)', n(p.value)],
-        ], p.beneficiaries);
+        html += gridBlock(esc, {
+            title: `Production / Supply — ${p.category}`,
+            subtitle: null,
+            leftLabel: esc(p.category),
+            leftCols: [
+                ['Target', p.target],
+                ['Quantity', p.quantity],
+                ['Value (Rs.)', p.value],
+            ],
+            rightLabel: 'Number of Participants',
+            farmerTarget: null,
+            demo: p.beneficiaries,
+        });
     }
 
     html += `
