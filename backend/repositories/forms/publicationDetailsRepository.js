@@ -99,6 +99,9 @@ const _mapResponse = (r) => {
         authorName: r.authorName,
         journalName: r.journalName,
         naasRating: r.naasRating,
+        publisherName: r.publisherName,
+        venue: r.venue,
+        isbnNumber: r.isbnNumber,
         publicationId: r.publicationId,
         year: reportingYear,
         publication: r.publication?.publicationName || r.publicationId,
@@ -139,10 +142,16 @@ const publicationDetailsRepository = {
                 await _validateForeignKey(publicationId, 'publication', 'publicationId', 'Publication', false);
             }
 
-            // Validate required fields
+            // Validate required fields (always-required core fields)
             const title = _normalizeString(data.title, 'Title', false);
             const authorName = _normalizeString(data.authorName, 'Author Name', false);
-            const journalName = _normalizeString(data.journalName, 'Journal Name', false);
+
+            // Type-specific fields are optional at the DB layer — which ones are
+            // shown/required is driven by the selected publication type on the client.
+            const journalName = _normalizeString(data.journalName, 'Journal Name', true);
+            const publisherName = _normalizeString(data.publisherName, 'Name Of Publisher', true);
+            const venue = _normalizeString(data.venue, 'Venue', true);
+            const isbnNumber = _normalizeString(data.isbnNumber, 'ISBN Number', true);
 
             // Prepare create data
             const createData = {
@@ -153,6 +162,9 @@ const publicationDetailsRepository = {
                 authorName,
                 journalName,
                 naasRating: _parseNaasRating(data.naasRating),
+                publisherName,
+                venue,
+                isbnNumber,
             };
 
             // Create the record using Prisma
@@ -329,10 +341,19 @@ const publicationDetailsRepository = {
                 updateData.authorName = _normalizeString(data.authorName, 'Author Name', false);
             }
             if (data.journalName !== undefined) {
-                updateData.journalName = _normalizeString(data.journalName, 'Journal Name', false);
+                updateData.journalName = _normalizeString(data.journalName, 'Journal Name', true);
             }
             if (data.naasRating !== undefined) {
                 updateData.naasRating = _parseNaasRating(data.naasRating);
+            }
+            if (data.publisherName !== undefined) {
+                updateData.publisherName = _normalizeString(data.publisherName, 'Name Of Publisher', true);
+            }
+            if (data.venue !== undefined) {
+                updateData.venue = _normalizeString(data.venue, 'Venue', true);
+            }
+            if (data.isbnNumber !== undefined) {
+                updateData.isbnNumber = _normalizeString(data.isbnNumber, 'ISBN Number', true);
             }
 
             // Update the record
