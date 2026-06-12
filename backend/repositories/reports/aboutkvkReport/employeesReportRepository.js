@@ -31,10 +31,10 @@ async function getKvkEmployees(kvkId, filters = {}) {
         orderBy: { staffName: 'asc' },
     });
 
-    // Display job type: master name → "Other" specify text → legacy enum.
+    // Display job type: master name → "Other" specify text.
     return rows.map((r) => ({
         ...r,
-        jobType: r.jobTypeMaster?.name || r.jobTypeOther || r.jobType || '',
+        jobType: r.jobTypeMaster?.name || r.jobTypeOther || '',
     }));
 }
 

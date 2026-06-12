@@ -37,7 +37,9 @@ export interface Kvk {
 export interface KvkBankAccount {
     bankAccountId: number;
     kvkId: number;
-    accountType: 'KVK' | 'REVOLVING_FUND' | 'OTHER';
+    bankAccountTypeMasterId?: number | null;
+    accountTypeOther?: string | null;
+    bankAccountType?: { bankAccountTypeId: number; name: string };
     accountName: string;
     bankName: string;
     location: string;
@@ -97,7 +99,9 @@ export interface KvkEmployee {
     payLevelId?: number;
     payLevel?: { payLevelId: number; levelName: string };
     dateOfJoining: string;
-    jobType: 'PERMANENT' | 'TEMPORARY';
+    jobTypeMasterId?: number | null;
+    jobTypeOther?: string | null;
+    jobTypeMaster?: { jobTypeId: number; name: string };
     allowances?: string;
     staffCategoryId: number;
     staffCategory?: { staffCategoryId: number; categoryName: string };

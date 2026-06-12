@@ -63,6 +63,20 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'bank-account-type': {
+        model: 'bankAccountTypeMaster',
+        idField: 'bankAccountTypeId',
+        nameField: 'name',
+        extraFields: ['isOther'],
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
+        includes: {
+            _count: {
+                select: {
+                    bankAccounts: true,
+                },
+            },
+        },
+    },
     'pay-level': {
         model: 'payLevelMaster',
         idField: 'payLevelId',

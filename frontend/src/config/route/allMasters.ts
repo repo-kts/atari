@@ -444,6 +444,17 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_job_type_master',
     },
     {
+        path: ENTITY_PATHS.BANK_ACCOUNT_TYPE,
+        title: 'Bank Account Type Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: MASTER_SIBLING_GROUPS.BANK_MASTERS,
+        fields: FIELD_GROUPS.BANK_ACCOUNT_TYPE_MASTER,
+        moduleCode: 'all_masters_bank_account_type_master',
+    },
+    {
         path: ENTITY_PATHS.PAY_LEVEL,
         title: 'Pay Level Master',
         category: 'All Masters',

@@ -59,6 +59,7 @@ export const ENTITY_CATEGORIES = {
     OTHER_MASTERS: [
         ENTITY_TYPES.STAFF_CATEGORY,
         ENTITY_TYPES.JOB_TYPE,
+        ENTITY_TYPES.BANK_ACCOUNT_TYPE,
         ENTITY_TYPES.PAY_LEVEL,
         ENTITY_TYPES.PAY_SCALE,
         ENTITY_TYPES.DISCIPLINE,
@@ -264,6 +265,7 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         // Other Masters
         '/all-master/staff-category': ENTITY_TYPES.STAFF_CATEGORY,
         '/all-master/job-type': ENTITY_TYPES.JOB_TYPE,
+        '/all-master/bank-account-type': ENTITY_TYPES.BANK_ACCOUNT_TYPE,
         '/all-master/pay-level': ENTITY_TYPES.PAY_LEVEL,
         '/all-master/pay-scale': ENTITY_TYPES.PAY_SCALE,
         '/all-master/asset-funding-source': ENTITY_TYPES.ASSET_FUNDING_SOURCE,

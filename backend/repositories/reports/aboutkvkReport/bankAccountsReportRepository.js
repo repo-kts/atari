@@ -11,17 +11,16 @@ async function getKvkBankAccounts(kvkId, filters = {}) {
             kvk: {
                 select: { kvkId: true, kvkName: true },
             },
-            accountTypeMaster: { select: { accountType: true } },
+            bankAccountType: { select: { name: true } },
         },
         orderBy: { createdAt: 'asc' },
     });
 
-    // Display account type: master name → "Other" specify text → legacy enum.
+    // Display account type: master name → "Other" specify text.
     return rows.map((r) => ({
         ...r,
-        accountType: r.accountTypeMaster?.accountType
+        accountType: r.bankAccountType?.name
             || r.accountTypeOther
-            || r.accountType
             || '-',
     }));
 }

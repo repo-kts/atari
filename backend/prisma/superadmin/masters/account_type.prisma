@@ -5,7 +5,6 @@ model AccountTypeMaster {
   isOther       Boolean          @default(false) @map("is_other")
   createdAt     DateTime         @default(now()) @map("created_at")
   updatedAt     DateTime         @updatedAt @map("updated_at")
-  bankAccounts  KvkBankAccount[]
 
   @@map("account_type_master")
 }

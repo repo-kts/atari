@@ -16,6 +16,13 @@ const sections: FeatureSection[] = [
         ],
     },
     {
+        title: 'Bank Masters',
+        icon: <IndianRupee className="w-5 h-5" />,
+        items: [
+            { label: 'Bank Account Type Master', path: '/all-master/bank-account-type' },
+        ],
+    },
+    {
         title: 'Calendar & Context Masters',
         icon: <Landmark className="w-5 h-5" />,
         items: [

@@ -12,8 +12,7 @@ model KvkStaff {
   disciplineId                Int?
   payScaleId                  Int?                        @map("pay_scale_id")
   dateOfJoining               DateTime                    @map("date_of_joining")
-  jobType                     JobType?                    @map("job_type")
-  // Optional master-backed job type (kept alongside the enum for back-compat).
+  // Master-backed job type (Permanent/Temporary/…).
   jobTypeMasterId             Int?                        @map("job_type_master_id")
   // Free-text value when the selected job type is the "Other" option (#237).
   jobTypeOther                String?                     @map("job_type_other")
@@ -55,11 +54,6 @@ model KvkStaff {
   @@index([payLevelId])
   @@index([payScaleId])
   @@map("kvk_staff")
-}
-
-enum JobType {
-  PERMANENT
-  TEMPORARY
 }
 
 enum TransferStatus {
