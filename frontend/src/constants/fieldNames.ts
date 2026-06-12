@@ -80,6 +80,7 @@ export const FIELD_NAMES = {
     POST_NAME: 'postName',
     YEAR_NAME: 'yearName',
     TYPE_NAME: 'typeName',
+    UNIT_NAME: 'unitName',
     DAY_NAME: 'dayName',
     EVENT_NAME: 'eventName',
 
@@ -285,6 +286,9 @@ export const FIELD_NAMES = {
     TITLE: 'title',
     AUTHOR_NAME: 'authorName',
     JOURNAL_NAME: 'journalName',
+    NAAS_RATING: 'naasRating',
+    PUBLISHER_NAME: 'publisherName',
+    ISBN_NUMBER: 'isbnNumber',
 
     // Soil & Water Testing Fields
     ANALYSIS: 'analysis',
@@ -706,6 +710,7 @@ export const FIELD_GROUPS = {
     SANCTIONED_POST_MASTER: [FIELD_NAMES.POST_NAME] as const,
     SEASON_MASTER: [FIELD_NAMES.SEASON_NAME] as const,
     CROP_TYPE_MASTER: [FIELD_NAMES.TYPE_NAME] as const,
+    UNIT_MASTER: [FIELD_NAMES.UNIT_NAME] as const,
     INFRASTRUCTURE_MASTER: [FIELD_NAMES.NAME] as const,
     IMPORTANT_DAY_MASTER: [FIELD_NAMES.DAY_NAME] as const,
     SOIL_WATER_ANALYSIS_MASTER: [FIELD_NAMES.ANALYSIS_NAME] as const,
@@ -1288,6 +1293,10 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.TITLE,
         FIELD_NAMES.AUTHOR_NAME,
         FIELD_NAMES.JOURNAL_NAME,
+        FIELD_NAMES.NAAS_RATING,
+        FIELD_NAMES.PUBLISHER_NAME,
+        FIELD_NAMES.VENUE,
+        FIELD_NAMES.ISBN_NUMBER,
     ] as const,
 
     // Achievements Routes - Soil Equipment

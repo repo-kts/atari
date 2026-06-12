@@ -37,18 +37,26 @@ model Product {
   productName        String                @map("product_name")
   productCategoryId  Int?                  @map("product_category_id")
   productTypeId      Int?                  @map("product_type_id")
+  // Default unit + quantity data type for this product. Downstream Production &
+  // Supply forms show the unit read-only and constrain the quantity input.
+  unitId             Int?                  @map("unit_id")
+  // 'number' | 'decimal' | 'string' | 'boolean'
+  quantityDataType   String?               @map("quantity_data_type")
+  quantityRequired   Boolean               @default(false) @map("quantity_required")
   // Flags this row as the "Other" option (form then shows a specify input).
   isOther            Boolean               @default(false) @map("is_other")
   createdAt          DateTime              @default(now()) @map("created_at")
   updatedAt          DateTime              @updatedAt @map("updated_at")
   productCategory    ProductCategory?      @relation(fields: [productCategoryId], references: [productCategoryId], onDelete: Cascade)
   productType        ProductType?          @relation(fields: [productTypeId], references: [productTypeId], onDelete: Cascade)
+  unit               Unit?                 @relation(fields: [unitId], references: [unitId], onDelete: SetNull)
   productionSupplies KvkProductionSupply[]
 
   @@index([productId])
   @@index([productName])
   @@index([productTypeId])
   @@index([productCategoryId])
+  @@index([unitId])
   @@map("product")
 }
 

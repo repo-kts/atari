@@ -73,6 +73,7 @@ const MODULES = [
   { menuName: 'Meetings', subMenuName: 'Details of Scientific Advisory Committee(SAC) Meetings', moduleCode: 'meetings_sac' },
   { menuName: 'Meetings', subMenuName: 'Details of Other Meeting Related to ATARI', moduleCode: 'meetings_other_atari' },
   { menuName: 'All Masters', subMenuName: 'Season Master', moduleCode: 'all_masters_season_master' },
+  { menuName: 'All Masters', subMenuName: 'Unit Master', moduleCode: 'all_masters_unit_master' },
   { menuName: 'All Masters', subMenuName: 'Sanctioned Post Master', moduleCode: 'all_masters_sanctioned_post_master' },
   { menuName: 'All Masters', subMenuName: 'Staff Category Master', moduleCode: 'all_masters_staff_category_master' },
   { menuName: 'All Masters', subMenuName: 'Job Type Master', moduleCode: 'all_masters_job_type_master' },

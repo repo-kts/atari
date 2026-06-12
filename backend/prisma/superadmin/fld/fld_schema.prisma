@@ -75,12 +75,19 @@ model FldCrop {
   cropName              String                 @map("crop_name")
   categoryId            Int
   subCategoryId         Int
+  // Default unit + quantity data type for this crop. Downstream FLD forms show
+  // the unit read-only and constrain the quantity input to this type.
+  unitId                Int?                   @map("unit_id")
+  // 'number' | 'decimal' | 'string' | 'boolean'
+  quantityDataType      String?                @map("quantity_data_type")
+  quantityRequired      Boolean                @default(false) @map("quantity_required")
   // Flags this row as the "Other" option (form then shows a specify input).
   isOther               Boolean                @default(false) @map("is_other")
   createdAt             DateTime               @default(now()) @map("created_at")
   updatedAt             DateTime               @updatedAt @map("updated_at")
   category              FldCategory            @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade)
   subCategory           FldSubcategory         @relation(fields: [subCategoryId], references: [subCategoryId], onDelete: Cascade)
+  unit                  Unit?                  @relation(fields: [unitId], references: [unitId], onDelete: SetNull)
   fldTechnicalFeedbacks FldTechnicalFeedback[]
   kvkBudgetUtilizations KvkBudgetUtilization[]
   kvkFldIntroductions   KvkFldIntroduction[]
@@ -88,5 +95,6 @@ model FldCrop {
   @@index([categoryId])
   @@index([subCategoryId])
   @@index([cropName])
+  @@index([unitId])
   @@map("crop")
 }

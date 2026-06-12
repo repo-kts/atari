@@ -172,6 +172,21 @@ export interface FundingSource {
 }
 
 // Other Masters
+export interface Unit {
+    unitId: number;
+    unitName: string;
+    isOther?: boolean;
+    _count?: {
+        fldCrops: number;
+        products: number;
+    };
+}
+
+export interface UnitFormData {
+    unitName: string;
+    isOther?: boolean;
+}
+
 export interface CropType {
     typeId: number;
     typeName: string;
@@ -688,6 +703,18 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<FundingSource>>(`${BASE_URL}/funding-source/${id}`, data),
     deleteFundingSource: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/funding-source/${id}`),
+
+    // Units
+    getUnits: () =>
+        apiClient.get<PaginatedResponse<Unit>>(`${BASE_URL}/units`),
+    getUnitById: (id: number) =>
+        apiClient.get<ApiResponse<Unit>>(`${BASE_URL}/units/${id}`),
+    createUnit: (data: UnitFormData) =>
+        apiClient.post<ApiResponse<Unit>>(`${BASE_URL}/units`, data),
+    updateUnit: (id: number, data: Partial<UnitFormData>) =>
+        apiClient.put<ApiResponse<Unit>>(`${BASE_URL}/units/${id}`, data),
+    deleteUnit: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/units/${id}`),
 
     // Other Masters
     getCropTypes: () =>

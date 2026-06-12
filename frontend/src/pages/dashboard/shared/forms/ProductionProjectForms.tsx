@@ -13,6 +13,8 @@ import {
     useProducts,
 } from '@/hooks/useProductionProjectsData'
 import { useSeasons } from '@/hooks/useOftFldData'
+import { useUnits } from '@/hooks/useOtherMastersData'
+import { QUANTITY_DATA_TYPE_OPTIONS } from '@/constants/quantityDataType'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface ProductionProjectFormsProps {
@@ -31,6 +33,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
     const { data: productTypes = [] } = useProductTypes()
     const { data: products = [] } = useProducts()
     const { data: seasons = [] } = useSeasons()
+    const { data: units = [] } = useUnits()
 
     // Master-controlled "Other → specify" for the Product Category → Type → Product chain.
     const productCategoryOptions = useMemo(
@@ -102,12 +105,6 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
         return createMasterDataOptions(filtered, 'productId', 'productName', { flagKey: 'isOther' })
     }, [products, formData.productCategoryId])
 
-    const unitOptions = useMemo(() => [
-        { value: 'Kg', label: 'Kg' },
-        { value: 'Quintal', label: 'Quintal' },
-        { value: 'Nos', label: 'Nos' },
-    ], [])
-
     // Optimized onChange handlers using useCallback
     const handleReportingYearChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, reportingYear: e.target.value })
@@ -143,19 +140,20 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
 
     const handleProductChange = useCallback((value: string | number) => {
         // Species / Breed / Variety is free text now — don't overwrite it.
-        setFormData({ ...formData, productId: value, ...productResetPatch(value, 'productOther') })
-    }, [formData, setFormData, productResetPatch])
+        // Pull the product's master-defined unit; reset quantity inputs.
+        const selProduct: any = products.find((p: any) => Number(p.productId) === Number(value))
+        setFormData({
+            ...formData,
+            productId: value,
+            unit: selProduct?.unit?.unitName ?? '',
+            quantity: '',
+            quantityText: '',
+            ...productResetPatch(value, 'productOther'),
+        })
+    }, [formData, setFormData, productResetPatch, products])
 
     const handleSpeciesNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, speciesName: e.target.value })
-    }, [formData, setFormData])
-
-    const handleUnitChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        setFormData({ ...formData, unit: e.target.value })
-    }, [formData, setFormData])
-
-    const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, quantity: e.target.value })
     }, [formData, setFormData])
 
     const handleValueChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,6 +237,35 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
                         placeholder="Enter product name"
                     />
+                    <FormSelect
+                        label="Unit"
+                        value={formData.unitId ?? ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                unitId: e.target.value ? parseInt(e.target.value) : null,
+                            })
+                        }
+                        options={units.map(u => ({ value: u.unitId, label: u.unitName }))}
+                    />
+                    <FormSelect
+                        label="Quantity Data Type"
+                        value={formData.quantityDataType ?? ''}
+                        onChange={(e) =>
+                            setFormData({ ...formData, quantityDataType: e.target.value || null })
+                        }
+                        options={QUANTITY_DATA_TYPE_OPTIONS}
+                    />
+                    <label className="flex items-center gap-2 text-sm text-[#212121] cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={Boolean(formData.quantityRequired)}
+                            onChange={(e) =>
+                                setFormData({ ...formData, quantityRequired: e.target.checked })
+                            }
+                        />
+                        Quantity required in forms
+                    </label>
                     <IsOtherCheckbox
                         checked={Boolean(formData.isOther)}
                         onChange={(checked) => setFormData({ ...formData, isOther: checked })}
@@ -464,23 +491,56 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             placeholder="Enter species / breed / variety"
                         />
 
-                        {/* Unit and Quantity */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormSelect
-                                label="Unit"
-                                required
-                                value={formData.unit ?? ''}
-                                onChange={handleUnitChange}
-                                options={unitOptions}
-                            />
-                            <FormInput
-                                label="Quantity"
-                                required
-                                type="number"
-                                value={formData.quantity ?? ''}
-                                onChange={handleQuantityChange}
-                            />
-                        </div>
+                        {/* Unit and Quantity — driven by the selected product's master */}
+                        {(() => {
+                            const selectedProduct: any = products.find((p: any) => Number(p.productId) === Number(formData.productId))
+                            const dataType = selectedProduct?.quantityDataType || 'decimal'
+                            const masterUnit = selectedProduct?.unit?.unitName || formData.unit || ''
+                            const required = Boolean(selectedProduct?.quantityRequired)
+                            const setText = (v: string) =>
+                                setFormData({ ...formData, quantityText: v, quantity: 0, unit: masterUnit })
+                            const setNumber = (raw: string) => {
+                                const v = dataType === 'number' ? raw.replace(/[^0-9]/g, '') : raw
+                                setFormData({ ...formData, quantity: v, quantityText: null, unit: masterUnit })
+                            }
+                            return (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormInput
+                                        label="Unit"
+                                        value={masterUnit}
+                                        readOnly
+                                        onChange={() => {}}
+                                        placeholder={formData.productId ? '' : 'Select product'}
+                                    />
+                                    {dataType === 'boolean' ? (
+                                        <FormSelect
+                                            label="Quantity"
+                                            required={required}
+                                            value={formData.quantityText ?? ''}
+                                            onChange={(e) => setText(e.target.value)}
+                                            options={[{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }]}
+                                        />
+                                    ) : dataType === 'string' ? (
+                                        <FormInput
+                                            label="Quantity"
+                                            required={required}
+                                            value={formData.quantityText ?? ''}
+                                            onChange={(e) => setText(e.target.value)}
+                                            placeholder="e.g. N/A"
+                                        />
+                                    ) : (
+                                        <FormInput
+                                            label="Quantity"
+                                            required={required}
+                                            type="number"
+                                            step={dataType === 'number' ? '1' : 'any'}
+                                            value={formData.quantity ?? ''}
+                                            onChange={(e) => setNumber(e.target.value)}
+                                        />
+                                    )}
+                                </div>
+                            )
+                        })()}
 
                         {/* Value */}
                         <FormInput
