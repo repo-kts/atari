@@ -114,6 +114,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         const selected = (infraMasters as any[]).find(
             (m) => String(m.infraMasterId) === String(formData.infraMasterId),
         )
+        if (selected?.isOther) return true
         const name = String(selected?.name || '').trim().toLowerCase()
         return name === 'others' || name === 'other'
     }, [infraMasters, formData.infraMasterId])
@@ -136,6 +137,42 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             (j) => String(j.jobTypeId) === String(formData.jobTypeMasterId),
         )?.isOther),
         [jobTypes, formData.jobTypeMasterId],
+    )
+    const isOtherSanctionedPostSelected = React.useMemo(
+        () => Boolean((sanctionedPosts as any[]).find(
+            (p) => String(p.sanctionedPostId) === String(formData.sanctionedPostId),
+        )?.isOther),
+        [sanctionedPosts, formData.sanctionedPostId],
+    )
+    const isOtherStaffCategorySelected = React.useMemo(
+        () => Boolean((staffCategories as any[]).find(
+            (c) => String(c.staffCategoryId) === String(formData.staffCategoryId),
+        )?.isOther),
+        [staffCategories, formData.staffCategoryId],
+    )
+    const isOtherPayLevelSelected = React.useMemo(
+        () => Boolean((payLevels as any[]).find(
+            (l) => String(l.payLevelId) === String(formData.payLevelId),
+        )?.isOther),
+        [payLevels, formData.payLevelId],
+    )
+    const isOtherPayScaleSelected = React.useMemo(
+        () => Boolean((payScales as any[]).find(
+            (s) => String(s.payScaleId) === String(formData.payScaleId),
+        )?.isOther),
+        [payScales, formData.payScaleId],
+    )
+    const isOtherEquipmentTypeSelected = React.useMemo(
+        () => Boolean((equipmentTypes as any[]).find(
+            (t) => String(t.equipmentTypeId) === String(formData.equipmentTypeId),
+        )?.isOther),
+        [equipmentTypes, formData.equipmentTypeId],
+    )
+    const isOtherAssetFundingSourceSelected = React.useMemo(
+        () => Boolean((assetFundingSources as any[]).find(
+            (a) => String(a.assetFundingSourceId) === String(formData.assetFundingSourceId),
+        )?.isOther),
+        [assetFundingSources, formData.assetFundingSourceId],
     )
     const equipmentTypeOptions = React.useMemo(
         () => toOptions(equipmentTypes as any[], 'equipmentTypeId', 'name'),
@@ -381,9 +418,20 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 label="Category"
                                 required
                                 value={formData.staffCategoryId ?? ''}
-                                onChange={(e) => setFormData({ ...formData, staffCategoryId: parseInt(e.target.value) })}
+                                onChange={(e) => {
+                                    const staffCategoryId = e.target.value ? parseInt(e.target.value) : null
+                                    const isOther = Boolean((staffCategories as any[]).find((c) => String(c.staffCategoryId) === String(staffCategoryId))?.isOther)
+                                    setFormData({ ...formData, staffCategoryId, staffCategoryOther: isOther ? formData.staffCategoryOther : '' })
+                                }}
                                 options={staffCategoryOptions}
                             />
+                            {isOtherStaffCategorySelected && (
+                                <FormInput
+                                    label="Please specify category"
+                                    value={formData.staffCategoryOther ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, staffCategoryOther: e.target.value })}
+                                />
+                            )}
                             <FormInput
                                 label="Resume"
                                 value={formData.resumePath ?? ''}
@@ -411,9 +459,20 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 label="Sanctioned Post"
                                 required
                                 value={formData.sanctionedPostId ?? ''}
-                                onChange={(e) => setFormData({ ...formData, sanctionedPostId: parseInt(e.target.value) })}
+                                onChange={(e) => {
+                                    const sanctionedPostId = e.target.value ? parseInt(e.target.value) : null
+                                    const isOther = Boolean((sanctionedPosts as any[]).find((p) => String(p.sanctionedPostId) === String(sanctionedPostId))?.isOther)
+                                    setFormData({ ...formData, sanctionedPostId, sanctionedPostOther: isOther ? formData.sanctionedPostOther : '' })
+                                }}
                                 options={sanctionedPostOptions}
                             />
+                            {isOtherSanctionedPostSelected && (
+                                <FormInput
+                                    label="Please specify sanctioned post"
+                                    value={formData.sanctionedPostOther ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, sanctionedPostOther: e.target.value })}
+                                />
+                            )}
                             <FormSelect
                                 label="Position Order"
                                 required
@@ -465,17 +524,39 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <FormSelect
                                 label="Pay Level"
                                 value={formData.payLevelId ?? ''}
-                                onChange={(e) => setFormData({ ...formData, payLevelId: e.target.value ? parseInt(e.target.value) : null })}
+                                onChange={(e) => {
+                                    const payLevelId = e.target.value ? parseInt(e.target.value) : null
+                                    const isOther = Boolean((payLevels as any[]).find((l) => String(l.payLevelId) === String(payLevelId))?.isOther)
+                                    setFormData({ ...formData, payLevelId, payLevelOther: isOther ? formData.payLevelOther : '' })
+                                }}
                                 options={payLevelOptions}
                             />
+                            {isOtherPayLevelSelected && (
+                                <FormInput
+                                    label="Please specify pay level"
+                                    value={formData.payLevelOther ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, payLevelOther: e.target.value })}
+                                />
+                            )}
                         </div>
                         <div className="grid grid-cols-2 gap-6 mt-6">
                             <FormSelect
                                 label="Pay Scale"
                                 value={formData.payScaleId ?? ''}
-                                onChange={(e) => setFormData({ ...formData, payScaleId: e.target.value ? parseInt(e.target.value) : null })}
+                                onChange={(e) => {
+                                    const payScaleId = e.target.value ? parseInt(e.target.value) : null
+                                    const isOther = Boolean((payScales as any[]).find((s) => String(s.payScaleId) === String(payScaleId))?.isOther)
+                                    setFormData({ ...formData, payScaleId, payScaleOther: isOther ? formData.payScaleOther : '' })
+                                }}
                                 options={payScaleOptions}
                             />
+                            {isOtherPayScaleSelected && (
+                                <FormInput
+                                    label="Please specify pay scale"
+                                    value={formData.payScaleOther ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, payScaleOther: e.target.value })}
+                                />
+                            )}
                             <FormInput
                                 label="Details of Allowances"
                                 value={formData.allowances ?? ''}
@@ -498,7 +579,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             const selected = (infraMasters as any[]).find(
                                 (m) => String(m.infraMasterId) === String(infraMasterId),
                             )
-                            const isOther = ['others', 'other'].includes(
+                            const isOther = Boolean(selected?.isOther) || ['others', 'other'].includes(
                                 String(selected?.name || '').trim().toLowerCase(),
                             )
                             setFormData({
@@ -659,9 +740,20 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Equipment Type"
                             required
                             value={formData.equipmentTypeId != null ? String(formData.equipmentTypeId) : ''}
-                            onChange={(e) => setFormData({ ...formData, equipmentTypeId: e.target.value ? parseInt(e.target.value) : null, equipmentMasterId: null })}
+                            onChange={(e) => {
+                                const equipmentTypeId = e.target.value ? parseInt(e.target.value) : null
+                                const isOther = Boolean((equipmentTypes as any[]).find((t) => String(t.equipmentTypeId) === String(equipmentTypeId))?.isOther)
+                                setFormData({ ...formData, equipmentTypeId, equipmentMasterId: null, equipmentTypeOther: isOther ? formData.equipmentTypeOther : '' })
+                            }}
                             options={equipmentTypeOptions}
                         />
+                        {isOtherEquipmentTypeSelected && (
+                            <FormInput
+                                label="Please specify equipment type"
+                                value={formData.equipmentTypeOther ?? ''}
+                                onChange={(e) => setFormData({ ...formData, equipmentTypeOther: e.target.value })}
+                            />
+                        )}
                         <FormSelect
                             label="Equipment"
                             required
@@ -698,9 +790,20 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Source of Funding"
                             required
                             value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
-                            onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
+                            onChange={(e) => {
+                                const assetFundingSourceId = e.target.value ? parseInt(e.target.value) : null
+                                const isOther = Boolean((assetFundingSources as any[]).find((a) => String(a.assetFundingSourceId) === String(assetFundingSourceId))?.isOther)
+                                setFormData({ ...formData, assetFundingSourceId, assetFundingSourceOther: isOther ? formData.assetFundingSourceOther : '' })
+                            }}
                             options={assetFundingSourceOptions}
                         />
+                        {isOtherAssetFundingSourceSelected && (
+                            <FormInput
+                                label="Please specify source of funding"
+                                value={formData.assetFundingSourceOther ?? ''}
+                                onChange={(e) => setFormData({ ...formData, assetFundingSourceOther: e.target.value })}
+                            />
+                        )}
                     </div>
                 </div>
             )}

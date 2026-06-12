@@ -1,6 +1,8 @@
 model OftSubject {
   oftSubjectId  Int               @id @default(autoincrement()) @map("oft_subject_id")
   subjectName   String            @map("oft_subject_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther       Boolean           @default(false) @map("is_other")
   createdAt     DateTime          @default(now()) @map("created_at")
   updatedAt     DateTime          @updatedAt @map("updated_at")
   kvkOfts       Kvkoft[]
@@ -15,6 +17,8 @@ model OftThematicArea {
   oftThematicAreaId Int         @id @default(autoincrement()) @map("oft_thematic_area_id")
   thematicAreaName  String      @map("oft_thematic_area_name")
   oftSubjectId      Int?        @map("oft_subject_id")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther           Boolean     @default(false) @map("is_other")
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
   kvkOfts           Kvkoft[]

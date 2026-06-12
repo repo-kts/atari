@@ -25,6 +25,7 @@ const BASE_URL = '/admin/masters';
 export interface Season {
     seasonId: number;
     seasonName: string;
+    isOther?: boolean;
     _count?: {
         cfldCrops: number;
         craCropingSystems: number;
@@ -43,10 +44,12 @@ export interface SanctionedPost {
 // Form Data Types
 export interface SeasonFormData {
     seasonName: string;
+    isOther?: boolean;
 }
 
 export interface SanctionedPostFormData {
     postName: string;
+    isOther?: boolean;
 }
 
 // Employee Masters
@@ -105,6 +108,7 @@ export interface EquipmentMasterEntry {
 
 export interface EquipmentTypeFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface EquipmentMasterFormData {
@@ -115,6 +119,7 @@ export interface EquipmentMasterFormData {
 export interface Discipline {
     disciplineId: number;
     disciplineName: string;
+    isOther?: boolean;
     _count?: {
         staff: number;
     };
@@ -141,6 +146,7 @@ export interface OtherExtensionActivityType {
 export interface ImportantDay {
     importantDayId: number;
     dayName: string;
+    isOther?: boolean;
     _count?: {
         celebrations: number;
     };
@@ -150,6 +156,7 @@ export interface ImportantDay {
 export interface TrainingClientele {
     clienteleId: number;
     name: string;
+    isOther?: boolean;
     _count?: {
         trainings: number;
     };
@@ -158,6 +165,7 @@ export interface TrainingClientele {
 export interface FundingSource {
     fundingSourceId: number;
     name: string;
+    isOther?: boolean;
     _count?: {
         trainings: number;
     };
@@ -167,6 +175,7 @@ export interface FundingSource {
 export interface CropType {
     typeId: number;
     typeName: string;
+    isOther?: boolean;
     _count?: {
         cfldCrops: number;
     };
@@ -183,6 +192,7 @@ export interface InfrastructureMaster {
 // Form Data Types
 export interface StaffCategoryFormData {
     categoryName: string;
+    isOther?: boolean;
 }
 
 export interface JobType {
@@ -215,46 +225,57 @@ export interface BankAccountTypeFormData {
 
 export interface PayLevelFormData {
     levelName: string;
+    isOther?: boolean;
 }
 
 export interface PayScaleFormData {
     scaleName: string;
+    isOther?: boolean;
 }
 
 export interface AssetFundingSourceFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface DisciplineFormData {
     disciplineName: string;
+    isOther?: boolean;
 }
 
 export interface ExtensionActivityTypeFormData {
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface OtherExtensionActivityTypeFormData {
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface ImportantDayFormData {
     dayName: string;
+    isOther?: boolean;
 }
 
 export interface TrainingClienteleFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface FundingSourceFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface CropTypeFormData {
     typeName: string;
+    isOther?: boolean;
 }
 
 export interface InfrastructureMasterFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface VehiclePresentStatus {
@@ -315,24 +336,29 @@ export interface NariCropCategoryFormData {
 export interface NariActivity {
     nariActivityId: number;
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface NariNutritionGardenType {
     nutritionGardenTypeId: number;
     name: string;
+    isOther?: boolean;
 }
 
 export interface NariActivityFormData {
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface NariNutritionGardenTypeFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface NicraCategory {
     nicraCategoryId: number;
     categoryName: string;
+    isOther?: boolean;
     _count?: {
         nicraDetails: number;
         subCategories: number;
@@ -354,6 +380,7 @@ export interface NicraSubCategory {
 
 export interface NicraCategoryFormData {
     categoryName: string;
+    isOther?: boolean;
 }
 
 export interface NicraSubCategoryFormData {
@@ -460,10 +487,12 @@ export interface FinancialProjectFormData {
 export interface FundingAgency {
     fundingAgencyId: number;
     agencyName: string;
+    isOther?: boolean;
 }
 
 export interface FundingAgencyFormData {
     agencyName: string;
+    isOther?: boolean;
 }
 
 // ============================================

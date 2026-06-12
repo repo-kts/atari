@@ -1,6 +1,8 @@
 model Enterprise {
   enterpriseId           Int               @id @default(autoincrement()) @map("enterprise_id")
   enterpriseName         String            @unique @map("enterprise_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther                Boolean           @default(false) @map("is_other")
   createdAt              DateTime          @default(now()) @map("created_at")
   updatedAt              DateTime          @updatedAt @map("updated_at")
   aryaCurrentYearRecords AryaCurrentYear[]
@@ -14,6 +16,7 @@ model AryaCurrentYear {
   aryaCurrentYearId          Int         @id @default(autoincrement()) @map("arya_current_year_id")
   kvkId                      Int
   enterpriseId               Int
+  enterpriseOther            String?     @map("enterprise_other")
   unitsMale                  Int         @map("units_male")
   unitsFemale                Int         @map("units_female")
   viableUnits                Int         @map("viable_units")

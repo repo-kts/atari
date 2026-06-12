@@ -1,6 +1,8 @@
 model ProductCategory {
   productCategoryId   Int                   @id @default(autoincrement()) @map("product_category_id")
   productCategoryName String                @unique @map("product_category_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther             Boolean               @default(false) @map("is_other")
   createdAt           DateTime              @default(now()) @map("created_at")
   updatedAt           DateTime              @updatedAt @map("updated_at")
   products            Product[]
@@ -16,6 +18,8 @@ model ProductType {
   productTypeId       Int                   @id @default(autoincrement()) @map("product_type_id")
   productCategoryType String                @map("product_category_type")
   productCategoryId   Int?                  @map("product_category_id")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther             Boolean               @default(false) @map("is_other")
   createdAt           DateTime              @default(now()) @map("created_at")
   updatedAt           DateTime              @updatedAt @map("updated_at")
   products            Product[]
@@ -33,6 +37,8 @@ model Product {
   productName        String                @map("product_name")
   productCategoryId  Int?                  @map("product_category_id")
   productTypeId      Int?                  @map("product_type_id")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther            Boolean               @default(false) @map("is_other")
   createdAt          DateTime              @default(now()) @map("created_at")
   updatedAt          DateTime              @updatedAt @map("updated_at")
   productCategory    ProductCategory?      @relation(fields: [productCategoryId], references: [productCategoryId], onDelete: Cascade)
@@ -50,6 +56,8 @@ model CraCropingSystem {
   craCropingSystemId Int      @id @default(autoincrement()) @map("cra_croping_system_id")
   cropName           String   @map("crop_name")
   seasonId           Int      @map("season_id")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther            Boolean  @default(false) @map("is_other")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
   season             Season   @relation(fields: [seasonId], references: [seasonId], onDelete: Cascade)
@@ -65,6 +73,8 @@ model CraFarmingSystem {
   craFarmingSystemId Int      @id @default(autoincrement()) @map("cra_farming_system_id")
   farmingSystemName  String   @map("farming_system_name")
   seasonId           Int      @map("season_id")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther            Boolean  @default(false) @map("is_other")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
   season             Season   @relation(fields: [seasonId], references: [seasonId], onDelete: Cascade)
@@ -94,6 +104,8 @@ model AryaEnterprise {
 model AgriDroneDemonstrationsOnMaster {
   agriDroneDemonstrationsOnId Int      @id @default(autoincrement()) @map("agri_drone_demonstrations_on_id")
   demonstrationsOnName        String   @unique @map("demonstrations_on_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther                    Boolean  @default(false) @map("is_other")
   createdAt                  DateTime @default(now()) @map("created_at")
   updatedAt                  DateTime @updatedAt @map("updated_at")
   agriDroneDemonstrations    KvkAgriDroneDemonstration[]

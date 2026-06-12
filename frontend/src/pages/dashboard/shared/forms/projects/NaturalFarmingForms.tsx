@@ -2,6 +2,8 @@ import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
@@ -36,6 +38,14 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
     const todayYmd = new Date().toISOString().slice(0, 10)
     const selectedNaturalFarmingActivity = naturalFarmingActivities.find(
         (activity: any) => String(activity.naturalFarmingActivityId) === String(formData.activityId || '')
+    )
+    const soilParameterOptions = React.useMemo(
+        () => createMasterDataOptions(naturalFarmingSoilParameters, 'naturalFarmingSoilParameterId', 'parameterName', { flagKey: 'isOther' }),
+        [naturalFarmingSoilParameters]
+    )
+    const { isOtherSelected: isOtherSoilParameter, otherResetPatch: soilParameterResetPatch } = useOtherSpecify(
+        soilParameterOptions,
+        formData.soilParameterId
     )
     const handleAttachmentIds = React.useCallback(
         (ids: number[]) => setFormData((prev: any) => ({ ...prev, attachmentIds: ids })),
@@ -704,10 +714,18 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Soil Parameter"
                             required
                             value={formData.soilParameterId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, soilParameterId: value })}
-                            options={createMasterDataOptions(naturalFarmingSoilParameters, 'naturalFarmingSoilParameterId', 'parameterName')}
+                            onChange={(value) => setFormData({ ...formData, soilParameterId: value, ...soilParameterResetPatch(value, 'soilParameterOther') })}
+                            options={soilParameterOptions}
                             emptyMessage="No soil parameters available"
                         />
+                        {isOtherSoilParameter && (
+                            <SpecifyOtherInput
+                                label="Please specify other soil parameter"
+                                required
+                                value={formData.soilParameterOther}
+                                onChange={(e) => setFormData({ ...formData, soilParameterOther: e.target.value })}
+                            />
+                        )}
                         <FormSelect
                             label="Season"
                             required

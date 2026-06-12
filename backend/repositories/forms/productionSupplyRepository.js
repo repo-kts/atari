@@ -108,11 +108,15 @@ const _mapResponse = (r) => {
         id: r.productionSupplyId,
         reportingYear,
         kvkName: r.kvk?.kvkName,
-        category: r.productCategory?.productCategoryName,
+        // Prefer the typed "Other" text over the generic master name.
+        category: r.productCategoryOther || r.productCategory?.productCategoryName,
         variety: r.speciesName,
-        productCategory: r.productCategory?.productCategoryName,
-        productType: r.productType?.productCategoryType,
-        product: r.product?.productName,
+        productCategory: r.productCategoryOther || r.productCategory?.productCategoryName,
+        productCategoryOther: r.productCategoryOther ?? '',
+        productType: r.productTypeOther || r.productType?.productCategoryType,
+        productTypeOther: r.productTypeOther ?? '',
+        product: r.productOther || r.product?.productName,
+        productOther: r.productOther ?? '',
         speciesBreedVariety: r.speciesName,
         unit: r.unit,
         quantity: r.quantity,
@@ -193,8 +197,12 @@ const productionSupplyRepository = {
                 kvkId,
                 reportingYear,
                 productCategoryId: productCategoryId ? parseInteger(productCategoryId, 'productCategoryId', false) : null,
+                // "Other" free-text: only meaningful when the chosen master row is flagged isOther.
+                productCategoryOther: _normalizeString(data.productCategoryOther, 'productCategoryOther', true),
                 productTypeId: productTypeId ? parseInteger(productTypeId, 'productTypeId', false) : null,
+                productTypeOther: _normalizeString(data.productTypeOther, 'productTypeOther', true),
                 productId: productId ? parseInteger(productId, 'productId', false) : null,
+                productOther: _normalizeString(data.productOther, 'productOther', true),
                 speciesName,
                 unit,
                 quantity,
@@ -403,6 +411,11 @@ const productionSupplyRepository = {
                     updateData.productId = null;
                 }
             }
+
+            // "Other" free-text fields
+            if (data.productCategoryOther !== undefined) updateData.productCategoryOther = _normalizeString(data.productCategoryOther, 'productCategoryOther', true);
+            if (data.productTypeOther !== undefined) updateData.productTypeOther = _normalizeString(data.productTypeOther, 'productTypeOther', true);
+            if (data.productOther !== undefined) updateData.productOther = _normalizeString(data.productOther, 'productOther', true);
 
             // Update required fields if provided
             if (data.speciesName !== undefined) {

@@ -1,6 +1,8 @@
 model ExtensionActivity {
   extensionActivityId        Int                          @id @default(autoincrement()) @map("extension_activity_id")
   extensionName              String                       @map("extension_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther                    Boolean                      @default(false) @map("is_other")
   createdAt                  DateTime                     @default(now()) @map("created_at")
   updatedAt                  DateTime                     @updatedAt @map("updated_at")
   extensionActivityOrganized ExtensionActivityOrganized[]

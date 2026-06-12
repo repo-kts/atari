@@ -1,6 +1,8 @@
 model CropType {
   typeId                    Int                      @id @default(autoincrement()) @map("type_id")
   typeName                  String                   @unique @map("type_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther                   Boolean                  @default(false) @map("is_other")
   createdAt                 DateTime                 @default(now()) @map("created_at")
   updatedAt                 DateTime                 @updatedAt @map("updated_at")
   cfldCrops                 FLDCropMaster[]

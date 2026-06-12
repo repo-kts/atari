@@ -625,6 +625,10 @@ function _mapResponse(r) {
         budgetId: r.budgetId,
         kvkId: r.kvkId,
         ...relations,
+        // Prefer the typed "Other" text over the generic master name.
+        seasonName: r.seasonOther || relations.seasonName,
+        season: r.seasonOther || relations.season,
+        seasonOther: r.seasonOther ?? '',
         year: r.year,
         reportingYear: formatBudgetReportingYear(r.reportingYearDate, r.year),
         ...dynamicScalarFields,

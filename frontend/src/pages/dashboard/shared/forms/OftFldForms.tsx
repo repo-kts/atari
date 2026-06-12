@@ -5,6 +5,9 @@ import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
 import { DependentDropdown } from '../../../../components/common/DependentDropdown'
 import { MasterDataDropdown } from '../../../../components/common/MasterDataDropdown'
+import { SpecifyOtherInput } from '../../../../components/common/SpecifyOtherInput'
+import { IsOtherCheckbox } from '../../../../components/common/IsOtherCheckbox'
+import { useOtherSpecify } from '../../../../hooks/useOtherSpecify'
 import {
     useOftSubjects,
     useSectors,
@@ -186,6 +189,58 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     const { data: fldThematicAreas = [], isLoading: isLoadingFldThematicAreas } = useFldThematicAreas()
     const { data: fldCrops = [] } = useFldCrops()
 
+    // Master-controlled "Other → specify" for the FLD Sector / Thematic Area chain.
+    const sectorOptions = useMemo(
+        () => createMasterDataOptions(fldSectors, 'sectorId', 'sectorName', { flagKey: 'isOther' }),
+        [fldSectors]
+    )
+    const fldThematicOptions = useMemo(
+        () => (fldThematicAreas as any[])
+            .filter((t: any) => t.sectorId === formData.sectorId)
+            .map((t: any) => ({
+                value: t.thematicAreaId || t.fldThematicAreaId,
+                label: t.thematicAreaName,
+                isOther: Boolean(t.isOther),
+            })),
+        [fldThematicAreas, formData.sectorId]
+    )
+    const { isOtherSelected: isOtherSector, otherResetPatch: sectorResetPatch } = useOtherSpecify(
+        sectorOptions,
+        formData.sectorId
+    )
+    const { isOtherSelected: isOtherThematic, otherResetPatch: thematicResetPatch } = useOtherSpecify(
+        fldThematicOptions,
+        formData.fldThematicAreaId || formData.thematicAreaId
+    )
+    const fldCategoryOptions = useMemo(
+        () => filterByParentId(fldCategories, 'sectorId', formData.sectorId)
+            .map((c: any) => ({ value: c.categoryId, label: c.categoryName, isOther: Boolean(c.isOther) })),
+        [fldCategories, formData.sectorId]
+    )
+    const fldSubcategoryOptions = useMemo(
+        () => filterByParentId(fldSubcategories, 'categoryId', formData.categoryId)
+            .map((s: any) => ({ value: s.subCategoryId, label: s.subCategoryName, isOther: Boolean(s.isOther) })),
+        [fldSubcategories, formData.categoryId]
+    )
+    const fldCropOptions = useMemo(
+        () => (fldCrops as any[])
+            .filter((c: any) => c.subCategoryId === formData.subCategoryId)
+            .map((c: any) => ({ value: c.cropId || c.fldCropId, label: c.cropName, isOther: Boolean(c.isOther) })),
+        [fldCrops, formData.subCategoryId]
+    )
+    const { isOtherSelected: isOtherCategory, otherResetPatch: categoryResetPatch } = useOtherSpecify(
+        fldCategoryOptions,
+        formData.categoryId
+    )
+    const { isOtherSelected: isOtherSubCategory, otherResetPatch: subCategoryResetPatch } = useOtherSpecify(
+        fldSubcategoryOptions,
+        formData.subCategoryId
+    )
+    const { isOtherSelected: isOtherCrop, otherResetPatch: cropResetPatch } = useOtherSpecify(
+        fldCropOptions,
+        formData.cropId
+    )
+
     // KVK Staff dropdown - depends on kvkId
     const activeKvkId = user?.kvkId || formData.kvkId
     const { data: kvkStaffData = [], isLoading: isLoadingKvkStaff } = useKvkStaffForDropdown(activeKvkId)
@@ -238,12 +293,51 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         formData.oftSubjectId ? parseInt(formData.oftSubjectId) : null
     )
 
+    // Master-controlled "Other → specify" for the OFT Subject / Thematic Area chain.
+    const oftSubjectOptions = useMemo(
+        () => createMasterDataOptions(oftSubjects, 'oftSubjectId', 'subjectName', { flagKey: 'isOther' }),
+        [oftSubjects]
+    )
+    const oftThematicOptions = useMemo(
+        () => (oftThematicAreasData as any[]).map((t: any) => ({
+            value: t.oftThematicAreaId,
+            label: t.thematicAreaName,
+            isOther: Boolean(t.isOther),
+        })),
+        [oftThematicAreasData]
+    )
+    const { isOtherSelected: isOtherOftSubject, otherResetPatch: oftSubjectResetPatch } = useOtherSpecify(
+        oftSubjectOptions,
+        formData.oftSubjectId
+    )
+    const { isOtherSelected: isOtherOftThematic, otherResetPatch: oftThematicResetPatch } = useOtherSpecify(
+        oftThematicOptions,
+        formData.oftThematicAreaId
+    )
+    const oftDisciplineOptions = useMemo(
+        () => createMasterDataOptions(disciplines, 'disciplineId', 'disciplineName', { flagKey: 'isOther' }),
+        [disciplines]
+    )
+    const oftFundingOptions = useMemo(
+        () => createMasterDataOptions(fundingSources as any[], 'fundingSourceId', 'name', { flagKey: 'isOther' }),
+        [fundingSources]
+    )
+    const { isOtherSelected: isOtherDiscipline, otherResetPatch: disciplineResetPatch } = useOtherSpecify(
+        oftDisciplineOptions,
+        formData.disciplineId
+    )
+    const { isOtherSelected: isOtherFunding, otherResetPatch: fundingResetPatch } = useOtherSpecify(
+        oftFundingOptions,
+        formData.sourceOfFundingId
+    )
+
     // Memoized onOptionsLoad functions to prevent infinite re-renders
     const loadOftThematicAreas = useCallback(async (subjectId: any) => {
         const response = await oftFldApi.getOftThematicAreasBySubject(subjectId as number);
         return response.data.map((thematicArea: any) => ({
             value: thematicArea.oftThematicAreaId,
-            label: thematicArea.thematicAreaName
+            label: thematicArea.thematicAreaName,
+            isOther: Boolean(thematicArea.isOther)
         }));
     }, []);
 
@@ -251,25 +345,27 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         const response = await oftFldApi.getFldThematicAreasBySector(sectorId as number);
         return response.data.map((thematicArea: any) => ({
             value: thematicArea.thematicAreaId || thematicArea.fldThematicAreaId,
-            label: thematicArea.thematicAreaName
+            label: thematicArea.thematicAreaName,
+            isOther: Boolean(thematicArea.isOther)
         }));
     }, []);
 
     const loadFldCategories = useCallback(async (sectorId: any) => {
         const response = await oftFldApi.getFldCategoriesBySector(sectorId as number);
-        return createMasterDataOptions(response.data, 'categoryId', 'categoryName');
+        return createMasterDataOptions(response.data, 'categoryId', 'categoryName', { flagKey: 'isOther' });
     }, []);
 
     const loadFldSubcategories = useCallback(async (categoryId: any) => {
         const response = await oftFldApi.getFldSubcategoriesByCategory(categoryId as number);
-        return createMasterDataOptions(response.data, 'subCategoryId', 'subCategoryName');
+        return createMasterDataOptions(response.data, 'subCategoryId', 'subCategoryName', { flagKey: 'isOther' });
     }, []);
 
     const loadFldCrops = useCallback(async (subCategoryId: any) => {
         const response = await oftFldApi.getFldCropsBySubcategory(subCategoryId as number);
         return response.data.map((crop: any) => ({
             value: crop.cropId || crop.fldCropId,
-            label: crop.cropName
+            label: crop.cropName,
+            isOther: Boolean(crop.isOther)
         }));
     }, []);
 
@@ -377,13 +473,19 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         <>
             {/* ALL MAsters forms-------------- */}
             {entityType === ENTITY_TYPES.OFT_SUBJECTS && (
-                <FormInput
-                    label="Subject Name"
-                    required
-                    value={formData.subjectName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, subjectName: e.target.value })}
-                    placeholder="Enter subject name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Subject Name"
+                        required
+                        value={formData.subjectName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, subjectName: e.target.value })}
+                        placeholder="Enter subject name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.OFT_THEMATIC_AREAS && (
@@ -402,17 +504,27 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, thematicAreaName: e.target.value })}
                         placeholder="Enter thematic area name"
                     />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
                 </div>
             )}
 
             {entityType === ENTITY_TYPES.FLD_SECTORS && (
-                <FormInput
-                    label="Sector Name"
-                    required
-                    value={formData.sectorName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, sectorName: e.target.value })}
-                    placeholder="Enter sector name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Sector Name"
+                        required
+                        value={formData.sectorName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, sectorName: e.target.value })}
+                        placeholder="Enter sector name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.FLD_THEMATIC_AREAS && (
@@ -430,6 +542,10 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         value={formData.thematicAreaName ?? ''}
                         onChange={(e) => setFormData({ ...formData, thematicAreaName: e.target.value })}
                         placeholder="Enter thematic area name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
                     />
                 </div>
             )}
@@ -449,6 +565,10 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         value={formData.categoryName ?? ''}
                         onChange={(e) => setFormData({ ...formData, categoryName: e.target.value })}
                         placeholder="Enter category name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
                     />
                 </div>
             )}
@@ -481,6 +601,10 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         value={formData.subCategoryName ?? ''}
                         onChange={(e) => setFormData({ ...formData, subCategoryName: e.target.value })}
                         placeholder="Enter subcategory name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
                     />
                 </div>
             )}
@@ -527,6 +651,10 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                         placeholder="Enter crop name"
                     />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
                 </div>
             )}
 
@@ -563,6 +691,10 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         value={formData.CropName ?? ''}
                         onChange={(e) => setFormData({ ...formData, CropName: e.target.value })}
                         placeholder="Enter crop name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
                     />
                 </div>
             )}
@@ -631,12 +763,25 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                     ...formData,
                                     oftSubjectId: value as number,
                                     oftThematicAreaId: '',
-                                    thematicArea: ''
+                                    thematicArea: '',
+                                    // Clear thematic "other" too — the thematic selection resets with the subject.
+                                    oftThematicAreaOther: '',
+                                    // Clear the subject "specify other" unless the newly picked subject is the Other row.
+                                    ...oftSubjectResetPatch(value, 'oftSubjectOther'),
                                 });
                             }}
-                            options={createMasterDataOptions(oftSubjects, 'oftSubjectId', 'subjectName')}
+                            options={oftSubjectOptions}
                             emptyMessage="No OFT subjects available"
                         />
+
+                        {isOtherOftSubject && (
+                            <SpecifyOtherInput
+                                label="Please specify other subject"
+                                required
+                                value={formData.oftSubjectOther}
+                                onChange={(e) => setFormData({ ...formData, oftSubjectOther: e.target.value })}
+                            />
+                        )}
 
                         <DependentDropdown
                             label="Thematic Area"
@@ -647,13 +792,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     oftThematicAreaId: value as number,
-                                    thematicArea: selectedThematicArea?.thematicAreaName || ''
+                                    thematicArea: selectedThematicArea?.thematicAreaName || '',
+                                    // Clear the "specify other" text unless the newly picked area is the Other row.
+                                    ...oftThematicResetPatch(value, 'oftThematicAreaOther'),
                                 });
                             }}
-                            options={oftThematicAreasData?.map((t: any) => ({
-                                value: t.oftThematicAreaId,
-                                label: t.thematicAreaName
-                            })) || []}
+                            options={oftThematicOptions}
                             dependsOn={{
                                 value: formData.oftSubjectId ? parseInt(formData.oftSubjectId) : null,
                                 field: 'oftSubjectId',
@@ -665,6 +809,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             isLoading={isLoadingOftThematicAreas}
                         />
 
+                        {isOtherOftThematic && (
+                            <SpecifyOtherInput
+                                label="Please specify other thematic area"
+                                required
+                                value={formData.oftThematicAreaOther}
+                                onChange={(e) => setFormData({ ...formData, oftThematicAreaOther: e.target.value })}
+                            />
+                        )}
+
                         <MasterDataDropdown
                             label="Discipline"
                             required
@@ -675,12 +828,21 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     disciplineId: disciplineId,
-                                    discipline: selectedDiscipline?.disciplineName || ''
+                                    discipline: selectedDiscipline?.disciplineName || '',
+                                    ...disciplineResetPatch(disciplineId, 'disciplineOther'),
                                 });
                             }}
-                            options={createMasterDataOptions(disciplines, 'disciplineId', 'disciplineName')}
+                            options={oftDisciplineOptions}
                             emptyMessage="No disciplines available"
                         />
+                        {isOtherDiscipline && (
+                            <SpecifyOtherInput
+                                label="Please specify other discipline"
+                                required
+                                value={formData.disciplineOther}
+                                onChange={(e) => setFormData({ ...formData, disciplineOther: e.target.value })}
+                            />
+                        )}
                         <FormInput
                             label="Title of On Farm Trial (OFT)"
                             required
@@ -703,10 +865,22 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Source of Funding"
                             required
                             value={formData.sourceOfFundingId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, sourceOfFundingId: value as number })}
-                            options={createMasterDataOptions(fundingSources as any[], 'fundingSourceId', 'name')}
+                            onChange={(value) => setFormData({
+                                ...formData,
+                                sourceOfFundingId: value as number,
+                                ...fundingResetPatch(value, 'sourceOfFundingOther'),
+                            })}
+                            options={oftFundingOptions}
                             emptyMessage="No funding sources available"
                         />
+                        {isOtherFunding && (
+                            <SpecifyOtherInput
+                                label="Please specify other funding source"
+                                required
+                                value={formData.sourceOfFundingOther}
+                                onChange={(e) => setFormData({ ...formData, sourceOfFundingOther: e.target.value })}
+                            />
+                        )}
                         <FormInput
                             label="Production system and thematic area"
                             required
@@ -954,13 +1128,28 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                     categoryId: '', // Reset category when sector changes
                                     subCategoryId: '', // Reset subcategory when sector changes
                                     cropId: '', // Reset crop when sector changes
+                                    // Child specify-other texts reset with their dropdowns.
+                                    categoryOther: '',
+                                    subCategoryOther: '',
+                                    cropOther: '',
                                     // Women Empowerment has no measurable unit/quantity — clear any stale values.
                                     ...(isWomenEmpowerment ? { unit: '', quantity: '', area: '' } : {}),
+                                    // Clear the "specify other" text unless the newly picked sector is the Other row.
+                                    ...sectorResetPatch(value, 'sectorOther'),
                                 });
                             }}
-                            options={createMasterDataOptions(fldSectors, 'sectorId', 'sectorName')}
+                            options={sectorOptions}
                             emptyMessage="No sectors available"
                         />
+
+                        {isOtherSector && (
+                            <SpecifyOtherInput
+                                label="Please specify other sector"
+                                required
+                                value={formData.sectorOther}
+                                onChange={(e) => setFormData({ ...formData, sectorOther: e.target.value })}
+                            />
+                        )}
 
                         {/* Thematic Area - Dependent on Sector */}
                         <DependentDropdown
@@ -987,16 +1176,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                     ...formData,
                                     fldThematicAreaId: numericValue, // Frontend uses fldThematicAreaId for consistency
                                     thematicAreaId: numericValue, // Backend uses thematicAreaId
-                                    thematicArea: selectedThematicArea?.thematicAreaName || ''
+                                    thematicArea: selectedThematicArea?.thematicAreaName || '',
+                                    // Clear the "specify other" text unless the newly picked area is the Other row.
+                                    ...thematicResetPatch(numericValue, 'thematicAreaOther'),
                                 });
                             }}
-                            options={fldThematicAreas
-                                .filter((t: any) => t.sectorId === formData.sectorId)
-                                .map((t: any) => ({
-                                    // API returns thematicAreaId, but we map it to fldThematicAreaId for frontend consistency
-                                    value: t.thematicAreaId || t.fldThematicAreaId,
-                                    label: t.thematicAreaName
-                                }))}
+                            options={fldThematicOptions}
                             dependsOn={{
                                 value: formData.sectorId,
                                 field: 'sectorId',
@@ -1008,6 +1193,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             isLoading={isLoadingFldThematicAreas}
                         />
 
+                        {isOtherThematic && (
+                            <SpecifyOtherInput
+                                label="Please specify other thematic area"
+                                required
+                                value={formData.thematicAreaOther}
+                                onChange={(e) => setFormData({ ...formData, thematicAreaOther: e.target.value })}
+                            />
+                        )}
+
                         {/* Category - Dependent on Sector */}
                         <DependentDropdown
                             label="Category"
@@ -1017,11 +1211,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     categoryId: value as number,
-                                    subCategoryId: '' // Reset subcategory when category changes
+                                    subCategoryId: '', // Reset subcategory when category changes
+                                    // Child selections reset with the parent — clear their specify text too.
+                                    subCategoryOther: '',
+                                    cropOther: '',
+                                    ...categoryResetPatch(value, 'categoryOther'),
                                 });
                             }}
-                            options={filterByParentId(fldCategories, 'sectorId', formData.sectorId)
-                                .map((c: any) => ({ value: c.categoryId, label: c.categoryName }))}
+                            options={fldCategoryOptions}
                             dependsOn={{
                                 value: formData.sectorId,
                                 field: 'sectorId',
@@ -1032,6 +1229,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             loadingMessage="Loading categories..."
                         />
 
+                        {isOtherCategory && (
+                            <SpecifyOtherInput
+                                label="Please specify other category"
+                                required
+                                value={formData.categoryOther}
+                                onChange={(e) => setFormData({ ...formData, categoryOther: e.target.value })}
+                            />
+                        )}
+
                         {/* Sub Category - Dependent on Category */}
                         <DependentDropdown
                             label="Sub Category"
@@ -1041,11 +1247,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     subCategoryId: value as number,
-                                    cropId: '' // Reset crop when subcategory changes
+                                    cropId: '', // Reset crop when subcategory changes
+                                    cropOther: '',
+                                    ...subCategoryResetPatch(value, 'subCategoryOther'),
                                 });
                             }}
-                            options={filterByParentId(fldSubcategories, 'categoryId', formData.categoryId)
-                                .map((s: any) => ({ value: s.subCategoryId, label: s.subCategoryName }))}
+                            options={fldSubcategoryOptions}
                             dependsOn={{
                                 value: formData.categoryId,
                                 field: 'categoryId',
@@ -1055,6 +1262,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             emptyMessage="No subcategories available for this category"
                             loadingMessage="Loading subcategories..."
                         />
+
+                        {isOtherSubCategory && (
+                            <SpecifyOtherInput
+                                label="Please specify other sub category"
+                                required
+                                value={formData.subCategoryOther}
+                                onChange={(e) => setFormData({ ...formData, subCategoryOther: e.target.value })}
+                            />
+                        )}
 
                         {/* Crop - Dependent on Subcategory */}
                         <DependentDropdown
@@ -1073,15 +1289,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                     return;
                                 }
 
-                                setFormData({ ...formData, cropId: numericValue });
+                                setFormData({
+                                    ...formData,
+                                    cropId: numericValue,
+                                    ...cropResetPatch(numericValue, 'cropOther'),
+                                });
                             }}
-                            options={fldCrops
-                                .filter((c: any) => c.subCategoryId === formData.subCategoryId)
-                                .map((c: any) => ({
-                                    // API returns cropId (not fldCropId)
-                                    value: c.cropId || c.fldCropId,
-                                    label: c.cropName
-                                }))}
+                            options={fldCropOptions}
                             dependsOn={{
                                 value: formData.subCategoryId,
                                 field: 'subCategoryId',
@@ -1091,6 +1305,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             emptyMessage="No crops available for this subcategory"
                             loadingMessage="Loading crops..."
                         />
+
+                        {isOtherCrop && (
+                            <SpecifyOtherInput
+                                label="Please specify other crop"
+                                required
+                                value={formData.cropOther}
+                                onChange={(e) => setFormData({ ...formData, cropOther: e.target.value })}
+                            />
+                        )}
                         <FormInput
                             label="Name of Technology Demonstrated (FLD Name)"
                             required

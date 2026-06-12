@@ -1,9 +1,12 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormSection } from './shared/FormComponents'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { IsOtherCheckbox } from '@/components/common/IsOtherCheckbox'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 import {
     useTrainingTypes,
     useTrainingAreas,
@@ -155,12 +158,45 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
         formData.trainingAreaId ? parseInt(formData.trainingAreaId) : null
     )
 
+    // Master-controlled "Other → specify" for the training achievement chain.
+    const trainingClienteleOptions = useMemo(
+        () => createMasterDataOptions(trainingClientele, 'clienteleId', 'name', { flagKey: 'isOther' }),
+        [trainingClientele]
+    )
+    const trainingTypeOptions = useMemo(
+        () => createMasterDataOptions(trainingTypes, 'trainingTypeId', 'trainingTypeName', { flagKey: 'isOther' }),
+        [trainingTypes]
+    )
+    const trainingAreaOptions = useMemo(
+        () => filterByParentId(trainingAreas, 'trainingTypeId', formData.trainingTypeId)
+            .map((a: any) => ({ value: a.trainingAreaId, label: a.trainingAreaName || a.name || '', isOther: Boolean(a.isOther) })),
+        [trainingAreas, formData.trainingTypeId]
+    )
+    const trainingThematicOptions = useMemo(
+        () => (trainingThematicAreasData as any[]).map((t: any) => ({
+            value: t.trainingThematicAreaId,
+            label: t.trainingThematicAreaName,
+            isOther: Boolean(t.isOther),
+        })),
+        [trainingThematicAreasData]
+    )
+    const trainingFundingOptions = useMemo(
+        () => createMasterDataOptions(fundingSources, 'fundingSourceId', 'name', { flagKey: 'isOther' }),
+        [fundingSources]
+    )
+    const { isOtherSelected: isOtherClientele, otherResetPatch: clienteleResetPatch } = useOtherSpecify(trainingClienteleOptions, formData.clienteleId)
+    const { isOtherSelected: isOtherTrainingType, otherResetPatch: trainingTypeResetPatch } = useOtherSpecify(trainingTypeOptions, formData.trainingTypeId)
+    const { isOtherSelected: isOtherTrainingArea, otherResetPatch: trainingAreaResetPatch } = useOtherSpecify(trainingAreaOptions, formData.trainingAreaId)
+    const { isOtherSelected: isOtherTrainingThematic, otherResetPatch: trainingThematicResetPatch } = useOtherSpecify(trainingThematicOptions, formData.trainingThematicAreaId || formData.thematicAreaId)
+    const { isOtherSelected: isOtherTrainingFunding, otherResetPatch: trainingFundingResetPatch } = useOtherSpecify(trainingFundingOptions, formData.fundingSourceId)
+
     // Memoized onOptionsLoad functions to prevent infinite re-renders
     const loadTrainingAreasByType = useCallback(async (trainingTypeId: any) => {
         const response = await trainingExtensionEventsApi.getTrainingAreasByType(trainingTypeId as number);
         return response.data.map((area: any) => ({
             value: area.trainingAreaId,
-            label: area.trainingAreaName
+            label: area.trainingAreaName,
+            isOther: Boolean(area.isOther)
         }));
     }, []);
 
@@ -168,7 +204,8 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
         const response = await trainingExtensionEventsApi.getTrainingThematicAreasByArea(trainingAreaId as number);
         return response.data.map((thematicArea: any) => ({
             value: thematicArea.trainingThematicAreaId,
-            label: thematicArea.trainingThematicAreaName
+            label: thematicArea.trainingThematicAreaName,
+            isOther: Boolean(thematicArea.isOther)
         }));
     }, []);
 
@@ -179,16 +216,22 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             trainingTypeId: value as number,
             trainingAreaId: '', // Reset training area when type changes
             trainingThematicAreaId: '', // Reset thematic area when type changes
+            // Child specify-other texts reset with their dropdowns.
+            trainingAreaOther: '',
+            thematicAreaOther: '',
+            ...trainingTypeResetPatch(value, 'trainingTypeOther'),
         }));
-    }, [setFormData]);
+    }, [setFormData, trainingTypeResetPatch]);
 
     const handleTrainingAreaChange = useCallback((value: string | number) => {
         setFormData((prev: any) => ({
             ...prev,
             trainingAreaId: value as number,
             trainingThematicAreaId: '', // Reset thematic area when area changes
+            thematicAreaOther: '',
+            ...trainingAreaResetPatch(value, 'trainingAreaOther'),
         }));
-    }, [setFormData]);
+    }, [setFormData, trainingAreaResetPatch]);
 
     const handleTrainingThematicAreaChange = useCallback((value: string | number) => {
         const selectedThematicArea = trainingThematicAreasData?.find((t: any) => t.trainingThematicAreaId === value);
@@ -196,8 +239,9 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             ...prev,
             trainingThematicAreaId: value as number,
             thematicArea: selectedThematicArea?.trainingThematicAreaName || '',
+            ...trainingThematicResetPatch(value, 'thematicAreaOther'),
         }));
-    }, [trainingThematicAreasData, setFormData]);
+    }, [trainingThematicAreasData, setFormData, trainingThematicResetPatch]);
 
     const handleClienteleChange = useCallback((value: string | number) => {
         const selectedClientele = trainingClientele.find((c: any) => c.clienteleId === value);
@@ -205,8 +249,9 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             ...prev,
             clienteleId: value as number,
             clientele: selectedClientele?.name || '',
+            ...clienteleResetPatch(value, 'clienteleOther'),
         }));
-    }, [trainingClientele, setFormData]);
+    }, [trainingClientele, setFormData, clienteleResetPatch]);
 
     const handleFundingSourceChange = useCallback((value: string | number) => {
         const selectedFundingSource = fundingSources.find((f: any) => f.fundingSourceId === value);
@@ -214,8 +259,26 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             ...prev,
             fundingSourceId: value as number,
             fundingSource: selectedFundingSource?.name || '',
+            ...trainingFundingResetPatch(value, 'fundingSourceOther'),
         }));
-    }, [fundingSources, setFormData]);
+    }, [fundingSources, setFormData, trainingFundingResetPatch]);
+
+    const extensionActivityOptions = useMemo(
+        () => createMasterDataOptions(extensionActivities, 'extensionActivityId', 'extensionName', { flagKey: 'isOther' }),
+        [extensionActivities]
+    )
+    const otherExtensionActivityOptions = useMemo(
+        () => createMasterDataOptions(otherExtensionActivities, 'otherExtensionActivityId', 'otherExtensionName', { flagKey: 'isOther' }),
+        [otherExtensionActivities]
+    )
+    const { isOtherSelected: isOtherExtensionActivity, otherResetPatch: extensionActivityResetPatch } = useOtherSpecify(
+        extensionActivityOptions,
+        formData.extensionActivityTypeId || formData.activityId
+    )
+    const { isOtherSelected: isOtherOtherExtension, otherResetPatch: otherExtensionResetPatch } = useOtherSpecify(
+        otherExtensionActivityOptions,
+        formData.otherExtensionActivityTypeId || formData.activityTypeId
+    )
 
     const handleExtensionActivityTypeChange = useCallback((value: string | number) => {
         const selectedActivity = extensionActivities.find((a: any) => a.extensionActivityId === value);
@@ -223,8 +286,9 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             ...prev,
             extensionActivityTypeId: value as number,
             extensionActivityType: selectedActivity?.extensionName || '',
+            ...extensionActivityResetPatch(value, 'activityOther'),
         }));
-    }, [extensionActivities, setFormData]);
+    }, [extensionActivities, setFormData, extensionActivityResetPatch]);
 
     const handleOtherExtensionActivityTypeChange = useCallback((value: string | number) => {
         const selectedActivity = otherExtensionActivities.find((a: any) => a.otherExtensionActivityId === value);
@@ -232,17 +296,27 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             ...prev,
             otherExtensionActivityTypeId: value as number,
             extensionActivityType: selectedActivity?.otherExtensionName || '',
+            ...otherExtensionResetPatch(value, 'activityTypeOther'),
         }));
-    }, [otherExtensionActivities, setFormData]);
+    }, [otherExtensionActivities, setFormData, otherExtensionResetPatch]);
 
+    const importantDayOptions = useMemo(
+        () => createMasterDataOptions(importantDays, 'importantDayId', 'dayName', { flagKey: 'isOther' }),
+        [importantDays]
+    )
+    const { isOtherSelected: isOtherImportantDay, otherResetPatch: importantDayResetPatch } = useOtherSpecify(
+        importantDayOptions,
+        formData.importantDayId
+    )
     const handleImportantDayChange = useCallback((value: string | number) => {
         const selectedDay = importantDays.find((d: any) => d.importantDayId === value);
         setFormData((prev: any) => ({
             ...prev,
             importantDayId: value as number,
             importantDay: selectedDay?.dayName || '',
+            ...importantDayResetPatch(value, 'importantDayOther'),
         }));
-    }, [importantDays, setFormData]);
+    }, [importantDays, setFormData, importantDayResetPatch]);
 
     if (!entityType) return null
 
@@ -250,13 +324,19 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
         <>
             {/* ALL Masters forms-------------- */}
             {entityType === ENTITY_TYPES.TRAINING_TYPES && (
-                <FormInput
-                    label="Training Type Name"
-                    required
-                    value={formData.trainingTypeName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, trainingTypeName: e.target.value })}
-                    placeholder="Enter training type name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Training Type Name"
+                        required
+                        value={formData.trainingTypeName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, trainingTypeName: e.target.value })}
+                        placeholder="Enter training type name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.TRAINING_AREAS && (
@@ -275,6 +355,10 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         value={formData.trainingAreaName ?? ''}
                         onChange={(e) => setFormData({ ...formData, trainingAreaName: e.target.value })}
                         placeholder="Enter training area name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
                     />
                 </div>
             )}
@@ -296,47 +380,75 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, trainingThematicAreaName: e.target.value })}
                         placeholder="Enter thematic area name"
                     />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
                 </div>
             )}
 
             {entityType === ENTITY_TYPES.TRAINING_CLIENTELE && (
-                <FormInput
-                    label="Training Clientele Name"
-                    required
-                    value={formData.name ?? ''}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Enter training clientele name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Training Clientele Name"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Enter training clientele name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.FUNDING_SOURCE && (
-                <FormInput
-                    label="Funding Source Name"
-                    required
-                    value={formData.name ?? ''}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Enter funding source name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Funding Source Name"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Enter funding source name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.EXTENSION_ACTIVITIES && (
-                <FormInput
-                    label="Extension Activity Name"
-                    required
-                    value={formData.extensionName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, extensionName: e.target.value })}
-                    placeholder="Enter extension activity name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Extension Activity Name"
+                        required
+                        value={formData.extensionName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, extensionName: e.target.value })}
+                        placeholder="Enter extension activity name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES && (
-                <FormInput
-                    label="Other Extension Activity Name"
-                    required
-                    value={formData.otherExtensionName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, otherExtensionName: e.target.value })}
-                    placeholder="Enter other extension activity name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Other Extension Activity Name"
+                        required
+                        value={formData.otherExtensionName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, otherExtensionName: e.target.value })}
+                        placeholder="Enter other extension activity name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.EVENTS && (
@@ -359,9 +471,17 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.clienteleId || formData.clientele || ''}
                             onChange={handleClienteleChange}
-                            options={createMasterDataOptions(trainingClientele, 'clienteleId', 'name')}
+                            options={trainingClienteleOptions}
                             emptyMessage="No clientele available"
                         />
+                        {isOtherClientele && (
+                            <SpecifyOtherInput
+                                label="Please specify other clientele"
+                                required
+                                value={formData.clienteleOther}
+                                onChange={(e) => setFormData({ ...formData, clienteleOther: e.target.value })}
+                            />
+                        )}
 
                         {/* Training Type - From Training Type Master */}
                         <MasterDataDropdown
@@ -369,9 +489,17 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.trainingTypeId ?? ''}
                             onChange={handleTrainingTypeChange}
-                            options={createMasterDataOptions(trainingTypes, 'trainingTypeId', 'trainingTypeName' as any)}
+                            options={trainingTypeOptions}
                             emptyMessage="No training types available"
                         />
+                        {isOtherTrainingType && (
+                            <SpecifyOtherInput
+                                label="Please specify other training type"
+                                required
+                                value={formData.trainingTypeOther}
+                                onChange={(e) => setFormData({ ...formData, trainingTypeOther: e.target.value })}
+                            />
+                        )}
 
 
                         {/* Training Area - Dependent on Training Type */}
@@ -380,11 +508,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.trainingAreaId ?? ''}
                             onChange={handleTrainingAreaChange}
-                            options={filterByParentId(trainingAreas, 'trainingTypeId', formData.trainingTypeId)
-                                .map((a: any) => ({
-                                    value: a.trainingAreaId,
-                                    label: a.trainingAreaName || a.name || ''
-                                }))}
+                            options={trainingAreaOptions}
                             dependsOn={{
                                 value: formData.trainingTypeId,
                                 field: 'trainingTypeId',
@@ -394,6 +518,14 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             emptyMessage="No training areas available for this training type"
                             loadingMessage="Loading training areas..."
                         />
+                        {isOtherTrainingArea && (
+                            <SpecifyOtherInput
+                                label="Please specify other training area"
+                                required
+                                value={formData.trainingAreaOther}
+                                onChange={(e) => setFormData({ ...formData, trainingAreaOther: e.target.value })}
+                            />
+                        )}
 
                         {/* Thematic Area - Dependent on Training Area */}
                         <DependentDropdown
@@ -401,10 +533,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.trainingThematicAreaId ? parseInt(formData.trainingThematicAreaId) : (formData.thematicAreaId ? parseInt(formData.thematicAreaId) : '')}
                             onChange={handleTrainingThematicAreaChange}
-                            options={trainingThematicAreasData?.map((t: any) => ({
-                                value: t.trainingThematicAreaId,
-                                label: t.trainingThematicAreaName
-                            })) || []}
+                            options={trainingThematicOptions}
                             dependsOn={{
                                 value: formData.trainingAreaId ? parseInt(formData.trainingAreaId) : null,
                                 field: 'trainingAreaId',
@@ -415,6 +544,14 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             loadingMessage="Loading thematic areas..."
                             isLoading={isLoadingTrainingThematicAreas}
                         />
+                        {isOtherTrainingThematic && (
+                            <SpecifyOtherInput
+                                label="Please specify other thematic area"
+                                required
+                                value={formData.thematicAreaOther}
+                                onChange={(e) => setFormData({ ...formData, thematicAreaOther: e.target.value })}
+                            />
+                        )}
 
 
                         {/* On Campus/Off Campus - Static options */}
@@ -479,9 +616,17 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             label="Funding Source"
                             value={formData.fundingSourceId || formData.fundingSource || ''}
                             onChange={handleFundingSourceChange}
-                            options={createMasterDataOptions(fundingSources, 'fundingSourceId', 'name')}
+                            options={trainingFundingOptions}
                             emptyMessage="No funding sources available"
                         />
+                        {isOtherTrainingFunding && (
+                            <SpecifyOtherInput
+                                label="Please specify other funding source"
+                                required
+                                value={formData.fundingSourceOther}
+                                onChange={(e) => setFormData({ ...formData, fundingSourceOther: e.target.value })}
+                            />
+                        )}
 
                         <FormInput
                             label="Funding Agency Name"
@@ -566,9 +711,17 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.extensionActivityTypeId || formData.activityId || formData.extensionActivityType || ''}
                             onChange={handleExtensionActivityTypeChange}
-                            options={createMasterDataOptions(extensionActivities, 'extensionActivityId', 'extensionName')}
+                            options={extensionActivityOptions}
                             emptyMessage="No extension activities available"
                         />
+                        {isOtherExtensionActivity && (
+                            <SpecifyOtherInput
+                                label="Please specify other extension activity"
+                                required
+                                value={formData.activityOther}
+                                onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })}
+                            />
+                        )}
 
                         <FormInput
                             label="No. of activities"
@@ -720,9 +873,17 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.otherExtensionActivityTypeId || formData.activityTypeId || formData.extensionActivityType || ''}
                             onChange={handleOtherExtensionActivityTypeChange}
-                            options={createMasterDataOptions(otherExtensionActivities, 'otherExtensionActivityId', 'otherExtensionName')}
+                            options={otherExtensionActivityOptions}
                             emptyMessage="No other extension activities available"
                         />
+                        {isOtherOtherExtension && (
+                            <SpecifyOtherInput
+                                label="Please specify other extension activity"
+                                required
+                                value={formData.activityTypeOther}
+                                onChange={(e) => setFormData({ ...formData, activityTypeOther: e.target.value })}
+                            />
+                        )}
 
                         <FormInput
                             label="No. of activities"
@@ -859,9 +1020,17 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.importantDayId || formData.importantDay || ''}
                             onChange={handleImportantDayChange}
-                            options={createMasterDataOptions(importantDays, 'importantDayId', 'dayName')}
+                            options={importantDayOptions}
                             emptyMessage="No important days available"
                         />
+                        {isOtherImportantDay && (
+                            <SpecifyOtherInput
+                                label="Please specify other important day"
+                                required
+                                value={formData.importantDayOther}
+                                onChange={(e) => setFormData({ ...formData, importantDayOther: e.target.value })}
+                            />
+                        )}
                         <div className="md:col-span-2">
                             <FormInput
                                 label="No. of activities"

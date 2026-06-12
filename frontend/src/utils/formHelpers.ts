@@ -37,20 +37,31 @@ export function handleStaffChange(
     });
 }
 
+/** A dropdown option, optionally flagged as the "Other" choice (drives the specify-other input). */
+export interface MasterDataOption {
+    value: string | number;
+    label: string;
+    isOther?: boolean;
+}
+
 /**
- * Create master data options from array of items
+ * Create master data options from array of items.
+ * Pass `{ flagKey }` to carry an "isOther" boolean onto each option (used by useOtherSpecify).
  */
 export function createMasterDataOptions<T extends { [key: string]: any }>(
     items: T[] | undefined | null,
     valueKey: keyof T,
-    labelKey: keyof T
-): Array<{ value: string | number; label: string }> {
+    labelKey: keyof T,
+    options?: { flagKey?: keyof T }
+): MasterDataOption[] {
     if (!items || !Array.isArray(items)) {
         return [];
     }
+    const flagKey = options?.flagKey;
     return items.map((item) => ({
         value: item[valueKey] as string | number,
         label: String(item[labelKey]),
+        ...(flagKey ? { isOther: Boolean(item[flagKey]) } : {}),
     }));
 }
 

@@ -3,6 +3,8 @@ model FLDCropMaster {
   seasonId                Int                      @map("season_id")
   typeId                  Int                      @map("type_id")
   cropName                String                   @map("crop_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther                 Boolean                  @default(false) @map("is_other")
   createdAt               DateTime                 @default(now()) @map("created_at")
   updatedAt               DateTime                 @updatedAt @map("updated_at")
   cfldTechnicalParameters CfldTechnicalParameter[]

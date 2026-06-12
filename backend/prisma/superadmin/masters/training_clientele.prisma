@@ -1,6 +1,8 @@
 model ClienteleMaster {
   clienteleId Int                   @id @default(autoincrement()) @map("clientele_id")
   name        String                @unique @map("name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther     Boolean               @default(false) @map("is_other")
   createdAt   DateTime              @default(now()) @map("created_at")
   updatedAt   DateTime              @updatedAt @map("updated_at")
   trainings   TrainingAchievement[]

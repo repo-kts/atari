@@ -617,9 +617,11 @@ const KVK_STAFF_ALLOWED_FIELDS = [
     'photoPath',
     'resumePath',
     'sanctionedPostId',
+    'sanctionedPostOther',
     'positionOrder',
     'disciplineId',
     'payScaleId',
+    'payScaleOther',
     'dateOfJoining',
     'jobTypeMasterId',
     'jobTypeOther',
@@ -628,7 +630,9 @@ const KVK_STAFF_ALLOWED_FIELDS = [
     'sourceKvkIds',
     'originalKvkId',
     'staffCategoryId',
+    'staffCategoryOther',
     'payLevelId',
+    'payLevelOther',
 ];
 
 const KVK_INFRA_ALLOWED_FIELDS = [
@@ -809,6 +813,7 @@ function sanitizeData(entityName, data) {
         const allowedFields = [
             'kvkId',
             'equipmentTypeId',
+            'equipmentTypeOther',
             'equipmentMasterId',
             'equipmentName',
             'companyBrandModel',
@@ -816,6 +821,7 @@ function sanitizeData(entityName, data) {
             'yearOfPurchase',
             'totalCost',
             'assetFundingSourceId',
+            'assetFundingSourceOther',
         ];
 
         Object.keys(sanitized).forEach(field => {

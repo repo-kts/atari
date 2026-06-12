@@ -5,6 +5,12 @@ const { OFT_STATUS, normalizeOftStatus } = require('../../constants/oftStatus.js
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const crypto = require('crypto');
 
+// Result reports rebuild a dynamic table (tables → columns → rows → cells) with
+// many sequential writes. Prisma's default interactive-transaction timeout is
+// 5s, which the round-trip latency to a remote (Neon) DB blows past (P2028).
+// Give these transactions a realistic budget.
+const RESULT_TX_OPTIONS = { maxWait: 15000, timeout: 30000 };
+
 const OFT_INCLUDE = {
     kvk: { select: { kvkName: true } },
     staff: { select: { staffName: true } },
@@ -220,9 +226,13 @@ const oftRepository = {
                 seasonId: sourceOft.seasonId,
                 staffId: sourceOft.staffId,
                 oftSubjectId: sourceOft.oftSubjectId,
+                oftSubjectOther: sourceOft.oftSubjectOther,
                 oftThematicAreaId: sourceOft.oftThematicAreaId,
+                oftThematicAreaOther: sourceOft.oftThematicAreaOther,
                 disciplineId: sourceOft.disciplineId,
+                disciplineOther: sourceOft.disciplineOther,
                 sourceOfFundingId: sourceOft.sourceOfFundingId,
+                sourceOfFundingOther: sourceOft.sourceOfFundingOther,
                 unit: sourceOft.unit,
                 title: sourceOft.title,
                 problemDiagnosed: sourceOft.problemDiagnosed,
@@ -307,7 +317,7 @@ const oftRepository = {
                 where: { oftResultReportId: report.oftResultReportId },
                 include: _resultInclude(),
             });
-        });
+        }, RESULT_TX_OPTIONS);
     },
 
     updateResultReportTx: async (kvkOftId, payload) => {
@@ -329,7 +339,7 @@ const oftRepository = {
                 where: { oftResultReportId: existing.oftResultReportId },
                 include: _resultInclude(),
             });
-        });
+        }, RESULT_TX_OPTIONS);
     },
 
     getResultByOftId: async (kvkOftId) => {
@@ -375,8 +385,13 @@ function _buildOftCreateData(data, kvkId) {
         staffId,
         oftSubjectId,
         oftThematicAreaId,
+        // "Other" free-text: only meaningful when the chosen master row is flagged isOther.
+        oftSubjectOther: sanitizeString(safeGet(data, 'oftSubjectOther'), { allowEmpty: true }) || null,
+        oftThematicAreaOther: sanitizeString(safeGet(data, 'oftThematicAreaOther'), { allowEmpty: true }) || null,
         disciplineId,
+        disciplineOther: sanitizeString(safeGet(data, 'disciplineOther'), { allowEmpty: true }) || null,
         sourceOfFundingId,
+        sourceOfFundingOther: sanitizeString(safeGet(data, 'sourceOfFundingOther'), { allowEmpty: true }) || null,
         unit,
         title: sanitizeString(safeGet(data, 'title'), { allowEmpty: true }) || '',
         problemDiagnosed: sanitizeString(safeGet(data, 'problemDiagnosed'), { allowEmpty: true }) || '',
@@ -409,9 +424,13 @@ function _buildOftUpdateData(data, existing) {
     if (data.seasonId !== undefined) updateData.seasonId = sanitizeInteger(data.seasonId);
     if (data.staffId !== undefined || data.staffName !== undefined) updateData.staffId = sanitizeInteger(data.staffId || data.staffName);
     if (data.oftSubjectId !== undefined) updateData.oftSubjectId = sanitizeInteger(data.oftSubjectId);
+    if (data.oftSubjectOther !== undefined) updateData.oftSubjectOther = sanitizeString(data.oftSubjectOther, { allowEmpty: true }) || null;
     if (data.oftThematicAreaId !== undefined || data.thematicArea !== undefined) updateData.oftThematicAreaId = sanitizeInteger(data.oftThematicAreaId || data.thematicArea);
+    if (data.oftThematicAreaOther !== undefined) updateData.oftThematicAreaOther = sanitizeString(data.oftThematicAreaOther, { allowEmpty: true }) || null;
     if (data.disciplineId !== undefined || data.discipline !== undefined) updateData.disciplineId = sanitizeInteger(data.disciplineId || data.discipline);
+    if (data.disciplineOther !== undefined) updateData.disciplineOther = sanitizeString(data.disciplineOther, { allowEmpty: true }) || null;
     if (data.sourceOfFundingId !== undefined) updateData.sourceOfFundingId = sanitizeInteger(data.sourceOfFundingId);
+    if (data.sourceOfFundingOther !== undefined) updateData.sourceOfFundingOther = sanitizeString(data.sourceOfFundingOther, { allowEmpty: true }) || null;
     if (data.unit !== undefined) updateData.unit = sanitizeString(data.unit, { allowEmpty: true }) || null;
     if (data.title !== undefined) updateData.title = sanitizeString(data.title, { allowEmpty: true }) || '';
     if (data.problemDiagnosed !== undefined) updateData.problemDiagnosed = sanitizeString(data.problemDiagnosed, { allowEmpty: true }) || '';
@@ -464,14 +483,19 @@ function _mapOftResponse(r) {
         staffId: r.staffId,
         staffName: r.staff ? r.staff.staffName : undefined,
         oftSubjectId: r.oftSubjectId,
-        subjectName: r.oftSubject ? r.oftSubject.subjectName : undefined,
+        // Prefer the typed "Other" text over the generic master name so lists show the real value.
+        subjectName: r.oftSubjectOther || (r.oftSubject ? r.oftSubject.subjectName : undefined),
+        oftSubjectOther: r.oftSubjectOther ?? '',
         oftThematicAreaId: r.oftThematicAreaId,
-        thematicAreaName: r.oftThematicArea ? r.oftThematicArea.thematicAreaName : undefined,
+        thematicAreaName: r.oftThematicAreaOther || (r.oftThematicArea ? r.oftThematicArea.thematicAreaName : undefined),
+        oftThematicAreaOther: r.oftThematicAreaOther ?? '',
         disciplineId: r.disciplineId,
-        disciplineName: r.discipline ? r.discipline.disciplineName : undefined,
+        disciplineName: r.disciplineOther || (r.discipline ? r.discipline.disciplineName : undefined),
+        disciplineOther: r.disciplineOther ?? '',
         unit: r.unit,
         sourceOfFundingId: r.sourceOfFundingId,
-        sourceOfFundingName: r.sourceOfFunding ? r.sourceOfFunding.name : undefined,
+        sourceOfFundingName: r.sourceOfFundingOther || (r.sourceOfFunding ? r.sourceOfFunding.name : undefined),
+        sourceOfFundingOther: r.sourceOfFundingOther ?? '',
         title: r.title,
         problemDiagnosed: r.problemDiagnosed,
         sourceOfTechnology: r.sourceOfTechnology,

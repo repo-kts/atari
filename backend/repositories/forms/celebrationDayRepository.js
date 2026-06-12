@@ -22,9 +22,11 @@ const celebrationDayRepository = {
             importantDayId = day.importantDayId;
         }
 
+        // "Other" free-text: only meaningful when the chosen important-day row is flagged isOther.
+        const importantDayOther = (data.importantDayOther && String(data.importantDayOther).trim()) || null;
         const result = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_important_day_celebration (
-                "kvkId", event_date, "importantDayId", 
+                "kvkId", event_date, "importantDayId", important_day_other,
                 number_of_activities,
                 farmers_general_m, farmers_general_f, farmers_obc_m, farmers_obc_f,
                 farmers_sc_m, farmers_sc_f, farmers_st_m, farmers_st_f,
@@ -32,7 +34,7 @@ const celebrationDayRepository = {
                 officials_sc_m, officials_sc_f, officials_st_m, officials_st_f,
                 created_at, updated_at
             ) VALUES (
-                $1, $2::timestamp, $3, $4,
+                $1, $2::timestamp, $3, $21, $4,
                 $5, $6, $7, $8, $9, $10, $11, $12,
                 $13, $14, $15, $16, $17, $18, $19, $20,
                 CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
@@ -46,7 +48,8 @@ const celebrationDayRepository = {
             parseInt(data.ext_gen_m ?? data.officialsGeneralM ?? 0), parseInt(data.ext_gen_f ?? data.officialsGeneralF ?? 0),
             parseInt(data.ext_obc_m ?? data.officialsObcM ?? 0), parseInt(data.ext_obc_f ?? data.officialsObcF ?? 0),
             parseInt(data.ext_sc_m ?? data.officialsScM ?? 0), parseInt(data.ext_sc_f ?? data.officialsScF ?? 0),
-            parseInt(data.ext_st_m ?? data.officialsStM ?? 0), parseInt(data.ext_st_f ?? data.officialsStF ?? 0));
+            parseInt(data.ext_st_m ?? data.officialsStM ?? 0), parseInt(data.ext_st_f ?? data.officialsStF ?? 0),
+            importantDayOther);
 
         return await celebrationDayRepository.findById(result[0].celebration_id, user);
     },
@@ -113,6 +116,10 @@ const celebrationDayRepository = {
             updateData.importantDayId = day.importantDayId;
         } else if (data.importantDayId !== undefined) {
             updateData.importantDayId = data.importantDayId ? parseInt(data.importantDayId) : null;
+        }
+
+        if (data.importantDayOther !== undefined) {
+            updateData.importantDayOther = (String(data.importantDayOther).trim()) || null;
         }
 
         const count = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;
@@ -219,7 +226,8 @@ const celebrationDayRepository = {
             ...a,
             id: a.celebrationId,
             eventDate: a.eventDate ? new Date(a.eventDate).toISOString().split('T')[0] : '',
-            importantDay: a.importantDay?.dayName,
+            importantDay: a.importantDayOther || a.importantDay?.dayName,
+            importantDayOther: a.importantDayOther ?? '',
             activityCount: a.numberOfActivities,
             gen_m: farmersGeneralM,
             gen_f: farmersGeneralF,
@@ -239,7 +247,7 @@ const celebrationDayRepository = {
             ext_st_f: officialsStF,
             reportingYear: reportingYear,
             kvkName: a.kvk?.kvkName,
-            importantDays: a.importantDay?.dayName,
+            importantDays: a.importantDayOther || a.importantDay?.dayName,
             eventDate: a.eventDate.toISOString().split('T')[0],
             noOfActivities: a.numberOfActivities,
             noOfParticipants: participants

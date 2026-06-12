@@ -35,19 +35,21 @@ const aryaPrevYearRepository = {
         const employmentFamilyMandays = parseFloat(data.employmentFamily || data.employmentFamilyMandays) || 0;
         const employmentOtherMandays = parseFloat(data.employmentOther || data.employmentOtherMandays) || 0;
         const personsVisitedUnit = parseInt(data.personsVisited || data.personsVisitedUnit) || 0;
+        // "Other" free-text: only meaningful when the chosen enterprise row is flagged isOther.
+        const enterpriseOther = (data.enterpriseOther && String(data.enterpriseOther).trim()) || null;
 
         const resultRows = await prisma.$queryRawUnsafe(`
             INSERT INTO arya_prev_year (
-                "kvkId", reporting_year, "enterpriseId", 
+                "kvkId", reporting_year, "enterpriseId", enterprise_other,
                 units_male, units_female, non_functional_units_closed, date_of_closing,
                 non_functional_units_restarted, date_of_restart, number_of_units,
                 unit_capacity, fixed_cost, variable_cost, total_production_per_unit_year,
                 gross_cost_per_unit_year, gross_return_per_unit_year, net_benefit_per_unit_year,
                 employment_family_mandays, employment_other_mandays, persons_visited_unit,
                 created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING *
-        `, kvkId, reportingYear, enterpriseId, unitsMale, unitsFemale, nonFunctionalUnitsClosed, dateOfClosing,
+        `, kvkId, reportingYear, enterpriseId, enterpriseOther, unitsMale, unitsFemale, nonFunctionalUnitsClosed, dateOfClosing,
             nonFunctionalUnitsRestarted, dateOfRestart, numberOfUnits, unitCapacity, fixedCost, variableCost,
             totalProductionPerUnitYear, grossCostPerUnitYear, grossReturnPerUnitYear, netBenefitPerUnitYear,
             employmentFamilyMandays, employmentOtherMandays, personsVisitedUnit);
@@ -155,22 +157,25 @@ const aryaPrevYearRepository = {
         const employmentFamilyMandays = data.employmentFamilyMandays !== undefined || data.employmentFamily !== undefined ? parseFloat(data.employmentFamilyMandays ?? data.employmentFamily) : existing.employmentFamilyMandays;
         const employmentOtherMandays = data.employmentOtherMandays !== undefined || data.employmentOther !== undefined ? parseFloat(data.employmentOtherMandays ?? data.employmentOther) : existing.employmentOtherMandays;
         const personsVisitedUnit = data.personsVisitedUnit !== undefined || data.personsVisited !== undefined ? parseInt(data.personsVisitedUnit ?? data.personsVisited) : existing.personsVisitedUnit;
+        const enterpriseOther = data.enterpriseOther !== undefined
+            ? ((String(data.enterpriseOther).trim()) || null)
+            : existing.enterpriseOther;
 
         await prisma.$executeRawUnsafe(`
-            UPDATE arya_prev_year 
-            SET 
-                reporting_year = $1, "enterpriseId" = $2, units_male = $3, units_female = $4, 
-                non_functional_units_closed = $5, date_of_closing = $6, 
-                non_functional_units_restarted = $7, date_of_restart = $8, 
-                number_of_units = $9, unit_capacity = $10, fixed_cost = $11, 
-                variable_cost = $12, total_production_per_unit_year = $13, 
-                gross_cost_per_unit_year = $14, gross_return_per_unit_year = $15, 
-                net_benefit_per_unit_year = $16, employment_family_mandays = $17, 
-                employment_other_mandays = $18, persons_visited_unit = $19, 
+            UPDATE arya_prev_year
+            SET
+                reporting_year = $1, "enterpriseId" = $2, enterprise_other = $3, units_male = $4, units_female = $5,
+                non_functional_units_closed = $6, date_of_closing = $7,
+                non_functional_units_restarted = $8, date_of_restart = $9,
+                number_of_units = $10, unit_capacity = $11, fixed_cost = $12,
+                variable_cost = $13, total_production_per_unit_year = $14,
+                gross_cost_per_unit_year = $15, gross_return_per_unit_year = $16,
+                net_benefit_per_unit_year = $17, employment_family_mandays = $18,
+                employment_other_mandays = $19, persons_visited_unit = $20,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE arya_prev_year_id = $20
+            WHERE arya_prev_year_id = $21
         `,
-            reportingYear, enterpriseId, unitsMale, unitsFemale, nonFunctionalUnitsClosed, dateOfClosing,
+            reportingYear, enterpriseId, enterpriseOther, unitsMale, unitsFemale, nonFunctionalUnitsClosed, dateOfClosing,
             nonFunctionalUnitsRestarted, dateOfRestart, numberOfUnits, unitCapacity, fixedCost, variableCost,
             totalProductionPerUnitYear, grossCostPerUnitYear, grossReturnPerUnitYear, netBenefitPerUnitYear,
             employmentFamilyMandays, employmentOtherMandays, personsVisitedUnit,
@@ -216,7 +221,8 @@ function _mapResponse(r) {
         stateName: r.kvk?.state?.stateName || '',
         reportingYear: formatReportingYear(r.reportingYear),
         enterpriseId: r.enterpriseId,
-        enterpriseName: r.enterprise ? r.enterprise.enterpriseName : undefined,
+        enterpriseName: r.enterpriseOther || (r.enterprise ? r.enterprise.enterpriseName : undefined),
+        enterpriseOther: r.enterpriseOther ?? '',
 
         // Internal fields
         unitsMale: r.unitsMale,

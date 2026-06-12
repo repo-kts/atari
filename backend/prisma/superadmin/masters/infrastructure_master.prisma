@@ -1,6 +1,7 @@
 model KvkInfrastructureMaster {
   infraMasterId   Int                 @id @default(autoincrement()) @map("infra_master_id")
   name            String              @unique @map("name")
+  isOther         Boolean             @default(false) @map("is_other")
   createdAt       DateTime            @default(now()) @map("created_at")
   updatedAt       DateTime            @updatedAt @map("updated_at")
   infrastructures KvkInfrastructure[]

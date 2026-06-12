@@ -1,6 +1,8 @@
 model NicraCategory {
   nicraCategoryId Int                @id @default(autoincrement()) @map("nicra_category_id")
   categoryName    String             @unique @map("category_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther         Boolean            @default(false) @map("is_other")
   nicraDetails    NicraDetails[]
   subCategories   NicraSubCategory[]
 
@@ -23,6 +25,7 @@ model NicraDetails {
   nicraDetailsId         Int              @id @default(autoincrement()) @map("nicra_details_id")
   kvkId                  Int
   nicraCategoryId        Int?
+  categoryOther          String?          @map("category_other")
   nicraSubCategoryId     Int?
   fstType                String           @map("fst_type")
   cropName               String           @map("crop_name")

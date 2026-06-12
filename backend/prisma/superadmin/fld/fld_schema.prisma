@@ -1,6 +1,8 @@
 model Sector {
   sectorId            Int                  @id @default(autoincrement()) @map("sector_id")
   sectorName          String               @unique @map("sector_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther             Boolean              @default(false) @map("is_other")
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
   categories          FldCategory[]
@@ -17,6 +19,8 @@ model FldThematicArea {
   thematicAreaId      Int                  @id @default(autoincrement()) @map("thematic_area_id")
   thematicAreaName    String               @map("thematic_area_name")
   sectorId            Int
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther             Boolean              @default(false) @map("is_other")
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
   kvkFldIntroductions KvkFldIntroduction[]
@@ -31,6 +35,8 @@ model FldCategory {
   categoryId          Int                  @id @default(autoincrement()) @map("category_id")
   categoryName        String               @map("category_name")
   sectorId            Int
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther             Boolean              @default(false) @map("is_other")
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
   sector              Sector               @relation(fields: [sectorId], references: [sectorId], onDelete: Cascade)
@@ -48,6 +54,8 @@ model FldSubcategory {
   subCategoryName     String               @map("sub_category_name")
   categoryId          Int
   sectorId            Int
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther             Boolean              @default(false) @map("is_other")
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
   crops               FldCrop[]
@@ -67,6 +75,8 @@ model FldCrop {
   cropName              String                 @map("crop_name")
   categoryId            Int
   subCategoryId         Int
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther               Boolean                @default(false) @map("is_other")
   createdAt             DateTime               @default(now()) @map("created_at")
   updatedAt             DateTime               @updatedAt @map("updated_at")
   category              FldCategory            @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade)
