@@ -223,9 +223,33 @@ export const StatChartPanel: React.FC<Props> = ({
     // #174: Bar is the default view (was 'progress').
     const [view, setView] = useState<View>('bar')
 
+    // With 60+ KVKs most have no entries ("not started"), so the chart is a wall
+    // of identical grey bars and the labels overlap into noise. Default to only
+    // the KVKs that actually have activity, sorted busiest-first, and collapse the
+    // rest into a count the user can expand on demand.
+    const [activeOnly, setActiveOnly] = useState(true)
+
+    const rowActivity = (r: StatRow) =>
+        (r.segments?.completed ?? 0) +
+        (r.segments?.ongoing ?? 0) +
+        Math.max(r.primary ?? 0, 0)
+    const rowHasEntries = (r: StatRow) => rowActivity(r) > 0
+
+    const activeCount = useMemo(
+        () => rows.filter(rowHasEntries).length,
+        [rows]
+    )
+    const emptyCount = rows.length - activeCount
+
+    const visibleRows = useMemo(() => {
+        const base = activeOnly ? rows.filter(rowHasEntries) : rows
+        // Busiest KVKs first so the meaningful bars cluster at the left.
+        return [...base].sort((a, b) => rowActivity(b) - rowActivity(a))
+    }, [rows, activeOnly])
+
     const chartData = useMemo(
         () =>
-            rows.map(r => ({
+            visibleRows.map(r => ({
                 id: r.id,
                 name: truncate(r.name),
                 fullName: r.name,
@@ -236,7 +260,7 @@ export const StatChartPanel: React.FC<Props> = ({
                 notStarted: r.segments?.notStarted ?? 0,
                 status: r.status,
             })),
-        [rows]
+        [visibleRows]
     )
 
     const showStacked = chartData.some(
@@ -260,9 +284,33 @@ export const StatChartPanel: React.FC<Props> = ({
                     <ViewToggle view={view} onChange={setView} />
                 </div>
 
+                {emptyCount > 0 && (
+                    <div className="flex items-center justify-between gap-2 border-b border-[#E0E0E0] px-3 py-1.5">
+                        <span className="text-[10px] text-[#757575]">
+                            <span className="font-bold text-[#212121]">
+                                {activeCount}
+                            </span>{' '}
+                            of {rows.length} KVKs with entries
+                            <span className="text-[#9E9E9E]">
+                                {' '}
+                                · {emptyCount} not started
+                            </span>
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setActiveOnly(v => !v)}
+                            className="shrink-0 rounded-md border border-[#E0E0E0] px-2 py-0.5 text-[10px] font-semibold text-[#487749] hover:bg-[#F5F5F5] transition-colors"
+                        >
+                            {activeOnly
+                                ? `Show all (${rows.length})`
+                                : 'Active only'}
+                        </button>
+                    </div>
+                )}
+
                 {view === 'progress' && (
                     <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto p-3">
-                        {rows.map(row => {
+                        {visibleRows.map(row => {
                             const total =
                                 (row.segments?.completed ?? 0) +
                                 (row.segments?.ongoing ?? 0) +
