@@ -147,8 +147,10 @@ async function writeSection(ws, chunk) {
         ws.getColumn(Number(colStr)).width = width;
     }
 
-    // Embed images (e.g. OFT result photographs) below the tables (#241).
-    for (const src of images) {
+    // Embed images (e.g. OFT result photographs) with captions below the tables (#241).
+    for (const fig of images) {
+        const src = typeof fig === 'string' ? fig : fig.src;
+        const caption = typeof fig === 'string' ? '' : (fig.caption || '');
         const img = await fetchImageBuffer(src);
         if (!img) continue;
         const imageId = ws.workbook.addImage({ buffer: img.buffer, extension: img.extension });
@@ -157,6 +159,12 @@ async function writeSection(ws, chunk) {
             ext: { width: 320, height: 220 },
         });
         rowIdx += 14; // leave vertical space for the image
+        if (caption) {
+            const capCell = ws.getCell(rowIdx, 1);
+            capCell.value = caption;
+            capCell.font = { italic: true, color: { argb: 'FF555555' } };
+            rowIdx += 1;
+        }
     }
 
     ws.views = [{ state: 'frozen', ySplit: 0 }];

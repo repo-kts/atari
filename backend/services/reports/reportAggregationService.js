@@ -186,14 +186,22 @@ class ReportAggregationService {
             return cached;
         }
 
-        // Fetch data for all KVKs in parallel
+        // Fetch data for all KVKs in parallel. A per-KVK failure is caught so the
+        // whole report doesn't fail — but it silently drops that KVK's rows from
+        // the aggregate, so log it (otherwise e.g. a heavy section that errors for
+        // some KVKs looks like "only 1 KVK has data").
         const sectionDataPromises = kvkIds.map(kvkId =>
-            reportDataService.getSectionData(sectionId, kvkId, filters).catch(error => ({
-                sectionId,
-                error: error.message,
-                data: null,
-                metadata: { recordCount: 0, lastUpdated: new Date(), filters },
-            }))
+            reportDataService.getSectionData(sectionId, kvkId, filters).catch(error => {
+                console.warn(
+                    `[aggregateSectionData] section ${sectionId} failed for kvkId ${kvkId}: ${error?.message || error}`,
+                );
+                return {
+                    sectionId,
+                    error: error.message,
+                    data: null,
+                    metadata: { recordCount: 0, lastUpdated: new Date(), filters },
+                };
+            })
         );
 
         const allSectionData = await Promise.all(sectionDataPromises);
