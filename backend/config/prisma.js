@@ -166,6 +166,11 @@ if (isAccelerate) {
     prisma = new PrismaClient({
         accelerateUrl: process.env.DATABASE_URL,
         log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+        // Prisma's default interactive-transaction timeout is 5s, which the
+        // round-trip latency to a remote (Neon) DB blows past for multi-write
+        // transactions (P2028). Raise the global default; heavy repos can still
+        // pass per-call { maxWait, timeout } to override.
+        transactionOptions: { maxWait: 15000, timeout: 30000 },
     });
 } else {
     // Create a PostgreSQL connection pool configured for Neon serverless
@@ -196,6 +201,11 @@ if (isAccelerate) {
     prisma = new PrismaClient({
         adapter,
         log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+        // Prisma's default interactive-transaction timeout is 5s, which the
+        // round-trip latency to a remote (Neon) DB blows past for multi-write
+        // transactions (P2028). Raise the global default; heavy repos can still
+        // pass per-call { maxWait, timeout } to override.
+        transactionOptions: { maxWait: 15000, timeout: 30000 },
     });
 }
 

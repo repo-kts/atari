@@ -2,6 +2,7 @@ model AryaPrevYear {
   aryaPrevYearId              Int         @id @default(autoincrement()) @map("arya_prev_year_id")
   kvkId                       Int
   enterpriseId                Int
+  enterpriseOther             String?     @map("enterprise_other")
   unitsMale                   Int         @map("units_male")
   unitsFemale                 Int         @map("units_female")
   nonFunctionalUnitsClosed    Int         @map("non_functional_units_closed")

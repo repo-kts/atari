@@ -26,8 +26,11 @@ const nariNutritionalGardenRepository = {
                     return d;
                 })(),
                 activityId: parseInt(data.activityId),
+                // "Other" free-text: only meaningful when the chosen master row is flagged isOther.
+                activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage,
                 typeOfNutritionalGardenId: parseInt(data.typeOfNutritionalGardenId),
+                typeOfNutritionalGardenOther: (data.typeOfNutritionalGardenOther && String(data.typeOfNutritionalGardenOther).trim()) || null,
                 number: parseInt(data.number || 0),
                 areaSqm: parseFloat(data.areaSqm || 0),
                 generalM: parseInt(data.generalM || data.genMale || 0),
@@ -113,8 +116,10 @@ const nariNutritionalGardenRepository = {
                     })()
                     : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
+                activityOther: data.activityOther !== undefined ? ((String(data.activityOther).trim()) || null) : undefined,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
                 typeOfNutritionalGardenId: data.typeOfNutritionalGardenId ? parseInt(data.typeOfNutritionalGardenId) : undefined,
+                typeOfNutritionalGardenOther: data.typeOfNutritionalGardenOther !== undefined ? ((String(data.typeOfNutritionalGardenOther).trim()) || null) : undefined,
                 number: data.number !== undefined ? (parseInt(data.number) || 0) : undefined,
                 areaSqm: data.areaSqm !== undefined ? (parseFloat(data.areaSqm) || 0) : undefined,
                 generalM: (data.generalM !== undefined || data.genMale !== undefined) ? (parseInt(data.generalM ?? data.genMale) || 0) : undefined,
@@ -211,10 +216,12 @@ function _mapResponse(r) {
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,
-        activityName: r.activity?.activityName,
+        activityName: r.activityOther || r.activity?.activityName,
+        activityOther: r.activityOther ?? '',
         nameOfNutriSmartVillage: r.nameOfNutriSmartVillage,
         typeOfNutritionalGardenId: r.typeOfNutritionalGardenId,
-        typeOfNutritionalGarden: r.typeOfNutritionalGarden?.name,
+        typeOfNutritionalGarden: r.typeOfNutritionalGardenOther || r.typeOfNutritionalGarden?.name,
+        typeOfNutritionalGardenOther: r.typeOfNutritionalGardenOther ?? '',
         number: r.number,
         areaSqm: r.areaSqm,
         generalM: r.generalM,
@@ -230,7 +237,7 @@ function _mapResponse(r) {
 
         // Aliases for frontend consistency
         villageName: r.nameOfNutriSmartVillage,
-        gardenType: r.typeOfNutritionalGarden?.name,
+        gardenType: r.typeOfNutritionalGardenOther || r.typeOfNutritionalGarden?.name,
         genMale: r.generalM,
         genFemale: r.generalF,
         obcMale: r.obcM,

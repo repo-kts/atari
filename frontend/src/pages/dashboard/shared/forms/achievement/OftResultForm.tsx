@@ -163,6 +163,8 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
             const attachmentIds = [...photoIds, ...datasheetIds]
             await onSubmit({ ...value, attachmentIds })
             onClose()
+        } catch {
+            // Error already surfaced by the caller; keep the form open for retry.
         } finally {
             setSubmitting(false)
         }

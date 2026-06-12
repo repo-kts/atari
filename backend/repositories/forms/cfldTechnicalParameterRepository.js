@@ -297,9 +297,13 @@ async function buildCreateData(data, user) {
     return {
         kvkId,
         cropId,
+        cropOther: safeMaybeText(data.cropOther),
         seasonId,
+        // "Other" free-text: only meaningful when the chosen season/crop-type/crop row is flagged isOther.
+        seasonOther: safeMaybeText(data.seasonOther),
         month,
         typeId,
+        typeOther: safeMaybeText(data.typeOther),
         ...(reportingYear ? { reportingYear } : {}),
         ...(data.status ? { status: data.status } : {}),
         varietyName: data.varietyName || '',
@@ -474,6 +478,9 @@ async function buildUpdateData(data, existing) {
     if (data.seasonId !== undefined) {
         updateData.seasonId = safeParseInt(data.seasonId);
     }
+    if (data.seasonOther !== undefined) updateData.seasonOther = safeMaybeText(data.seasonOther);
+    if (data.typeOther !== undefined) updateData.typeOther = safeMaybeText(data.typeOther);
+    if (data.cropOther !== undefined) updateData.cropOther = safeMaybeText(data.cropOther);
 
     if (data.month !== undefined) {
         updateData.month = parseMonth(data.month);
@@ -762,12 +769,16 @@ function _mapResponse(r) {
         stateId: r.kvk?.state?.stateId,
         stateName: r.kvk?.state?.stateName,
         cropId: r.cropId,
-        cropName: r.crop ? r.crop.cropName : undefined,
+        cropName: r.cropOther || (r.crop ? r.crop.cropName : undefined),
+        cropOther: r.cropOther ?? '',
         month: r.month,
         cropTypeId: r.typeId,
-        typeName: r.cropType ? r.cropType.typeName : undefined,
+        // Prefer the typed "Other" text over the generic master name so lists show the real value.
+        typeName: r.typeOther || (r.cropType ? r.cropType.typeName : undefined),
+        typeOther: r.typeOther ?? '',
         seasonId: r.seasonId,
-        seasonName: r.season ? r.season.seasonName : undefined,
+        seasonName: r.seasonOther || (r.season ? r.season.seasonName : undefined),
+        seasonOther: r.seasonOther ?? '',
         reportingYear: formatReportingYear(r.reportingYear),
         status: r.status,
         completedAt: r.completedAt,

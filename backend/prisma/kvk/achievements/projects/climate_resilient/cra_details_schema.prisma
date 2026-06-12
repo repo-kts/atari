@@ -13,9 +13,11 @@ model CraDetails {
   croppingSystem String @map("croping_system")
 
   croppingSystemId Int?             @map("cra_croping_system_id")
+  croppingSystemOther String?       @map("cropping_system_other")
   croppingSystemRef CraCropingSystem? @relation(fields: [croppingSystemId], references: [craCropingSystemId], onDelete: SetNull)
 
   farmingSystemId Int?            @map("cra_farming_system_id")
+  farmingSystemOther String?      @map("farming_system_other")
   farmingSystem   CraFarmingSystem? @relation(fields: [farmingSystemId], references: [craFarmingSystemId], onDelete: SetNull)
 
   areaInAcre Float @map("area_under_demonstration_acre")

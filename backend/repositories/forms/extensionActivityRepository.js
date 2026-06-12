@@ -329,6 +329,8 @@ const extensionActivityRepository = {
                 fldId,
                 staffId,
                 activityId,
+                // "Other" free-text: only meaningful when the chosen extension-activity row is flagged isOther.
+                activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 numberOfActivities,
                 startDate,
                 endDate,
@@ -478,6 +480,9 @@ const extensionActivityRepository = {
             } else if (data.activityId !== undefined) {
                 updateData.activityId = await _resolveActivityId(data.activityId, false);
             }
+            if (data.activityOther !== undefined) {
+                updateData.activityOther = (String(data.activityOther).trim()) || null;
+            }
 
             // Update numberOfActivities
             const numberOfActivities = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;
@@ -618,12 +623,13 @@ function _mapResponse(r) {
         staffId: r.staffId,
         staffName: r.staff ? r.staff.staffName : undefined,
         activityId: r.activityId,
-        extensionActivityType: activityName,
+        extensionActivityType: r.activityOther || activityName,
+        activityOther: r.activityOther ?? '',
         numberOfActivities: r.numberOfActivities,
         startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : '',
         endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : '',
         reportingYear,
-        nameOfExtensionActivities: activityName,
+        nameOfExtensionActivities: r.activityOther || activityName,
         noOfActivities: r.numberOfActivities,
         noOfParticipants: totalParticipants,
         farmersGeneralM: r.farmersGeneralM,

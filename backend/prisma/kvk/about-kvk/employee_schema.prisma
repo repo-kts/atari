@@ -8,9 +8,11 @@ model KvkStaff {
   photoPath                   String?                     @map("photo_path")
   resumePath                  String?                     @map("resume_path")
   sanctionedPostId            Int?
+  sanctionedPostOther         String?                     @map("sanctioned_post_other")
   positionOrder               Int                         @map("position_order")
   disciplineId                Int?
   payScaleId                  Int?                        @map("pay_scale_id")
+  payScaleOther               String?                     @map("pay_scale_other")
   dateOfJoining               DateTime                    @map("date_of_joining")
   // Master-backed job type (Permanent/Temporary/…).
   jobTypeMasterId             Int?                        @map("job_type_master_id")
@@ -23,7 +25,9 @@ model KvkStaff {
   transferCount               Int                         @default(0) @map("transfer_count")
   lastTransferDate            DateTime?                   @map("last_transfer_date")
   staffCategoryId             Int?
+  staffCategoryOther          String?                     @map("staff_category_other")
   payLevelId                  Int?
+  payLevelOther               String?                     @map("pay_level_other")
   createdAt                   DateTime                    @default(now()) @map("created_at")
   updatedAt                   DateTime                    @updatedAt @map("updated_at")
   hrdPrograms                 HrdProgram[]

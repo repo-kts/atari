@@ -4,6 +4,7 @@ model KvkOtherExtensionActivity {
   fldId                    Int?
   staffId                  Int?
   activityTypeId           Int?
+  activityTypeOther        String?                     @map("activity_type_other")
   numberOfActivities       Int                         @map("number_of_activities")
   startDate                DateTime                    @map("start_date")
   endDate                  DateTime                    @map("end_date")

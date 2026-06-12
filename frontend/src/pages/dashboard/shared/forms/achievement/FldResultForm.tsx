@@ -110,6 +110,8 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue
         try {
             await onSubmit(value)
             onClose()
+        } catch {
+            // Error already surfaced by the caller; keep the form open for retry.
         } finally {
             setSubmitting(false)
         }

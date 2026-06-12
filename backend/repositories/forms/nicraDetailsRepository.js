@@ -20,6 +20,8 @@ const nicraDetailsRepository = {
             data: {
                 kvkId,
                 nicraCategoryId: parseInt(data.categoryId || data.nicraCategoryId),
+                // "Other" free-text: only meaningful when the chosen category row is flagged isOther.
+                categoryOther: (data.categoryOther && String(data.categoryOther).trim()) || null,
                 nicraSubCategoryId: parseInt(data.subCategoryId || data.nicraSubCategoryId),
                 fstType: data.fstType || '',
                 cropName: data.cropName || '',
@@ -121,6 +123,7 @@ const nicraDetailsRepository = {
             where: { nicraDetailsId: parseInt(id) },
             data: {
                 nicraCategoryId: data.categoryId !== undefined ? parseInt(data.categoryId) : existing.nicraCategoryId,
+                categoryOther: data.categoryOther !== undefined ? ((String(data.categoryOther).trim()) || null) : existing.categoryOther,
                 nicraSubCategoryId: data.subCategoryId !== undefined ? parseInt(data.subCategoryId) : existing.nicraSubCategoryId,
                 fstType: data.fstType !== undefined ? data.fstType : existing.fstType,
                 cropName: data.cropName !== undefined ? data.cropName : existing.cropName,

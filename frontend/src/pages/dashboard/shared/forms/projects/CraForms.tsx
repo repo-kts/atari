@@ -4,6 +4,8 @@ import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
 import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface CraFormsProps {
@@ -30,6 +32,21 @@ export const CraForms: React.FC<CraFormsProps> = ({
     extensionActivityTypes
 }) => {
     const todayYmd = React.useMemo(() => new Date().toISOString().slice(0, 10), [])
+
+    const croppingSystemOptions = React.useMemo(
+        () => (croppingSystems || [])
+            .filter((cs: any) => !formData.seasonId || Number(cs.seasonId ?? cs.SeasonId ?? cs.season?.seasonId) === Number(formData.seasonId))
+            .map((cs: any) => ({ value: cs.craCropingSystemId ?? cs.id, label: cs.cropName ?? cs.croppingSystemName ?? cs.name, isOther: Boolean(cs.isOther) })),
+        [croppingSystems, formData.seasonId]
+    )
+    const farmingSystemOptions = React.useMemo(
+        () => (farmingSystems || [])
+            .filter((fs: any) => !formData.seasonId || fs.seasonId === parseInt(formData.seasonId))
+            .map((fs: any) => ({ value: fs.craFarmingSystemId, label: fs.farmingSystemName, isOther: Boolean(fs.isOther) })),
+        [farmingSystems, formData.seasonId]
+    )
+    const { isOtherSelected: isOtherCropping, otherResetPatch: croppingResetPatch } = useOtherSpecify(croppingSystemOptions, formData.croppingSystemId)
+    const { isOtherSelected: isOtherFarming, otherResetPatch: farmingResetPatch } = useOtherSpecify(farmingSystemOptions, formData.farmingSystemId)
 
     React.useEffect(() => {
         // Backfill croppingSystemId during edit for legacy rows that only have text.
@@ -78,6 +95,8 @@ export const CraForms: React.FC<CraFormsProps> = ({
                                     // reset dependents
                                     croppingSystemId: '',
                                     farmingSystemId: '',
+                                    croppingSystemOther: '',
+                                    farmingSystemOther: '',
                                 })
                             }
                             options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
@@ -93,7 +112,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             label="Croping system"
                             required
                             value={formData.croppingSystemId ?? ''}
-                            options={[]}
+                            options={croppingSystemOptions}
                             dependsOn={{ value: formData.seasonId || '', field: 'seasonId' }}
                             isLoading={croppingSystemsLoading}
                             loadingMessage="Loading cropping systems..."
@@ -106,6 +125,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                                     .map((cs: any) => ({
                                         value: cs.craCropingSystemId ?? cs.id,
                                         label: cs.cropName ?? cs.croppingSystemName ?? cs.name,
+                                        isOther: Boolean(cs.isOther),
                                     }))
                             }}
                             cacheKey="cra-cropping-systems-by-season"
@@ -120,23 +140,36 @@ export const CraForms: React.FC<CraFormsProps> = ({
                                     ...formData,
                                     croppingSystemId: value,
                                     croppingSystem: selectedLabel,
+                                    ...croppingResetPatch(value, 'croppingSystemOther'),
                                 })
                             }}
                         />
+                        {isOtherCropping && (
+                            <SpecifyOtherInput
+                                label="Please specify other cropping system"
+                                required
+                                value={formData.croppingSystemOther}
+                                onChange={(e) => setFormData({ ...formData, croppingSystemOther: e.target.value })}
+                            />
+                        )}
                         <MasterDataDropdown
                             label="Farming System crop under demonstration"
                             required
                             value={formData.farmingSystemId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, farmingSystemId: value })}
+                            onChange={(value) => setFormData({ ...formData, farmingSystemId: value, ...farmingResetPatch(value, 'farmingSystemOther') })}
                             isLoading={farmingSystemsLoading}
-                            options={createMasterDataOptions(
-                                farmingSystems.filter((fs: any) => !formData.seasonId || fs.seasonId === parseInt(formData.seasonId)),
-                                'craFarmingSystemId',
-                                'farmingSystemName'
-                            )}
+                            options={farmingSystemOptions}
                             placeholder="Select Farming System crop under demonstration"
                             emptyMessage={formData.seasonId ? "No systems found for this season" : "Please select a season first"}
                         />
+                        {isOtherFarming && (
+                            <SpecifyOtherInput
+                                label="Please specify other farming system"
+                                required
+                                value={formData.farmingSystemOther}
+                                onChange={(e) => setFormData({ ...formData, farmingSystemOther: e.target.value })}
+                            />
+                        )}
                         <FormInput
                             label="Area under Demonstration (in acre)"
                             required

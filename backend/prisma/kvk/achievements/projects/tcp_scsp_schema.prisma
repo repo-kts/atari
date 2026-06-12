@@ -7,6 +7,8 @@ model TspScspActivities {
   tspScspActivityId Int @id @default(autoincrement()) @map("tsp_scsp_district_id")
 
   activityName   String    @unique @map("name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther        Boolean   @default(false) @map("is_other")
   tspScspRecords TspScsp[]
 
   @@map("tsp_scsp_district")
@@ -34,6 +36,7 @@ model TspScsp {
   tspScspType   TspScspTypeMaster? @relation(fields: [tspScspTypeId], references: [tspScspTypeId], onDelete: SetNull)
 
   activityId Int?
+  activityOther String? @map("activity_other")
   activity   TspScspActivities? @relation(fields: [activityId], references: [tspScspActivityId], onDelete: SetNull)
 
   numberOfTrainingsOrDemos              Int   @map("number_of_trainings_or_demos")

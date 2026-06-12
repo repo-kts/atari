@@ -82,18 +82,26 @@ function normalizePrismaRow(r) {
     const stateName = (r.kvk && r.kvk.state && r.kvk.state.stateName)
         ? r.kvk.state.stateName
         : 'Unknown';
-    const trainingTypeName = (r.trainingType && r.trainingType.trainingTypeName)
-        ? String(r.trainingType.trainingTypeName).trim()
-        : 'Not specified';
-    const trainingAreaName = (r.trainingArea && r.trainingArea.trainingAreaName)
-        ? String(r.trainingArea.trainingAreaName).trim()
-        : 'Not specified';
-    const thematicAreaName = (r.trainingThematicArea && r.trainingThematicArea.trainingThematicAreaName)
-        ? String(r.trainingThematicArea.trainingThematicAreaName).trim()
-        : '—';
-    const clienteleName = (r.clientele && r.clientele.name)
-        ? String(r.clientele.name).trim()
-        : null;
+    const trainingTypeName = r.trainingTypeOther
+        ? String(r.trainingTypeOther).trim()
+        : ((r.trainingType && r.trainingType.trainingTypeName)
+            ? String(r.trainingType.trainingTypeName).trim()
+            : 'Not specified');
+    const trainingAreaName = r.trainingAreaOther
+        ? String(r.trainingAreaOther).trim()
+        : ((r.trainingArea && r.trainingArea.trainingAreaName)
+            ? String(r.trainingArea.trainingAreaName).trim()
+            : 'Not specified');
+    const thematicAreaName = r.thematicAreaOther
+        ? String(r.thematicAreaOther).trim()
+        : ((r.trainingThematicArea && r.trainingThematicArea.trainingThematicAreaName)
+            ? String(r.trainingThematicArea.trainingThematicAreaName).trim()
+            : '—');
+    const clienteleName = r.clienteleOther
+        ? String(r.clienteleOther).trim()
+        : ((r.clientele && r.clientele.name)
+            ? String(r.clientele.name).trim()
+            : null);
 
     const campusType = r.campusType != null ? String(r.campusType) : null;
 

@@ -648,26 +648,35 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const handleSubmitOftResult = async (payload: OftResultFormValue) => {
         if (!selectedOftId) return
-        if (oftResultMode === 'create') {
-            await createOftResultMutation.mutateAsync({
-                id: selectedOftId,
-                payload,
+        try {
+            if (oftResultMode === 'create') {
+                await createOftResultMutation.mutateAsync({
+                    id: selectedOftId,
+                    payload,
+                })
+            } else {
+                await updateOftResultMutation.mutateAsync({
+                    id: selectedOftId,
+                    payload,
+                })
+            }
+            alert({
+                title: 'Success',
+                message:
+                    oftResultMode === 'create'
+                        ? 'OFT result created successfully.'
+                        : 'OFT result updated successfully.',
+                variant: 'success',
+                autoClose: true,
             })
-        } else {
-            await updateOftResultMutation.mutateAsync({
-                id: selectedOftId,
-                payload,
+        } catch (err: any) {
+            alert({
+                title: 'Error',
+                message: err?.message || 'Failed to save the OFT result. Please try again.',
+                variant: 'error',
             })
+            throw err // keep the form open so the user can retry
         }
-        alert({
-            title: 'Success',
-            message:
-                oftResultMode === 'create'
-                    ? 'OFT result created successfully.'
-                    : 'OFT result updated successfully.',
-            variant: 'success',
-            autoClose: true,
-        })
     }
 
     const handleAddFldResult = (item: any) => {
@@ -844,26 +853,35 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const handleSubmitFldResult = async (payload: FldResultValue) => {
         if (!selectedFldId) return
-        if (fldResultMode === 'create') {
-            await createFldResultMutation.mutateAsync({
-                id: selectedFldId,
-                payload,
+        try {
+            if (fldResultMode === 'create') {
+                await createFldResultMutation.mutateAsync({
+                    id: selectedFldId,
+                    payload,
+                })
+            } else {
+                await updateFldResultMutation.mutateAsync({
+                    id: selectedFldId,
+                    payload,
+                })
+            }
+            alert({
+                title: 'Success',
+                message:
+                    fldResultMode === 'create'
+                        ? 'FLD result created successfully.'
+                        : 'FLD result updated successfully.',
+                variant: 'success',
+                autoClose: true,
             })
-        } else {
-            await updateFldResultMutation.mutateAsync({
-                id: selectedFldId,
-                payload,
+        } catch (err: any) {
+            alert({
+                title: 'Error',
+                message: err?.message || 'Failed to save the FLD result. Please try again.',
+                variant: 'error',
             })
+            throw err // keep the form open so the user can retry
         }
-        alert({
-            title: 'Success',
-            message:
-                fldResultMode === 'create'
-                    ? 'FLD result created successfully.'
-                    : 'FLD result updated successfully.',
-            variant: 'success',
-            autoClose: true,
-        })
     }
 
     const handleSubmitNariNutriResult = async (

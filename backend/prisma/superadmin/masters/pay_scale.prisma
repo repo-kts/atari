@@ -1,6 +1,7 @@
 model PayScaleMaster {
   payScaleId Int        @id @default(autoincrement()) @map("pay_scale_id")
   scaleName  String     @unique @map("scale_name")
+  isOther    Boolean    @default(false) @map("is_other")
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
   staff      KvkStaff[]

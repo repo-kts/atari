@@ -28,17 +28,18 @@ function applyReportingYear(where, filters) {
 
 function normalizePrismaRow(r) {
     const stateName = (r.kvk && r.kvk.state && r.kvk.state.stateName) ? r.kvk.state.stateName : 'Unknown';
-    const categoryName = (r.category && r.category.categoryName) ? r.category.categoryName : 'Uncategorized';
-    const sectorName = (r.sector && r.sector.sectorName)
-        ? r.sector.sectorName
-        : (r.category && r.category.sector && r.category.sector.sectorName) || 'Other';
+    const categoryName = r.categoryOther || (r.category && r.category.categoryName) || 'Uncategorized';
+    const sectorName = r.sectorOther
+        || (r.sector && r.sector.sectorName)
+        || (r.category && r.category.sector && r.category.sector.sectorName)
+        || 'Other';
     return {
         kvkFldId: r.kvkFldId,
         stateName,
         sectorName,
         categoryName,
-        cropName: r.crop?.cropName || '—',
-        thematicAreaName: r.thematicArea?.thematicAreaName || '—',
+        cropName: r.cropOther || r.crop?.cropName || '—',
+        thematicAreaName: r.thematicAreaOther || r.thematicArea?.thematicAreaName || '—',
         fldName: r.fldName || '—',
         noOfDemonstration: safeInt(r.noOfDemonstration),
         areaHa: Number(r.quantity ?? r.areaHa) || 0,

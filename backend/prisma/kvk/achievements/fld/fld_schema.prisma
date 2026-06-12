@@ -10,10 +10,15 @@ model KvkFldIntroduction {
   kvkStaffId                  Int
   seasonId                    Int?
   sectorId                    Int?
+  sectorOther                 String?                     @map("sector_other")
   thematicAreaId              Int?
+  thematicAreaOther           String?                     @map("thematic_area_other")
   categoryId                  Int?
+  categoryOther               String?                     @map("category_other")
   subCategoryId               Int?
+  subCategoryOther            String?                     @map("sub_category_other")
   cropId                      Int?
+  cropOther                   String?                     @map("crop_other")
   fldName                     String                      @map("fld_name")
   noOfDemonstration           Int                         @map("no_of_demonstration")
   quantity                    Float                       @map("quantity")

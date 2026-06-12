@@ -46,6 +46,8 @@ const agriDroneDemonstrationRepository = {
                     return d;
                 })(),
                 demonstrationsOnId: safeInt(data.demonstrationsOnId, null),
+                // "Other" free-text: only meaningful when the chosen demonstrations-on row is flagged isOther.
+                demonstrationsOnOther: (data.demonstrationsOnOther && String(data.demonstrationsOnOther).trim()) || null,
                 districtId: safeInt(data.districtId, null),
                 dateOfDemonstration: safeDate(data.dateOfDemons || data.dateOfDemonstration),
                 placeOfDemonstration: (data.placeOfDemons || data.placeOfDemonstration || null),
@@ -135,6 +137,7 @@ const agriDroneDemonstrationRepository = {
                     })()
                     : undefined,
                 demonstrationsOnId: data.demonstrationsOnId !== undefined ? safeInt(data.demonstrationsOnId, null) : undefined,
+                demonstrationsOnOther: data.demonstrationsOnOther !== undefined ? ((String(data.demonstrationsOnOther).trim()) || null) : undefined,
                 districtId: data.districtId !== undefined ? safeInt(data.districtId, null) : undefined,
                 dateOfDemonstration: (data.dateOfDemons || data.dateOfDemonstration) !== undefined ? safeDate(data.dateOfDemons || data.dateOfDemonstration) : undefined,
                 placeOfDemonstration: (data.placeOfDemons || data.placeOfDemonstration) !== undefined ? (data.placeOfDemons || data.placeOfDemonstration || null) : undefined,
@@ -183,7 +186,8 @@ const agriDroneDemonstrationRepository = {
             districtId: r.districtId,
             district: r.district?.districtName,
             demonstrationsOnId: r.demonstrationsOnId,
-            demonstrationsOnName: r.demonstrationsOn?.demonstrationsOnName,
+            demonstrationsOnName: r.demonstrationsOnOther || r.demonstrationsOn?.demonstrationsOnName,
+            demonstrationsOnOther: r.demonstrationsOnOther ?? '',
             dateOfDemons: r.dateOfDemonstration ? r.dateOfDemonstration.toISOString().split('T')[0] : undefined,
             placeOfDemons: r.placeOfDemonstration,
             noOfDemos: r.noOfDemos,

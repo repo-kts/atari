@@ -3,6 +3,8 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect, FormTextArea } from '../shared/FormComponents'
 import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
 
@@ -23,6 +25,14 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
     demonstrationsOnMasters,
     agriDroneIntros
 }) => {
+    const demonstrationsOnOptions = React.useMemo(
+        () => createMasterDataOptions(demonstrationsOnMasters, 'agriDroneDemonstrationsOnId', 'demonstrationsOnName', { flagKey: 'isOther' }),
+        [demonstrationsOnMasters]
+    )
+    const { isOtherSelected: isOtherDemoOn, otherResetPatch: demoOnResetPatch } = useOtherSpecify(
+        demonstrationsOnOptions,
+        formData.demonstrationsOnId
+    )
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_AGRI_DRONE && (
@@ -164,14 +174,18 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="Demonstrations on"
                             required
                             value={formData.demonstrationsOnId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, demonstrationsOnId: value })}
-                            options={createMasterDataOptions(
-                                demonstrationsOnMasters,
-                                'agriDroneDemonstrationsOnId',
-                                'demonstrationsOnName'
-                            )}
+                            onChange={(value) => setFormData({ ...formData, demonstrationsOnId: value, ...demoOnResetPatch(value, 'demonstrationsOnOther') })}
+                            options={demonstrationsOnOptions}
                             emptyMessage="No options available"
                         />
+                        {isOtherDemoOn && (
+                            <SpecifyOtherInput
+                                label="Please specify other (demonstrations on)"
+                                required
+                                value={formData.demonstrationsOnOther}
+                                onChange={(e) => setFormData({ ...formData, demonstrationsOnOther: e.target.value })}
+                            />
+                        )}
 
                         <FormSelect
                             label="Name of the project implementing centre (PIC)"

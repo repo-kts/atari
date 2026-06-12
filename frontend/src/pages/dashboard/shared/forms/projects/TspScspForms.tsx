@@ -2,6 +2,8 @@ import React, { useEffect } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface TspScspFormsProps {
@@ -22,6 +24,15 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
     const isScsp = entityType === ENTITY_TYPES.PROJECT_SCSP_ACTIVITY
     const isTsp = entityType === ENTITY_TYPES.PROJECT_TSP_ACTIVITY
     const isSplitEntity = isTsp || isScsp
+
+    const activityOptions = React.useMemo(
+        () => createMasterDataOptions(tspScspActivities, 'tspScspActivityId', 'activityName', { flagKey: 'isOther' }),
+        [tspScspActivities]
+    )
+    const { isOtherSelected: isOtherActivity, otherResetPatch: activityResetPatch } = useOtherSpecify(
+        activityOptions,
+        formData.activityId
+    )
 
     // Default-fill `type` based on the active sibling page when creating a new
     // record. Edits keep the row's existing `type` (and only matching rows
@@ -60,10 +71,18 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                     label="Activities"
                     required
                     value={formData.activityId ?? ''}
-                    onChange={(value) => setFormData({ ...formData, activityId: value })}
-                    options={createMasterDataOptions(tspScspActivities, 'tspScspActivityId', 'activityName')}
+                    onChange={(value) => setFormData({ ...formData, activityId: value, ...activityResetPatch(value, 'activityOther') })}
+                    options={activityOptions}
                     placeholder="Select Activity"
                 />
+                {isOtherActivity && (
+                    <SpecifyOtherInput
+                        label="Please specify other activity"
+                        required
+                        value={formData.activityOther}
+                        onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })}
+                    />
+                )}
                 <FormInput
                     label="No. of Trainings/Demos"
                     required

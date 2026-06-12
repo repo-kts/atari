@@ -39,9 +39,13 @@ model Kvkoft {
   seasonId                 Int?
   staffId                  Int
   oftSubjectId             Int?
+  oftSubjectOther          String?              @map("oft_subject_other")
   oftThematicAreaId        Int?
+  oftThematicAreaOther     String?              @map("oft_thematic_area_other")
   disciplineId             Int?
+  disciplineOther          String?              @map("discipline_other")
   sourceOfFundingId        Int?                 @map("source_of_funding_id")
+  sourceOfFundingOther     String?              @map("source_of_funding_other")
   unit                     String?              @map("unit")
   title                    String               @map("title_of_oft")
   problemDiagnosed         String               @map("problem_diagnosed")

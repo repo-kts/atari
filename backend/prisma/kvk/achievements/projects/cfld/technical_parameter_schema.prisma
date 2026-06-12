@@ -8,9 +8,12 @@ model CfldTechnicalParameter {
   cfldTechId                 Int           @id @default(autoincrement()) @map("cfl_cfld_tech_id")
   kvkId                      Int
   cropId                     Int
+  cropOther                  String?       @map("crop_other")
   month                      DateTime      @map("month")
-  typeId                     Int           @map("type_id") 
+  typeId                     Int           @map("type_id")
+  typeOther                  String?       @map("type_other")
   seasonId                   Int?
+  seasonOther                String?       @map("season_other")
   reportingYear               DateTime?                    @map("reporting_year")
   status                      CfldTechnicalWorkflowStatus  @default(ONGOING) @map("status")
   completedAt                 DateTime?                    @map("completed_at")

@@ -6,6 +6,7 @@ model KvkAgriDroneDemonstration {
 
   reportingYear       DateTime? @map("reporting_year")
   demonstrationsOnId  Int?  @map("agri_drone_demonstrations_on_id")
+  demonstrationsOnOther String? @map("demonstrations_on_other")
   districtId          Int?  @map("district_id")
 
   dateOfDemonstration DateTime? @map("date_of_demonstration")

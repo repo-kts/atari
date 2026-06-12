@@ -12,11 +12,16 @@ model TrainingAchievement {
   trainingAchievementId Int                     @id @default(autoincrement()) @map("training_achievement_id")
   kvkId                 Int
   clienteleId           Int?
+  clienteleOther        String?                 @map("clientele_other")
   trainingTypeId        Int?
+  trainingTypeOther     String?                 @map("training_type_other")
   trainingAreaId        Int?
+  trainingAreaOther     String?                 @map("training_area_other")
   thematicAreaId        Int
+  thematicAreaOther     String?                 @map("thematic_area_other")
   coordinatorId         Int
   fundingSourceId       Int?
+  fundingSourceOther    String?                 @map("funding_source_other")
   titleOfTraining       String                  @map("title_of_training")
   startDate             DateTime                @map("start_date")
   endDate               DateTime                @map("end_date")
