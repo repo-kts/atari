@@ -83,14 +83,37 @@ function parseTable(innerHtml) {
     return rows.length ? { rows } : null;
 }
 
+// Returns [{ src, caption }]. <figure> blocks pair an <img> with an optional
+// <figcaption>; bare <img> tags (outside a figure) come back with caption ''.
 function extractImages(cleanHtml) {
     const images = [];
+    const seen = new Set();
+    const imgSrcRe = /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/i;
+    const push = (rawSrc, caption) => {
+        const src = decodeEntities(String(rawSrc)).trim();
+        if (src && !seen.has(src)) {
+            seen.add(src);
+            images.push({ src, caption: caption ? stripTags(caption) : '' });
+        }
+    };
+
+    // Figures first (image + caption), so their <img> is claimed before the
+    // bare-<img> sweep below.
+    const figureRe = /<figure\b[^>]*>([\s\S]*?)<\/figure>/gi;
+    let f;
+    while ((f = figureRe.exec(cleanHtml))) {
+        const inner = f[1];
+        const img = inner.match(imgSrcRe);
+        if (!img) continue;
+        const cap = inner.match(/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/i);
+        push(img[1], cap ? cap[1] : '');
+    }
+
+    // Any remaining bare images.
     const imgRe = /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
     let m;
-    while ((m = imgRe.exec(cleanHtml))) {
-        const src = decodeEntities(m[1]).trim();
-        if (src && !images.includes(src)) images.push(src);
-    }
+    while ((m = imgRe.exec(cleanHtml))) push(m[1], '');
+
     return images;
 }
 

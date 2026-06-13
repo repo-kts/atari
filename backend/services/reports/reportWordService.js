@@ -137,16 +137,25 @@ async function buildSectionChildren(chunk, isFirst) {
         out.push(buildDocxTable(table));
         out.push(new Paragraph({ children: [] })); // spacer
     }
-    // Embed images (e.g. OFT result photographs) (#241).
-    for (const src of images) {
+    // Embed images (e.g. OFT result photographs) with their captions (#241).
+    for (const fig of images) {
+        const src = typeof fig === 'string' ? fig : fig.src;
+        const caption = typeof fig === 'string' ? '' : (fig.caption || '');
         const img = await fetchImageBuffer(src);
         if (!img) continue;
         out.push(new Paragraph({
+            alignment: AlignmentType.CENTER,
             children: [new ImageRun({
                 data: img.buffer,
                 transformation: { width: 320, height: 220 },
             })],
         }));
+        if (caption) {
+            out.push(new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new TextRun({ text: caption, italics: true, size: 16, color: '555555' })],
+            }));
+        }
     }
     return out;
 }

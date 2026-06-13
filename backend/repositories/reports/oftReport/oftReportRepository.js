@@ -3,14 +3,51 @@ const { applyDateFilters } = require('../aboutkvkReport/commonFilters.js');
 const { OFT_STATUS } = require('../../../constants/oftStatus.js');
 const s3 = require('../../../services/storage/s3Service.js');
 
+// Report section data (with these URLs) is cached up to 60 min, and aggregated
+// reports reuse it — so a default 60-min presign can expire before the report is
+// rendered/viewed, leaving blank images. Sign report photos for a window that
+// comfortably outlives the cache.
+const REPORT_PHOTO_URL_TTL_SECONDS = 6 * 60 * 60;
+
 // Resolve an OFT result photograph (S3 key) to a presigned URL the report
 // templates can embed. Returns null when no photo or S3 isn't configured (#241).
 async function resolvePhotoUrl(key) {
     if (!key || !s3.isConfigured()) return null;
     try {
-        return await s3.presignGet({ key });
+        return await s3.presignGet({ key, expiresIn: REPORT_PHOTO_URL_TTL_SECONDS });
     } catch {
         return null;
+    }
+}
+
+// OFT result photos are stored as form attachments (formCode 'oft_result',
+// kind PHOTO) keyed by the result-report id, each with its own caption — not in
+// the legacy single photograph_path column. Pull them, presign each S3 key and
+// keep the caption so the report can show every photo with its label.
+async function resolveResultPhotos(kvkId, oftResultReportId) {
+    if (!kvkId || !oftResultReportId || !s3.isConfigured()) return [];
+    // Never let a photo lookup/presign hiccup reject the whole section — in an
+    // aggregated (super-admin) report that would silently drop this KVK's OFTs.
+    try {
+        const attachments = await prisma.formAttachment.findMany({
+            where: {
+                kvkId,
+                formCode: 'oft_result',
+                recordId: String(oftResultReportId),
+                kind: 'PHOTO',
+            },
+            orderBy: { sortOrder: 'asc' },
+            select: { s3Key: true, caption: true, fileName: true },
+        });
+        const resolved = await Promise.all(
+            attachments.map(async (a) => {
+                const url = await resolvePhotoUrl(a.s3Key);
+                return url ? { url, caption: a.caption || a.fileName || '' } : null;
+            }),
+        );
+        return resolved.filter(Boolean);
+    } catch {
+        return [];
     }
 }
 
@@ -128,7 +165,11 @@ async function getOftDetailCards(kvkId, filters = {}) {
                 ? r.oftEndDate ?? null
                 : r.oftEndDate ?? r.expectedCompletionDate ?? null,
         resultReport: r.resultReport
-            ? { ...r.resultReport, photographUrl: await resolvePhotoUrl(r.resultReport.photographPath) }
+            ? {
+                ...r.resultReport,
+                photographUrl: await resolvePhotoUrl(r.resultReport.photographPath),
+                photos: await resolveResultPhotos(kvkId, r.resultReport.oftResultReportId),
+            }
             : r.resultReport,
     })));
 }
