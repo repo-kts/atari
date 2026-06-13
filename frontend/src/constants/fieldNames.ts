@@ -285,6 +285,9 @@ export const FIELD_NAMES = {
     TITLE: 'title',
     AUTHOR_NAME: 'authorName',
     JOURNAL_NAME: 'journalName',
+    NAAS_RATING: 'naasRating',
+    PUBLISHER_NAME: 'publisherName',
+    ISBN_NUMBER: 'isbnNumber',
 
     // Soil & Water Testing Fields
     ANALYSIS: 'analysis',
@@ -1286,6 +1289,10 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.TITLE,
         FIELD_NAMES.AUTHOR_NAME,
         FIELD_NAMES.JOURNAL_NAME,
+        FIELD_NAMES.NAAS_RATING,
+        FIELD_NAMES.PUBLISHER_NAME,
+        FIELD_NAMES.VENUE,
+        FIELD_NAMES.ISBN_NUMBER,
     ] as const,
 
     // Achievements Routes - Soil Equipment
