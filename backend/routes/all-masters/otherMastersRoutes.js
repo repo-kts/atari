@@ -23,6 +23,16 @@ const otherMastersController = require('../../controllers/all-masters/otherMaste
 router.use(authenticateToken);
 
 // ============================================
+// Unit Routes
+// ============================================
+
+router.get('/units',     otherMastersController.getAllUnits);
+router.get('/units/:id', otherMastersController.getUnitById);
+router.post('/units',    requirePermission('all_masters_unit_master', 'ADD'),    otherMastersController.createUnit);
+router.put('/units/:id', requirePermission('all_masters_unit_master', 'EDIT'),   otherMastersController.updateUnit);
+router.delete('/units/:id', requirePermission('all_masters_unit_master', 'DELETE'), otherMastersController.deleteUnit);
+
+// ============================================
 // Season Routes
 // ============================================
 

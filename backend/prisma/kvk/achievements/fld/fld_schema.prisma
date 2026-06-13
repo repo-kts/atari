@@ -22,6 +22,9 @@ model KvkFldIntroduction {
   fldName                     String                      @map("fld_name")
   noOfDemonstration           Int                         @map("no_of_demonstration")
   quantity                    Float                       @map("quantity")
+  // Used when the crop's quantity data type is string/boolean (e.g. "N/A");
+  // numeric types continue to use `quantity`.
+  quantityText                String?                     @map("quantity_text")
   unit                        String?                     @map("unit")
   startDate                   DateTime                    @map("start_date")
   expectedCompletionDate      DateTime?                   @map("expected_completion_date")

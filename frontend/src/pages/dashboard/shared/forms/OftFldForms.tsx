@@ -22,7 +22,8 @@ import {
 } from '../../../../hooks/useOftFldData'
 import { useDisciplines } from '../../../../hooks/forms/useAboutKvkData'
 import { useKvkStaffForDropdown } from '../../../../hooks/forms/useAboutKvkData'
-import { useFundingSources } from '../../../../hooks/useOtherMastersData'
+import { useFundingSources, useUnits } from '../../../../hooks/useOtherMastersData'
+import { QUANTITY_DATA_TYPE_OPTIONS } from '../../../../constants/quantityDataType'
 import { useAuth } from '../../../../contexts/AuthContext'
 import { useProjectData } from '../../../../hooks/useProjectData'
 import { oftFldApi } from '../../../../services/oftFldApi'
@@ -181,6 +182,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     const { data: fundingSources = [] } = useFundingSources()
     const { data: oftSubjects = [] } = useOftSubjects()
     const { data: fldSectors = [] } = useSectors()
+    const { data: units = [] } = useUnits()
     const { data: fldCategories = [] } = useFldCategories()
     const { data: fldSubcategories = [] } = useFldSubcategories()
     const { data: seasons = [] } = useSeasons()
@@ -651,6 +653,35 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                         placeholder="Enter crop name"
                     />
+                    <FormSelect
+                        label="Unit"
+                        value={formData.unitId ?? ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                unitId: e.target.value ? parseInt(e.target.value) : null,
+                            })
+                        }
+                        options={units.map(u => ({ value: u.unitId, label: u.unitName }))}
+                    />
+                    <FormSelect
+                        label="Quantity Data Type"
+                        value={formData.quantityDataType ?? ''}
+                        onChange={(e) =>
+                            setFormData({ ...formData, quantityDataType: e.target.value || null })
+                        }
+                        options={QUANTITY_DATA_TYPE_OPTIONS}
+                    />
+                    <label className="flex items-center gap-2 text-sm text-[#212121] cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={Boolean(formData.quantityRequired)}
+                            onChange={(e) =>
+                                setFormData({ ...formData, quantityRequired: e.target.checked })
+                            }
+                        />
+                        Quantity required in forms
+                    </label>
                     <IsOtherCheckbox
                         checked={Boolean(formData.isOther)}
                         onChange={(checked) => setFormData({ ...formData, isOther: checked })}
@@ -1289,9 +1320,19 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                     return;
                                 }
 
+                                // Pull the crop's master-defined unit; clear the
+                                // quantity inputs so the type-correct field starts fresh.
+                                const selCrop: any = fldCrops.find(
+                                    (c: any) => Number(c.cropId) === Number(numericValue)
+                                );
+
                                 setFormData({
                                     ...formData,
                                     cropId: numericValue,
+                                    unit: selCrop?.unit?.unitName ?? '',
+                                    quantity: '',
+                                    quantityText: '',
+                                    area: '',
                                     ...cropResetPatch(numericValue, 'cropOther'),
                                 });
                             }}
@@ -1331,22 +1372,52 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             const selectedSectorName = fldSectors.find((s: any) => s.sectorId === formData.sectorId)?.sectorName ?? ''
                             const isWomenEmpowerment = selectedSectorName.trim().toLowerCase() === 'women empowerment'
                             if (isWomenEmpowerment) return null
+                            // Unit + quantity are driven by the selected crop's master.
+                            const selectedCrop: any = fldCrops.find((c: any) => Number(c.cropId) === Number(formData.cropId))
+                            const dataType = selectedCrop?.quantityDataType || 'decimal'
+                            const masterUnit = selectedCrop?.unit?.unitName || formData.unit || ''
+                            const required = Boolean(selectedCrop?.quantityRequired)
+                            const setText = (v: string) =>
+                                setFormData({ ...formData, quantityText: v, quantity: 0, area: 0, unit: masterUnit })
+                            const setNumber = (raw: string) => {
+                                const v = dataType === 'number' ? raw.replace(/[^0-9]/g, '') : raw
+                                setFormData({ ...formData, quantity: v, area: v, quantityText: null, unit: masterUnit })
+                            }
                             return (
-                                <div className="grid grid-cols-[120px_1fr] gap-3">
-                                    <FormSelect
-                                        label="Unit"
-                                        required
-                                        value={formData.unit ?? ''}
-                                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                        options={OFT_UNIT_OPTIONS}
-                                    />
+                                <div className="grid grid-cols-[140px_1fr] gap-3">
                                     <FormInput
-                                        label="Quantity"
-                                        required
-                                        type="number"
-                                        value={formData.quantity ?? formData.area ?? ''}
-                                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value, area: e.target.value })}
+                                        label="Unit"
+                                        value={masterUnit}
+                                        readOnly
+                                        onChange={() => {}}
+                                        placeholder={formData.cropId ? '' : 'Select crop'}
                                     />
+                                    {dataType === 'boolean' ? (
+                                        <FormSelect
+                                            label="Quantity"
+                                            required={required}
+                                            value={formData.quantityText ?? ''}
+                                            onChange={(e) => setText(e.target.value)}
+                                            options={[{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }]}
+                                        />
+                                    ) : dataType === 'string' ? (
+                                        <FormInput
+                                            label="Quantity"
+                                            required={required}
+                                            value={formData.quantityText ?? ''}
+                                            onChange={(e) => setText(e.target.value)}
+                                            placeholder="e.g. N/A"
+                                        />
+                                    ) : (
+                                        <FormInput
+                                            label="Quantity"
+                                            required={required}
+                                            type="number"
+                                            step={dataType === 'number' ? '1' : 'any'}
+                                            value={formData.quantity ?? formData.area ?? ''}
+                                            onChange={(e) => setNumber(e.target.value)}
+                                        />
+                                    )}
                                 </div>
                             )
                         })()}

@@ -144,6 +144,12 @@ const ENTITY_CONFIG = {
                     categoryName: true,
                 },
             },
+            unit: {
+                select: {
+                    unitId: true,
+                    unitName: true,
+                },
+            },
         },
     },
     'fld-activities': {

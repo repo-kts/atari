@@ -228,6 +228,14 @@ const UPDATE_FIELD_DEFINITIONS = [
         options: { allowEmpty: true },
     },
     {
+        fieldNames: ['quantityText'],
+        type: 'string',
+        backendField: 'quantityText',
+        errorMessage: 'Quantity (text) is invalid',
+        errorField: 'quantityText',
+        options: { allowEmpty: true },
+    },
+    {
         fieldNames: ['sectorOther'],
         type: 'string',
         backendField: 'sectorOther',
@@ -314,6 +322,11 @@ const fldRepository = {
             unit: isWomenEmpowermentSector
                 ? null
                 : (typeof data.unit === 'string' ? (data.unit.trim() || null) : null),
+            // Free-text quantity for crops whose master quantity data type is
+            // string/boolean (e.g. "N/A"); numeric types use `quantity`.
+            quantityText: isWomenEmpowermentSector
+                ? null
+                : (typeof data.quantityText === 'string' ? (data.quantityText.trim() || null) : null),
             // "Other" free-text: only meaningful when the chosen master row is flagged isOther.
             sectorOther: typeof data.sectorOther === 'string' ? (data.sectorOther.trim() || null) : null,
             thematicAreaOther: typeof data.thematicAreaOther === 'string' ? (data.thematicAreaOther.trim() || null) : null,
@@ -793,6 +806,7 @@ function _mapResponse(r) {
         startYear: r.startDate ? new Date(r.startDate).getFullYear() : null,
         completedAt: completionDate,
         quantity: r.quantity,
+        quantityText: r.quantityText,
         unit: r.unit,
         gen_m: r.generalM,
         generalM: r.generalM,

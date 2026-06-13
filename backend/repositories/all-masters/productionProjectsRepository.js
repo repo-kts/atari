@@ -63,6 +63,12 @@ const ENTITY_CONFIG = {
                     productCategoryType: true,
                 },
             },
+            unit: {
+                select: {
+                    unitId: true,
+                    unitName: true,
+                },
+            },
         },
     },
 

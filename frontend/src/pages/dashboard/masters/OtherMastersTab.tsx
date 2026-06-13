@@ -27,6 +27,7 @@ const sections: FeatureSection[] = [
         icon: <Landmark className="w-5 h-5" />,
         items: [
             { label: 'Season Master', path: '/all-master/season' },
+            { label: 'Unit Master', path: '/all-master/unit' },
             { label: 'Crop Type Master', path: '/all-master/crop-type' },
             { label: 'Important Day Master', path: '/all-master/important-day' },
         ],

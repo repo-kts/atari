@@ -11,6 +11,9 @@ productCategoryId  Int?             @map("product_category_id")
   speciesName        String           @map("species_name")
   unit               String
   quantity           Float
+  // Used when the product's quantity data type is string/boolean (e.g. "N/A");
+  // numeric types continue to use `quantity`.
+  quantityText       String?          @map("quantity_text")
   value              Float            @map("value_rs")
   farmersGeneralM    Int              @map("farmers_general_m")
   farmersGeneralF    Int              @map("farmers_general_f")

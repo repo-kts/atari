@@ -122,6 +122,16 @@ const deleteEntity = (entityName) => async (req, res) => {
 };
 
 // ============================================
+// Unit Controllers
+// ============================================
+
+exports.getAllUnits = getAll('units');
+exports.getUnitById = getById('units');
+exports.createUnit = create('units');
+exports.updateUnit = update('units');
+exports.deleteUnit = deleteEntity('units');
+
+// ============================================
 // Season Controllers
 // ============================================
 

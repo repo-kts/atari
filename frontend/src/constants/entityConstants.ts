@@ -53,6 +53,7 @@ export const ENTITY_TYPES = {
     FUNDING_SOURCE: 'funding-source',
 
     // Other Masters (continued)
+    UNIT: 'units',
     CROP_TYPE: 'crop-type',
     INFRASTRUCTURE_MASTER: 'infrastructure-master',
     SOIL_WATER_ANALYSIS: 'soil-water-analysis',
@@ -342,6 +343,7 @@ export const ENTITY_PATHS = {
     FUNDING_SOURCE: '/all-master/funding-source',
 
     // Other Masters (continued)
+    UNIT: '/all-master/unit',
     CROP_TYPE: '/all-master/crop-type',
     INFRASTRUCTURE_MASTER: '/all-master/infrastructure-master',
     SOIL_WATER_ANALYSIS: '/all-master/soil-water-analysis',

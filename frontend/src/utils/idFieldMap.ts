@@ -54,6 +54,7 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.IMPORTANT_DAY]: 'importantDayId',
 
     // Other Masters
+    [ENTITY_TYPES.UNIT]: 'unitId',
     [ENTITY_TYPES.CROP_TYPE]: 'typeId',
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: 'infraMasterId',
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: 'soilWaterAnalysisId',

@@ -185,6 +185,24 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                 </div>
             )}
 
+            {entityType === ENTITY_TYPES.UNIT && (
+                <div className="space-y-4">
+                    <FormInput
+                        label="Unit Name"
+                        required
+                        value={formData.unitName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, unitName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="e.g. Kg, Number, Hectare"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </div>
+            )}
+
             {entityType === ENTITY_TYPES.CROP_TYPE && (
                 <div className="space-y-4">
                     <FormInput
