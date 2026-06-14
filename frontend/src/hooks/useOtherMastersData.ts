@@ -483,6 +483,56 @@ export function useEquipmentTypes() {
     };
 }
 
+export function useEquipmentMastersPaginated(params: {
+    page?: number
+    limit?: number
+    search?: string
+} = {}) {
+    const queryClient = useQueryClient()
+    const { page = 1, limit = 10, search = '' } = params
+
+    const query = useQuery({
+        queryKey: ['equipment-masters', page, limit, search],
+        queryFn: () => otherMastersApi.getEquipmentMasters({ page, limit, search }),
+        staleTime: 30 * 1000,
+        placeholderData: (prev: any) => prev,
+    })
+
+    const createMutation = useMutation({
+        mutationFn: (data: EquipmentMasterFormData) => otherMastersApi.createEquipmentMaster(data),
+        onSuccess: () => { invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_MASTER) },
+    })
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<EquipmentMasterFormData> }) =>
+            otherMastersApi.updateEquipmentMaster(id, data),
+        onSuccess: () => { invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_MASTER) },
+    })
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteEquipmentMaster(id),
+        onSuccess: () => { invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_MASTER) },
+    })
+
+    const raw = query.data as any
+    const pagination = raw?.pagination ?? {}
+
+    return {
+        data: raw?.data ?? [],
+        serverPagination: {
+            total: pagination.total ?? 0,
+            totalPages: pagination.totalPages ?? 1,
+        },
+        isLoading: query.isLoading,
+        isFetching: query.isFetching,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    }
+}
+
 export function useEquipmentMasters() {
     const queryClient = useQueryClient();
 

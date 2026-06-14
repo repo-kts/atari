@@ -55,7 +55,7 @@ import {
     usePayScales,
     useAssetFundingSources,
     useEquipmentTypes,
-    useEquipmentMasters,
+    useEquipmentMastersPaginated,
     useDisciplines,
     useExtensionActivityTypes,
     useOtherExtensionActivityTypes,
@@ -88,10 +88,16 @@ import {
 import { useProjectData, useTspScspFilteredProjectData } from './useProjectData'
 import { getEntityTypeChecks } from '../utils/entityTypeHelpers'
 
+export interface ServerPaginationParams {
+    page?: number
+    limit?: number
+    search?: string
+}
+
 /**
  * Hook factory function type
  */
-type HookFactory = () => any
+type HookFactory = (params?: ServerPaginationParams) => any
 
 /**
  * Map basic master entity types to their EntityType strings
@@ -156,7 +162,7 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.PAY_SCALE]: () => usePayScales(),
     [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: () => useAssetFundingSources(),
     [ENTITY_TYPES.EQUIPMENT_TYPE]: () => useEquipmentTypes(),
-    [ENTITY_TYPES.EQUIPMENT_MASTER]: () => useEquipmentMasters(),
+    [ENTITY_TYPES.EQUIPMENT_MASTER]: (params) => useEquipmentMastersPaginated(params),
     [ENTITY_TYPES.DISCIPLINE]: () => useDisciplines(),
     [ENTITY_TYPES.EXTENSION_ACTIVITY_TYPE]: () => useExtensionActivityTypes(),
     [ENTITY_TYPES.OTHER_EXTENSION_ACTIVITY_TYPE]: () => useOtherExtensionActivityTypes(),
@@ -331,7 +337,7 @@ const ABOUT_KVK_ENTITIES: string[] = [
  * @param entityType - The entity type to get the hook for
  * @returns The hook result or null if no hook is available
  */
-export function useEntityHook(entityType: ExtendedEntityType | null) {
+export function useEntityHook(entityType: ExtendedEntityType | null, paginationParams?: ServerPaginationParams) {
     const { isBasicMaster } = getEntityTypeChecks(entityType)
     const isAboutKvkEntity = entityType && ABOUT_KVK_ENTITIES.includes(entityType)
 
@@ -364,7 +370,7 @@ export function useEntityHook(entityType: ExtendedEntityType | null) {
     // This ensures hooks are always called in the same order regardless of entityType.
     const defaultHookFactory = () => useSeasons()
     const hookToCall = hookFactory || defaultHookFactory
-    const otherHookResult = hookToCall()
+    const otherHookResult = hookToCall(paginationParams)
     const otherHook = hookFactory ? otherHookResult : null
 
     // Return the appropriate hook result

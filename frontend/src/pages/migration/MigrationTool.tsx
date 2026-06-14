@@ -32,15 +32,16 @@ export function MigrationTool() {
     const [raw, setRaw] = useState<unknown>(undefined)
     const [rowCount, setRowCount] = useState<number | null>(null)
     const [splitPercent, setSplitPercent] = useState<number>(50)
+    const [verticalSplit, setVerticalSplit] = useState<number>(65)
 
     const handleMouseDown = (e: React.MouseEvent) => {
         e.preventDefault()
         const startX = e.clientX
         const startSplit = splitPercent
-        
+
         const container = e.currentTarget.parentElement
         const containerWidth = container ? container.getBoundingClientRect().width : window.innerWidth
-        
+
         const handleMouseMove = (moveEvent: MouseEvent) => {
             const deltaX = moveEvent.clientX - startX
             const deltaPercent = (deltaX / containerWidth) * 100
@@ -53,6 +54,28 @@ export function MigrationTool() {
             document.removeEventListener('mouseup', handleMouseUp)
         }
         
+        document.addEventListener('mousemove', handleMouseMove)
+        document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    const handleVerticalMouseDown = (e: React.MouseEvent) => {
+        e.preventDefault()
+        const startY = e.clientY
+        const startSplit = verticalSplit
+
+        const container = e.currentTarget.parentElement
+        const containerHeight = container ? container.getBoundingClientRect().height : window.innerHeight
+
+        const handleMouseMove = (moveEvent: MouseEvent) => {
+            const deltaY = moveEvent.clientY - startY
+            const deltaPercent = (deltaY / containerHeight) * 100
+            const nextPercent = Math.min(Math.max(startSplit + deltaPercent, 20), 85)
+            setVerticalSplit(nextPercent)
+        }
+        const handleMouseUp = () => {
+            document.removeEventListener('mousemove', handleMouseMove)
+            document.removeEventListener('mouseup', handleMouseUp)
+        }
         document.addEventListener('mousemove', handleMouseMove)
         document.addEventListener('mouseup', handleMouseUp)
     }
@@ -311,17 +334,33 @@ export function MigrationTool() {
                     <div className="w-0.5 h-12 bg-gray-300 rounded-full"></div>
                 </div>
 
-                <div style={{ width: `${100 - splitPercent}%` }} className="min-w-0 h-full flex flex-col pl-2 gap-3">
-                    <RecordsViewer
-                        title="Mapped to our schema"
-                        data={displayRecords}
-                        defaultView="table"
-                        fk={fk}
-                        badge={transformed ? `${transformed.report.mapped} mapped` : undefined}
-                        placeholder="Transform to see records mapped to your DB schema."
-                        rowActions={rowActions}
-                    />
-                    {transformed && <MigrationReport report={transformed.report} />}
+                <div style={{ width: `${100 - splitPercent}%` }} className="min-w-0 h-full flex flex-col pl-2">
+                    <div style={{ height: `${transformed ? verticalSplit : 100}%` }} className="min-h-0 flex flex-col">
+                        <RecordsViewer
+                            title="Mapped to our schema"
+                            data={displayRecords}
+                            defaultView="table"
+                            fk={fk}
+                            badge={transformed ? `${transformed.report.mapped} mapped` : undefined}
+                            placeholder="Transform to see records mapped to your DB schema."
+                            rowActions={rowActions}
+                        />
+                    </div>
+                    {transformed && (
+                        <>
+                            {/* Vertical draggable divider */}
+                            <div
+                                onMouseDown={handleVerticalMouseDown}
+                                className="h-2 hover:h-2.5 bg-gray-100 hover:bg-blue-500 cursor-row-resize w-full transition-colors select-none flex items-center justify-center"
+                                title="Drag to resize"
+                            >
+                                <div className="h-0.5 w-12 bg-gray-300 rounded-full"></div>
+                            </div>
+                            <div style={{ height: `${100 - verticalSplit}%` }} className="min-h-0 overflow-auto">
+                                <MigrationReport report={transformed.report} />
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

@@ -37,7 +37,8 @@ module.exports = {
         const oldKvkName =
             decodeEntities(cleanText(row.kvk?.kvk_name || row['kvk.kvk_name'])) || '';
         if (!oldKvkName) {
-            err('kvkId', 'Missing KVK name');
+            // List API may not embed kvk_name — use the selected ctx.kvkId silently.
+            warn('kvkId', 'KVK name not in row — using selected target KVK');
         } else if (normalize(oldKvkName) !== normalize(ctx.targetKvkName || '')) {
             return {
                 data: null,
@@ -64,26 +65,39 @@ module.exports = {
         }
 
         // ── Equipment master (EquipmentMaster — unique per type+name) ─────
+        // Old site list rows carry the equipment name directly as `equipment_name`
+        // (no nested equipment_master object). Try nested paths first, fall back.
         let equipmentMasterId = null;
+        // `row.equipment_master` may be a numeric ID (old site relation) — skip it if so.
+        const equipMasterRaw = row.equipment_master;
+        const equipMasterStr = (typeof equipMasterRaw === 'string' && !/^\d+$/.test(equipMasterRaw.trim()))
+            ? equipMasterRaw
+            : null;
         const rawEquipName = decodeEntities(
             cleanText(
                 row.equipment_master?.name ||
                 row['equipment_master.name'] ||
                 row.equipment_master_name ||
-                row.equipment_master,
+                equipMasterStr ||
+                row.equipment_name,
             ),
         );
-        if (rawEquipName && equipmentTypeId) {
-            const found = await prisma.equipmentMaster.findFirst({
-                where: {
-                    equipmentTypeId,
-                    name: { equals: rawEquipName, mode: 'insensitive' },
-                },
-            });
-            if (found) {
-                equipmentMasterId = found.equipmentMasterId;
+        if (rawEquipName) {
+            // Use MasterResolver: normalizes whitespace/case/punctuation before matching,
+            // so hidden encoding differences (non-breaking spaces etc.) don't cause misses.
+            const em = await r.resolve('equipmentMaster', 'name', 'equipmentMasterId', rawEquipName);
+            if (em.matched) {
+                equipmentMasterId = em.id;
+                // Backfill equipmentTypeId from the master row when type wasn't in raw data
+                if (!equipmentTypeId) {
+                    const emRow = await prisma.equipmentMaster.findUnique({
+                        where: { equipmentMasterId: em.id },
+                        select: { equipmentTypeId: true },
+                    });
+                    if (emRow?.equipmentTypeId) equipmentTypeId = emRow.equipmentTypeId;
+                }
             } else {
-                warn('equipmentMasterId', `EquipmentMaster "${rawEquipName}" not found for this type — stored as null`);
+                warn('equipmentMasterId', `EquipmentMaster "${rawEquipName}" not found — stored as null`);
             }
         }
 
@@ -99,24 +113,35 @@ module.exports = {
         if (!yearOfPurchase) err('yearOfPurchase', 'yearOfPurchase required — not found on row');
         const totalCost = floatOrZero(row.total_cost || row.cost || row.equipment_cost || row.equipment_amount);
 
-        // ── Asset funding source (parent-level, optional) ─────────────────
+        // ── Asset funding source (parent-level, optional) — lookup only ────
         let assetFundingSourceId = null;
-        let assetFundingSourceOther = null;
         const rawFunding = decodeEntities(cleanText(
             row.funding_source?.name ||
             row['funding_source.name'] ||
+            row.sources_of_fund ||      // actual old-site field name (plural)
+            row.source_of_fund ||
             row.asset_funding_source ||
             row.funding_source,
         ));
         if (rawFunding) {
-            const fs = await r.resolve('assetFundingSourceMaster', 'name', 'assetFundingSourceId', rawFunding);
-            if (fs.matched) assetFundingSourceId = fs.id;
-            else { assetFundingSourceOther = rawFunding; warn('assetFundingSourceId', `Funding source "${rawFunding}" not found — stored in other`); }
+            const fs = await r.findOrCreate(
+                'assetFundingSourceMaster', 'name', 'assetFundingSourceId', rawFunding,
+            );
+            if (fs.id) {
+                assetFundingSourceId = fs.id;
+                if (fs.created) warn('assetFundingSourceId', `Created funding source "${rawFunding}"`);
+            }
         }
 
         // ── Per-year detail ───────────────────────────────────────────────
-        const reportingYear = parseDate(row.reporting_year);
-        if (!reportingYear) warn('_detail.reportingYear', `Bad/missing reporting_year "${row.reporting_year}"`);
+        // The list API usually omits reporting_year; fall back to Jan-1 of purchase year.
+        let reportingYear = parseDate(row.reporting_year);
+        if (!reportingYear && yearOfPurchase) {
+            reportingYear = new Date(`${yearOfPurchase}-01-01T00:00:00.000Z`);
+            warn('_detail.reportingYear', `reporting_year missing — using purchase year ${yearOfPurchase}`);
+        } else if (!reportingYear) {
+            warn('_detail.reportingYear', `Bad/missing reporting_year "${row.reporting_year}"`);
+        }
 
         // Present status → EquipmentPresentStatusMaster (find-or-create)
         let equipmentStatusId = null;
@@ -136,13 +161,8 @@ module.exports = {
             err('_detail.equipmentStatusId', 'equipmentStatusId required — no present_status on row');
         }
 
-        // Detail-level funding source (may differ from parent; reuse same resolution)
-        let detailFundingSourceId = assetFundingSourceId;
-        const rawDetailFunding = decodeEntities(cleanText(row.detail_funding_source || ''));
-        if (rawDetailFunding) {
-            const fs = await r.resolve('assetFundingSourceMaster', 'name', 'assetFundingSourceId', rawDetailFunding);
-            detailFundingSourceId = fs.matched ? fs.id : null;
-        }
+        // Detail-level funding source defaults to parent; override only if explicit field present
+        const detailFundingSourceId = assetFundingSourceId;
 
         return {
             data: {
@@ -156,7 +176,6 @@ module.exports = {
                 yearOfPurchase,
                 totalCost,
                 assetFundingSourceId,
-                assetFundingSourceOther: assetFundingSourceOther || null,
                 // detail sub-record
                 _detail: reportingYear ? {
                     reportingYear,

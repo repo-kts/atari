@@ -625,8 +625,16 @@ export const otherMastersApi = {
     deleteEquipmentType: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-type/${id}`),
 
-    getEquipmentMasters: () =>
-        apiClient.get<PaginatedResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master`),
+    getEquipmentMasters: (params?: { page?: number; limit?: number; search?: string }) => {
+        const qs = new URLSearchParams()
+        if (params?.page) qs.set('page', String(params.page))
+        if (params?.limit) qs.set('limit', String(params.limit))
+        if (params?.search) qs.set('search', params.search)
+        const q = qs.toString()
+        return apiClient.get<PaginatedResponse<EquipmentMasterEntry>>(
+            `${BASE_URL}/equipment-master${q ? `?${q}` : ''}`
+        )
+    },
     getEquipmentMasterById: (id: number) =>
         apiClient.get<ApiResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master/${id}`),
     createEquipmentMaster: (data: EquipmentMasterFormData) =>
