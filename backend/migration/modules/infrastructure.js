@@ -12,7 +12,9 @@ module.exports = {
     key: 'infrastructure',
     label: 'Infrastructure',
     model: 'kvkInfrastructure',
-    naturalKey: ['kvkId', 'infraMasterId'],
+    idField: 'infraId',
+    // specifyName disambiguates multiple "Others" rows for the same KVK
+    naturalKey: ['kvkId', 'infraMasterId', 'specifyName'],
 
     foreignKeys: {
         kvkId: { master: 'kvk' },

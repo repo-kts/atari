@@ -9,6 +9,8 @@ const specs = [
     require('./modules/oft.js'),
     require('./modules/vehicle.js'),
     require('./modules/vehicleDetails.js'),
+    require('./modules/equipment.js'),
+    require('./modules/equipmentDetails.js'),
     require('./modules/fld.js'),
     require('./modules/cfldTechnicalParameter.js'),
     require('./modules/cfldExtensionActivity.js'),
