@@ -6,6 +6,7 @@ import {
     type ModuleInfo,
     type TransformResult,
     type SeedResult,
+    type RowAction,
 } from '../../services/migrationApi'
 import { RecordsViewer } from './components/RecordsViewer'
 import { MigrationReport } from './components/MigrationReport'
@@ -62,6 +63,7 @@ export function MigrationTool() {
         {},
     )
     const [seedResult, setSeedResult] = useState<SeedResult | null>(null)
+    const [rowActions, setRowActions] = useState<RowAction[]>([])
 
     const [busy, setBusy] = useState<Busy>('')
     const [error, setError] = useState('')
@@ -136,6 +138,7 @@ export function MigrationTool() {
             setTransformed(null)
             setRecords([])
             setSeedResult(null)
+            setRowActions([])
             const out = await migrationApi.fetchCurl(curl)
             setRaw(out.raw)
             setRowCount(out.rowCount)
@@ -144,6 +147,7 @@ export function MigrationTool() {
     const onTransform = () =>
         run('transform', async () => {
             setSeedResult(null)
+            setRowActions([])
             const out = await migrationApi.transform(moduleKey, Number(kvkId), raw)
             setTransformed(out)
             setRecords(out.records as Array<Row | null>)
@@ -156,6 +160,7 @@ export function MigrationTool() {
         run('seed', async () => {
             const out = await migrationApi.seed(moduleKey, Number(kvkId), records)
             setSeedResult(out)
+            setRowActions(out.actions ?? [])
         })
 
     // Inline FK edit: write the chosen master id into the record (and clear the
@@ -314,6 +319,7 @@ export function MigrationTool() {
                         fk={fk}
                         badge={transformed ? `${transformed.report.mapped} mapped` : undefined}
                         placeholder="Transform to see records mapped to your DB schema."
+                        rowActions={rowActions}
                     />
                     {transformed && <MigrationReport report={transformed.report} />}
                 </div>

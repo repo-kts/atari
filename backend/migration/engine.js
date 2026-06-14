@@ -131,12 +131,13 @@ async function transform(moduleKey, kvkId, raw) {
 async function seed(moduleKey, kvkId, records) {
     const spec = getModule(moduleKey);
     const model = prisma[spec.model];
-    const result = { created: 0, updated: 0, skipped: 0, failed: [] };
+    const result = { created: 0, updated: 0, skipped: 0, failed: [], actions: [] };
 
     for (let index = 0; index < records.length; index++) {
         const data = records[index];
         if (!data) {
             result.skipped++;
+            result.actions.push('skipped');
             continue;
         }
         try {
@@ -144,7 +145,9 @@ async function seed(moduleKey, kvkId, records) {
             // detail) provide their own seedRecord; it returns 'created'/'updated'.
             if (spec.seedRecord) {
                 const action = await spec.seedRecord(prisma, data, { kvkId: Number(kvkId) });
-                result[action === 'updated' ? 'updated' : 'created']++;
+                const resolved = action === 'updated' ? 'updated' : 'created';
+                result[resolved]++;
+                result.actions.push(resolved);
                 continue;
             }
             const where = {};
@@ -154,12 +157,15 @@ async function seed(moduleKey, kvkId, records) {
                 const idField = spec.idField || Object.keys(existing).find(k => /Id$/.test(k));
                 await model.update({ where: { [idField]: existing[idField] }, data });
                 result.updated++;
+                result.actions.push('updated');
             } else {
                 await model.create({ data });
                 result.created++;
+                result.actions.push('created');
             }
         } catch (err) {
             result.failed.push({ index, message: err.message });
+            result.actions.push('failed');
         }
     }
     return result;

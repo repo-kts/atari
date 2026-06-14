@@ -7,6 +7,7 @@ import {
     collectColumns,
     type FkEditing,
 } from '../views/tableUtils'
+import type { RowAction } from '../../../services/migrationApi'
 
 type ViewMode = 'json' | 'table' | 'matrix'
 
@@ -23,6 +24,7 @@ interface RecordsViewerProps {
     placeholder?: string
     defaultView?: ViewMode
     fk?: FkEditing
+    rowActions?: RowAction[]
 }
 
 /**
@@ -39,6 +41,7 @@ export function RecordsViewer({
     placeholder,
     defaultView = 'table',
     fk,
+    rowActions,
 }: RecordsViewerProps) {
     const [view, setView] = useState<ViewMode>(defaultView)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -171,7 +174,7 @@ export function RecordsViewer({
                         {JSON.stringify(data, null, 2)}
                     </pre>
                 ) : view === 'table' ? (
-                    <TableView data={data} fk={fk} idPrefix={idPrefix} />
+                    <TableView data={data} fk={fk} idPrefix={idPrefix} rowActions={rowActions} />
                 ) : (
                     <MatrixView data={data} fk={fk} idPrefix={idPrefix} />
                 )}
