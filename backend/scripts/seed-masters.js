@@ -15,15 +15,9 @@ const STAFF_CATEGORIES = [
 ];
 
 const PAY_LEVELS = [
-    'Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5', 'Level 6',
-    'Level 7', 'Level 8', 'Level 9', 'Level 10', 'Level 11', 'Level 12',
-    'Level 13', 'Level 14', 'Level 15', 'Level 16', 'Level 17', 'Level 18'
-];
-
-const PAY_SCALES = [
-    '15600-39100',
-    '9300-34800',
-    '5200-20200',
+    'Level - 1', 'Level - 2', 'Level - 3', 'Level - 4', 'Level - 5',
+    'Level - 6', 'Level - 10', 'Level - 10R', 'Level - 11', 'Level - 11R',
+    'Level - 12', 'Level - 12R', 'Level - 13A', 'Level - 14'
 ];
 
 const ASSET_FUNDING_SOURCES = [
@@ -182,11 +176,12 @@ const EVENTS_MASTER = [
 ];
 
 // Funding Sources
-const FUNDING_SOURCES = [
-    'ICAR', 'State Government', 'Central Government', 'KVK Funds',
-    'External Funding', 'Donation', 'Self-Financed', 'NGO',
-    'International Organization', 'Private Sector', 'Corporate CSR'
-];
+// Migrated from the old atariams.org data, where source_of_funding is FREE TEXT
+// (e.g. "I.C.A.R.", "RKVY", "RKMA/ICAR (…)"). The funding-source master is now
+// populated from those raw old values during data migration (find-or-create),
+// not from a fixed list — so this stays empty to avoid re-introducing the old
+// synthetic defaults. See backend/migration/modules/infrastructure.js.
+const FUNDING_SOURCES = [];
 
 // CFLD budget item master (used by kvk_budget_utilization_item mappings)
 const CFLD_BUDGET_ITEM_MASTER = [
@@ -768,6 +763,11 @@ async function seedStaffMasters() {
         });
     }
 
+    // Pay levels are authoritative: drop any legacy values not in PAY_LEVELS.
+    // FK kvk_staff.payLevelId is ON DELETE SET NULL, so stale staff refs null out.
+    await prisma.payLevelMaster.deleteMany({
+        where: { levelName: { notIn: PAY_LEVELS } },
+    });
     for (const levelName of PAY_LEVELS) {
         await prisma.payLevelMaster.upsert({
             where: { levelName },
@@ -776,13 +776,8 @@ async function seedStaffMasters() {
         });
     }
 
-    for (const scaleName of PAY_SCALES) {
-        await prisma.payScaleMaster.upsert({
-            where: { scaleName },
-            update: {},
-            create: { scaleName },
-        });
-    }
+    // Pay scales intentionally not seeded — master kept empty.
+    await prisma.payScaleMaster.deleteMany({});
 
     console.log('   ✅ Done\n');
 }

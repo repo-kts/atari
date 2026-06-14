@@ -22,7 +22,23 @@ const OFT_INCLUDE = {
     technologies: {
         include: { oftTechnologyType: true },
         orderBy: { kvkOftTechnologyId: 'asc' },
-    }
+    },
+    resultReport: {
+        include: {
+            tables: {
+                orderBy: { sortOrder: 'asc' },
+                include: {
+                    columns: { orderBy: { sortOrder: 'asc' } },
+                    rows: {
+                        orderBy: { sortOrder: 'asc' },
+                        include: {
+                            cells: true,
+                        },
+                    },
+                },
+            },
+        },
+    },
 };
 
 const oftRepository = {
@@ -541,6 +557,48 @@ function _mapOftResponse(r) {
     }
     mapped.technologyOptions = technologyOptions;
 
+    if (r.resultReport) {
+        mapped.resultReport = {
+            oftResultReportId: r.resultReport.oftResultReportId,
+            finalRecommendation: r.resultReport.finalRecommendation,
+            constraintsFeedback: r.resultReport.constraintsFeedback,
+            farmersParticipationProcess: r.resultReport.farmersParticipationProcess,
+            resultText: r.resultReport.resultText,
+            remark: r.resultReport.remark,
+            photographName: r.resultReport.photographName,
+            tables: (r.resultReport.tables || []).map(tbl => ({
+                oftResultTableId: tbl.oftResultTableId,
+                tableTitle: tbl.tableTitle,
+                sortOrder: tbl.sortOrder,
+                columns: (tbl.columns || []).map(col => ({
+                    oftResultTableColumnId: col.oftResultTableColumnId,
+                    columnKey: col.columnKey,
+                    columnLabel: col.columnLabel,
+                    isMandatory: col.isMandatory,
+                    sortOrder: col.sortOrder,
+                })),
+                rows: (tbl.rows || []).map(row => {
+                    const rowCells = {};
+                    (row.cells || []).forEach(cell => {
+                        const col = tbl.columns.find(c => c.oftResultTableColumnId === cell.oftResultTableColumnId);
+                        if (col) {
+                            rowCells[col.columnKey] = cell.value;
+                        }
+                    });
+                    return {
+                        oftResultTableRowId: row.oftResultTableRowId,
+                        optionKey: row.optionKey,
+                        rowLabel: row.rowLabel,
+                        sortOrder: row.sortOrder,
+                        cells: rowCells,
+                    };
+                }),
+            })),
+        };
+    } else {
+        mapped.resultReport = null;
+    }
+
     return mapped;
 }
 
@@ -618,7 +676,6 @@ function _buildResultReportBaseData(kvkOftId, payload) {
         resultText: sanitizeString(payload.resultText, { allowEmpty: true }) || '',
         remark: sanitizeString(payload.remark, { allowEmpty: true }) || '',
         supplementaryDatasheetPath: sanitizeString(payload.supplementaryDatasheetPath, { allowEmpty: true }) || null,
-        supplementaryDatasheetName: sanitizeString(payload.supplementaryDatasheetName, { allowEmpty: true }) || null,
         supplementaryDatasheetSize: payload.supplementaryDatasheetSize ? sanitizeInteger(payload.supplementaryDatasheetSize) : null,
         supplementaryDatasheetMime: sanitizeString(payload.supplementaryDatasheetMime, { allowEmpty: true }) || null,
         photographPath: sanitizeString(payload.photographPath, { allowEmpty: true }) || null,

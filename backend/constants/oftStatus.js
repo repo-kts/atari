@@ -8,6 +8,8 @@ const NORMALIZED_STATUS_ALIASES = Object.freeze({
     ongoing: OFT_STATUS.ONGOING,
     ongoing_completed: OFT_STATUS.ONGOING,
     completed: OFT_STATUS.COMPLETED,
+    transferred: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR,
+    transfered: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR,
     transferred_to_next_year: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR,
 });
 
