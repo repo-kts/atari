@@ -80,6 +80,7 @@ export const FIELD_NAMES = {
     POST_NAME: 'postName',
     YEAR_NAME: 'yearName',
     TYPE_NAME: 'typeName',
+    UNIT_NAME: 'unitName',
     DAY_NAME: 'dayName',
     EVENT_NAME: 'eventName',
 
@@ -698,6 +699,8 @@ export const FIELD_GROUPS = {
 
     // All Masters - Other Masters
     STAFF_CATEGORY_MASTER: [FIELD_NAMES.CATEGORY_NAME] as const,
+    JOB_TYPE_MASTER: [FIELD_NAMES.NAME] as const,
+    BANK_ACCOUNT_TYPE_MASTER: [FIELD_NAMES.NAME] as const,
     PAY_LEVEL_MASTER: [FIELD_NAMES.LEVEL_NAME] as const,
     PAY_SCALE_MASTER: [FIELD_NAMES.SCALE_NAME] as const,
     ASSET_FUNDING_SOURCE_MASTER: [FIELD_NAMES.NAME] as const,
@@ -707,6 +710,7 @@ export const FIELD_GROUPS = {
     SANCTIONED_POST_MASTER: [FIELD_NAMES.POST_NAME] as const,
     SEASON_MASTER: [FIELD_NAMES.SEASON_NAME] as const,
     CROP_TYPE_MASTER: [FIELD_NAMES.TYPE_NAME] as const,
+    UNIT_MASTER: [FIELD_NAMES.UNIT_NAME] as const,
     INFRASTRUCTURE_MASTER: [FIELD_NAMES.NAME] as const,
     IMPORTANT_DAY_MASTER: [FIELD_NAMES.DAY_NAME] as const,
     SOIL_WATER_ANALYSIS_MASTER: [FIELD_NAMES.ANALYSIS_NAME] as const,

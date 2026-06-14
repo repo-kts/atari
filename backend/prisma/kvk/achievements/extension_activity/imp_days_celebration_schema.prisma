@@ -3,6 +3,7 @@ model KvkImportantDayCelebration {
   kvkId              Int
   eventDate          DateTime     @map("event_date")
   importantDayId     Int
+  importantDayOther  String?      @map("important_day_other")
   numberOfActivities Int          @map("number_of_activities")
   farmersGeneralM    Int          @map("farmers_general_m")
   farmersGeneralF    Int          @map("farmers_general_f")

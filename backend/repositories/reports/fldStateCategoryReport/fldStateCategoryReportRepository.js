@@ -1,5 +1,7 @@
 const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
+const { yearLabelFromFilters } = require('../reportYearLabel.js');
+const { FLD_STATUS } = require('../../../constants/fldStatus.js');
 
 function safeInt(v) {
     if (v === null || v === undefined || v === '') return 0;
@@ -17,23 +19,27 @@ function totalFarmersFromRow(r) {
 }
 
 function applyReportingYear(where, filters) {
+    // KvkFldIntroduction has no `reportingYear` column — filtering on it threw a
+    // Prisma validation error, which dropped the whole FLD section on
+    // year/range select (#227). Filter on the real event date `startDate`.
     const ry = buildReportingYearFilter(filters);
-    if (ry) where.reportingYear = ry;
+    if (ry) where.startDate = ry;
 }
 
 function normalizePrismaRow(r) {
     const stateName = (r.kvk && r.kvk.state && r.kvk.state.stateName) ? r.kvk.state.stateName : 'Unknown';
-    const categoryName = (r.category && r.category.categoryName) ? r.category.categoryName : 'Uncategorized';
-    const sectorName = (r.sector && r.sector.sectorName)
-        ? r.sector.sectorName
-        : (r.category && r.category.sector && r.category.sector.sectorName) || 'Other';
+    const categoryName = r.categoryOther || (r.category && r.category.categoryName) || 'Uncategorized';
+    const sectorName = r.sectorOther
+        || (r.sector && r.sector.sectorName)
+        || (r.category && r.category.sector && r.category.sector.sectorName)
+        || 'Other';
     return {
         kvkFldId: r.kvkFldId,
         stateName,
         sectorName,
         categoryName,
-        cropName: r.crop?.cropName || '—',
-        thematicAreaName: r.thematicArea?.thematicAreaName || '—',
+        cropName: r.cropOther || r.crop?.cropName || '—',
+        thematicAreaName: r.thematicAreaOther || r.thematicArea?.thematicAreaName || '—',
         fldName: r.fldName || '—',
         noOfDemonstration: safeInt(r.noOfDemonstration),
         areaHa: Number(r.quantity ?? r.areaHa) || 0,
@@ -91,12 +97,22 @@ function mergeFldResultsForRows(rows) {
     };
 }
 
+// Fixed sector column order for the state-wise FLD table (#232). Exactly these,
+// in this order — no "Agriculture" column. Records with other sectors are not
+// shown as state-wise columns (they still appear in the category breakdown).
+const FLD_SECTOR_ORDER = [
+    'Crop Production',
+    'Horticultural Crops',
+    'Livestock & Fisheries',
+    'Other Enterprises',
+    'Women Empowerment',
+    'Farm Implements and Machinery',
+    'Crop Hybrid Varieties',
+];
+
 function buildSectionA(records) {
-    // State-wise table columns are SECTORS (Crop Production, Horticultural Crops,
-    // Livestock & Fisheries, …) — see Table 00 in the official report.
-    const sectors = [...new Set(records.map((r) => r.sectorName))].sort((a, b) =>
-        a.localeCompare(b, undefined, { sensitivity: 'base' }),
-    );
+    // State-wise table columns are SECTORS in a fixed canonical order (#232).
+    const sectors = FLD_SECTOR_ORDER;
     const states = [...new Set(records.map((r) => r.stateName))].sort((a, b) =>
         a.localeCompare(b, undefined, { sensitivity: 'base' }),
     );
@@ -227,9 +243,10 @@ function buildDetailRowsForCategory(catRecords) {
     return cropGroups;
 }
 
-function buildPayloadFromRecords(records) {
+function buildPayloadFromRecords(records, filters = {}) {
     const norm = records.map((r) => (typeof r.stateName === 'string' ? r : normalizePrismaRow(r)));
-    const yearLabel = inferYearLabel(norm);
+    // Year label from the selected filter, not the data (#231/#223).
+    const yearLabel = yearLabelFromFilters(filters);
     if (norm.length === 0) {
         return {
             yearLabel,
@@ -265,7 +282,8 @@ function buildPayloadFromRecords(records) {
 }
 
 async function fetchFldRecords(kvkId, filters = {}) {
-    const where = {};
+    // Transferred rows are stale clones of the same demonstration — exclude to avoid double counting.
+    const where = { ongoingCompleted: { not: FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR } };
     if (kvkId) where.kvkId = kvkId;
     applyReportingYear(where, filters);
 
@@ -292,7 +310,7 @@ async function fetchFldRecords(kvkId, filters = {}) {
 
 async function getFldStateCategoryReportData(kvkId, filters = {}) {
     const records = await fetchFldRecords(kvkId, filters);
-    const payload = buildPayloadFromRecords(records);
+    const payload = buildPayloadFromRecords(records, filters);
     return {
         payload,
         records,

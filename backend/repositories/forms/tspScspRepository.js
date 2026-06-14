@@ -96,6 +96,8 @@ const tspScspRepository = {
                 type,
                 tspScspTypeId,
                 activityId,
+                // "Other" free-text: only meaningful when the chosen activity row is flagged isOther.
+                activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 numberOfTrainingsOrDemos: parseInt(data.numberOfTrainingsOrDemos ?? data.noOfTrainings ?? 0),
                 numberOfBeneficiaries: parseInt(data.numberOfBeneficiaries ?? data.noOfBeneficiaries ?? 0),
                 fundsReceived: !isScsp ? (safeParseFloat(data.fundsReceived) ?? 0) : null,
@@ -200,6 +202,7 @@ const tspScspRepository = {
                 type: resolvedType,
                 tspScspTypeId: resolvedTypeId,
                 activityId: resolvedActivityId,
+                activityOther: data.activityOther !== undefined ? ((String(data.activityOther).trim()) || null) : undefined,
                 numberOfTrainingsOrDemos: data.numberOfTrainingsOrDemos !== undefined || data.noOfTrainings !== undefined
                     ? parseInt(data.numberOfTrainingsOrDemos ?? data.noOfTrainings)
                     : undefined,
@@ -281,7 +284,8 @@ function _mapResponse(r) {
         typeName: r.tspScspType?.typeName ?? r.type,
         tspScspTypeId: r.tspScspTypeId,
         activityId: r.activityId,
-        activityName: r.activity?.activityName,
+        activityName: r.activityOther || r.activity?.activityName,
+        activityOther: r.activityOther ?? '',
         noOfTrainings: r.numberOfTrainingsOrDemos,
         noOfBeneficiaries: r.numberOfBeneficiaries,
         fundsReceived: r.fundsReceived,

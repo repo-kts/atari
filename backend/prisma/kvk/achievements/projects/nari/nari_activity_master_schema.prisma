@@ -1,6 +1,8 @@
 model NariActivity {
   nariActivityId Int    @id @default(autoincrement()) @map("nari_activity_id")
   activityName   String @unique @map("activity_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther        Boolean @default(false) @map("is_other")
 
   nariNutritionalGardens NariNutritionalGarden[]
   nariBioFortifiedCrops  NariBioFortifiedCrop[]

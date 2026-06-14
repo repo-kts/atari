@@ -6,6 +6,7 @@ model SoilDataInformation {
   crop                  String
   seasonId              Int?
   soilParameterId       Int?              @map("soil_parameter_id")
+  soilParameterOther    String?           @map("soil_parameter_other")
   phBefore              Float             @map("ph_before")
   ecBefore              Float             @map("ec_before")
   ocBefore              Float             @map("oc_before")
@@ -35,6 +36,8 @@ model SoilDataInformation {
 model NaturalFarmingSoilParameterMaster { 
   naturalFarmingSoilParameterId Int                   @id @default(autoincrement()) @map("natural_farming_soil_parameter_id")
   parameterName                 String                @unique @map("parameter_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther                       Boolean               @default(false) @map("is_other")
   soilDataInformations          SoilDataInformation[]
 
   @@map("natural_farming_soil_parameter_master")

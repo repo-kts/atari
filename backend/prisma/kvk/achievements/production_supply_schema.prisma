@@ -3,11 +3,17 @@ model KvkProductionSupply {
   kvkId              Int
   reportingYear DateTime? @map("reporting_year")
 productCategoryId  Int?             @map("product_category_id")
+  productCategoryOther String?        @map("product_category_other")
   productTypeId      Int?             @map("product_type_id")
+  productTypeOther   String?          @map("product_type_other")
   productId          Int?             @map("product_id")
+  productOther       String?          @map("product_other")
   speciesName        String           @map("species_name")
   unit               String
   quantity           Float
+  // Used when the product's quantity data type is string/boolean (e.g. "N/A");
+  // numeric types continue to use `quantity`.
+  quantityText       String?          @map("quantity_text")
   value              Float            @map("value_rs")
   farmersGeneralM    Int              @map("farmers_general_m")
   farmersGeneralF    Int              @map("farmers_general_f")

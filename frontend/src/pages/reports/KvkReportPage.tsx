@@ -68,16 +68,24 @@ export const KvkReportPage: React.FC = () => {
     // Load report configuration using TanStack Query
     const reportConfigQuery = useReportConfig();
 
-    // Initialize all sections as selected by default
-    useEffect(() => {
-        if (reportConfigQuery.data?.sections && selectedSections.size === 0) {
-            // Select only functional sections (those with a data source) by default
-            const functionalSections = reportConfigQuery.data.sections
-                .filter(s => !!s.dataSource)
-                .map(s => s.id);
-            setSelectedSections(new Set(functionalSections));
-        }
-    }, [reportConfigQuery.data?.sections]);
+    // Sections default to UNSELECTED; the user opts in via per-category or the
+    // global "Select all" control.
+    const allFunctionalSectionIds = useMemo(
+        () => (reportConfigQuery.data?.sections || [])
+            .filter(s => !!s.dataSource)
+            .map(s => s.id),
+        [reportConfigQuery.data?.sections],
+    );
+
+    const allFormsSelected =
+        allFunctionalSectionIds.length > 0 &&
+        allFunctionalSectionIds.every(id => selectedSections.has(id));
+
+    const handleSelectAllForms = () => {
+        setSelectedSections(
+            allFormsSelected ? new Set() : new Set(allFunctionalSectionIds),
+        );
+    };
 
     const handleSectionToggle = (sectionId: string) => {
         const newSelected = new Set(selectedSections);
@@ -306,6 +314,11 @@ export const KvkReportPage: React.FC = () => {
         scope?: ReportScope | null,
         format: 'pdf' | 'excel' | 'docx' = 'pdf'
     ) => {
+        if (!sectionIds || sectionIds.length === 0) {
+            setError('Please select at least one report module.');
+            toast({ title: 'No modules selected', message: 'Select at least one report module to continue.', variant: 'error', autoCloseDelay: 2500 });
+            return;
+        }
         try {
             setDownloadingFormat(format);
             setError(null);
@@ -355,6 +368,11 @@ export const KvkReportPage: React.FC = () => {
         filters: ReportFilters,
         scope?: ReportScope | null
     ) => {
+        if (!sectionIds || sectionIds.length === 0) {
+            setError('Please select at least one report module.');
+            toast({ title: 'No modules selected', message: 'Select at least one report module to preview.', variant: 'error', autoCloseDelay: 2500 });
+            return;
+        }
         try {
             setIsGenerating(true);
             setError(null);
@@ -458,6 +476,8 @@ export const KvkReportPage: React.FC = () => {
                                         selectedSections={selectedSections}
                                         onSectionToggle={handleSectionToggle}
                                         onCategorySelectAll={handleCategorySelectAll}
+                                        onSelectAllForms={handleSelectAllForms}
+                                        allFormsSelected={allFormsSelected}
                                         collapsed={isModuleCollapsed}
                                         onToggleCollapse={() => setIsModuleCollapsed(prev => !prev)}
                                     />

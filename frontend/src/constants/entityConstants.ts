@@ -34,6 +34,8 @@ export const ENTITY_TYPES = {
 
     // Employee Masters
     STAFF_CATEGORY: 'staff-category',
+    JOB_TYPE: 'job-type',
+    BANK_ACCOUNT_TYPE: 'bank-account-type',
     PAY_LEVEL: 'pay-level',
     PAY_SCALE: 'pay-scale',
     ASSET_FUNDING_SOURCE: 'asset-funding-source',
@@ -51,6 +53,7 @@ export const ENTITY_TYPES = {
     FUNDING_SOURCE: 'funding-source',
 
     // Other Masters (continued)
+    UNIT: 'units',
     CROP_TYPE: 'crop-type',
     INFRASTRUCTURE_MASTER: 'infrastructure-master',
     SOIL_WATER_ANALYSIS: 'soil-water-analysis',
@@ -321,6 +324,8 @@ export const ENTITY_PATHS = {
 
     // Employee Masters
     STAFF_CATEGORY: '/all-master/staff-category',
+    JOB_TYPE: '/all-master/job-type',
+    BANK_ACCOUNT_TYPE: '/all-master/bank-account-type',
     PAY_LEVEL: '/all-master/pay-level',
     PAY_SCALE: '/all-master/pay-scale',
     ASSET_FUNDING_SOURCE: '/all-master/asset-funding-source',
@@ -338,6 +343,7 @@ export const ENTITY_PATHS = {
     FUNDING_SOURCE: '/all-master/funding-source',
 
     // Other Masters (continued)
+    UNIT: '/all-master/unit',
     CROP_TYPE: '/all-master/crop-type',
     INFRASTRUCTURE_MASTER: '/all-master/infrastructure-master',
     SOIL_WATER_ANALYSIS: '/all-master/soil-water-analysis',

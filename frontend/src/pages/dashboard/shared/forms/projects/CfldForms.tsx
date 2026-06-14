@@ -5,6 +5,8 @@ import { MONTHS } from '@/constants/monthConstants';
 import { FormInput, FormSelect, FormSection } from '../shared/FormComponents';
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown';
 import { DependentDropdown } from '@/components/common/DependentDropdown';
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput';
+import { useOtherSpecify } from '@/hooks/useOtherSpecify';
 import { createMasterDataOptions } from '@/utils/formHelpers';
 import { useSeasons, useCropTypes, useCfldExtensionActivityTypes, useBudgetItems } from '@/hooks/useOtherMastersData';
 import { useCfldCrops } from '@/hooks/useOftFldData';
@@ -301,8 +303,40 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
 
     // Memoized options for dropdowns
     const seasonOptions = useMemo(
-        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName'),
+        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName', { flagKey: 'isOther' }),
         [seasons]
+    );
+
+    // Master-controlled "Other → specify" for the CFLD Season + Crop Type masters.
+    const cropTypeOptions = useMemo(
+        () => (cropTypes as any[]).map((ct: any) => ({
+            value: ct.id ?? ct.typeId,
+            label: ct.typeName,
+            isOther: Boolean(ct.isOther),
+        })),
+        [cropTypes]
+    );
+    const { isOtherSelected: isOtherSeason, otherResetPatch: seasonResetPatch } = useOtherSpecify(
+        seasonOptions,
+        formData.seasonId
+    );
+    const { isOtherSelected: isOtherCropType, otherResetPatch: cropTypeResetPatch } = useOtherSpecify(
+        cropTypeOptions,
+        formData.cropTypeId
+    );
+    const cfldCropOptions = useMemo(
+        () => (cfldCrops as any[])
+            .filter((c: any) => {
+                const cropTypeId = c.typeId ?? c.cropType?.typeId ?? c.CropTypeId
+                const cropSeasonId = c.seasonId ?? c.SeasonId ?? c.season?.seasonId
+                return Number(cropTypeId) === Number(formData.cropTypeId) && Number(cropSeasonId) === Number(formData.seasonId)
+            })
+            .map((c: any) => ({ value: c.CropName || c.cropName, label: c.CropName || c.cropName, isOther: Boolean(c.isOther) })),
+        [cfldCrops, formData.cropTypeId, formData.seasonId]
+    );
+    const { isOtherSelected: isOtherCfldCrop, otherResetPatch: cfldCropResetPatch } = useOtherSpecify(
+        cfldCropOptions,
+        formData.crop ?? formData.cropName
     );
 
 
@@ -335,6 +369,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                 return filteredCrops.map((crop: any) => ({
                     value: crop.CropName || crop.cropName,
                     label: crop.CropName || crop.cropName,
+                    isOther: Boolean(crop.isOther),
                 }));
             } catch (error) {
                 if (signal?.aborted) {
@@ -404,25 +439,24 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                 // Reset CFLD crop because it depends on crop type (+ season) via DependentDropdown
                 crop: '',
                 cropName: '',
+                // Clear the "specify other" text unless the newly picked crop type is the Other row.
+                ...cropTypeResetPatch(parsed, 'typeOther'),
             }))
         },
-        [cropTypes, setFormData]
+        [cropTypes, setFormData, cropTypeResetPatch]
     )
-
-    // Season change handler
-    const handleSeasonChange = useCallback(
-        (value: string | number) => {
-            handleFieldChange('seasonId', value);
-        },
-        [handleFieldChange]
-    );
 
     // Crop change handler (for DependentDropdown)
     const handleCropChange = useCallback(
         (value: string | number) => {
-            handleFieldChange('crop', value);
+            setFormData((prev: any) => ({
+                ...prev,
+                crop: value,
+                // Clear the "specify other" text unless the newly picked crop is the Other row.
+                ...cfldCropResetPatch(value, 'cropOther'),
+            }));
         },
-        [handleFieldChange]
+        [setFormData, cfldCropResetPatch]
     );
 
     // Crop change handler for FormSelect (budget form)
@@ -556,10 +590,22 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     label="Season"
                     required
                     value={formData.seasonId ?? ''}
-                    onChange={handleSeasonChange}
+                    onChange={(value) => setFormData((prev: any) => ({
+                        ...prev,
+                        seasonId: value,
+                        ...seasonResetPatch(value, 'seasonOther'),
+                    }))}
                     options={seasonOptions}
                     emptyMessage="No seasons available"
                 />
+                {isOtherSeason && (
+                    <SpecifyOtherInput
+                        label="Please specify other season"
+                        required
+                        value={formData.seasonOther}
+                        onChange={(e) => handleFieldChange('seasonOther', e.target.value)}
+                    />
+                )}
                 <DependentDropdown
                     label="CFLD Crop Type"
                     required
@@ -586,12 +632,21 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                             .map((ct: any) => ({
                                 value: ct.id ?? ct.typeId,
                                 label: ct.typeName,
+                                isOther: Boolean(ct.isOther),
                             }))
                     }}
                     cacheKey="cfld-crop-types-by-season"
                     emptyMessage="No crop types available for selected season"
                     loadingMessage="Loading crop types..."
                 />
+                {isOtherCropType && (
+                    <SpecifyOtherInput
+                        label="Please specify other crop type"
+                        required
+                        value={formData.typeOther}
+                        onChange={(e) => handleFieldChange('typeOther', e.target.value)}
+                    />
+                )}
                 <DependentDropdown
                     label="CFLD Crop"
                     required
@@ -607,6 +662,14 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     emptyMessage="No crops available for selected crop type"
                     loadingMessage="Loading crops..."
                 />
+                {isOtherCfldCrop && (
+                    <SpecifyOtherInput
+                        label="Please specify other crop"
+                        required
+                        value={formData.cropOther}
+                        onChange={(e) => handleFieldChange('cropOther', e.target.value)}
+                    />
+                )}
                 <FormInput
                     label="Name of Variety"
                     required
@@ -905,10 +968,22 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     label="Season"
                     required
                     value={formData.seasonId ?? ''}
-                    onChange={handleSeasonChange}
+                    onChange={(value) => setFormData((prev: any) => ({
+                        ...prev,
+                        seasonId: value,
+                        ...seasonResetPatch(value, 'seasonOther'),
+                    }))}
                     options={seasonOptions}
                     emptyMessage="No seasons available"
                 />
+                {isOtherSeason && (
+                    <SpecifyOtherInput
+                        label="Please specify other season"
+                        required
+                        value={formData.seasonOther}
+                        onChange={(e) => handleFieldChange('seasonOther', e.target.value)}
+                    />
+                )}
                 <FormSelect
                     label="Extension Activities organized"
                     required
@@ -1048,10 +1123,22 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     label="Season"
                     required
                     value={formData.seasonId ?? ''}
-                    onChange={handleSeasonChange}
+                    onChange={(value) => setFormData((prev: any) => ({
+                        ...prev,
+                        seasonId: value,
+                        ...seasonResetPatch(value, 'seasonOther'),
+                    }))}
                     options={seasonOptions}
                     emptyMessage="No seasons available"
                 />
+                {isOtherSeason && (
+                    <SpecifyOtherInput
+                        label="Please specify other season"
+                        required
+                        value={formData.seasonOther}
+                        onChange={(e) => handleFieldChange('seasonOther', e.target.value)}
+                    />
+                )}
                 <FormSelect
                     label="Crop"
                     required

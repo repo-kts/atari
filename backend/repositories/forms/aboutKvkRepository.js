@@ -47,6 +47,9 @@ const ENTITY_CONFIG = {
                     kvkId: true,
                     kvkName: true
                 }
+            },
+            bankAccountType: {
+                select: { bankAccountTypeId: true, name: true }
             }
         }
     },
@@ -72,6 +75,9 @@ const ENTITY_CONFIG = {
             },
             payScale: {
                 select: { payScaleId: true, scaleName: true }
+            },
+            jobTypeMaster: {
+                select: { jobTypeId: true, name: true }
             }
         }
     },
@@ -101,6 +107,9 @@ const ENTITY_CONFIG = {
             },
             payScale: {
                 select: { payScaleId: true, scaleName: true }
+            },
+            jobTypeMaster: {
+                select: { jobTypeId: true, name: true }
             }
         }
     },
@@ -547,6 +556,15 @@ function convertRelationFieldsForStaff(data) {
         delete converted.payScaleId;
     }
 
+    if (converted.jobTypeMasterId !== undefined) {
+        if (converted.jobTypeMasterId === null || converted.jobTypeMasterId === '') {
+            converted.jobTypeMaster = { disconnect: true };
+        } else {
+            converted.jobTypeMaster = { connect: { jobTypeId: converted.jobTypeMasterId } };
+        }
+        delete converted.jobTypeMasterId;
+    }
+
     if (converted.originalKvkId !== undefined) {
         if (converted.originalKvkId === null || converted.originalKvkId === '') {
             converted.originalKvk = { disconnect: true };
@@ -582,7 +600,8 @@ function convertRelationFieldsForInfrastructure(data) {
 
 const KVK_BANK_ACCOUNT_ALLOWED_FIELDS = [
     'kvkId',
-    'accountType',
+    'bankAccountTypeMasterId',
+    'accountTypeOther',
     'accountName',
     'bankName',
     'location',
@@ -598,17 +617,22 @@ const KVK_STAFF_ALLOWED_FIELDS = [
     'photoPath',
     'resumePath',
     'sanctionedPostId',
+    'sanctionedPostOther',
     'positionOrder',
     'disciplineId',
     'payScaleId',
+    'payScaleOther',
     'dateOfJoining',
-    'jobType',
+    'jobTypeMasterId',
+    'jobTypeOther',
     'allowances',
     'transferStatus',
     'sourceKvkIds',
     'originalKvkId',
     'staffCategoryId',
+    'staffCategoryOther',
     'payLevelId',
+    'payLevelOther',
 ];
 
 const KVK_INFRA_ALLOWED_FIELDS = [
@@ -625,8 +649,6 @@ const KVK_INFRA_ALLOWED_FIELDS = [
     'sourceOfFunding',
 ];
 
-const ACCOUNT_TYPE_VALUES = new Set(['KVK', 'REVOLVING_FUND', 'OTHER']);
-
 function keepOnlyAllowedFields(payload, allowedFields) {
     Object.keys(payload).forEach((field) => {
         if (!allowedFields.includes(field)) {
@@ -635,18 +657,6 @@ function keepOnlyAllowedFields(payload, allowedFields) {
     });
 }
 
-function normalizeAccountType(value) {
-    const normalized = String(value || '')
-        .trim()
-        .toUpperCase()
-        .replace(/\s+/g, '_');
-
-    if (!ACCOUNT_TYPE_VALUES.has(normalized)) {
-        throw new ValidationError(`Invalid accountType: ${value}`, 'accountType');
-    }
-
-    return normalized;
-}
 
 async function executePrismaWrite(entityName, operation, executor, resourceName = entityName) {
     try {
@@ -803,6 +813,7 @@ function sanitizeData(entityName, data) {
         const allowedFields = [
             'kvkId',
             'equipmentTypeId',
+            'equipmentTypeOther',
             'equipmentMasterId',
             'equipmentName',
             'companyBrandModel',
@@ -810,6 +821,7 @@ function sanitizeData(entityName, data) {
             'yearOfPurchase',
             'totalCost',
             'assetFundingSourceId',
+            'assetFundingSourceOther',
         ];
 
         Object.keys(sanitized).forEach(field => {
@@ -825,8 +837,8 @@ function sanitizeData(entityName, data) {
         if (sanitized.kvkId !== undefined) {
             sanitized.kvkId = sanitizeInteger(safeGet(data, 'kvkId'));
         }
-        if (sanitized.accountType !== undefined) {
-            sanitized.accountType = normalizeAccountType(safeGet(data, 'accountType'));
+        if (sanitized.bankAccountTypeMasterId !== undefined) {
+            sanitized.bankAccountTypeMasterId = sanitizeInteger(safeGet(data, 'bankAccountTypeMasterId'));
         }
         if (sanitized.accountName !== undefined) {
             sanitized.accountName = sanitizeString(safeGet(data, 'accountName'), { allowEmpty: false });
@@ -844,6 +856,9 @@ function sanitizeData(entityName, data) {
 
     if (entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') {
         keepOnlyAllowedFields(sanitized, KVK_STAFF_ALLOWED_FIELDS);
+        if (sanitized.jobTypeMasterId !== undefined) {
+            sanitized.jobTypeMasterId = sanitizeInteger(safeGet(data, 'jobTypeMasterId'));
+        }
         if (sanitized.mobile !== undefined && sanitized.mobile !== null) {
             try {
                 sanitized.mobile = normalizeRequiredIndianMobile(sanitized.mobile, 'Mobile');

@@ -4,6 +4,7 @@
  */
 const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
+const { yearLabelFromFilters } = require('../reportYearLabel.js');
 
 const DEBUG = process.env.DEBUG_TRAINING_CAPACITY_REPORT === '1' || process.env.DEBUG_TRAINING_CAPACITY_REPORT === 'true';
 
@@ -81,18 +82,26 @@ function normalizePrismaRow(r) {
     const stateName = (r.kvk && r.kvk.state && r.kvk.state.stateName)
         ? r.kvk.state.stateName
         : 'Unknown';
-    const trainingTypeName = (r.trainingType && r.trainingType.trainingTypeName)
-        ? String(r.trainingType.trainingTypeName).trim()
-        : 'Not specified';
-    const trainingAreaName = (r.trainingArea && r.trainingArea.trainingAreaName)
-        ? String(r.trainingArea.trainingAreaName).trim()
-        : 'Not specified';
-    const thematicAreaName = (r.trainingThematicArea && r.trainingThematicArea.trainingThematicAreaName)
-        ? String(r.trainingThematicArea.trainingThematicAreaName).trim()
-        : '—';
-    const clienteleName = (r.clientele && r.clientele.name)
-        ? String(r.clientele.name).trim()
-        : null;
+    const trainingTypeName = r.trainingTypeOther
+        ? String(r.trainingTypeOther).trim()
+        : ((r.trainingType && r.trainingType.trainingTypeName)
+            ? String(r.trainingType.trainingTypeName).trim()
+            : 'Not specified');
+    const trainingAreaName = r.trainingAreaOther
+        ? String(r.trainingAreaOther).trim()
+        : ((r.trainingArea && r.trainingArea.trainingAreaName)
+            ? String(r.trainingArea.trainingAreaName).trim()
+            : 'Not specified');
+    const thematicAreaName = r.thematicAreaOther
+        ? String(r.thematicAreaOther).trim()
+        : ((r.trainingThematicArea && r.trainingThematicArea.trainingThematicAreaName)
+            ? String(r.trainingThematicArea.trainingThematicAreaName).trim()
+            : '—');
+    const clienteleName = r.clienteleOther
+        ? String(r.clienteleOther).trim()
+        : ((r.clientele && r.clientele.name)
+            ? String(r.clientele.name).trim()
+            : null);
 
     const campusType = r.campusType != null ? String(r.campusType) : null;
 
@@ -142,7 +151,7 @@ function sectionTitleFromRows(rows) {
  * Use `campusType` on each record for on/off campus only.
  * Per section: state-wise → training-area summary → thematic-area detail per training area.
  */
-function buildPayloadFromRecords(records) {
+function buildPayloadFromRecords(records, filters = {}) {
     const norm = Array.isArray(records)
         ? records.map((r) => {
             const looksNormalized = typeof r.stateName === 'string'
@@ -151,7 +160,8 @@ function buildPayloadFromRecords(records) {
             return looksNormalized ? r : normalizePrismaRow(r);
         })
         : [];
-    const yearLabel = inferYearLabel(norm);
+    // Year label from the selected filter, not the data (#231/#223).
+    const yearLabel = yearLabelFromFilters(filters);
 
     if (norm.length === 0) {
         debugLog('buildPayloadFromRecords: no rows after normalize');
@@ -321,7 +331,7 @@ async function getTrainingCapacityReportData(kvkId, filters = {}) {
     debugLog('getTrainingCapacityReportData start', { kvkId, filters, DEBUG });
     const records = await fetchTrainingAchievements(kvkId, filters);
     debugLog(`fetched ${records.length} training_achievement row(s)`);
-    const payload = buildPayloadFromRecords(records);
+    const payload = buildPayloadFromRecords(records, filters);
     return { payload, records };
 }
 

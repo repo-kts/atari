@@ -38,7 +38,7 @@ function renderSoilWaterAnalysisDetailStateReportSection(section, data, sectionI
     if (!blocks.length) {
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
+  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
   <p class="no-data">No data found</p>
 </div>`;
     }
@@ -84,8 +84,8 @@ function renderSoilWaterAnalysisDetailStateReportSection(section, data, sectionI
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="swd-wrap">
-    <div class="swd-title">7. SOIL &amp; WATER TESTING</div>
-    <div class="swd-sub">2.7. Detail of Soil, Water and Plant analysis</div>
+    <h1 class="section-title">${section.id} ${esc(section.title)}</h1>
+    <div class="swd-sub">Detail of Soil, Water and Plant analysis</div>
     ${y ? `<div class="muted">Reporting year ${esc(y)}</div>` : ''}
     <table class="swd-tbl">
       <thead>

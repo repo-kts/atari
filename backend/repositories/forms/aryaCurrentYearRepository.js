@@ -37,19 +37,21 @@ const aryaCurrentYearRepository = {
         const saleValueOfProduce = parseFloat(data.saleValue || data.saleValueOfProduce) || 0;
         const employmentGeneratedMandays = parseFloat(data.employmentGenerated || data.employmentGeneratedMandays) || 0;
         const imagePath = data.imagePath || null;
+        // "Other" free-text: only meaningful when the chosen enterprise row is flagged isOther.
+        const enterpriseOther = (data.enterpriseOther && String(data.enterpriseOther).trim()) || null;
 
         const resultRows = await prisma.$queryRawUnsafe(`
             INSERT INTO arya_current_year (
-                "kvkId", reporting_year, "enterpriseId", 
-                units_male, units_female, viable_units, closed_units, 
-                trainings_conducted, start_date, end_date, youth_male, youth_female, 
-                groups_formed, groups_active, persons_left_group, members_per_group, 
-                avg_size_of_unit, total_production_per_year, per_unit_cost_of_production, 
+                "kvkId", reporting_year, "enterpriseId", enterprise_other,
+                units_male, units_female, viable_units, closed_units,
+                trainings_conducted, start_date, end_date, youth_male, youth_female,
+                groups_formed, groups_active, persons_left_group, members_per_group,
+                avg_size_of_unit, total_production_per_year, per_unit_cost_of_production,
                 sale_value_of_produce, employment_generated_mandays, image_path,
                 created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING *
-        `, kvkId, reportingYear, enterpriseId, unitsMale, unitsFemale, viableUnits, closedUnits,
+        `, kvkId, reportingYear, enterpriseId, enterpriseOther, unitsMale, unitsFemale, viableUnits, closedUnits,
             trainingsConducted, startDate, endDate, youthMale, youthFemale, groupsFormed, groupsActive,
             personsLeftGroup, membersPerGroup, avgSizeOfUnit, totalProductionPerYear,
             perUnitCostOfProduction, saleValueOfProduce, employmentGeneratedMandays, imagePath);
@@ -159,21 +161,24 @@ const aryaCurrentYearRepository = {
         const saleValueOfProduce = data.saleValueOfProduce !== undefined || data.saleValue !== undefined ? parseFloat(data.saleValueOfProduce ?? data.saleValue) : existing.saleValueOfProduce;
         const employmentGeneratedMandays = data.employmentGeneratedMandays !== undefined || data.employmentGenerated !== undefined ? parseFloat(data.employmentGeneratedMandays ?? data.employmentGenerated) : existing.employmentGeneratedMandays;
         const imagePath = data.imagePath ?? existing.imagePath;
+        const enterpriseOther = data.enterpriseOther !== undefined
+            ? ((String(data.enterpriseOther).trim()) || null)
+            : existing.enterpriseOther;
 
         await prisma.$executeRawUnsafe(`
-            UPDATE arya_current_year 
-            SET 
-                reporting_year = $1, "enterpriseId" = $2, units_male = $3, units_female = $4, 
-                viable_units = $5, closed_units = $6, trainings_conducted = $7, 
-                start_date = $8, end_date = $9, youth_male = $10, youth_female = $11, 
-                groups_formed = $12, groups_active = $13, persons_left_group = $14, 
-                members_per_group = $15, avg_size_of_unit = $16, total_production_per_year = $17, 
-                per_unit_cost_of_production = $18, sale_value_of_produce = $19, 
-                employment_generated_mandays = $20, image_path = $21, 
+            UPDATE arya_current_year
+            SET
+                reporting_year = $1, "enterpriseId" = $2, enterprise_other = $3, units_male = $4, units_female = $5,
+                viable_units = $6, closed_units = $7, trainings_conducted = $8,
+                start_date = $9, end_date = $10, youth_male = $11, youth_female = $12,
+                groups_formed = $13, groups_active = $14, persons_left_group = $15,
+                members_per_group = $16, avg_size_of_unit = $17, total_production_per_year = $18,
+                per_unit_cost_of_production = $19, sale_value_of_produce = $20,
+                employment_generated_mandays = $21, image_path = $22,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE arya_current_year_id = $22
+            WHERE arya_current_year_id = $23
         `,
-            reportingYear, enterpriseId, unitsMale, unitsFemale, viableUnits, closedUnits,
+            reportingYear, enterpriseId, enterpriseOther, unitsMale, unitsFemale, viableUnits, closedUnits,
             trainingsConducted, startDate, endDate, youthMale, youthFemale, groupsFormed, groupsActive,
             personsLeftGroup, membersPerGroup, avgSizeOfUnit, totalProductionPerYear,
             perUnitCostOfProduction, saleValueOfProduce, employmentGeneratedMandays, imagePath,
@@ -218,7 +223,8 @@ function _mapResponse(r) {
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         reportingYear: formatReportingYear(r.reportingYear),
         enterpriseId: r.enterpriseId,
-        enterpriseName: r.enterprise ? r.enterprise.enterpriseName : undefined,
+        enterpriseName: r.enterpriseOther || (r.enterprise ? r.enterprise.enterpriseName : undefined),
+        enterpriseOther: r.enterpriseOther ?? '',
 
         // Internal fields
         unitsMale: r.unitsMale,

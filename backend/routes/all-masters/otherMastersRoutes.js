@@ -23,6 +23,16 @@ const otherMastersController = require('../../controllers/all-masters/otherMaste
 router.use(authenticateToken);
 
 // ============================================
+// Unit Routes
+// ============================================
+
+router.get('/units',     otherMastersController.getAllUnits);
+router.get('/units/:id', otherMastersController.getUnitById);
+router.post('/units',    requirePermission('all_masters_unit_master', 'ADD'),    otherMastersController.createUnit);
+router.put('/units/:id', requirePermission('all_masters_unit_master', 'EDIT'),   otherMastersController.updateUnit);
+router.delete('/units/:id', requirePermission('all_masters_unit_master', 'DELETE'), otherMastersController.deleteUnit);
+
+// ============================================
 // Season Routes
 // ============================================
 
@@ -55,6 +65,18 @@ router.get('/staff-category/:id', otherMastersController.getStaffCategoryById);
 router.post('/staff-category',    requirePermission('all_masters_staff_category_master', 'ADD'),    otherMastersController.createStaffCategory);
 router.put('/staff-category/:id', requirePermission('all_masters_staff_category_master', 'EDIT'),   otherMastersController.updateStaffCategory);
 router.delete('/staff-category/:id', requirePermission('all_masters_staff_category_master', 'DELETE'), otherMastersController.deleteStaffCategory);
+
+router.get('/job-type',     otherMastersController.getAllJobTypes);
+router.get('/job-type/:id', otherMastersController.getJobTypeById);
+router.post('/job-type',    requirePermission('all_masters_job_type_master', 'ADD'),    otherMastersController.createJobType);
+router.put('/job-type/:id', requirePermission('all_masters_job_type_master', 'EDIT'),   otherMastersController.updateJobType);
+router.delete('/job-type/:id', requirePermission('all_masters_job_type_master', 'DELETE'), otherMastersController.deleteJobType);
+
+router.get('/bank-account-type',     otherMastersController.getAllBankAccountTypes);
+router.get('/bank-account-type/:id', otherMastersController.getBankAccountTypeById);
+router.post('/bank-account-type',    requirePermission('all_masters_bank_account_type_master', 'ADD'),    otherMastersController.createBankAccountType);
+router.put('/bank-account-type/:id', requirePermission('all_masters_bank_account_type_master', 'EDIT'),   otherMastersController.updateBankAccountType);
+router.delete('/bank-account-type/:id', requirePermission('all_masters_bank_account_type_master', 'DELETE'), otherMastersController.deleteBankAccountType);
 
 router.get('/pay-level',     otherMastersController.getAllPayLevels);
 router.get('/pay-level/:id', otherMastersController.getPayLevelById);

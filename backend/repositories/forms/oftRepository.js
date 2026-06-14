@@ -5,6 +5,12 @@ const { OFT_STATUS, normalizeOftStatus } = require('../../constants/oftStatus.js
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const crypto = require('crypto');
 
+// Result reports rebuild a dynamic table (tables → columns → rows → cells) with
+// many sequential writes. Prisma's default interactive-transaction timeout is
+// 5s, which the round-trip latency to a remote (Neon) DB blows past (P2028).
+// Give these transactions a realistic budget.
+const RESULT_TX_OPTIONS = { maxWait: 15000, timeout: 30000 };
+
 const OFT_INCLUDE = {
     kvk: { select: { kvkName: true } },
     staff: { select: { staffName: true } },
@@ -16,7 +22,23 @@ const OFT_INCLUDE = {
     technologies: {
         include: { oftTechnologyType: true },
         orderBy: { kvkOftTechnologyId: 'asc' },
-    }
+    },
+    resultReport: {
+        include: {
+            tables: {
+                orderBy: { sortOrder: 'asc' },
+                include: {
+                    columns: { orderBy: { sortOrder: 'asc' } },
+                    rows: {
+                        orderBy: { sortOrder: 'asc' },
+                        include: {
+                            cells: true,
+                        },
+                    },
+                },
+            },
+        },
+    },
 };
 
 const oftRepository = {
@@ -220,9 +242,13 @@ const oftRepository = {
                 seasonId: sourceOft.seasonId,
                 staffId: sourceOft.staffId,
                 oftSubjectId: sourceOft.oftSubjectId,
+                oftSubjectOther: sourceOft.oftSubjectOther,
                 oftThematicAreaId: sourceOft.oftThematicAreaId,
+                oftThematicAreaOther: sourceOft.oftThematicAreaOther,
                 disciplineId: sourceOft.disciplineId,
+                disciplineOther: sourceOft.disciplineOther,
                 sourceOfFundingId: sourceOft.sourceOfFundingId,
+                sourceOfFundingOther: sourceOft.sourceOfFundingOther,
                 unit: sourceOft.unit,
                 title: sourceOft.title,
                 problemDiagnosed: sourceOft.problemDiagnosed,
@@ -244,6 +270,8 @@ const oftRepository = {
                 farmersStM: sourceOft.farmersStM,
                 farmersStF: sourceOft.farmersStF,
                 status: OFT_STATUS.ONGOING,
+                // Record the transfer chain so the transfer can be revoked later.
+                transferredFromOftId: sourceId,
                 technologies: {
                     create: (sourceOft.technologies || []).map((tech) => ({
                         oftTechnologyTypeId: tech.oftTechnologyTypeId || null,
@@ -271,6 +299,30 @@ const oftRepository = {
         });
     },
 
+    // Next-year copies generated from a transferred OFT (the transfer chain).
+    findTransferChildren: async (sourceId) => {
+        return prisma.kvkoft.findMany({
+            where: { transferredFromOftId: parseInt(sourceId) },
+            select: { kvkOftId: true, status: true },
+        });
+    },
+
+    // Undo a transfer: delete the generated next-year copies (technologies and
+    // any result rows cascade) and set the source OFT back to ONGOING.
+    revokeTransferTx: async (sourceId, childIds = []) => {
+        return prisma.$transaction(async (tx) => {
+            if (childIds.length) {
+                await tx.kvkoft.deleteMany({ where: { kvkOftId: { in: childIds } } });
+            }
+            const restored = await tx.kvkoft.update({
+                where: { kvkOftId: parseInt(sourceId) },
+                data: { status: OFT_STATUS.ONGOING },
+                include: OFT_INCLUDE,
+            });
+            return _mapOftResponse(restored);
+        });
+    },
+
     createResultReportTx: async (kvkOftId, payload) => {
         return prisma.$transaction(async (tx) => {
             const report = await tx.oftResultReport.create({
@@ -281,7 +333,7 @@ const oftRepository = {
                 where: { oftResultReportId: report.oftResultReportId },
                 include: _resultInclude(),
             });
-        });
+        }, RESULT_TX_OPTIONS);
     },
 
     updateResultReportTx: async (kvkOftId, payload) => {
@@ -303,7 +355,7 @@ const oftRepository = {
                 where: { oftResultReportId: existing.oftResultReportId },
                 include: _resultInclude(),
             });
-        });
+        }, RESULT_TX_OPTIONS);
     },
 
     getResultByOftId: async (kvkOftId) => {
@@ -349,8 +401,13 @@ function _buildOftCreateData(data, kvkId) {
         staffId,
         oftSubjectId,
         oftThematicAreaId,
+        // "Other" free-text: only meaningful when the chosen master row is flagged isOther.
+        oftSubjectOther: sanitizeString(safeGet(data, 'oftSubjectOther'), { allowEmpty: true }) || null,
+        oftThematicAreaOther: sanitizeString(safeGet(data, 'oftThematicAreaOther'), { allowEmpty: true }) || null,
         disciplineId,
+        disciplineOther: sanitizeString(safeGet(data, 'disciplineOther'), { allowEmpty: true }) || null,
         sourceOfFundingId,
+        sourceOfFundingOther: sanitizeString(safeGet(data, 'sourceOfFundingOther'), { allowEmpty: true }) || null,
         unit,
         title: sanitizeString(safeGet(data, 'title'), { allowEmpty: true }) || '',
         problemDiagnosed: sanitizeString(safeGet(data, 'problemDiagnosed'), { allowEmpty: true }) || '',
@@ -383,9 +440,13 @@ function _buildOftUpdateData(data, existing) {
     if (data.seasonId !== undefined) updateData.seasonId = sanitizeInteger(data.seasonId);
     if (data.staffId !== undefined || data.staffName !== undefined) updateData.staffId = sanitizeInteger(data.staffId || data.staffName);
     if (data.oftSubjectId !== undefined) updateData.oftSubjectId = sanitizeInteger(data.oftSubjectId);
+    if (data.oftSubjectOther !== undefined) updateData.oftSubjectOther = sanitizeString(data.oftSubjectOther, { allowEmpty: true }) || null;
     if (data.oftThematicAreaId !== undefined || data.thematicArea !== undefined) updateData.oftThematicAreaId = sanitizeInteger(data.oftThematicAreaId || data.thematicArea);
+    if (data.oftThematicAreaOther !== undefined) updateData.oftThematicAreaOther = sanitizeString(data.oftThematicAreaOther, { allowEmpty: true }) || null;
     if (data.disciplineId !== undefined || data.discipline !== undefined) updateData.disciplineId = sanitizeInteger(data.disciplineId || data.discipline);
+    if (data.disciplineOther !== undefined) updateData.disciplineOther = sanitizeString(data.disciplineOther, { allowEmpty: true }) || null;
     if (data.sourceOfFundingId !== undefined) updateData.sourceOfFundingId = sanitizeInteger(data.sourceOfFundingId);
+    if (data.sourceOfFundingOther !== undefined) updateData.sourceOfFundingOther = sanitizeString(data.sourceOfFundingOther, { allowEmpty: true }) || null;
     if (data.unit !== undefined) updateData.unit = sanitizeString(data.unit, { allowEmpty: true }) || null;
     if (data.title !== undefined) updateData.title = sanitizeString(data.title, { allowEmpty: true }) || '';
     if (data.problemDiagnosed !== undefined) updateData.problemDiagnosed = sanitizeString(data.problemDiagnosed, { allowEmpty: true }) || '';
@@ -438,14 +499,19 @@ function _mapOftResponse(r) {
         staffId: r.staffId,
         staffName: r.staff ? r.staff.staffName : undefined,
         oftSubjectId: r.oftSubjectId,
-        subjectName: r.oftSubject ? r.oftSubject.subjectName : undefined,
+        // Prefer the typed "Other" text over the generic master name so lists show the real value.
+        subjectName: r.oftSubjectOther || (r.oftSubject ? r.oftSubject.subjectName : undefined),
+        oftSubjectOther: r.oftSubjectOther ?? '',
         oftThematicAreaId: r.oftThematicAreaId,
-        thematicAreaName: r.oftThematicArea ? r.oftThematicArea.thematicAreaName : undefined,
+        thematicAreaName: r.oftThematicAreaOther || (r.oftThematicArea ? r.oftThematicArea.thematicAreaName : undefined),
+        oftThematicAreaOther: r.oftThematicAreaOther ?? '',
         disciplineId: r.disciplineId,
-        disciplineName: r.discipline ? r.discipline.disciplineName : undefined,
+        disciplineName: r.disciplineOther || (r.discipline ? r.discipline.disciplineName : undefined),
+        disciplineOther: r.disciplineOther ?? '',
         unit: r.unit,
         sourceOfFundingId: r.sourceOfFundingId,
-        sourceOfFundingName: r.sourceOfFunding ? r.sourceOfFunding.name : undefined,
+        sourceOfFundingName: r.sourceOfFundingOther || (r.sourceOfFunding ? r.sourceOfFunding.name : undefined),
+        sourceOfFundingOther: r.sourceOfFundingOther ?? '',
         title: r.title,
         problemDiagnosed: r.problemDiagnosed,
         sourceOfTechnology: r.sourceOfTechnology,
@@ -490,6 +556,48 @@ function _mapOftResponse(r) {
         });
     }
     mapped.technologyOptions = technologyOptions;
+
+    if (r.resultReport) {
+        mapped.resultReport = {
+            oftResultReportId: r.resultReport.oftResultReportId,
+            finalRecommendation: r.resultReport.finalRecommendation,
+            constraintsFeedback: r.resultReport.constraintsFeedback,
+            farmersParticipationProcess: r.resultReport.farmersParticipationProcess,
+            resultText: r.resultReport.resultText,
+            remark: r.resultReport.remark,
+            photographName: r.resultReport.photographName,
+            tables: (r.resultReport.tables || []).map(tbl => ({
+                oftResultTableId: tbl.oftResultTableId,
+                tableTitle: tbl.tableTitle,
+                sortOrder: tbl.sortOrder,
+                columns: (tbl.columns || []).map(col => ({
+                    oftResultTableColumnId: col.oftResultTableColumnId,
+                    columnKey: col.columnKey,
+                    columnLabel: col.columnLabel,
+                    isMandatory: col.isMandatory,
+                    sortOrder: col.sortOrder,
+                })),
+                rows: (tbl.rows || []).map(row => {
+                    const rowCells = {};
+                    (row.cells || []).forEach(cell => {
+                        const col = tbl.columns.find(c => c.oftResultTableColumnId === cell.oftResultTableColumnId);
+                        if (col) {
+                            rowCells[col.columnKey] = cell.value;
+                        }
+                    });
+                    return {
+                        oftResultTableRowId: row.oftResultTableRowId,
+                        optionKey: row.optionKey,
+                        rowLabel: row.rowLabel,
+                        sortOrder: row.sortOrder,
+                        cells: rowCells,
+                    };
+                }),
+            })),
+        };
+    } else {
+        mapped.resultReport = null;
+    }
 
     return mapped;
 }
@@ -568,7 +676,6 @@ function _buildResultReportBaseData(kvkOftId, payload) {
         resultText: sanitizeString(payload.resultText, { allowEmpty: true }) || '',
         remark: sanitizeString(payload.remark, { allowEmpty: true }) || '',
         supplementaryDatasheetPath: sanitizeString(payload.supplementaryDatasheetPath, { allowEmpty: true }) || null,
-        supplementaryDatasheetName: sanitizeString(payload.supplementaryDatasheetName, { allowEmpty: true }) || null,
         supplementaryDatasheetSize: payload.supplementaryDatasheetSize ? sanitizeInteger(payload.supplementaryDatasheetSize) : null,
         supplementaryDatasheetMime: sanitizeString(payload.supplementaryDatasheetMime, { allowEmpty: true }) || null,
         photographPath: sanitizeString(payload.photographPath, { allowEmpty: true }) || null,

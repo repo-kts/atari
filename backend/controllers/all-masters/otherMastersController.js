@@ -122,6 +122,16 @@ const deleteEntity = (entityName) => async (req, res) => {
 };
 
 // ============================================
+// Unit Controllers
+// ============================================
+
+exports.getAllUnits = getAll('units');
+exports.getUnitById = getById('units');
+exports.createUnit = create('units');
+exports.updateUnit = update('units');
+exports.deleteUnit = deleteEntity('units');
+
+// ============================================
 // Season Controllers
 // ============================================
 
@@ -160,6 +170,18 @@ exports.getStaffCategoryById = getById('staff-category');
 exports.createStaffCategory = create('staff-category');
 exports.updateStaffCategory = update('staff-category');
 exports.deleteStaffCategory = deleteEntity('staff-category');
+
+exports.getAllJobTypes = getAll('job-type');
+exports.getJobTypeById = getById('job-type');
+exports.createJobType = create('job-type');
+exports.updateJobType = update('job-type');
+exports.deleteJobType = deleteEntity('job-type');
+
+exports.getAllBankAccountTypes = getAll('bank-account-type');
+exports.getBankAccountTypeById = getById('bank-account-type');
+exports.createBankAccountType = create('bank-account-type');
+exports.updateBankAccountType = update('bank-account-type');
+exports.deleteBankAccountType = deleteEntity('bank-account-type');
 
 exports.getAllPayLevels = getAll('pay-level');
 exports.getPayLevelById = getById('pay-level');

@@ -128,6 +128,8 @@ router.use('/forms/achievements/fld/technical-feedback', require('./forms/fldTec
 router.use('/forms/achievements/fld', fldRoutes);
 router.use('/reports', reportRoutes);
 
+// Data-migration tool (old atariams.org -> this app). Admin-only, self-contained.
+router.use('/migration', require('../migration/routes.js'));
 
 
 

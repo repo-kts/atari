@@ -2,9 +2,12 @@ const { getSectionConfig, getAllSections, buildSectionNumbering } = require('../
 const { renderSimpleTableSection } = require('./formsTemplate/aboutkvkTemplates/simpleTableTemplate.js');
 const { renderEmployeeContactsSection } = require('./formsTemplate/aboutkvkTemplates/employeeContactsTemplate.js');
 const { renderEmployeesFullSection } = require('./formsTemplate/aboutkvkTemplates/employeesFullTemplate.js');
+const { renderStaffTransferredSection } = require('./formsTemplate/aboutkvkTemplates/staffTransferredTemplate.js');
 const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/vehiclesTemplate.js');
+const { renderLandDetailsSection } = require('./formsTemplate/aboutkvkTemplates/landDetailsTemplate.js');
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
 const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
+const { renderEquipmentDetailsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentDetailsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
 const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
 const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
@@ -56,6 +59,7 @@ const { renderNfSoilDataInformationSection } = require('./formsTemplate/projectT
 const { renderNfBudgetExpenditureInformationSection } = require('./formsTemplate/projectTemplates/nfBudgetExpenditureInformationTemplate.js');
 const { renderFldPageReportSection } = require('./formsTemplate/achievementTemplates/fldPageReportTemplate.js');
 const { renderFldStateCategoryReportSection } = require('./formsTemplate/achievementTemplates/fldStateCategoryReportTemplate.js');
+const { renderTechnicalAchievementSummarySection } = require('./formsTemplate/achievementTemplates/technicalAchievementSummaryTemplate.js');
 const { renderTrainingCapacityReportSection } = require('./formsTemplate/achievementTemplates/trainingCapacityReportTemplate.js');
 const { renderTrainingsPageReportSection } = require('./formsTemplate/achievementTemplates/trainingsPageReportTemplate.js');
 const { renderExtensionOutreachReportSection } = require('./formsTemplate/achievementTemplates/extensionOutreachReportTemplate.js');
@@ -109,6 +113,29 @@ const { renderSacMeetingSection } = require('./formsTemplate/meetingsTemplates/s
 const { renderOtherMeetingSection } = require('./formsTemplate/meetingsTemplates/otherMeetingTemplate.js');
 const { renderAgriDroneIntroductionSection } = require('./formsTemplate/projectTemplates/nfAgriDroneIntroductionTemplate.js');
 const { renderAgriDroneDemonstrationDetailsSection } = require('./formsTemplate/projectTemplates/nfAgriDroneDemonstrationDetailsTemplate.js');
+const fs = require('fs');
+const path = require('path');
+
+// Embed a Devanagari-capable font so Hindi text (e.g. SAC meeting "Salient
+// Recommendations") renders in PDFs even in serverless Chromium, which ships
+// with no Indic fonts. Base64 data-URI = no network / file-path dependency.
+// Loaded once at module init and reused for every report.
+const DEVANAGARI_FONT_CSS = (() => {
+    try {
+        const fontPath = path.join(__dirname, '../../assets/fonts/NotoSansDevanagari-Regular.ttf');
+        const b64 = fs.readFileSync(fontPath).toString('base64');
+        return `
+    @font-face {
+        font-family: 'Noto Sans Devanagari';
+        font-style: normal;
+        font-weight: 400 700;
+        src: url(data:font/ttf;base64,${b64}) format('truetype');
+    }`;
+    } catch (e) {
+        console.warn('Devanagari font not embedded (Hindi text may not render in PDF):', e.message);
+        return '';
+    }
+})();
 
 /**
  * Report Template Service
@@ -118,14 +145,17 @@ class ReportTemplateService {
     constructor() {
         this.customTemplateHandlers = {
             'about-kvk-view': renderAboutKvkSection.bind(this),
+            'about-kvk-land': renderLandDetailsSection.bind(this),
             'about-kvk-bank-accounts': renderSimpleTableSection.bind(this),
             'about-kvk-employee-contacts': renderEmployeeContactsSection.bind(this),
             'about-kvk-employees-full': renderEmployeesFullSection.bind(this),
+            'about-kvk-staff-transferred': renderStaffTransferredSection.bind(this),
             'about-kvk-vehicles': renderVehiclesSection.bind(this),
             'about-kvk-vehicle-details': renderVehicleDetailsSection.bind(this),
             'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-record': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
+            'about-kvk-equipment-details-table': renderEquipmentDetailsSection.bind(this),
             'oft-summary': renderOftSummarySection.bind(this),
             'oft-detail-cards': renderOftDetailCardsSection.bind(this),
             'oft-combined': renderOftCombinedSection.bind(this),
@@ -165,6 +195,7 @@ class ReportTemplateService {
             'nf-budget-expenditure-information': renderNfBudgetExpenditureInformationSection.bind(this),
             'fld-page-report': renderFldPageReportSection.bind(this),
             'fld-state-category-report': renderFldStateCategoryReportSection.bind(this),
+            'technical-achievement-summary': renderTechnicalAchievementSummarySection.bind(this),
             'training-capacity-report': renderTrainingCapacityReportSection.bind(this),
             'trainings-page-report': renderTrainingsPageReportSection.bind(this),
             'extension-outreach-report': renderExtensionOutreachReportSection.bind(this),
@@ -235,14 +266,15 @@ class ReportTemplateService {
     /**
      * Generate complete HTML for the report
      */
-    async generateReportHTML(kvkInfo, sectionsData, filters, generatedBy) {
+    /**
+     * Pick the sections that have data (and aren't excluded), and order them to
+     * match the curated taxonomy index. Shared by the PDF and Excel exports so
+     * both use the exact same section set, order, and numbering.
+     */
+    _selectAndOrderSections(sectionsData) {
         const sections = getAllSections();
-        const reportContext = {
-            isAggregatedReport: kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined,
-            isStandalone: false,
-        };
-        // Filter sections that have valid data (not errors, not null/undefined)
         const selectedSections = sections.filter(s => {
+            if (s.hideInReport) return false;
             const sectionData = sectionsData[s.id];
             return sectionData &&
                 !sectionData.error &&
@@ -253,7 +285,48 @@ class ReportTemplateService {
         // Curated/clean index numbering (raw section.id values are unreliable).
         const numbering = buildSectionNumbering(selectedSections);
 
-        const sectionsBody = await this._generateSectionPages(selectedSections, sectionsData, reportContext, numbering.headingById);
+        // Order to match the curated index (taxonomy), not raw section-id order —
+        // otherwise e.g. HR (2.59) prints before Awards (2.56).
+        const orderIndex = new Map();
+        let oi = 0;
+        for (const chapter of numbering.chapters) {
+            const featureLists = chapter.type === 'grouped'
+                ? (chapter.groups || []).map(g => g.features || [])
+                : [(chapter.sections || [])];
+            for (const list of featureLists) {
+                for (const f of list) {
+                    const sid = String(f.sectionId);
+                    if (sid && !orderIndex.has(sid)) orderIndex.set(sid, oi++);
+                }
+            }
+        }
+        const rank = (id) => (orderIndex.has(String(id)) ? orderIndex.get(String(id)) : Number.MAX_SAFE_INTEGER);
+        const orderedSections = [...selectedSections].sort((a, b) => rank(a.id) - rank(b.id));
+
+        return { orderedSections, numbering };
+    }
+
+    /**
+     * Render every selected section to its own HTML chunk plus index metadata.
+     * Returns { numbering, chunks: [{ sectionId, chapter, sectionNumber,
+     * sectionTitle, featureNumber, featureTitle, html }] }. Used by both the PDF
+     * (chunks joined) and the Excel export (one sheet per chunk).
+     */
+    async generateSectionChunks(sectionsData, reportContext = {}) {
+        const { orderedSections, numbering } = this._selectAndOrderSections(sectionsData);
+        const chunks = await this._renderSectionChunks(
+            orderedSections, sectionsData, reportContext, numbering.headingById,
+        );
+        return { numbering, chunks };
+    }
+
+    async generateReportHTML(kvkInfo, sectionsData, filters, generatedBy) {
+        const reportContext = {
+            isAggregatedReport: kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined,
+            isStandalone: false,
+        };
+        const { numbering, chunks } = await this.generateSectionChunks(sectionsData, reportContext);
+        const sectionsBody = chunks.map(c => c.html).join('');
 
         const html = `
 <!DOCTYPE html>
@@ -386,11 +459,16 @@ class ReportTemplateService {
         </li>`;
 
             if (chapter.type === 'grouped') {
-                // TOC lists section (group) level only, e.g. "1.1 Basic Information".
-                // The lettered features (sub-sections) appear only as body headings.
+                // List the group row (e.g. "2.2 On Farm Trial") followed by its
+                // lettered features (e.g. "2.2.A OFT Summary"), each a clickable
+                // link that jumps to the backing section.
                 chapter.groups.forEach((group) => {
                     const firstSection = group.features[0] && group.features[0].sectionId;
-                    tocHtml += tocItem(group.number, group.label, firstSection, '');
+                    tocHtml += tocItem(group.number, group.label, firstSection, 'toc-group');
+                    group.features.forEach((feature) => {
+                        if (!feature.label || !feature.number) return;
+                        tocHtml += tocItem(feature.number, feature.label, feature.sectionId, 'toc-subitem');
+                    });
                 });
             } else {
                 chapter.sections.forEach((s) => {
@@ -407,10 +485,13 @@ class ReportTemplateService {
     }
 
     /**
-     * Generate section pages with unique IDs for TOC linking
+     * Render each selected section to its own HTML chunk (with chapter/feature
+     * headers applied) plus the index metadata for that section. Returns an array
+     * of { sectionId, chapter, sectionNumber, sectionTitle, featureNumber,
+     * featureTitle, html }.
      */
-    async _generateSectionPages(selectedSections, sectionsData, reportContext = {}, headingById = new Map()) {
-        let html = '';
+    async _renderSectionChunks(selectedSections, sectionsData, reportContext = {}, headingById = new Map()) {
+        const chunks = [];
         let isFirstSection = true;
         const seenChapters = new Set(); // chapter header shown once per chapter
         const seenSections = new Set(); // section (group) heading shown once per group
@@ -460,11 +541,19 @@ class ReportTemplateService {
                 }
             }
 
-            html += this._withSectionHeaders(chunk || '', heading, seenChapters, firstInGroup);
+            chunks.push({
+                sectionId: rawSection.id,
+                chapter: heading?.chapter || '',
+                sectionNumber: heading?.sectionNumber || rawSection.id,
+                sectionTitle: heading?.sectionTitle || rawSection.title,
+                featureNumber: heading?.featureNumber || null,
+                featureTitle: heading?.featureTitle || null,
+                html: this._withSectionHeaders(chunk || '', heading, seenChapters, firstInGroup),
+            });
             isFirstSection = false;
         }
 
-        return html;
+        return chunks;
     }
 
     /**
@@ -890,12 +979,21 @@ class ReportTemplateService {
             return null;
         }
 
-        for (const path of candidatePaths) {
-            const value = path.includes('.')
-                ? this._getNestedValue(obj, path)
-                : obj[path];
+        const usable = (v) => v !== null && v !== undefined && v !== '';
 
-            if (value !== null && value !== undefined && value !== '') {
+        for (const path of candidatePaths) {
+            // Try the literal key FIRST. Transformed report rows are keyed by
+            // display name, some of which contain a dot (e.g. "Cost (Rs.)").
+            // Treating those as dotted nested paths split them on "." and lost
+            // the value. Only fall back to nested traversal when there is no
+            // literal property and the path actually looks nested (e.g.
+            // "kvk.kvkName").
+            let value = obj[path];
+            if (!usable(value) && path.includes('.')) {
+                value = this._getNestedValue(obj, path);
+            }
+
+            if (usable(value)) {
                 return value;
             }
         }
@@ -1001,6 +1099,7 @@ class ReportTemplateService {
     _getStyles() {
         return `
 <style>
+    ${DEVANAGARI_FONT_CSS}
     * {
         margin: 0;
         padding: 0;
@@ -1008,7 +1107,7 @@ class ReportTemplateService {
     }
 
     body {
-        font-family: 'Arial', 'Helvetica', sans-serif;
+        font-family: 'Arial', 'Helvetica', 'Noto Sans Devanagari', sans-serif;
         font-size: 8pt;
         line-height: 1.3;
         color: #000000;
@@ -1121,6 +1220,25 @@ class ReportTemplateService {
 
     .toc-feature {
         margin-left: 34px;
+    }
+
+    .toc-item.toc-group {
+        margin-left: 18px;
+    }
+
+    .toc-item.toc-group .toc-section-id,
+    .toc-item.toc-group .toc-section-title {
+        font-weight: bold;
+    }
+
+    .toc-item.toc-subitem {
+        margin-left: 40px;
+    }
+
+    .toc-item.toc-subitem .toc-section-id,
+    .toc-item.toc-subitem .toc-section-title {
+        font-weight: normal;
+        font-size: 7.5pt;
     }
 
     .toc-link {
@@ -1249,7 +1367,9 @@ class ReportTemplateService {
     .oft-statewise,
     .report-fit {
         width: 100%;
-        table-layout: fixed;
+        /* auto layout sizes columns to content, so words/numbers stay on one
+           line and never overlap; the scaled font keeps it within the page. */
+        table-layout: auto;
     }
     .oft-statewise th,
     .oft-statewise td,
@@ -1258,15 +1378,16 @@ class ReportTemplateService {
         padding: 1.5px 2px;
         font-size: inherit;
         line-height: 1.1;
-        word-break: break-word;
-        overflow-wrap: break-word;
+        /* Wrap only at spaces — never split a word or a number. */
+        word-break: keep-all;
+        overflow-wrap: normal;
+        white-space: normal;
         text-align: center;
     }
     .oft-statewise th:first-child,
     .oft-statewise td:first-child,
     .report-fit th:first-child,
     .report-fit td:first-child {
-        width: 13%;
         text-align: left;
     }
 

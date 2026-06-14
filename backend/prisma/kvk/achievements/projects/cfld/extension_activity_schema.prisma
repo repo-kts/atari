@@ -2,6 +2,7 @@ model ExtensionActivityOrganized {
   organizedId         Int               @id @default(autoincrement()) @map("organized_id")
   kvkId               Int
   seasonId            Int?
+  seasonOther         String?           @map("season_other")
   extensionActivityId Int
   activityDate        DateTime          @map("activity_date")
   placeOfActivity     String            @map("place_of_activity")

@@ -42,16 +42,16 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
             {
                 label: 'Employee Information',
                 features: [
-                    { label: 'Employee Details', sectionId: '1.3' },
-                    { label: 'Staff Transferred', sectionId: '1.4' },
+                    { label: 'All KVK Staff', sectionId: '1.4' },
+                    { label: 'Staff Transferred', sectionId: '1.11' },
                 ],
             },
             {
                 label: 'Land & Infrastructure Information',
                 features: [
                     { label: 'Infrastructure Details', sectionId: '1.5' },
-                    { label: 'Land Details', sectionId: '1.5' },
-                    { label: 'Staff Quarters Details', sectionId: '1.5' },
+                    { label: 'Land Details', sectionId: '1.10' },
+                    { label: 'Staff Quarters Details', sectionId: '4.13' },
                 ],
             },
             {
@@ -79,7 +79,7 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
             {
                 label: 'Technical Achievement',
                 features: [
-                    { label: 'Technical Achievement Summary', sectionId: '' },
+                    { label: 'Technical Achievement Summary', sectionId: '2.1' },
                 ],
             },
             {
@@ -156,12 +156,133 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
             },
         ],
     },
+
+    // Mirrors backend REPORT_INDEX_TAXONOMY['3'] — keep sectionIds in sync.
+    projects: {
+        tabId: 'projects',
+        title: 'Projects',
+        groups: [
+            {
+                label: 'CFLD',
+                features: [
+                    { label: 'Technical Parameter', sectionId: '2.16' },
+                    { label: 'Extension Activity', sectionId: '2.17' },
+                    { label: 'Budget Utilization', sectionId: '2.18' },
+                ],
+            },
+            {
+                label: 'NICRA',
+                features: [
+                    { label: 'Basic Information', sectionId: '2.34' },
+                    { label: 'Details', sectionId: '' },
+                    { label: 'Training', sectionId: '2.35' },
+                    { label: 'Extension Activity', sectionId: '2.36' },
+                ],
+            },
+            {
+                label: 'NICRA Others',
+                features: [
+                    { label: 'Intervention', sectionId: '2.37' },
+                    { label: 'Revenue Generated', sectionId: '' },
+                    { label: 'Custom Hiring', sectionId: '2.38' },
+                    { label: 'VCRMC', sectionId: '2.39' },
+                    { label: 'Soil Health Card', sectionId: '2.40' },
+                    { label: 'Convergence Programme', sectionId: '' },
+                    { label: 'Dignitaries Visited', sectionId: '' },
+                    { label: 'PI/Co-PI List', sectionId: '' },
+                ],
+            },
+            {
+                label: 'ARYA / SAFAL',
+                features: [
+                    { label: 'Current Year Details', sectionId: '2.30' },
+                    { label: 'Previous Year Evaluation', sectionId: '2.31' },
+                ],
+            },
+            {
+                label: 'Natural Farming',
+                features: [
+                    { label: 'Geographical Information', sectionId: '' },
+                    { label: 'Physical Information', sectionId: '2.44' },
+                    { label: 'Demonstration Information', sectionId: '2.46' },
+                    { label: 'Farmers Practicing', sectionId: '2.47' },
+                    { label: 'Beneficiaries', sectionId: '' },
+                    { label: 'Soil Data', sectionId: '2.49' },
+                    { label: 'Budget Expenditure', sectionId: '2.50' },
+                ],
+            },
+            {
+                label: 'TSP/SCSP',
+                features: [
+                    { label: 'TSP Activities', sectionId: '2.33' },
+                    { label: 'SCSP Activities', sectionId: '2.33' },
+                ],
+            },
+            {
+                label: 'NARI',
+                features: [
+                    { label: 'Nutrition Garden', sectionId: '2.25' },
+                    { label: 'Bio-fortified Crops', sectionId: '2.26' },
+                    { label: 'Value Addition', sectionId: '2.27' },
+                    { label: 'Training Program', sectionId: '2.28' },
+                    { label: 'Extension Activities', sectionId: '2.29' },
+                ],
+            },
+            {
+                label: 'Agri-Drone',
+                features: [
+                    { label: 'Introduction', sectionId: '2.51' },
+                    { label: 'Demonstration', sectionId: '2.52' },
+                ],
+            },
+            {
+                label: 'FPO and CBBO',
+                features: [
+                    { label: 'Details FPO and CBBO', sectionId: '2.21' },
+                    { label: 'FPO Management', sectionId: '2.22' },
+                ],
+            },
+            {
+                label: 'DRMR',
+                features: [
+                    { label: 'DRMR Details', sectionId: '2.23' },
+                    { label: 'DRMR Activity', sectionId: '2.24' },
+                ],
+            },
+            {
+                label: 'Climate Resilient Agriculture (CRA)',
+                features: [
+                    { label: 'CRA Details', sectionId: '2.19' },
+                    { label: 'Extension Activity', sectionId: '2.20' },
+                ],
+            },
+            {
+                label: 'CSISA',
+                features: [
+                    { label: 'CSISA', sectionId: '2.32' },
+                ],
+            },
+            {
+                label: 'Seed Hub Program',
+                features: [
+                    { label: 'Seed Hub Program', sectionId: '2.53' },
+                ],
+            },
+            {
+                label: 'Other Programmes',
+                features: [
+                    { label: 'Other Programmes', sectionId: '2.54' },
+                ],
+            },
+        ],
+    },
 }
 
 /** Chapter numbers shown in the sidebar (match the report: About=1, Achievements=2). */
 export const TAXONOMY_CHAPTER_NUMBER: Record<string, number> = {
     about: 1,
     achievements: 2,
+    projects: 3,
 }
 
 /**
@@ -180,10 +301,23 @@ export function buildTaxonomyView(
 
     const groups = chapter.groups.map((group, gi) => {
         const groupNo = `${chapterNo}.${gi + 1}`
+        // Collapse features that map to the SAME report section into a single
+        // selectable row. Several sub-views (e.g. FLD Summary / State-wise /
+        // Details) are produced by one section, so listing them as separate
+        // checkboxes made one click select all of them at once (#233).
+        // Keep the first label for each distinct sectionId; empty-sectionId
+        // (not-yet-backed) rows are always kept so they still show as disabled.
+        const seen = new Set<string>()
+        const deduped = group.features.filter((f) => {
+            if (!f.sectionId) return true
+            if (seen.has(f.sectionId)) return false
+            seen.add(f.sectionId)
+            return true
+        })
         return {
             number: groupNo,
             label: group.label,
-            features: group.features.map((f, fi) => ({
+            features: deduped.map((f, fi) => ({
                 number: `${groupNo}.${String.fromCharCode(65 + fi)}`,
                 label: f.label,
                 sectionId: f.sectionId,

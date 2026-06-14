@@ -2,6 +2,7 @@
 export interface OftSubject {
     oftSubjectId: number;
     subjectName: string;
+    isOther?: boolean;
     _count?: {
         thematicAreas: number;
     };
@@ -11,6 +12,7 @@ export interface OftThematicArea {
     oftThematicAreaId: number;
     thematicAreaName: string;
     oftSubjectId: number;
+    isOther?: boolean;
     subject?: {
         oftSubjectId: number;
         subjectName: string;
@@ -21,6 +23,7 @@ export interface OftThematicArea {
 export interface Sector {
     sectorId: number;
     sectorName: string;
+    isOther?: boolean;
     _count?: {
         thematicAreas: number;
         categories: number;
@@ -31,6 +34,7 @@ export interface FldThematicArea {
     thematicAreaId: number;
     thematicAreaName: string;
     sectorId: number;
+    isOther?: boolean;
     sector?: {
         sectorId: number;
         sectorName: string;
@@ -41,6 +45,7 @@ export interface FldCategory {
     categoryId: number;
     categoryName: string;
     sectorId: number;
+    isOther?: boolean;
     sector?: {
         sectorId: number;
         sectorName: string;
@@ -54,6 +59,7 @@ export interface FldSubcategory {
     subCategoryId: number;
     subCategoryName: string;
     categoryId: number;
+    isOther?: boolean;
     category?: {
         categoryId: number;
         categoryName: string;
@@ -71,6 +77,7 @@ export interface FldCrop {
     cropId: number;
     cropName: string;
     subCategoryId: number;
+    isOther?: boolean;
     subCategory?: {
         subCategoryId: number;
         subCategoryName: string;
@@ -114,6 +121,7 @@ export interface CropType {
 export interface CfldCrop {
     cfldId: number;
     seasonId: number;
+    isOther?: boolean;
     season?: {
         seasonId: number;
         seasonName: string;
@@ -148,35 +156,42 @@ export interface PaginatedResponse<T> {
 // Form Data Types
 export interface OftSubjectFormData {
     subjectName: string;
+    isOther?: boolean;
 }
 
 export interface OftThematicAreaFormData {
     thematicAreaName: string;
     oftSubjectId: number;
+    isOther?: boolean;
 }
 
 export interface SectorFormData {
     sectorName: string;
+    isOther?: boolean;
 }
 
 export interface FldThematicAreaFormData {
     thematicAreaName: string;
     sectorId: number;
+    isOther?: boolean;
 }
 
 export interface FldCategoryFormData {
     categoryName: string;
     sectorId: number;
+    isOther?: boolean;
 }
 
 export interface FldSubcategoryFormData {
     subCategoryName: string;
     categoryId: number;
+    isOther?: boolean;
 }
 
 export interface FldCropFormData {
     cropName: string;
     subCategoryId: number;
+    isOther?: boolean;
 }
 
 export interface FldActivityFormData {
@@ -195,6 +210,7 @@ export interface CfldCropFormData {
     seasonId: number;
     typeId: number;
     CropName: string;
+    isOther?: boolean;
 }
 
 // Statistics Types

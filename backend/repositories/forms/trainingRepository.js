@@ -124,21 +124,26 @@ const _mapResponse = async (r) => {
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
 
-        // Master data references
+        // Master data references — prefer the typed "Other" text over the generic master name.
         clienteleId: r.clienteleId,
-        clientele: r.clientele ? r.clientele.name : undefined,
+        clientele: r.clienteleOther || (r.clientele ? r.clientele.name : undefined),
+        clienteleOther: r.clienteleOther ?? '',
         trainingTypeId: r.trainingTypeId,
-        trainingType: r.trainingType ? r.trainingType.trainingTypeName : undefined,
+        trainingType: r.trainingTypeOther || (r.trainingType ? r.trainingType.trainingTypeName : undefined),
+        trainingTypeOther: r.trainingTypeOther ?? '',
         trainingAreaId: r.trainingAreaId,
-        trainingArea: r.trainingArea ? r.trainingArea.trainingAreaName : undefined,
+        trainingArea: r.trainingAreaOther || (r.trainingArea ? r.trainingArea.trainingAreaName : undefined),
+        trainingAreaOther: r.trainingAreaOther ?? '',
         thematicAreaId: r.thematicAreaId,
         trainingThematicAreaId,
-        thematicArea: r.trainingThematicArea ? r.trainingThematicArea.trainingThematicAreaName : undefined,
+        thematicArea: r.thematicAreaOther || (r.trainingThematicArea ? r.trainingThematicArea.trainingThematicAreaName : undefined),
+        thematicAreaOther: r.thematicAreaOther ?? '',
         coordinatorId: r.coordinatorId,
         coordinator: r.coordinator ? r.coordinator.name : undefined,
         staffId: staffId, // Resolved from KvkStaff
         fundingSourceId: r.fundingSourceId,
-        fundingSource: r.fundingSource ? r.fundingSource.name : undefined,
+        fundingSource: r.fundingSourceOther || (r.fundingSource ? r.fundingSource.name : undefined),
+        fundingSourceOther: r.fundingSourceOther ?? '',
 
         // Training details
         title: r.titleOfTraining,
@@ -177,10 +182,10 @@ const _mapResponse = async (r) => {
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : undefined,
         endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : undefined,
-        trainingProgram: r.trainingType ? r.trainingType.trainingTypeName : undefined,
+        trainingProgram: r.trainingTypeOther || (r.trainingType ? r.trainingType.trainingTypeName : undefined),
         trainingTitle: r.titleOfTraining,
         venue: r.venue,
-        trainingDiscipline: r.trainingArea ? r.trainingArea.trainingAreaName : undefined,
+        trainingDiscipline: r.trainingAreaOther || (r.trainingArea ? r.trainingArea.trainingAreaName : undefined),
         noOfParticipants: totalParticipants,
     };
 };
@@ -340,11 +345,17 @@ const trainingRepository = {
                     data: {
                         kvkId,
                         clienteleId,
+                        // "Other" free-text: only meaningful when the chosen master row is flagged isOther.
+                        clienteleOther: sanitizeString(data.clienteleOther, { allowEmpty: true }) || null,
                         trainingTypeId,
+                        trainingTypeOther: sanitizeString(data.trainingTypeOther, { allowEmpty: true }) || null,
                         trainingAreaId,
+                        trainingAreaOther: sanitizeString(data.trainingAreaOther, { allowEmpty: true }) || null,
                         thematicAreaId,
+                        thematicAreaOther: sanitizeString(data.thematicAreaOther, { allowEmpty: true }) || null,
                         coordinatorId,
                         fundingSourceId,
+                        fundingSourceOther: sanitizeString(data.fundingSourceOther, { allowEmpty: true }) || null,
                         titleOfTraining,
                         startDate,
                         endDate,
@@ -549,6 +560,13 @@ const trainingRepository = {
                 'fundingSourceId'
             ) : null;
         }
+
+        // "Other" free-text fields
+        if (data.clienteleOther !== undefined) updateData.clienteleOther = sanitizeString(data.clienteleOther, { allowEmpty: true }) || null;
+        if (data.trainingTypeOther !== undefined) updateData.trainingTypeOther = sanitizeString(data.trainingTypeOther, { allowEmpty: true }) || null;
+        if (data.trainingAreaOther !== undefined) updateData.trainingAreaOther = sanitizeString(data.trainingAreaOther, { allowEmpty: true }) || null;
+        if (data.thematicAreaOther !== undefined) updateData.thematicAreaOther = sanitizeString(data.thematicAreaOther, { allowEmpty: true }) || null;
+        if (data.fundingSourceOther !== undefined) updateData.fundingSourceOther = sanitizeString(data.fundingSourceOther, { allowEmpty: true }) || null;
 
         // Update string fields
         if (data.titleOfTraining !== undefined || data.title !== undefined) {

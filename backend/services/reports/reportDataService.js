@@ -31,6 +31,7 @@ const otherExtensionContentReportRepository = require('../../repositories/report
 const technologyWeekCelebrationReportRepository = require('../../repositories/reports/technologyWeekCelebrationReport/index.js');
 const celebrationDaysReportRepository = require('../../repositories/reports/celebrationDaysReport/index.js');
 const productionSupplyPageReportRepository = require('../../repositories/reports/productionSupplyPageReport/index.js');
+const technicalAchievementSummaryRepository = require('../../repositories/reports/technicalAchievementSummaryReport/index.js');
 const soilWaterEquipmentReportRepository = require('../../repositories/reports/soilWaterEquipmentReport/index.js');
 const soilWaterAnalysisReportRepository = require('../../repositories/reports/soilWaterAnalysisReport/index.js');
 const worldSoilDayReportRepository = require('../../repositories/reports/worldSoilDayReport/index.js');
@@ -110,6 +111,9 @@ class ReportDataService {
                 break;
             case 'kvkStaffTransferred':
                 rawData = await reportRepository.getKvkStaffTransferred(effectiveKvkId, sectionFilters);
+                break;
+            case 'kvkLandDetails':
+                rawData = await reportRepository.getKvkLandDetails(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkInfrastructure':
                 rawData = await reportRepository.getKvkInfrastructure(effectiveKvkId, sectionFilters);
@@ -280,6 +284,9 @@ class ReportDataService {
                 break;
             case 'fldStateCategoryReport':
                 rawData = await fldStateCategoryReportRepository.getFldStateCategoryReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'technicalAchievementSummary':
+                rawData = await technicalAchievementSummaryRepository.getTechnicalAchievementSummary(effectiveKvkId, sectionFilters);
                 break;
             case 'trainingCapacityReport':
                 rawData = await trainingCapacityReportRepository.getTrainingCapacityReportData(effectiveKvkId, sectionFilters);
@@ -482,6 +489,7 @@ class ReportDataService {
             || dataSource === 'tsp'
             || dataSource === 'scsp'
             || dataSource === 'fldStateCategoryReport'
+            || dataSource === 'technicalAchievementSummary'
             || dataSource === 'trainingCapacityReport'
             || dataSource === 'extensionOutreachReport'
             || dataSource === 'otherExtensionContentReport'

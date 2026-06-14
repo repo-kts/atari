@@ -6,6 +6,8 @@ import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { MonthYearInput } from '@/components/common/MonthYearInput'
 import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
 
@@ -47,6 +49,14 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     dignitaryTypes = [],
     piTypes = []
 }) => {
+    const nicraCategoryOptions = React.useMemo(
+        () => (categories as any[]).map((c: any) => ({ value: c.nicraCategoryId ?? c.id ?? c.categoryId, label: c.categoryName, isOther: Boolean(c.isOther) })),
+        [categories]
+    )
+    const { isOtherSelected: isOtherNicraCategory, otherResetPatch: nicraCategoryResetPatch } = useOtherSpecify(
+        nicraCategoryOptions,
+        formData.categoryId || formData.nicraCategoryId
+    )
     const photoIdsRef = React.useRef<number[]>([])
     const docIdsRef = React.useRef<number[]>([])
     const syncIds = useCallback(
@@ -280,13 +290,18 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.categoryId || formData.nicraCategoryId || ''}
                             onChange={(e) => {
                                 const categoryId = parseInt(e.target.value, 10)
-                                setFormData({ ...formData, categoryId, nicraCategoryId: categoryId, subCategoryId: '' })
+                                setFormData({ ...formData, categoryId, nicraCategoryId: categoryId, subCategoryId: '', ...nicraCategoryResetPatch(categoryId, 'categoryOther') })
                             }}
-                            options={categories.map((c: any) => ({
-                                value: c.nicraCategoryId || c.id || c.categoryId,
-                                label: c.categoryName
-                            }))}
+                            options={nicraCategoryOptions}
                         />
+                        {isOtherNicraCategory && (
+                            <SpecifyOtherInput
+                                label="Please specify other category"
+                                required
+                                value={formData.categoryOther}
+                                onChange={(e) => setFormData({ ...formData, categoryOther: e.target.value })}
+                            />
+                        )}
                         <DependentDropdown
                             label="Sub - Category"
                             required

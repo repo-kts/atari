@@ -1,0 +1,11 @@
+model JobTypeMaster {
+  jobTypeId Int        @id @default(autoincrement()) @map("job_type_id")
+  name      String     @unique @map("name")
+  // Flags this row as the "Other" option (forms then show a specify input).
+  isOther   Boolean    @default(false) @map("is_other")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  staff     KvkStaff[]
+
+  @@map("job_type_master")
+}

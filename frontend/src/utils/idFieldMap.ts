@@ -39,6 +39,8 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
 
     // Employee Masters
     [ENTITY_TYPES.STAFF_CATEGORY]: 'staffCategoryId',
+    [ENTITY_TYPES.JOB_TYPE]: 'jobTypeId',
+    [ENTITY_TYPES.BANK_ACCOUNT_TYPE]: 'bankAccountTypeId',
     [ENTITY_TYPES.PAY_LEVEL]: 'payLevelId',
     [ENTITY_TYPES.PAY_SCALE]: 'payScaleId',
     [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: 'assetFundingSourceId',
@@ -52,6 +54,7 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.IMPORTANT_DAY]: 'importantDayId',
 
     // Other Masters
+    [ENTITY_TYPES.UNIT]: 'unitId',
     [ENTITY_TYPES.CROP_TYPE]: 'typeId',
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: 'infraMasterId',
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: 'soilWaterAnalysisId',
@@ -61,6 +64,8 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.NICRA_CATEGORY]: 'nicraCategoryId',
     [ENTITY_TYPES.NICRA_SUB_CATEGORY]: 'nicraSubCategoryId',
     [ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK]: 'nicraSeedBankFodderBankId',
+    [ENTITY_TYPES.NICRA_DIGNITARY_TYPE]: 'nicraDignitaryTypeId',
+    [ENTITY_TYPES.NICRA_PI_TYPE]: 'nicraPiTypeId',
     [ENTITY_TYPES.FINANCIAL_PROJECT]: 'financialProjectId',
     [ENTITY_TYPES.FUNDING_AGENCY]: 'fundingAgencyId',
 

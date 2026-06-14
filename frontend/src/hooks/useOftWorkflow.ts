@@ -11,6 +11,16 @@ export function useTransferOftToNextYear() {
     })
 }
 
+export function useRevokeOftTransfer() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (id: number | string) => oftWorkflowApi.revokeTransfer(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['project-data', 'achievement-oft'] })
+        },
+    })
+}
+
 export function useTransferFldToNextYear() {
     const queryClient = useQueryClient()
     return useMutation({

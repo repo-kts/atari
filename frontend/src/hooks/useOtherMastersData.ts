@@ -6,6 +6,8 @@ import type {
     SeasonFormData,
     SanctionedPostFormData,
     StaffCategoryFormData,
+    JobTypeFormData,
+    BankAccountTypeFormData,
     PayLevelFormData,
     PayScaleFormData,
     AssetFundingSourceFormData,
@@ -18,6 +20,7 @@ import type {
     TrainingClienteleFormData,
     FundingSourceFormData,
     CropTypeFormData,
+    UnitFormData,
     InfrastructureMasterFormData,
     SoilWaterAnalysisFormData,
     NariCropCategoryFormData,
@@ -200,6 +203,94 @@ export function useStaffCategories() {
         mutationFn: (id: number) => otherMastersApi.deleteStaffCategory(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.STAFF_CATEGORY);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useJobTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['job-types'],
+        queryFn: () => otherMastersApi.getJobTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: JobTypeFormData) => otherMastersApi.createJobType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.JOB_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<JobTypeFormData> }) =>
+            otherMastersApi.updateJobType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.JOB_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteJobType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.JOB_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useBankAccountTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['bank-account-types'],
+        queryFn: () => otherMastersApi.getBankAccountTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: BankAccountTypeFormData) => otherMastersApi.createBankAccountType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.BANK_ACCOUNT_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<BankAccountTypeFormData> }) =>
+            otherMastersApi.updateBankAccountType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.BANK_ACCOUNT_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteBankAccountType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.BANK_ACCOUNT_TYPE);
         },
     });
 
@@ -752,6 +843,50 @@ export function useFundingSources() {
 // ============================================
 // Other Masters Hooks (continued)
 // ============================================
+
+export function useUnits() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['units'],
+        queryFn: () => otherMastersApi.getUnits().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: UnitFormData) => otherMastersApi.createUnit(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.UNIT);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<UnitFormData> }) =>
+            otherMastersApi.updateUnit(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.UNIT);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteUnit(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.UNIT);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
 
 export function useCropTypes() {
     const queryClient = useQueryClient();

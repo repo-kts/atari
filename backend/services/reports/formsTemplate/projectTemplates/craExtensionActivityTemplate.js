@@ -61,10 +61,19 @@ function renderCraExtensionActivitySection(section, data, sectionId, isFirstSect
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
     <style>
         .cra-ext-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
-        .cra-ext-table th, .cra-ext-table td { padding: 2px 3px !important; font-size: 6.8pt !important; line-height: 1.15; word-break: break-word; }
+        .cra-ext-table th, .cra-ext-table td { padding: 2px 3px !important; font-size: 6.8pt !important; line-height: 1.15; white-space: normal; word-break: normal; overflow-wrap: break-word; hyphens: none; }
         .cra-ext-table thead th { text-align: center; vertical-align: middle; }
     </style>
     <table class="data-table cra-ext-table">
+        <colgroup>
+            <col style="width:3%"><col style="width:9%"><col style="width:14%"><col style="width:8%">
+            <col style="width:5%"><col style="width:6%"><col style="width:6%">
+            <col style="width:3.27%"><col style="width:3.27%"><col style="width:3.27%">
+            <col style="width:3.27%"><col style="width:3.27%"><col style="width:3.27%">
+            <col style="width:3.27%"><col style="width:3.27%"><col style="width:3.27%">
+            <col style="width:3.27%"><col style="width:3.27%"><col style="width:3.27%">
+            <col style="width:3.27%"><col style="width:3.27%"><col style="width:3.27%">
+        </colgroup>
         <thead>
             <tr>
                 <th rowspan="3">Sl.no.</th>

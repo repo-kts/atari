@@ -2,6 +2,7 @@ model KvkEquipment {
   equipmentId          Int                        @id @default(autoincrement()) @map("equipment_id")
   kvkId                Int
   equipmentTypeId      Int?                       @map("equipment_type_id")
+  equipmentTypeOther   String?                    @map("equipment_type_other")
   equipmentMasterId    Int?                       @map("equipment_master_id")
   equipmentName        String?                    @map("equipment_name")
   companyBrandModel    String?                    @map("company_brand_model")
@@ -9,6 +10,7 @@ model KvkEquipment {
   yearOfPurchase       Int                        @map("year_of_purchase")
   totalCost            Float                      @map("total_cost")
   assetFundingSourceId Int?                       @map("asset_funding_source_id")
+  assetFundingSourceOther String?                 @map("asset_funding_source_other")
   createdAt            DateTime                   @default(now()) @map("created_at")
   updatedAt            DateTime                   @updatedAt @map("updated_at")
   kvk                  Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)

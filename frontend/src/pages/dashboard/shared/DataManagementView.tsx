@@ -18,6 +18,7 @@ import { DataTable } from '@/components/common/DataTable/DataTable'
 import { Pagination } from '@/components/common/DataTable/Pagination'
 import {
     applyColumnFilters,
+    valueToString,
     type ColumnFilters,
 } from '@/components/common/DataTable/columnFilterUtils'
 import { isFilterActive as isColumnFilterActive } from '@/components/common/DataTable/ColumnFilter'
@@ -54,6 +55,7 @@ import { useExportHandler } from '@/hooks/useExportHandler'
 import { useToast } from '@/hooks/useToast'
 import {
     useTransferOftToNextYear,
+    useRevokeOftTransfer,
     useTransferFldToNextYear,
     useCreateOftResult,
     useUpdateOftResult,
@@ -134,6 +136,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         exportLoading: exportLoadingState,
     } = useExportHandler()
     const transferOftMutation = useTransferOftToNextYear()
+    const revokeOftMutation = useRevokeOftTransfer()
     const transferFldMutation = useTransferFldToNextYear()
     const transferCfldMutation = useTransferCfldTechnicalToNextYear()
     const createOftResultMutation = useCreateOftResult()
@@ -242,6 +245,13 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         if (moduleCode && !hasPermission('ADD', moduleCode)) return false
         // Explicit opt-out via routeConfig wins for everyone, regardless of role.
         if (routeConfig?.canCreate === 'none') return false
+        // Super-admin may only add KVKs (KVK creation) and master data; the
+        // "Add New" button is hidden on every other form-management page.
+        if (user.role === 'super_admin') {
+            const isMaster = routeConfig?.category === 'All Masters'
+            const isKvkCreation = isAboutKvkEntity && entityType === ENTITY_TYPES.KVKS
+            if (!isMaster && !isKvkCreation) return false
+        }
         // About KVK entities: check routeConfig.canCreate for KVKS, otherwise only KVK role can add details
         if (isAboutKvkEntity) {
             if (entityType === ENTITY_TYPES.KVKS) {
@@ -409,10 +419,27 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // of the search/year-filtered set. The column-filter dropdown's unique-value
     // list is computed from `filteredData` so it represents the full visible
     // dataset before column filters narrow it further.
-    const columnFilteredData = useMemo(
-        () => applyColumnFilters(filteredData, fields, columnFilters),
-        [filteredData, fields, columnFilters],
-    )
+    const columnFilteredData = useMemo(() => {
+        const result = applyColumnFilters(filteredData, fields, columnFilters)
+        // Default alphabetical order (by the first column) unless the user has
+        // applied an explicit column sort.
+        const hasActiveSort = Object.values(columnFilters || {}).some(
+            (f: any) => f?.sort,
+        )
+        const sortKey = fields[0]
+        if (hasActiveSort || !sortKey || result.length < 2) return result
+        return [...result].sort((a, b) => {
+            const av = valueToString(getFieldValue(a, sortKey))
+            const bv = valueToString(getFieldValue(b, sortKey))
+            if (av === bv) return 0
+            if (av === '') return 1
+            if (bv === '') return -1
+            return av.localeCompare(bv, undefined, {
+                numeric: true,
+                sensitivity: 'base',
+            })
+        })
+    }, [filteredData, fields, columnFilters])
 
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
@@ -509,6 +536,33 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         }
     }
 
+    const handleRevokeOftTransfer = async (item: any) => {
+        const id = item?.id ?? item?.kvkOftId
+        if (!id) {
+            alert({
+                title: 'Error',
+                message: 'Unable to revoke transfer: missing record id.',
+                variant: 'error',
+            })
+            return
+        }
+        try {
+            await revokeOftMutation.mutateAsync(id)
+            alert({
+                title: 'Success',
+                message: 'OFT transfer revoked; record restored to Ongoing.',
+                variant: 'success',
+                autoClose: true,
+            })
+        } catch (err: any) {
+            alert({
+                title: 'Revoke failed',
+                message: err?.message || 'Unable to revoke OFT transfer.',
+                variant: 'error',
+            })
+        }
+    }
+
     const handleTransferFldToNextYear = async (item: any) => {
         const id = item?.id ?? item?.kvkFldId
         if (!id) {
@@ -594,26 +648,35 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const handleSubmitOftResult = async (payload: OftResultFormValue) => {
         if (!selectedOftId) return
-        if (oftResultMode === 'create') {
-            await createOftResultMutation.mutateAsync({
-                id: selectedOftId,
-                payload,
+        try {
+            if (oftResultMode === 'create') {
+                await createOftResultMutation.mutateAsync({
+                    id: selectedOftId,
+                    payload,
+                })
+            } else {
+                await updateOftResultMutation.mutateAsync({
+                    id: selectedOftId,
+                    payload,
+                })
+            }
+            alert({
+                title: 'Success',
+                message:
+                    oftResultMode === 'create'
+                        ? 'OFT result created successfully.'
+                        : 'OFT result updated successfully.',
+                variant: 'success',
+                autoClose: true,
             })
-        } else {
-            await updateOftResultMutation.mutateAsync({
-                id: selectedOftId,
-                payload,
+        } catch (err: any) {
+            alert({
+                title: 'Error',
+                message: err?.message || 'Failed to save the OFT result. Please try again.',
+                variant: 'error',
             })
+            throw err // keep the form open so the user can retry
         }
-        alert({
-            title: 'Success',
-            message:
-                oftResultMode === 'create'
-                    ? 'OFT result created successfully.'
-                    : 'OFT result updated successfully.',
-            variant: 'success',
-            autoClose: true,
-        })
     }
 
     const handleAddFldResult = (item: any) => {
@@ -790,26 +853,35 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const handleSubmitFldResult = async (payload: FldResultValue) => {
         if (!selectedFldId) return
-        if (fldResultMode === 'create') {
-            await createFldResultMutation.mutateAsync({
-                id: selectedFldId,
-                payload,
+        try {
+            if (fldResultMode === 'create') {
+                await createFldResultMutation.mutateAsync({
+                    id: selectedFldId,
+                    payload,
+                })
+            } else {
+                await updateFldResultMutation.mutateAsync({
+                    id: selectedFldId,
+                    payload,
+                })
+            }
+            alert({
+                title: 'Success',
+                message:
+                    fldResultMode === 'create'
+                        ? 'FLD result created successfully.'
+                        : 'FLD result updated successfully.',
+                variant: 'success',
+                autoClose: true,
             })
-        } else {
-            await updateFldResultMutation.mutateAsync({
-                id: selectedFldId,
-                payload,
+        } catch (err: any) {
+            alert({
+                title: 'Error',
+                message: err?.message || 'Failed to save the FLD result. Please try again.',
+                variant: 'error',
             })
+            throw err // keep the form open so the user can retry
         }
-        alert({
-            title: 'Success',
-            message:
-                fldResultMode === 'create'
-                    ? 'FLD result created successfully.'
-                    : 'FLD result updated successfully.',
-            variant: 'success',
-            autoClose: true,
-        })
     }
 
     const handleSubmitNariNutriResult = async (
@@ -916,6 +988,18 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
                     icon: FilePenLine,
+                },
+                {
+                    key: 'revoke-transfer',
+                    label: 'Revoke Transfer',
+                    onClick: handleRevokeOftTransfer,
+                    // Super-admin only, and only for records already transferred.
+                    isVisible: (item: any) =>
+                        user?.role === 'super_admin' &&
+                        statusValue(item) === 'TRANSFERRED_TO_NEXT_YEAR',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-orange-300 text-orange-700 hover:bg-orange-50 transition-colors',
+                    icon: RotateCcw,
                 },
             ]
             : []
@@ -1117,11 +1201,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const handleExport = async (format: 'pdf' | 'excel' | 'word' | 'csv') => {
         const templateKey = getExportTemplateKey(entityType)
-        // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
-        const exportDataSource =
-            templateKey && filteredData.length === 0 && items.length > 0
-                ? items
-                : filteredData
+        // Export exactly what's visible after ALL active filters (search, date
+        // range, and per-column filters/sort), so a filtered download contains
+        // only the filtered rows — not the full dataset.
+        const exportDataSource = columnFilteredData
 
         await handleExportData(format, {
             title,

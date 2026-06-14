@@ -25,6 +25,7 @@ const BASE_URL = '/admin/masters';
 export interface Season {
     seasonId: number;
     seasonName: string;
+    isOther?: boolean;
     _count?: {
         cfldCrops: number;
         craCropingSystems: number;
@@ -43,10 +44,12 @@ export interface SanctionedPost {
 // Form Data Types
 export interface SeasonFormData {
     seasonName: string;
+    isOther?: boolean;
 }
 
 export interface SanctionedPostFormData {
     postName: string;
+    isOther?: boolean;
 }
 
 // Employee Masters
@@ -105,6 +108,7 @@ export interface EquipmentMasterEntry {
 
 export interface EquipmentTypeFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface EquipmentMasterFormData {
@@ -115,6 +119,7 @@ export interface EquipmentMasterFormData {
 export interface Discipline {
     disciplineId: number;
     disciplineName: string;
+    isOther?: boolean;
     _count?: {
         staff: number;
     };
@@ -141,6 +146,7 @@ export interface OtherExtensionActivityType {
 export interface ImportantDay {
     importantDayId: number;
     dayName: string;
+    isOther?: boolean;
     _count?: {
         celebrations: number;
     };
@@ -150,6 +156,7 @@ export interface ImportantDay {
 export interface TrainingClientele {
     clienteleId: number;
     name: string;
+    isOther?: boolean;
     _count?: {
         trainings: number;
     };
@@ -158,15 +165,32 @@ export interface TrainingClientele {
 export interface FundingSource {
     fundingSourceId: number;
     name: string;
+    isOther?: boolean;
     _count?: {
         trainings: number;
     };
 }
 
 // Other Masters
+export interface Unit {
+    unitId: number;
+    unitName: string;
+    isOther?: boolean;
+    _count?: {
+        fldCrops: number;
+        products: number;
+    };
+}
+
+export interface UnitFormData {
+    unitName: string;
+    isOther?: boolean;
+}
+
 export interface CropType {
     typeId: number;
     typeName: string;
+    isOther?: boolean;
     _count?: {
         cfldCrops: number;
     };
@@ -183,50 +207,90 @@ export interface InfrastructureMaster {
 // Form Data Types
 export interface StaffCategoryFormData {
     categoryName: string;
+    isOther?: boolean;
+}
+
+export interface JobType {
+    jobTypeId: number;
+    name: string;
+    isOther?: boolean;
+    _count?: {
+        staff: number;
+    };
+}
+
+export interface JobTypeFormData {
+    name: string;
+    isOther?: boolean;
+}
+
+export interface BankAccountType {
+    bankAccountTypeId: number;
+    name: string;
+    isOther?: boolean;
+    _count?: {
+        bankAccounts: number;
+    };
+}
+
+export interface BankAccountTypeFormData {
+    name: string;
+    isOther?: boolean;
 }
 
 export interface PayLevelFormData {
     levelName: string;
+    isOther?: boolean;
 }
 
 export interface PayScaleFormData {
     scaleName: string;
+    isOther?: boolean;
 }
 
 export interface AssetFundingSourceFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface DisciplineFormData {
     disciplineName: string;
+    isOther?: boolean;
 }
 
 export interface ExtensionActivityTypeFormData {
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface OtherExtensionActivityTypeFormData {
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface ImportantDayFormData {
     dayName: string;
+    isOther?: boolean;
 }
 
 export interface TrainingClienteleFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface FundingSourceFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface CropTypeFormData {
     typeName: string;
+    isOther?: boolean;
 }
 
 export interface InfrastructureMasterFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface VehiclePresentStatus {
@@ -287,24 +351,29 @@ export interface NariCropCategoryFormData {
 export interface NariActivity {
     nariActivityId: number;
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface NariNutritionGardenType {
     nutritionGardenTypeId: number;
     name: string;
+    isOther?: boolean;
 }
 
 export interface NariActivityFormData {
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface NariNutritionGardenTypeFormData {
     name: string;
+    isOther?: boolean;
 }
 
 export interface NicraCategory {
     nicraCategoryId: number;
     categoryName: string;
+    isOther?: boolean;
     _count?: {
         nicraDetails: number;
         subCategories: number;
@@ -326,6 +395,7 @@ export interface NicraSubCategory {
 
 export interface NicraCategoryFormData {
     categoryName: string;
+    isOther?: boolean;
 }
 
 export interface NicraSubCategoryFormData {
@@ -381,10 +451,12 @@ export interface EnterpriseTypeFormData {
 export interface AccountType {
     accountTypeId: number;
     accountType: string;
+    isOther?: boolean;
 }
 
 export interface AccountTypeFormData {
     accountType: string;
+    isOther?: boolean;
 }
 
 export interface ProgrammeType {
@@ -430,10 +502,12 @@ export interface FinancialProjectFormData {
 export interface FundingAgency {
     fundingAgencyId: number;
     agencyName: string;
+    isOther?: boolean;
 }
 
 export interface FundingAgencyFormData {
     agencyName: string;
+    isOther?: boolean;
 }
 
 // ============================================
@@ -484,6 +558,28 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<StaffCategory>>(`${BASE_URL}/staff-category/${id}`, data),
     deleteStaffCategory: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/staff-category/${id}`),
+
+    getJobTypes: () =>
+        apiClient.get<PaginatedResponse<JobType>>(`${BASE_URL}/job-type`),
+    getJobTypeById: (id: number) =>
+        apiClient.get<ApiResponse<JobType>>(`${BASE_URL}/job-type/${id}`),
+    createJobType: (data: JobTypeFormData) =>
+        apiClient.post<ApiResponse<JobType>>(`${BASE_URL}/job-type`, data),
+    updateJobType: (id: number, data: Partial<JobTypeFormData>) =>
+        apiClient.put<ApiResponse<JobType>>(`${BASE_URL}/job-type/${id}`, data),
+    deleteJobType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/job-type/${id}`),
+
+    getBankAccountTypes: () =>
+        apiClient.get<PaginatedResponse<BankAccountType>>(`${BASE_URL}/bank-account-type`),
+    getBankAccountTypeById: (id: number) =>
+        apiClient.get<ApiResponse<BankAccountType>>(`${BASE_URL}/bank-account-type/${id}`),
+    createBankAccountType: (data: BankAccountTypeFormData) =>
+        apiClient.post<ApiResponse<BankAccountType>>(`${BASE_URL}/bank-account-type`, data),
+    updateBankAccountType: (id: number, data: Partial<BankAccountTypeFormData>) =>
+        apiClient.put<ApiResponse<BankAccountType>>(`${BASE_URL}/bank-account-type/${id}`, data),
+    deleteBankAccountType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/bank-account-type/${id}`),
 
     getPayLevels: () =>
         apiClient.get<PaginatedResponse<PayLevel>>(`${BASE_URL}/pay-level`),
@@ -607,6 +703,18 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<FundingSource>>(`${BASE_URL}/funding-source/${id}`, data),
     deleteFundingSource: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/funding-source/${id}`),
+
+    // Units
+    getUnits: () =>
+        apiClient.get<PaginatedResponse<Unit>>(`${BASE_URL}/units`),
+    getUnitById: (id: number) =>
+        apiClient.get<ApiResponse<Unit>>(`${BASE_URL}/units/${id}`),
+    createUnit: (data: UnitFormData) =>
+        apiClient.post<ApiResponse<Unit>>(`${BASE_URL}/units`, data),
+    updateUnit: (id: number, data: Partial<UnitFormData>) =>
+        apiClient.put<ApiResponse<Unit>>(`${BASE_URL}/units/${id}`, data),
+    deleteUnit: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/units/${id}`),
 
     // Other Masters
     getCropTypes: () =>

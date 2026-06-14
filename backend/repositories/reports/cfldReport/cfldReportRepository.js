@@ -62,11 +62,11 @@ function mapCfldRecord(record) {
         stateId: record.kvk?.state?.stateId || null,
         stateName: record.kvk?.state?.stateName || '',
         cropId: record.cropId,
-        cropName: record.crop?.cropName || '',
+        cropName: record.cropOther || record.crop?.cropName || '',
         cropTypeId: record.typeId,
-        cropTypeName: record.cropType?.typeName || '',
+        cropTypeName: record.typeOther || record.cropType?.typeName || '',
         seasonId: record.seasonId,
-        seasonName: record.season?.seasonName || '',
+        seasonName: record.seasonOther || record.season?.seasonName || '',
         reportingYear: record.reportingYear || null,
         status: record.status || '',
         areaInHa: record.areaInHa ?? 0,
@@ -93,6 +93,9 @@ function mapCfldRecord(record) {
         stF: record.stF ?? 0,
         trainingPhotoPath: record.trainingPhotoPath || null,
         qualityActionPhotoPath: record.qualityActionPhotoPath || null,
+        // Populated by attachCfldTargets() from the `targets` table.
+        targetAreaHa: 0,
+        targetDemonstrations: 0,
         economic: {
             existingPlotGrossCost: economic.existingPlotGrossCost ?? null,
             existingPlotGrossReturn: economic.existingPlotGrossReturn ?? null,
@@ -125,6 +128,64 @@ function mapCfldRecord(record) {
     };
 }
 
+const CFLD_TARGET_TYPES = ['CFLD Pulses', 'CFLD Oilseed'];
+
+function normKey(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+// CFLD targets are stored with typeName "CFLD Pulses"/"CFLD Oilseed", while the
+// CropType master uses "Pulses"/"Oilseed". Map a crop-type name to its target type.
+function targetTypeForCropType(cropTypeName) {
+    const t = normKey(cropTypeName);
+    if (t.includes('pulse')) return 'CFLD Pulses';
+    if (t.includes('oilseed') || t.includes('oil seed')) return 'CFLD Oilseed';
+    return null;
+}
+
+/**
+ * Attach CFLD approved-target values (area + no. of demonstrations) onto mapped
+ * technical records by matching the `targets` table on kvk + type + season + crop.
+ * A target is attributed to only the first matching record per key so the
+ * template's per-record summation does not inflate the totals.
+ */
+async function attachCfldTargets(records, filters = {}) {
+    if (!records.length) return;
+    const kvkIds = [...new Set(records.map(r => r.kvkId).filter(Boolean))];
+    if (!kvkIds.length) return;
+
+    const where = { kvkId: { in: kvkIds }, typeName: { in: CFLD_TARGET_TYPES } };
+    const year = Number(filters.year);
+    if (Number.isFinite(year)) where.reportingYear = year;
+
+    const targets = await prisma.target.findMany({ where });
+
+    const targetMap = new Map();
+    for (const t of targets) {
+        const key = [t.kvkId, normKey(t.typeName), normKey(t.season), normKey(t.cropName)].join('|');
+        if (!targetMap.has(key)) {
+            targetMap.set(key, {
+                areaTarget: Number(t.areaTarget || 0),
+                target: Number(t.target || 0),
+            });
+        }
+    }
+
+    const seen = new Set();
+    for (const r of records) {
+        const typeName = targetTypeForCropType(r.cropTypeName);
+        if (!typeName) continue;
+        const key = [r.kvkId, normKey(typeName), normKey(r.seasonName), normKey(r.cropName)].join('|');
+        if (seen.has(key)) continue; // count each target once across duplicate demo rows
+        const t = targetMap.get(key);
+        if (t) {
+            r.targetAreaHa = t.areaTarget;
+            r.targetDemonstrations = t.target;
+            seen.add(key);
+        }
+    }
+}
+
 async function getCfldCombinedData(kvkId, filters = {}) {
     const where = buildWhere(kvkId, filters);
     const records = await prisma.cfldTechnicalParameter.findMany({
@@ -147,7 +208,9 @@ async function getCfldCombinedData(kvkId, filters = {}) {
         orderBy: [{ typeId: 'asc' }, { seasonId: 'asc' }, { cropId: 'asc' }],
     });
 
-    return records.map(mapCfldRecord);
+    const mapped = records.map(mapCfldRecord);
+    await attachCfldTargets(mapped, filters);
+    return mapped;
 }
 
 async function getCfldExtensionActivityData(kvkId, filters = {}) {
@@ -178,7 +241,7 @@ async function getCfldExtensionActivityData(kvkId, filters = {}) {
             stateId: row.kvk?.state?.stateId || null,
             stateName: row.kvk?.state?.stateName || '',
             seasonId: row.seasonId || null,
-            seasonName: row.season?.seasonName || '',
+            seasonName: row.seasonOther || row.season?.seasonName || '',
             extensionActivityId: row.extensionActivityId,
             extensionActivityName: row.extensionActivity?.extensionName || '',
             activityDate: row.activityDate || null,

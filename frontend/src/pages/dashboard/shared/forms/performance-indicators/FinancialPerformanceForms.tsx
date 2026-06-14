@@ -441,7 +441,10 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             isLoading={isLoadingAgencies}
                             emptyMessage="No funding agencies available"
                         />
-                        {fundingAgencies.find((a: any) => a.fundingAgencyId === parseInt(formData.fundingAgencyId?.toString()))?.agencyName === 'Others' && (
+                        {(() => {
+                            const sel = fundingAgencies.find((a: any) => a.fundingAgencyId === parseInt(formData.fundingAgencyId?.toString()))
+                            return Boolean(sel?.isOther) || sel?.agencyName === 'Others'
+                        })() && (
                             <FormInput
                                 label="Specify Agency Name"
                                 required

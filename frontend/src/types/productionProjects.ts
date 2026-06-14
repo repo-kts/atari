@@ -9,6 +9,7 @@
 export interface ProductCategory {
     productCategoryId: number;
     productCategoryName: string;
+    isOther?: boolean;
     _count?: {
         productTypes: number;
         products: number;
@@ -19,6 +20,7 @@ export interface ProductType {
     productTypeId: number;
     productCategoryType: string;
     productCategoryId: number;
+    isOther?: boolean;
     productCategory?: {
         productCategoryId: number;
         productCategoryName: string;
@@ -32,6 +34,7 @@ export interface Product {
     productId: number;
     productName: string;
     productCategoryId: number;
+    isOther?: boolean;
     productCategory?: {
         productCategoryId: number;
         productCategoryName: string;
@@ -51,6 +54,7 @@ export interface CraCroppingSystem {
     craCropingSystemId: number;
     cropName: string;
     seasonId: number;
+    isOther?: boolean;
     season?: {
         seasonId: number;
         seasonName: string;
@@ -61,6 +65,7 @@ export interface CraFarmingSystem {
     craFarmingSystemId: number;
     farmingSystemName: string;
     seasonId: number;
+    isOther?: boolean;
     season?: {
         seasonId: number;
         seasonName: string;
@@ -73,7 +78,9 @@ export interface CraFarmingSystem {
 
 export interface AryaEnterprise {
     aryaEnterpriseId: number;
+    enterpriseId?: number;
     enterpriseName: string;
+    isOther?: boolean;
 }
 
 export interface TspScspType {
@@ -84,6 +91,7 @@ export interface TspScspType {
 export interface TspScspActivity {
     tspScspActivityId: number;
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface NaturalFarmingActivity {
@@ -94,6 +102,7 @@ export interface NaturalFarmingActivity {
 export interface NaturalFarmingSoilParameter {
     naturalFarmingSoilParameterId: number;
     parameterName: string;
+    isOther?: boolean;
 }
 
 // ============================================
@@ -103,6 +112,7 @@ export interface NaturalFarmingSoilParameter {
 export interface AgriDroneDemonstrationsOn {
     agriDroneDemonstrationsOnId: number;
     demonstrationsOnName: string;
+    isOther?: boolean;
     // common aliases from backend
     id?: number;
     name?: string;
@@ -114,31 +124,37 @@ export interface AgriDroneDemonstrationsOn {
 
 export interface ProductCategoryFormData {
     productCategoryName: string;
+    isOther?: boolean;
 }
 
 export interface ProductTypeFormData {
     productCategoryType: string;
     productCategoryId: number;
+    isOther?: boolean;
 }
 
 export interface ProductFormData {
     productName: string;
     productCategoryId: number;
     productTypeId: number;
+    isOther?: boolean;
 }
 
 export interface CraCroppingSystemFormData {
     cropName: string;
     seasonId: number;
+    isOther?: boolean;
 }
 
 export interface CraFarmingSystemFormData {
     farmingSystemName: string;
     seasonId: number;
+    isOther?: boolean;
 }
 
 export interface AryaEnterpriseFormData {
     enterpriseName: string;
+    isOther?: boolean;
 }
 
 export interface TspScspTypeFormData {
@@ -147,6 +163,7 @@ export interface TspScspTypeFormData {
 
 export interface TspScspActivityFormData {
     activityName: string;
+    isOther?: boolean;
 }
 
 export interface NaturalFarmingActivityFormData {
@@ -155,10 +172,12 @@ export interface NaturalFarmingActivityFormData {
 
 export interface NaturalFarmingSoilParameterFormData {
     parameterName: string;
+    isOther?: boolean;
 }
 
 export interface AgriDroneDemonstrationsOnFormData {
     demonstrationsOnName: string;
+    isOther?: boolean;
 }
 
 // ============================================

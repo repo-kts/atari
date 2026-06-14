@@ -108,14 +108,19 @@ const _mapResponse = (r) => {
         id: r.productionSupplyId,
         reportingYear,
         kvkName: r.kvk?.kvkName,
-        category: r.productCategory?.productCategoryName,
+        // Prefer the typed "Other" text over the generic master name.
+        category: r.productCategoryOther || r.productCategory?.productCategoryName,
         variety: r.speciesName,
-        productCategory: r.productCategory?.productCategoryName,
-        productType: r.productType?.productCategoryType,
-        product: r.product?.productName,
+        productCategory: r.productCategoryOther || r.productCategory?.productCategoryName,
+        productCategoryOther: r.productCategoryOther ?? '',
+        productType: r.productTypeOther || r.productType?.productCategoryType,
+        productTypeOther: r.productTypeOther ?? '',
+        product: r.productOther || r.product?.productName,
+        productOther: r.productOther ?? '',
         speciesBreedVariety: r.speciesName,
         unit: r.unit,
         quantity: r.quantity,
+        quantityText: r.quantityText,
         valueRs: r.value,
         noOfParticipants: totalParticipants,
         // Participant fields (frontend format)
@@ -176,28 +181,32 @@ const productionSupplyRepository = {
                 await _validateForeignKey(productId, 'product', 'productId', 'Product', false);
             }
 
-            // Validate required fields
+            // Validate required fields. Unit now comes from the product's master
+            // (read-only in the form), so accept any non-empty value instead of a
+            // hardcoded list.
             const speciesName = _normalizeString(data.speciesName, 'Species / Breed / Variety', false);
             const unit = _normalizeString(data.unit, 'Unit', false);
             const quantity = _parseFloat(data.quantity, 'Quantity', false);
             const value = _parseFloat(data.value, 'Value', false);
-
-            // Validate unit is one of allowed values
-            const allowedUnits = ['Kg', 'Quintal', 'Nos'];
-            if (!allowedUnits.includes(unit)) {
-                throw new RepositoryError(`Invalid unit: must be one of ${allowedUnits.join(', ')}`, 'VALIDATION_ERROR', 400);
-            }
+            // Free-text quantity for products whose master quantity data type is
+            // string/boolean (e.g. "N/A"); numeric types use `quantity`.
+            const quantityText = _normalizeString(data.quantityText, 'quantityText', true);
 
             // Prepare create data
             const createData = {
                 kvkId,
                 reportingYear,
                 productCategoryId: productCategoryId ? parseInteger(productCategoryId, 'productCategoryId', false) : null,
+                // "Other" free-text: only meaningful when the chosen master row is flagged isOther.
+                productCategoryOther: _normalizeString(data.productCategoryOther, 'productCategoryOther', true),
                 productTypeId: productTypeId ? parseInteger(productTypeId, 'productTypeId', false) : null,
+                productTypeOther: _normalizeString(data.productTypeOther, 'productTypeOther', true),
                 productId: productId ? parseInteger(productId, 'productId', false) : null,
+                productOther: _normalizeString(data.productOther, 'productOther', true),
                 speciesName,
                 unit,
                 quantity,
+                quantityText,
                 value,
                 ...normalizeFarmersData(data, true), // Include all farmer participant fields with defaults
             };
@@ -404,22 +413,27 @@ const productionSupplyRepository = {
                 }
             }
 
+            // "Other" free-text fields
+            if (data.productCategoryOther !== undefined) updateData.productCategoryOther = _normalizeString(data.productCategoryOther, 'productCategoryOther', true);
+            if (data.productTypeOther !== undefined) updateData.productTypeOther = _normalizeString(data.productTypeOther, 'productTypeOther', true);
+            if (data.productOther !== undefined) updateData.productOther = _normalizeString(data.productOther, 'productOther', true);
+
             // Update required fields if provided
             if (data.speciesName !== undefined) {
                 updateData.speciesName = _normalizeString(data.speciesName, 'Species / Breed / Variety', false);
             }
 
             if (data.unit !== undefined) {
-                const unit = _normalizeString(data.unit, 'Unit', false);
-                const allowedUnits = ['Kg', 'Quintal', 'Nos'];
-                if (!allowedUnits.includes(unit)) {
-                    throw new RepositoryError(`Invalid unit: must be one of ${allowedUnits.join(', ')}`, 'VALIDATION_ERROR', 400);
-                }
-                updateData.unit = unit;
+                // Unit comes from the product master (read-only) — accept any value.
+                updateData.unit = _normalizeString(data.unit, 'Unit', false);
             }
 
             if (data.quantity !== undefined) {
                 updateData.quantity = _parseFloat(data.quantity, 'Quantity', false);
+            }
+
+            if (data.quantityText !== undefined) {
+                updateData.quantityText = _normalizeString(data.quantityText, 'quantityText', true);
             }
 
             if (data.value !== undefined) {

@@ -2,6 +2,8 @@ import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
@@ -24,6 +26,17 @@ export const NariForms: React.FC<NariFormsProps> = ({
     nariCropCategories,
     nariNutritionGardenTypes
 }) => {
+    // Nutrition-garden "Other → specify" (only this record stores activityOther / typeOfNutritionalGardenOther).
+    const nariActivityOptions = React.useMemo(
+        () => createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName', { flagKey: 'isOther' }),
+        [nariActivities]
+    )
+    const gardenTypeOptions = React.useMemo(
+        () => createMasterDataOptions(nariNutritionGardenTypes, 'nutritionGardenTypeId', 'name', { flagKey: 'isOther' }),
+        [nariNutritionGardenTypes]
+    )
+    const { isOtherSelected: isOtherNariActivity, otherResetPatch: nariActivityResetPatch } = useOtherSpecify(nariActivityOptions, formData.activityId)
+    const { isOtherSelected: isOtherGardenType, otherResetPatch: gardenTypeResetPatch } = useOtherSpecify(gardenTypeOptions, formData.typeOfNutritionalGardenId)
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN && (
@@ -41,10 +54,18 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Activity"
                             required
                             value={formData.activityId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
+                            onChange={(value) => setFormData({ ...formData, activityId: value, ...nariActivityResetPatch(value, 'activityOther') })}
+                            options={nariActivityOptions}
                             placeholder="Select Activity"
                         />
+                        {isOtherNariActivity && (
+                            <SpecifyOtherInput
+                                label="Please specify other activity"
+                                required
+                                value={formData.activityOther}
+                                onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })}
+                            />
+                        )}
                         <FormInput
                             label="Name of Nutri-Smart Village"
                             required
@@ -55,10 +76,18 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Type of Nutritional Garden"
                             required
                             value={formData.typeOfNutritionalGardenId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, typeOfNutritionalGardenId: value })}
-                            options={createMasterDataOptions(nariNutritionGardenTypes, 'nutritionGardenTypeId', 'name')}
+                            onChange={(value) => setFormData({ ...formData, typeOfNutritionalGardenId: value, ...gardenTypeResetPatch(value, 'typeOfNutritionalGardenOther') })}
+                            options={gardenTypeOptions}
                             placeholder="Select Garden Type"
                         />
+                        {isOtherGardenType && (
+                            <SpecifyOtherInput
+                                label="Please specify other garden type"
+                                required
+                                value={formData.typeOfNutritionalGardenOther}
+                                onChange={(e) => setFormData({ ...formData, typeOfNutritionalGardenOther: e.target.value })}
+                            />
+                        )}
                         <FormInput
                             label="Number"
                             required

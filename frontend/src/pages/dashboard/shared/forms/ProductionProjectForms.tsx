@@ -4,12 +4,17 @@ import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormSection } from './shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { IsOtherCheckbox } from '@/components/common/IsOtherCheckbox'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 import {
     useProductCategories,
     useProductTypes,
     useProducts,
 } from '@/hooks/useProductionProjectsData'
 import { useSeasons } from '@/hooks/useOftFldData'
+import { useUnits } from '@/hooks/useOtherMastersData'
+import { QUANTITY_DATA_TYPE_OPTIONS } from '@/constants/quantityDataType'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface ProductionProjectFormsProps {
@@ -28,6 +33,28 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
     const { data: productTypes = [] } = useProductTypes()
     const { data: products = [] } = useProducts()
     const { data: seasons = [] } = useSeasons()
+    const { data: units = [] } = useUnits()
+
+    // Master-controlled "Other → specify" for the Product Category → Type → Product chain.
+    const productCategoryOptions = useMemo(
+        () => createMasterDataOptions(productCategories, 'productCategoryId', 'productCategoryName', { flagKey: 'isOther' }),
+        [productCategories]
+    )
+    const productTypeOptions = useMemo(
+        () => (productTypes as any[])
+            .filter((t: any) => t.productCategoryId === formData.productCategoryId)
+            .map((t: any) => ({ value: t.productTypeId, label: t.productCategoryType, isOther: Boolean(t.isOther) })),
+        [productTypes, formData.productCategoryId]
+    )
+    const productOptions = useMemo(
+        () => (products as any[])
+            .filter((p: any) => p.productTypeId === formData.productTypeId && p.productCategoryId === formData.productCategoryId)
+            .map((p: any) => ({ value: p.productId, label: p.productName, isOther: Boolean(p.isOther) })),
+        [products, formData.productTypeId, formData.productCategoryId]
+    )
+    const { isOtherSelected: isOtherProductCategory, otherResetPatch: productCategoryResetPatch } = useOtherSpecify(productCategoryOptions, formData.productCategoryId)
+    const { isOtherSelected: isOtherProductType, otherResetPatch: productTypeResetPatch } = useOtherSpecify(productTypeOptions, formData.productTypeId)
+    const { isOtherSelected: isOtherProduct, otherResetPatch: productResetPatch } = useOtherSpecify(productOptions, formData.productId)
 
     // Memoized function to load product types by category (for DependentDropdown)
     const loadProductTypesByCategory = useCallback(async (categoryId: string | number, signal?: AbortSignal): Promise<{ value: string | number; label: string }[]> => {
@@ -49,7 +76,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             return []
         }
 
-        return createMasterDataOptions(filtered, 'productTypeId', 'productCategoryType')
+        return createMasterDataOptions(filtered, 'productTypeId', 'productCategoryType', { flagKey: 'isOther' })
     }, [productTypes])
 
     // Memoized function to load products by type (for DependentDropdown)
@@ -75,14 +102,8 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             return []
         }
 
-        return createMasterDataOptions(filtered, 'productId', 'productName')
+        return createMasterDataOptions(filtered, 'productId', 'productName', { flagKey: 'isOther' })
     }, [products, formData.productCategoryId])
-
-    const unitOptions = useMemo(() => [
-        { value: 'Kg', label: 'Kg' },
-        { value: 'Quintal', label: 'Quintal' },
-        { value: 'Nos', label: 'Nos' },
-    ], [])
 
     // Optimized onChange handlers using useCallback
     const handleReportingYearChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,8 +119,12 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             prodSubCategory: '',
             productId: '',
             prodType: '',
+            // Child specify-other texts reset with their dropdowns.
+            productTypeOther: '',
+            productOther: '',
+            ...productCategoryResetPatch(value, 'productCategoryOther'),
         })
-    }, [formData, setFormData, productCategories])
+    }, [formData, setFormData, productCategories, productCategoryResetPatch])
 
     const handleProductTypeChange = useCallback((value: string | number) => {
         const selectedType = productTypes.find((t: any) => t.productTypeId === value)
@@ -108,24 +133,27 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             productTypeId: value,
             prodSubCategory: selectedType?.productCategoryType || '',
             productId: '',
+            productOther: '',
+            ...productTypeResetPatch(value, 'productTypeOther'),
         })
-    }, [formData, setFormData, productTypes])
+    }, [formData, setFormData, productTypes, productTypeResetPatch])
 
     const handleProductChange = useCallback((value: string | number) => {
         // Species / Breed / Variety is free text now — don't overwrite it.
-        setFormData({ ...formData, productId: value })
-    }, [formData, setFormData])
+        // Pull the product's master-defined unit; reset quantity inputs.
+        const selProduct: any = products.find((p: any) => Number(p.productId) === Number(value))
+        setFormData({
+            ...formData,
+            productId: value,
+            unit: selProduct?.unit?.unitName ?? '',
+            quantity: '',
+            quantityText: '',
+            ...productResetPatch(value, 'productOther'),
+        })
+    }, [formData, setFormData, productResetPatch, products])
 
     const handleSpeciesNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, speciesName: e.target.value })
-    }, [formData, setFormData])
-
-    const handleUnitChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        setFormData({ ...formData, unit: e.target.value })
-    }, [formData, setFormData])
-
-    const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, quantity: e.target.value })
     }, [formData, setFormData])
 
     const handleValueChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,13 +170,19 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
     return (
         <>
             {entityType === ENTITY_TYPES.PRODUCT_CATEGORIES && (
-                <FormInput
-                    label="Product Category Name"
-                    required
-                    value={formData.productCategoryName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, productCategoryName: e.target.value })}
-                    placeholder="Enter product category name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Product Category Name"
+                        required
+                        value={formData.productCategoryName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, productCategoryName: e.target.value })}
+                        placeholder="Enter product category name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.PRODUCT_TYPES && (
@@ -166,6 +200,10 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                         value={formData.productCategoryType ?? ''}
                         onChange={(e) => setFormData({ ...formData, productCategoryType: e.target.value })}
                         placeholder="Enter product type"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
                     />
                 </div>
             )}
@@ -199,6 +237,39 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
                         placeholder="Enter product name"
                     />
+                    <FormSelect
+                        label="Unit"
+                        value={formData.unitId ?? ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                unitId: e.target.value ? parseInt(e.target.value) : null,
+                            })
+                        }
+                        options={units.map(u => ({ value: u.unitId, label: u.unitName }))}
+                    />
+                    <FormSelect
+                        label="Quantity Data Type"
+                        value={formData.quantityDataType ?? ''}
+                        onChange={(e) =>
+                            setFormData({ ...formData, quantityDataType: e.target.value || null })
+                        }
+                        options={QUANTITY_DATA_TYPE_OPTIONS}
+                    />
+                    <label className="flex items-center gap-2 text-sm text-[#212121] cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={Boolean(formData.quantityRequired)}
+                            onChange={(e) =>
+                                setFormData({ ...formData, quantityRequired: e.target.checked })
+                            }
+                        />
+                        Quantity required in forms
+                    </label>
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
                 </div>
             )}
 
@@ -217,6 +288,10 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                         value={formData.cropName ?? ''}
                         onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                         placeholder="Enter crop name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
                     />
                 </div>
             )}
@@ -237,17 +312,27 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, farmingSystemName: e.target.value })}
                         placeholder="Enter farming system name"
                     />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
                 </div>
             )}
 
             {entityType === ENTITY_TYPES.ARYA_ENTERPRISES && (
-                <FormInput
-                    label="Enterprise Name"
-                    required
-                    value={formData.enterpriseName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, enterpriseName: e.target.value })}
-                    placeholder="Enter enterprise name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Enterprise Name"
+                        required
+                        value={formData.enterpriseName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, enterpriseName: e.target.value })}
+                        placeholder="Enter enterprise name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.TSP_SCSP_TYPES && (
@@ -261,13 +346,19 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.TSP_SCSP_ACTIVITIES && (
-                <FormInput
-                    label="TSP/SCSP Activity Name"
-                    required
-                    value={formData.activityName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
-                    placeholder="Enter activity name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="TSP/SCSP Activity Name"
+                        required
+                        value={formData.activityName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
+                        placeholder="Enter activity name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES && (
@@ -281,23 +372,35 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS && (
-                <FormInput
-                    label="Natural Farming Soil Parameter"
-                    required
-                    value={formData.parameterName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, parameterName: e.target.value })}
-                    placeholder="Enter natural farming soil parameter"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Natural Farming Soil Parameter"
+                        required
+                        value={formData.parameterName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, parameterName: e.target.value })}
+                        placeholder="Enter natural farming soil parameter"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.AGRI_DRONE_DEMONSTRATIONS_ON && (
-                <FormInput
-                    label="Demonstrations on"
-                    required
-                    value={formData.demonstrationsOnName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, demonstrationsOnName: e.target.value })}
-                    placeholder="Enter demonstrations on"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Demonstrations on"
+                        required
+                        value={formData.demonstrationsOnName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, demonstrationsOnName: e.target.value })}
+                        placeholder="Enter demonstrations on"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData({ ...formData, isOther: checked })}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY && (
@@ -317,9 +420,17 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             required
                             value={formData.productCategoryId || formData.prodCategory || ''}
                             onChange={handleProductCategoryChange}
-                            options={createMasterDataOptions(productCategories, 'productCategoryId', 'productCategoryName')}
+                            options={productCategoryOptions}
                             emptyMessage="No product categories available"
                         />
+                        {isOtherProductCategory && (
+                            <SpecifyOtherInput
+                                label="Please specify other product category"
+                                required
+                                value={formData.productCategoryOther}
+                                onChange={(e) => setFormData({ ...formData, productCategoryOther: e.target.value })}
+                            />
+                        )}
 
                         {/* Product Type - Dependent on Product Category */}
                         <DependentDropdown
@@ -327,7 +438,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             required
                             value={formData.productTypeId || formData.prodSubCategory || ''}
                             onChange={handleProductTypeChange}
-                            options={[]}
+                            options={productTypeOptions}
                             dependsOn={{
                                 value: formData.productCategoryId,
                                 field: 'productCategoryId',
@@ -337,6 +448,14 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             emptyMessage="No product types available for this category"
                             loadingMessage="Loading product types..."
                         />
+                        {isOtherProductType && (
+                            <SpecifyOtherInput
+                                label="Please specify other product type"
+                                required
+                                value={formData.productTypeOther}
+                                onChange={(e) => setFormData({ ...formData, productTypeOther: e.target.value })}
+                            />
+                        )}
 
                         {/* Product - Dependent on Product Type */}
                         <DependentDropdown
@@ -344,7 +463,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             required
                             value={formData.productId || formData.speciesName || ''}
                             onChange={handleProductChange}
-                            options={[]}
+                            options={productOptions}
                             dependsOn={{
                                 value: formData.productTypeId,
                                 field: 'productTypeId',
@@ -354,6 +473,14 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             emptyMessage="No products available for this type"
                             loadingMessage="Loading products..."
                         />
+                        {isOtherProduct && (
+                            <SpecifyOtherInput
+                                label="Please specify other product"
+                                required
+                                value={formData.productOther}
+                                onChange={(e) => setFormData({ ...formData, productOther: e.target.value })}
+                            />
+                        )}
 
                         {/* Species / Breed / Variety — free text */}
                         <FormInput
@@ -364,23 +491,56 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             placeholder="Enter species / breed / variety"
                         />
 
-                        {/* Unit and Quantity */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormSelect
-                                label="Unit"
-                                required
-                                value={formData.unit ?? ''}
-                                onChange={handleUnitChange}
-                                options={unitOptions}
-                            />
-                            <FormInput
-                                label="Quantity"
-                                required
-                                type="number"
-                                value={formData.quantity ?? ''}
-                                onChange={handleQuantityChange}
-                            />
-                        </div>
+                        {/* Unit and Quantity — driven by the selected product's master */}
+                        {(() => {
+                            const selectedProduct: any = products.find((p: any) => Number(p.productId) === Number(formData.productId))
+                            const dataType = selectedProduct?.quantityDataType || 'decimal'
+                            const masterUnit = selectedProduct?.unit?.unitName || formData.unit || ''
+                            const required = Boolean(selectedProduct?.quantityRequired)
+                            const setText = (v: string) =>
+                                setFormData({ ...formData, quantityText: v, quantity: 0, unit: masterUnit })
+                            const setNumber = (raw: string) => {
+                                const v = dataType === 'number' ? raw.replace(/[^0-9]/g, '') : raw
+                                setFormData({ ...formData, quantity: v, quantityText: null, unit: masterUnit })
+                            }
+                            return (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormInput
+                                        label="Unit"
+                                        value={masterUnit}
+                                        readOnly
+                                        onChange={() => {}}
+                                        placeholder={formData.productId ? '' : 'Select product'}
+                                    />
+                                    {dataType === 'boolean' ? (
+                                        <FormSelect
+                                            label="Quantity"
+                                            required={required}
+                                            value={formData.quantityText ?? ''}
+                                            onChange={(e) => setText(e.target.value)}
+                                            options={[{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }]}
+                                        />
+                                    ) : dataType === 'string' ? (
+                                        <FormInput
+                                            label="Quantity"
+                                            required={required}
+                                            value={formData.quantityText ?? ''}
+                                            onChange={(e) => setText(e.target.value)}
+                                            placeholder="e.g. N/A"
+                                        />
+                                    ) : (
+                                        <FormInput
+                                            label="Quantity"
+                                            required={required}
+                                            type="number"
+                                            step={dataType === 'number' ? '1' : 'any'}
+                                            value={formData.quantity ?? ''}
+                                            onChange={(e) => setNumber(e.target.value)}
+                                        />
+                                    )}
+                                </div>
+                            )
+                        })()}
 
                         {/* Value */}
                         <FormInput

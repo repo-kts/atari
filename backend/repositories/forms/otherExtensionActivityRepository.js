@@ -70,6 +70,8 @@ const otherExtensionActivityRepository = {
                 fldId,
                 staffId,
                 activityTypeId,
+                // "Other" free-text: only meaningful when the chosen activity-type row is flagged isOther.
+                activityTypeOther: (data.activityTypeOther && String(data.activityTypeOther).trim()) || null,
                 numberOfActivities,
                 startDate,
                 endDate,
@@ -218,6 +220,9 @@ const otherExtensionActivityRepository = {
             } else if (data.activityTypeId !== undefined) {
                 updateData.activityTypeId = await resolveOtherExtensionActivityTypeId(data.activityTypeId, false);
             }
+            if (data.activityTypeOther !== undefined) {
+                updateData.activityTypeOther = (String(data.activityTypeOther).trim()) || null;
+            }
 
             // Update numberOfActivities
             const numberOfActivities = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;
@@ -353,7 +358,8 @@ function _mapResponse(r) {
         staffName: r.staff ? r.staff.staffName : undefined,
         activityTypeId: r.activityTypeId,
         activityId: r.activityTypeId, // For compatibility with frontend
-        extensionActivityType: activityName,
+        extensionActivityType: r.activityTypeOther || activityName,
+        activityTypeOther: r.activityTypeOther ?? '',
         activity: r.otherExtensionActivity ? { activityName } : undefined,
         numberOfActivities: r.numberOfActivities,
         activityCount: r.numberOfActivities, // For compatibility
@@ -364,7 +370,7 @@ function _mapResponse(r) {
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : '',
         endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : '',
-        natureOfExtensionActivity: activityName,
+        natureOfExtensionActivity: r.activityTypeOther || activityName,
         noOfActivities: r.numberOfActivities
     };
 }

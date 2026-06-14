@@ -1,20 +1,23 @@
 /**
- * OFT Summary Template (Section 2.2)
+ * OFT Summary Template (Section 2.1)
  *
- * Renders two labeled sub-blocks from the same sector/thematic aggregation:
- *   A. OFT Summary          — sector/thematic rows, totals across all states.
- *   B. State Wise OFT Details — same rows, broken down per state (one column
- *                               group per state) + a Total group.
+ * Renders the OFT Summary table grouped by sectors (OftSubject) and
+ * their thematic areas (OftThematicArea), ALL from the database.
+ * Shows every thematic area even when it has 0 data.
  *
- * Data shape accepted:
- *   - { records, subjects }                (single-KVK)
- *   - [ { records, subjects }, ... ]       (aggregated: one chunk per KVK)
- *   - [ ...oftRows ]                       (plain rows)
+ * Data shape expected:
+ *   { records: [...OFT rows], subjects: [...OftSubject with thematicAreas] }
+ *
+ * Single-KVK:  3 value columns, heading "2.1. OFT Summary"
+ * Multi-state:  per-state columns + total, full heading hierarchy
  *
  * Bound to reportTemplateService (`this`).
  */
 
 // ── Sector label mapping by subject name keyword ────────────────────
+// Maps OftSubject names to sector labels + keys used in the original report.
+// If a subject doesn't match any keyword, it gets its own section.
+
 const SECTOR_MAP = [
     { key: 'A', keyword: /crop\s*production/i, prefix: 'A) Technologies Assessed under Various Crops by KVKs (Crop Production)' },
     { key: 'B', keyword: /livestock|animal|fisheries|poultry|veterinary/i, prefix: 'B) Technologies Assessed under Livestock and Fisheries by KVKs' },
@@ -34,10 +37,12 @@ function classifySubject(subjectName) {
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
-/** Distinct state names across records ("Unknown" when a record has no state). */
 function getUniqueStates(records) {
     const set = new Set();
-    for (const r of records) set.add(r.kvk?.state?.stateName || 'Unknown');
+    for (const r of records) {
+        const name = r.kvk?.state?.stateName;
+        if (name) set.add(name);
+    }
     return Array.from(set).sort();
 }
 
@@ -56,140 +61,73 @@ function sumBuckets(stateMap, stateKeys) {
     return total;
 }
 
-/** Build: subjectId -> thematicAreaName -> stateKey -> {techs, locations, trials}. */
-function buildAggregation(records) {
-    const agg = new Map();
+/**
+ * Build: subjectId -> thematicAreaName -> stateKey -> {techs, locations, trials}
+ */
+function buildAggregation(records, isMultiState) {
+    const agg = new Map(); // subjectId -> Map<thematicAreaName, Map<stateKey, bucket>>
+
     for (const r of records) {
         const subjectId = r.oftSubjectId || 0;
         const thematicArea = r.oftThematicArea?.thematicAreaName || 'Other';
-        const stateKey = r.kvk?.state?.stateName || 'Unknown';
+        const stateKey = isMultiState ? (r.kvk?.state?.stateName || 'Unknown') : '__all__';
 
         if (!agg.has(subjectId)) agg.set(subjectId, new Map());
         const thematicMap = agg.get(subjectId);
+
         if (!thematicMap.has(thematicArea)) thematicMap.set(thematicArea, new Map());
         const stateMap = thematicMap.get(thematicArea);
-        if (!stateMap.has(stateKey)) stateMap.set(stateKey, { techs: 0, locations: 0, trials: 0 });
 
+        if (!stateMap.has(stateKey)) stateMap.set(stateKey, { techs: 0, locations: 0, trials: 0 });
         const bucket = stateMap.get(stateKey);
         bucket.techs += 1;
         bucket.locations += Number(r.numberOfLocation) || 0;
         bucket.trials += Number(r.numberOfTrialReplication) || 0;
     }
+
     return agg;
 }
 
-/** Value cells for one thematic row. perState=false → single Total set. */
-function renderValueCells(perState, states, stateMap) {
+function renderValueCells(isMultiState, stateKeys, stateMap) {
     let html = '';
-    if (perState) {
-        for (const st of states) {
+    if (isMultiState) {
+        for (const st of stateKeys) {
             const b = getBucket(stateMap, st);
-            html += `<td style="text-align:center;">${b.techs}</td><td style="text-align:center;">${b.locations}</td><td style="text-align:center;">${b.trials}</td>`;
+            html += `<td style="text-align:center;">${b.techs}</td>
+                <td style="text-align:center;">${b.locations}</td>
+                <td style="text-align:center;">${b.trials}</td>`;
         }
+        const total = sumBuckets(stateMap, stateKeys);
+        html += `<td style="text-align:center;">${total.techs}</td>
+                <td style="text-align:center;">${total.locations}</td>
+                <td style="text-align:center;">${total.trials}</td>`;
+    } else {
+        const total = sumBuckets(stateMap, stateKeys);
+        html += `<td style="text-align:center;">${total.techs}</td>
+                <td style="text-align:center;">${total.locations}</td>
+                <td style="text-align:center;">${total.trials}</td>`;
     }
-    const total = sumBuckets(stateMap, states);
-    html += `<td style="text-align:center;">${total.techs}</td><td style="text-align:center;">${total.locations}</td><td style="text-align:center;">${total.trials}</td>`;
     return html;
 }
 
-function addBucket(target, b) {
-    target.techs += b.techs;
-    target.locations += b.locations;
-    target.trials += b.trials;
-}
-
-// ── Sector/thematic table (used for both A summary and B state-wise) ──
-function renderSectorTable(ctx, { agg, sectorList, states, perState }) {
-    const esc = (v) => ctx._escapeHtml(v);
-    const valueGroups = perState ? states.length + 1 : 1; // per-state groups + Total, or just Total
-    const colCount = 1 + valueGroups * 3;
-    // The per-state table gets very wide (states x 3). Force it to the page
-    // width (table-layout:fixed) and scale the font down as columns grow so the
-    // right-most border always stays inside the page.
-    const tableClass = perState ? 'data-table oft-statewise' : 'data-table';
-    let tableStyle = '';
-    if (perState) {
-        const groups = states.length + 1; // per-state + Total
-        const fs = groups <= 3 ? 7.5 : groups <= 5 ? 6 : groups <= 7 ? 5 : groups <= 9 ? 4.3 : 3.8;
-        tableStyle = ` style="font-size:${fs}pt;"`;
-    }
-
-    let head = '';
-    if (perState) {
-        head += `<tr><th rowspan="2" style="vertical-align:bottom;">Sector wise Thematic Area</th>`;
-        for (const st of states) head += `<th colspan="3" style="text-align:center;">${esc(st)}</th>`;
-        head += `<th colspan="3" style="text-align:center;">Total</th></tr><tr>`;
-        for (let i = 0; i <= states.length; i++) {
-            head += `<th style="text-align:center;">No. of technologies assessed</th><th style="text-align:center;">No. of Locations</th><th style="text-align:center;">No. of trials</th>`;
-        }
-        head += `</tr>`;
-    } else {
-        head += `<tr><th>Sector wise Thematic Area</th><th style="text-align:center;">No. of technologies assessed</th><th style="text-align:center;">No. of Locations</th><th style="text-align:center;">No. of Trial/Replications</th></tr>`;
-    }
-
-    let body = '';
-    // Grand totals (per state + overall)
-    const grandByState = {};
-    for (const st of states) grandByState[st] = { techs: 0, locations: 0, trials: 0 };
-    const grandTotal = { techs: 0, locations: 0, trials: 0 };
-
-    for (const sector of sectorList) {
-        const thematicMap = agg.get(sector.subjectId) || new Map();
-
-        body += `<tr style="background:#f0f0f0;"><td colspan="${colCount}" style="font-weight:bold;padding:6px 8px;">${esc(sector.label)}</td></tr>`;
-
-        const sectorByState = {};
-        for (const st of states) sectorByState[st] = { techs: 0, locations: 0, trials: 0 };
-        const sectorTotal = { techs: 0, locations: 0, trials: 0 };
-
-        const renderRow = (areaName, stateMap) => {
-            body += `<tr><td>${esc(areaName)}</td>${renderValueCells(perState, states, stateMap)}</tr>`;
-            for (const st of states) addBucket(sectorByState[st], getBucket(stateMap, st));
-            addBucket(sectorTotal, sumBuckets(stateMap, states));
-        };
-
-        const renderedAreas = new Set();
-        for (const areaName of sector.thematicAreas) {
-            renderedAreas.add(areaName);
-            renderRow(areaName, thematicMap.get(areaName) || new Map());
-        }
-        // Extra thematic areas present in data but not in the master list.
-        for (const [areaName, stateMap] of thematicMap) {
-            if (!renderedAreas.has(areaName)) renderRow(areaName, stateMap);
-        }
-
-        // Sub Total
-        const subLabel = perState ? `Sub Total (${sector.key})` : 'Sub Total';
-        body += `<tr style="font-weight:bold;"><td>${subLabel}</td>`;
-        if (perState) {
-            for (const st of states) {
-                body += `<td style="text-align:center;">${sectorByState[st].techs}</td><td style="text-align:center;">${sectorByState[st].locations}</td><td style="text-align:center;">${sectorByState[st].trials}</td>`;
-                addBucket(grandByState[st], sectorByState[st]);
-            }
-        }
-        body += `<td style="text-align:center;">${sectorTotal.techs}</td><td style="text-align:center;">${sectorTotal.locations}</td><td style="text-align:center;">${sectorTotal.trials}</td></tr>`;
-        addBucket(grandTotal, sectorTotal);
-    }
-
-    // Grand Total
-    body += `<tr style="font-weight:bold;"><td>Grand Total</td>`;
-    if (perState) {
-        for (const st of states) {
-            body += `<td style="text-align:center;">${grandByState[st].techs}</td><td style="text-align:center;">${grandByState[st].locations}</td><td style="text-align:center;">${grandByState[st].trials}</td>`;
-        }
-    }
-    body += `<td style="text-align:center;">${grandTotal.techs}</td><td style="text-align:center;">${grandTotal.locations}</td><td style="text-align:center;">${grandTotal.trials}</td></tr>`;
-
-    return `<table class="${tableClass}"${tableStyle}><thead>${head}</thead><tbody>${body}</tbody></table>`;
-}
-
 // ── Main render function ────────────────────────────────────────────
+
 function renderOftSummarySection(section, data, sectionId, isFirstSection) {
-    // Accept single, aggregated-chunks, or plain-rows shapes.
+    // Accept every shape the orchestration can hand us:
+    //   - { records, subjects }                  single KVK (data service)
+    //   - [ { records, subjects }, ... ]         super-admin: one chunk per KVK
+    //   - [ ...oftRows ]                          plain rows (combined template)
+    //   - single oft row / object
+    // Without the chunk handling, super-admin aggregation treats each
+    // { records, subjects } object as an OFT row → sector "Unknown",
+    // thematic "Other", farmer counts 0.
     let records = [];
     let subjects = [];
-    if (Array.isArray(data)) {
-        if (data.some(d => d && (d.records || d.subjects))) {
+    if (data && !Array.isArray(data) && Array.isArray(data.records)) {
+        records = data.records;
+        subjects = data.subjects || [];
+    } else if (Array.isArray(data)) {
+        if (data.some(d => d && (Array.isArray(d.records) || Array.isArray(d.subjects)))) {
             for (const chunk of data) {
                 if (Array.isArray(chunk?.records)) records.push(...chunk.records);
                 if (subjects.length === 0 && Array.isArray(chunk?.subjects)) subjects = chunk.subjects;
@@ -197,9 +135,6 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
         } else {
             records = data;
         }
-    } else if (data && Array.isArray(data.records)) {
-        records = data.records;
-        subjects = data.subjects || [];
     } else if (data) {
         records = [data];
     }
@@ -213,30 +148,41 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
         : 'section-page section-page-continued';
 
     const states = getUniqueStates(records);
-    const agg = buildAggregation(records);
+    const isMultiState = states.length > 1;
+    const stateKeys = isMultiState ? states : ['__all__'];
+
+    const agg = buildAggregation(records, isMultiState);
+    const colCount = isMultiState ? 1 + (states.length * 3) + 3 : 4;
 
     // ── Build ordered sector list from DB subjects ──────────────
     const sectorList = [];
+    const usedSubjectIds = new Set();
+
+    // First pass: map DB subjects to known sectors
     for (const subject of subjects) {
         const mapped = classifySubject(subject.subjectName);
         const sectorKey = mapped ? mapped.key : subject.subjectName.charAt(0).toUpperCase();
         const sectorLabel = mapped ? mapped.prefix : `${sectorKey}) ${subject.subjectName}`;
+
         sectorList.push({
             key: sectorKey,
             label: sectorLabel,
             subjectId: subject.oftSubjectId,
             thematicAreas: (subject.thematicAreas || []).map(ta => ta.thematicAreaName),
         });
+        usedSubjectIds.add(subject.oftSubjectId);
     }
-    // Fallback: derive sectors from the records when no DB subjects supplied.
+
+    // If no subjects from DB, fall back to data-driven sectors
     if (sectorList.length === 0) {
-        const seen = new Map();
+        // Group by subject from the records themselves
+        const seenSubjects = new Map();
         for (const r of records) {
             const sid = r.oftSubjectId || 0;
-            if (!seen.has(sid)) {
+            if (!seenSubjects.has(sid)) {
                 const name = r.oftSubject?.subjectName || 'Unknown';
                 const mapped = classifySubject(name);
-                seen.set(sid, {
+                seenSubjects.set(sid, {
                     key: mapped ? mapped.key : '?',
                     label: mapped ? mapped.prefix : name,
                     subjectId: sid,
@@ -244,19 +190,268 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
                 });
             }
         }
-        sectorList.push(...seen.values());
+        sectorList.push(...seenSubjects.values());
     }
-    // Order sectors by key (A, B, C, D, E …); DB subjects sort by name otherwise.
-    sectorList.sort((a, b) => String(a.key).localeCompare(String(b.key)));
+
+
+    // ── Headings ────────────────────────────────────────────────
+    let html = `
+<div id="${sectionId}" class="${pageClass}">`;
+
+    // Section heading = group (e.g. "2.2 On Farm Trial"). Like the FLD report,
+    // this single section renders two labeled sub-blocks: A. OFT Summary and
+    // B. State Wise OFT Details (KVK Wise OFT Details is its own section).
+    html += `
+    <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>
+    <h2 class="section-subtitle">${section.id}.A OFT Summary</h2>`;
+    if (isMultiState) {
+        html += `
+    <p style="font-size:11px;font-weight:bold;margin-bottom:12px;">Technology Assessed by KVK (Discipline wise)</p>`;
+    }
+
+    // ── Table header ────────────────────────────────────────────
+    html += `
+    <table class="data-table">
+        <thead>`;
+
+    if (isMultiState) {
+        html += `
+            <tr>
+                <th colspan="${colCount}" style="text-align:left;font-weight:bold;font-size:9pt;padding:8px;">
+                    2.1. State wise details of On Farm Trials (OFTs) conducted by KVKs
+                </th>
+            </tr>
+            <tr>
+                <th rowspan="2" style="vertical-align:bottom;">Sector wise Thematic Area</th>`;
+        for (const st of states) {
+            html += `<th colspan="3" style="text-align:center;">${this._escapeHtml(st)}</th>`;
+        }
+        html += `<th colspan="3" style="text-align:center;">Total</th></tr>
+            <tr>`;
+        for (let i = 0; i <= states.length; i++) {
+            html += `
+                <th style="text-align:center;">No. of technologies assessed</th>
+                <th style="text-align:center;">No. of Locations</th>
+                <th style="text-align:center;">No. of Trial/Replications</th>`;
+        }
+        html += `</tr>`;
+    } else {
+        html += `
+            <tr>
+                <th>Sector wise Thematic Area</th>
+                <th style="text-align:center;">No. of technologies assessed</th>
+                <th style="text-align:center;">No. of Locations</th>
+                <th style="text-align:center;">No. of Trial/Replications</th>
+            </tr>`;
+    }
+
+    html += `
+        </thead>
+        <tbody>`;
+
+    // ── Body ────────────────────────────────────────────────────
+    const grandTotal = { techs: 0, locations: 0, trials: 0 };
+    const grandTotalByState = {};
+    for (const st of stateKeys) grandTotalByState[st] = { techs: 0, locations: 0, trials: 0 };
+
+    for (const sector of sectorList) {
+        const thematicMap = agg.get(sector.subjectId) || new Map();
+
+        // Sector header row
+        html += `
+            <tr style="background:#f0f0f0;">
+                <td colspan="${colCount}" style="font-weight:bold;padding:6px 8px;">
+                    ${this._escapeHtml(sector.label)}
+                </td>
+            </tr>`;
+
+        const sectorTotal = { techs: 0, locations: 0, trials: 0 };
+        const sectorTotalByState = {};
+        for (const st of stateKeys) sectorTotalByState[st] = { techs: 0, locations: 0, trials: 0 };
+
+        // Render ALL thematic areas from DB (with 0 defaults)
+        const renderedAreas = new Set();
+
+        for (const areaName of sector.thematicAreas) {
+            renderedAreas.add(areaName);
+            const stateMap = thematicMap.get(areaName) || new Map();
+            const rowTotal = sumBuckets(stateMap, stateKeys);
+
+            html += `
+            <tr>
+                <td>${this._escapeHtml(areaName)}</td>`;
+            const cellsData = renderValueCells(isMultiState, stateKeys, stateMap)
+            html += cellsData
+            html += `</tr>`;
+
+            if (isMultiState) {
+                for (const st of stateKeys) {
+                    const b = getBucket(stateMap, st);
+                    sectorTotalByState[st].techs += b.techs;
+                    sectorTotalByState[st].locations += b.locations;
+                    sectorTotalByState[st].trials += b.trials;
+                }
+            }
+            sectorTotal.techs += rowTotal.techs;
+            sectorTotal.locations += rowTotal.locations;
+            sectorTotal.trials += rowTotal.trials;
+        }
+
+        // Any extra areas from data not in the DB master list
+        for (const [areaName, stateMap] of thematicMap) {
+            if (renderedAreas.has(areaName)) continue;
+            const rowTotal = sumBuckets(stateMap, stateKeys);
+
+            html += `
+            <tr>
+                <td>${this._escapeHtml(areaName)}</td>`;
+            html += renderValueCells(isMultiState, stateKeys, stateMap);
+            html += `</tr>`;
+
+            if (isMultiState) {
+                for (const st of stateKeys) {
+                    const b = getBucket(stateMap, st);
+                    sectorTotalByState[st].techs += b.techs;
+                    sectorTotalByState[st].locations += b.locations;
+                    sectorTotalByState[st].trials += b.trials;
+                }
+            }
+            sectorTotal.techs += rowTotal.techs;
+            sectorTotal.locations += rowTotal.locations;
+            sectorTotal.trials += rowTotal.trials;
+        }
+
+        // Sub Total
+        const subLabel = isMultiState ? `Sub Total (${sector.key})` : 'Sub Total';
+        html += `
+            <tr style="font-weight:bold;">
+                <td>${subLabel}</td>`;
+        if (isMultiState) {
+            for (const st of stateKeys) {
+                html += `<td style="text-align:center;">${sectorTotalByState[st].techs}</td>
+                <td style="text-align:center;">${sectorTotalByState[st].locations}</td>
+                <td style="text-align:center;">${sectorTotalByState[st].trials}</td>`;
+                grandTotalByState[st].techs += sectorTotalByState[st].techs;
+                grandTotalByState[st].locations += sectorTotalByState[st].locations;
+                grandTotalByState[st].trials += sectorTotalByState[st].trials;
+            }
+            html += `<td style="text-align:center;">${sectorTotal.techs}</td>
+                <td style="text-align:center;">${sectorTotal.locations}</td>
+                <td style="text-align:center;">${sectorTotal.trials}</td>`;
+        } else {
+            html += `<td style="text-align:center;">${sectorTotal.techs}</td>
+                <td style="text-align:center;">${sectorTotal.locations}</td>
+                <td style="text-align:center;">${sectorTotal.trials}</td>`;
+        }
+        html += `</tr>`;
+
+        grandTotal.techs += sectorTotal.techs;
+        grandTotal.locations += sectorTotal.locations;
+        grandTotal.trials += sectorTotal.trials;
+    }
+
+    // Grand Total
+    const grandLabel = isMultiState ? 'Grand Total (F)' : 'Grand Total';
+    html += `
+            <tr style="font-weight:bold;">
+                <td>${grandLabel}</td>`;
+    if (isMultiState) {
+        for (const st of stateKeys) {
+            html += `<td style="text-align:center;">${grandTotalByState[st].techs}</td>
+                <td style="text-align:center;">${grandTotalByState[st].locations}</td>
+                <td style="text-align:center;">${grandTotalByState[st].trials}</td>`;
+        }
+        html += `<td style="text-align:center;">${grandTotal.techs}</td>
+                <td style="text-align:center;">${grandTotal.locations}</td>
+                <td style="text-align:center;">${grandTotal.trials}</td>`;
+    } else {
+        html += `<td style="text-align:center;">${grandTotal.techs}</td>
+                <td style="text-align:center;">${grandTotal.locations}</td>
+                <td style="text-align:center;">${grandTotal.trials}</td>`;
+    }
+    html += `</tr>
+        </tbody>
+    </table>`;
+
+    // ── B. State Wise OFT Details ───────────────────────────────
+    html += renderStateWiseBlock.call(this, section, records);
+
+    html += `
+</div>`;
+
+    return html;
+}
+
+/**
+ * "B. State Wise OFT Details" — per-state farmer participation broken down by
+ * category and gender (mirrors the FLD state-wise table). Always rendered, even
+ * for a single state.
+ */
+const FARMER_KEYS = ['genM', 'genF', 'obcM', 'obcF', 'scM', 'scF', 'stM', 'stF'];
+
+function renderStateWiseBlock(section, records) {
+    const byState = new Map();
+    for (const r of records) {
+        const stateName = r.kvk?.state?.stateName || r.kvk?.kvkName || 'Unknown';
+        if (!byState.has(stateName)) {
+            byState.set(stateName, { genM: 0, genF: 0, obcM: 0, obcF: 0, scM: 0, scF: 0, stM: 0, stF: 0 });
+        }
+        const b = byState.get(stateName);
+        b.genM += Number(r.farmersGeneralM) || 0;
+        b.genF += Number(r.farmersGeneralF) || 0;
+        b.obcM += Number(r.farmersObcM) || 0;
+        b.obcF += Number(r.farmersObcF) || 0;
+        b.scM += Number(r.farmersScM) || 0;
+        b.scF += Number(r.farmersScF) || 0;
+        b.stM += Number(r.farmersStM) || 0;
+        b.stF += Number(r.farmersStF) || 0;
+    }
+
+    const sumRow = (b) => FARMER_KEYS.reduce((acc, k) => acc + b[k], 0);
+    const total = { genM: 0, genF: 0, obcM: 0, obcF: 0, scM: 0, scF: 0, stM: 0, stF: 0 };
+    let rows = '';
+    for (const [stateName, b] of byState) {
+        for (const k of FARMER_KEYS) total[k] += b[k];
+        rows += `
+            <tr>
+                <td>${this._escapeHtml(stateName)}</td>
+                ${FARMER_KEYS.map(k => `<td style="text-align:center;">${b[k]}</td>`).join('')}
+                <td style="text-align:center;font-weight:bold;">${sumRow(b)}</td>
+            </tr>`;
+    }
+    if (!rows) {
+        rows = `<tr><td colspan="10" style="text-align:center;">No data</td></tr>`;
+    }
 
     return `
-<div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>
-    <h2 class="section-subtitle">${section.id}.A OFT Summary</h2>
-    ${renderSectorTable(this, { agg, sectorList, states, perState: false })}
     <h2 class="section-subtitle" style="margin-top:14px;">${section.id}.B State Wise OFT Details</h2>
-    ${renderSectorTable(this, { agg, sectorList, states, perState: true })}
-</div>`;
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th rowspan="2" style="vertical-align:middle;">States</th>
+                <th colspan="8" style="text-align:center;">No. of Farmers</th>
+                <th rowspan="2" style="vertical-align:middle;text-align:center;">Total</th>
+            </tr>
+            <tr>
+                <th style="text-align:center;">General M</th>
+                <th style="text-align:center;">General F</th>
+                <th style="text-align:center;">OBC M</th>
+                <th style="text-align:center;">OBC F</th>
+                <th style="text-align:center;">SC M</th>
+                <th style="text-align:center;">SC F</th>
+                <th style="text-align:center;">ST M</th>
+                <th style="text-align:center;">ST F</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${rows}
+            <tr style="font-weight:bold;">
+                <td>Total</td>
+                ${FARMER_KEYS.map(k => `<td style="text-align:center;">${total[k]}</td>`).join('')}
+                <td style="text-align:center;">${sumRow(total)}</td>
+            </tr>
+        </tbody>
+    </table>`;
 }
 
 module.exports = { renderOftSummarySection };

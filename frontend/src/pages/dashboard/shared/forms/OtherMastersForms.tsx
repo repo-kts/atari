@@ -4,6 +4,7 @@ import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
 import { useNicraCategories, useFundingAgencies, useEquipmentTypes } from '@/hooks/useOtherMastersData'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { IsOtherCheckbox } from '@/components/common/IsOtherCheckbox'
 
 interface OtherMastersFormsProps {
     entityType: ExtendedEntityType | null
@@ -31,63 +32,78 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
         <div className="w-full space-y-4">
             {/* Employee Masters */}
             {entityType === ENTITY_TYPES.STAFF_CATEGORY && (
-                <FormInput
-                    label="Category Name"
-                    required
-                    value={formData.categoryName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, categoryName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter staff category name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Category Name"
+                        required
+                        value={formData.categoryName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, categoryName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter staff category name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.PAY_LEVEL && (
-                <FormInput
-                    label="Level Name"
-                    required
-                    value={formData.levelName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, levelName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter pay level name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Level Name"
+                        required
+                        value={formData.levelName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, levelName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter pay level name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.PAY_SCALE && (
-                <FormInput
-                    label="Scale Name"
-                    required
-                    value={formData.scaleName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, scaleName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="e.g. 15600-39100"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Scale Name"
+                        required
+                        value={formData.scaleName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, scaleName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="e.g. 15600-39100"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.ASSET_FUNDING_SOURCE && (
-                <FormInput
-                    label="Name"
-                    required
-                    value={formData.name ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="e.g. ICAR"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Name"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="e.g. ICAR"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.EQUIPMENT_TYPE && (
-                <FormInput
-                    label="Type Name"
-                    required
-                    value={formData.name ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="e.g. Tractor"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Type Name"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="e.g. Tractor"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.EQUIPMENT_MASTER && (
@@ -118,76 +134,121 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.SANCTIONED_POST && (
-                <FormInput
-                    label="Post Name"
-                    required
-                    value={formData.postName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, postName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter sanctioned post name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Post Name"
+                        required
+                        value={formData.postName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, postName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter sanctioned post name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.DISCIPLINE && (
-                <FormInput
-                    label="Discipline Name"
-                    required
-                    value={formData.disciplineName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, disciplineName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter discipline name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Discipline Name"
+                        required
+                        value={formData.disciplineName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, disciplineName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter discipline name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </div>
             )}
 
             {/* Other Masters */}
             {entityType === ENTITY_TYPES.SEASON && (
-                <FormInput
-                    label="Season Name"
-                    required
-                    value={formData.seasonName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, seasonName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter season name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Season Name"
+                        required
+                        value={formData.seasonName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, seasonName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter season name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </div>
+            )}
+
+            {entityType === ENTITY_TYPES.UNIT && (
+                <div className="space-y-4">
+                    <FormInput
+                        label="Unit Name"
+                        required
+                        value={formData.unitName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, unitName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="e.g. Kg, Number, Hectare"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.CROP_TYPE && (
-                <FormInput
-                    label="Crop Type Name"
-                    required
-                    value={formData.typeName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, typeName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter crop type name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Crop Type Name"
+                        required
+                        value={formData.typeName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, typeName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter crop type name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.INFRASTRUCTURE_MASTER && (
-                <FormInput
-                    label="Infrastructure Name"
-                    required
-                    value={formData.name ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter infrastructure name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Infrastructure Name"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter infrastructure name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.IMPORTANT_DAY && (
-                <FormInput
-                    label="Day Name"
-                    required
-                    value={formData.dayName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, dayName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter important day name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Day Name"
+                        required
+                        value={formData.dayName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, dayName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter important day name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.SOIL_WATER_ANALYSIS && (
@@ -293,15 +354,21 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.NARI_ACTIVITY && (
-                <FormInput
-                    label="Activity Name"
-                    required
-                    value={formData.activityName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, activityName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter NARI activity name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Activity Name"
+                        required
+                        value={formData.activityName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, activityName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter NARI activity name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.NARI_CROP_CATEGORY && (
@@ -317,27 +384,39 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.NARI_NUTRITION_GARDEN_TYPE && (
-                <FormInput
-                    label="Nutrition Garden Type"
-                    required
-                    value={formData.name ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter nutrition garden type"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Nutrition Garden Type"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter nutrition garden type"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.NICRA_CATEGORY && (
-                <FormInput
-                    label="Category Name"
-                    required
-                    value={formData.categoryName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, categoryName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter NICRA category name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Category Name"
+                        required
+                        value={formData.categoryName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, categoryName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter NICRA category name"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.NICRA_SUB_CATEGORY && (
@@ -425,15 +504,18 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.FUNDING_AGENCY && (
-                <FormInput
-                    label="Agency Name"
-                    required
-                    value={formData.agencyName ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, agencyName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter funding agency name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Agency Name"
+                        required
+                        value={formData.agencyName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, agencyName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter funding agency name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
             {entityType === ENTITY_TYPES.IMPACT_SPECIFIC_AREA && (
                 <FormInput
@@ -460,15 +542,57 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.ACCOUNT_TYPE && (
-                <FormInput
-                    label="Account Type"
-                    required
-                    value={formData.accountType ?? ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, accountType: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter account type"
-                />
+                <>
+                    <FormInput
+                        label="Account Type"
+                        required
+                        value={formData.accountType ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, accountType: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter account type"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </>
+            )}
+
+            {entityType === ENTITY_TYPES.JOB_TYPE && (
+                <>
+                    <FormInput
+                        label="Job Type"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter job type"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </>
+            )}
+
+            {entityType === ENTITY_TYPES.BANK_ACCOUNT_TYPE && (
+                <>
+                    <FormInput
+                        label="Bank Account Type"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter bank account type (e.g. Saving)"
+                    />
+                    <IsOtherCheckbox
+                        checked={Boolean(formData.isOther)}
+                        onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))}
+                    />
+                </>
             )}
 
             {entityType === ENTITY_TYPES.PROGRAMME_TYPE && (

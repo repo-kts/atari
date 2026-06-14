@@ -84,6 +84,16 @@ const oftController = {
         });
     }),
 
+    revokeTransfer: asyncHandler(async (req, res) => {
+        const result = await oftService.revokeTransfer(req.params.id, req.user);
+        res.status(200).json({
+            success: true,
+            message: 'OFT transfer revoked successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
     addResult: asyncHandler(async (req, res) => {
         const result = await oftService.addResult(req.params.id, req.body, req.user);
         res.status(201).json({

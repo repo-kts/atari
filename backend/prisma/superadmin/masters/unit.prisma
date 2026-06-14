@@ -1,0 +1,16 @@
+// Unit of measure master (kg, number, hectare, quintal, …). Referenced by the
+// Crop and Product masters, which carry a default unit + quantity data type so
+// downstream entry forms can show the unit read-only and constrain the quantity.
+model Unit {
+  unitId    Int       @id @default(autoincrement()) @map("unit_id")
+  unitName  String    @unique @map("unit_name")
+  // Flags this row as the "Other" option (form then shows a specify input).
+  isOther   Boolean   @default(false) @map("is_other")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  fldCrops  FldCrop[]
+  products  Product[]
+
+  @@index([unitName])
+  @@map("unit")
+}

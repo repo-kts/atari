@@ -51,7 +51,7 @@ function renderProductionSupplyPageReportSection(section, data, sectionId, isFir
     if (rows.length === 0) {
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
+  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
   <p class="no-data">No data found</p>
 </div>`;
     }
@@ -77,6 +77,7 @@ function renderProductionSupplyPageReportSection(section, data, sectionId, isFir
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="ps-page-wrap">
+    <h1 class="section-title">${section.id} ${esc(section.title)}</h1>
     <div class="ps-page-sec">Production and supply of Technological products${y ? ` — year ${esc(y)}` : ''}</div>
     <table class="ps-page-tbl">
       <thead>

@@ -81,6 +81,36 @@ async function deriveFullHierarchy({ zoneId = null, stateId = null, districtId =
   return { zoneId: z, stateId: s, districtId: d, orgId: o };
 }
 
+// 'kvk_amdin' is a known legacy typo role that may coexist with 'kvk_admin'.
+const KVK_ADMIN_ROLE_NAMES = ['kvk_admin', 'kvk_amdin'];
+
+/**
+ * Enforce at most one active KVK Admin per KVK.
+ * @param {string} targetRoleName - Role being assigned
+ * @param {number|null} kvkId - KVK the user is being assigned to
+ * @param {number|null} [excludeUserId] - Skip this user (the one being updated)
+ * @throws {Error} If the KVK already has an active KVK Admin
+ */
+async function ensureSingleKvkAdminPerKvk(targetRoleName, kvkId, excludeUserId = null) {
+  if (!KVK_ADMIN_ROLE_NAMES.includes(targetRoleName) || !kvkId) return;
+
+  const existing = await prisma.user.findFirst({
+    where: {
+      kvkId,
+      deletedAt: null,
+      role: { roleName: { in: KVK_ADMIN_ROLE_NAMES } },
+      ...(excludeUserId ? { userId: { not: excludeUserId } } : {}),
+    },
+    select: { name: true, email: true },
+  });
+
+  if (existing) {
+    throw new Error(
+      `This KVK already has a KVK Admin (${existing.name} — ${existing.email}). Only one KVK Admin is allowed per KVK.`
+    );
+  }
+}
+
 /**
  * Service layer for user management operations
  */
@@ -228,6 +258,9 @@ const userManagementService = {
     // USER_SCOPE rows are produced for newly-created users.
     const targetRoleRecord = requestedRole ?? await prisma.role.findUnique({ where: { roleId: effectiveRoleId } });
     const targetRoleName = targetRoleRecord?.roleName || '';
+
+    // A KVK can have at most one KVK Admin.
+    await ensureSingleKvkAdminPerKvk(targetRoleName, effectiveKvkId);
     const isTargetUserRole = targetRoleName.endsWith('_user');
     let permissionActions = [];
     let resolvedPermissionIds = [];
@@ -793,6 +826,24 @@ const userManagementService = {
       }
     }
 
+    // Validate phone number (optional)
+    if (userData.phoneNumber) {
+      const phoneValidation = validatePhoneNumber(userData.phoneNumber);
+      if (!phoneValidation.valid) {
+        throw new Error(phoneValidation.errors.join(', '));
+      }
+    }
+
+    // Validate new password if provided (optional admin reset; blank = unchanged)
+    let newPasswordHash = null;
+    if (userData.password) {
+      const passwordValidation = validatePassword(userData.password);
+      if (!passwordValidation.valid) {
+        throw new Error(passwordValidation.errors.join(', '));
+      }
+      newPasswordHash = await hashPassword(userData.password);
+    }
+
     // Prevent role escalation by non-super_admin
     const updater = await userRepository.findById(updatedBy);
     const updaterRoleName = updater?.role?.roleName;
@@ -851,12 +902,20 @@ const userManagementService = {
         nextOrgId,
         nextKvkId
       );
+
+      // A KVK can have at most one KVK Admin.
+      const nextRole = await prisma.role.findUnique({ where: { roleId: nextRoleId } });
+      await ensureSingleKvkAdminPerKvk(nextRole?.roleName || '', nextKvkId, userId);
     }
 
     // Normalize inputs (trim). XSS handled by JSON responses and frontend output encoding.
     const sanitizedData = {};
     if (userData.name) sanitizedData.name = sanitizeInput(userData.name);
     if (userData.email) sanitizedData.email = userData.email.toLowerCase().trim();
+    if (userData.phoneNumber !== undefined) {
+      sanitizedData.phoneNumber = userData.phoneNumber ? sanitizeInput(userData.phoneNumber) : null;
+    }
+    if (newPasswordHash) sanitizedData.passwordHash = newPasswordHash;
     if (userData.roleId) sanitizedData.roleId = userData.roleId;
     if (hierarchyChanged) {
       sanitizedData.zoneId = nextZoneId ?? null;
@@ -868,6 +927,11 @@ const userManagementService = {
 
     // Update user
     const updatedUser = await userRepository.update(userId, sanitizedData);
+
+    // Force re-login everywhere after an admin password reset.
+    if (newPasswordHash) {
+      await authRepository.revokeAllUserTokens(userId);
+    }
 
     // Permission writes from EditUserModal arrive as a delta:
     //   { add: ['EDIT'], remove: ['DELETE'] }

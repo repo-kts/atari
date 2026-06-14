@@ -32,6 +32,8 @@ router.get('/:id', requireRole(allRoles), oftController.getById);
 router.patch('/:id', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.update);
 router.put('/:id', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.update);
 router.post('/:id/transfer-next-year', requireRole([...kvkRoles, 'super_admin']), oftController.transferToNextYear);
+// Revoke/undo a transfer — super-admin only.
+router.post('/:id/revoke-transfer', requireRole(['super_admin']), oftController.revokeTransfer);
 router.post('/:id/result', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.addResult);
 router.put('/:id/result', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.editResult);
 router.get('/:id/result', requireRole(allRoles), oftController.getResult);

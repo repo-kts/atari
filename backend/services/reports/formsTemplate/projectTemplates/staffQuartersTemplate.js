@@ -57,9 +57,10 @@ function formatOccupancyData(occupancyData) {
     return lines.join('<br>');
 }
 
-function renderStaffQuartersTable(ctx, records) {
+function renderStaffQuartersTable(ctx, records, showKvk) {
     const headers = `
         <tr>
+            ${showKvk ? '<th>KVK</th>' : ''}
             <th>Date of Completion</th>
             <th>No.of Staff Quarters</th>
             <th>Occupancy Details</th>
@@ -76,6 +77,7 @@ function renderStaffQuartersTable(ctx, records) {
 
         return `
         <tr>
+            ${showKvk ? `<td>${ctx._escapeHtml(record.kvkName || '-')}</td>` : ''}
             <td style="white-space: nowrap;">${ctx._escapeHtml(dateStr)}</td>
             <td style="text-align: center;">${record.numberOfQuarters}</td>
             <td>${ctx._escapeHtml(record.occupancyDetails)}</td>
@@ -99,12 +101,17 @@ function renderStaffQuartersUtilizationSection(section, data, sectionId, isFirst
 
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
 
+    // Show a KVK column for aggregated/superadmin reports so each row is
+    // attributable; redundant for a single-KVK report (header already names it).
+    const showKvk = Boolean(reportContext.isAggregatedReport)
+        || new Set(records.map((r) => r.kvkName)).size > 1;
+
     return `
 <div id="${sectionId}" class="${pageClass}">
     <h1 class="section-title" style="font-size: 16px;">${section.id} ${this._escapeHtml(section.title)}</h1>
     <h2 class="about-kvk-heading" style="text-align: left; margin-bottom: 15px; font-size: 14px;">Utilization of Staff Quarters Whether Staff Quarters has been Completed</h2>
     <div style="overflow-x: auto;">
-        ${renderStaffQuartersTable(this, records)}
+        ${renderStaffQuartersTable(this, records, showKvk)}
     </div>
 </div>`;
 }

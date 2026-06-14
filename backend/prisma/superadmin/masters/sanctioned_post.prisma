@@ -1,6 +1,7 @@
 model SanctionedPost {
   sanctionedPostId Int        @id @default(autoincrement()) @map("sanctioned_post_id")
   postName         String     @unique @map("post_name")
+  isOther          Boolean    @default(false) @map("is_other")
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
   staff            KvkStaff[]

@@ -136,6 +136,21 @@ function isPayloadWithRows(d) {
 }
 
 /**
+ * Build a "KVK — District, State" label so super-admin aggregated reports show
+ * which KVK each block belongs to. Returns '' when no KVK identity is present.
+ */
+function payloadLabel(p) {
+    if (!p) return '';
+    const kvk = String(p.kvkName || '').trim();
+    if (!kvk) return '';
+    const loc = [p.districtName, p.stateName]
+        .map(s => String(s || '').trim())
+        .filter(Boolean)
+        .join(', ');
+    return loc ? `${kvk} — ${loc}` : kvk;
+}
+
+/**
  * Normalize report/export input into { rows: [{ sNo, parameterName, details }] }.
  */
 function resolveAgriDroneIntroductionPayload(data) {
@@ -144,30 +159,52 @@ function resolveAgriDroneIntroductionPayload(data) {
     if (d && typeof d === 'object' && !Array.isArray(d) && d.data && isPayloadWithRows(d.data)) {
         d = d.data;
     }
-    if (isPayloadWithRows(d)) {
-        return d;
-    }
     const list = Array.isArray(d) ? d : [d];
-    const allRows = [];
+
+    // Collect one block per KVK. Each block keeps its own label so super-admin
+    // aggregated output can show which KVK the data is from.
+    const blocks = [];
     for (const item of list) {
         if (!item || typeof item !== 'object') continue;
-        const intro = item;
+
+        if (Array.isArray(item.rows)) {
+            // Already-built per-KVK payload (e.g. { kvkName, rows: [...] }).
+            // Skip empty payloads so KVKs without data don't render a phantom
+            // block of all '—'/0 rows.
+            if (item.rows.length === 0) continue;
+            if (item.rows[0] && typeof item.rows[0].parameterName === 'string') {
+                blocks.push({ label: payloadLabel(item), rows: item.rows });
+                continue;
+            }
+        }
+
+        // Raw intro record → build the 14 parameter rows.
         const demoAgg = {
             areaSum: item._demoAreaSum ?? item.areaSum,
             farmersSum: item._demoFarmersSum ?? item.farmersSum,
         };
-        const rows = buildParameterRows(intro, demoAgg);
+        const rows = buildParameterRows(item, demoAgg);
         if (rows.length === 0) continue;
-        if (allRows.length > 0) {
-            allRows.push({
-                sNo: '',
-                parameterName: '',
-                details: '',
-                _spacer: true,
-            });
-        }
-        allRows.push(...rows);
+        blocks.push({
+            label: payloadLabel({
+                kvkName: item.kvk?.kvkName,
+                stateName: item.kvk?.state?.stateName,
+                districtName: item.kvk?.district?.districtName,
+            }),
+            rows,
+        });
     }
+
+    if (blocks.length === 0) return { rows: [] };
+    // Single KVK: keep the original look (no per-block header).
+    if (blocks.length === 1) return { rows: blocks[0].rows };
+
+    const allRows = [];
+    blocks.forEach((b, i) => {
+        if (i > 0) allRows.push({ sNo: '', parameterName: '', details: '', _spacer: true });
+        if (b.label) allRows.push({ _header: true, label: b.label });
+        allRows.push(...b.rows);
+    });
     return { rows: allRows };
 }
 
@@ -185,16 +222,42 @@ async function sumDemonstrationsForIntro(agriDroneId, kvkId, filters) {
 
 async function getAgriDroneIntroductionData(kvkId, filters = {}) {
     const where = buildIntroWhere(kvkId, filters);
-    const intro = await prisma.kvkAgriDrone.findFirst({
+    // A KVK may have more than one Agri-Drone intro (one per project
+    // implementing centre / PIC). Return them all, stacked, instead of just the
+    // first — otherwise the report drops every PIC after the first.
+    const intros = await prisma.kvkAgriDrone.findMany({
         where,
+        include: {
+            kvk: {
+                select: {
+                    kvkName: true,
+                    state: { select: { stateName: true } },
+                    district: { select: { districtName: true } },
+                },
+            },
+        },
         orderBy: [{ reportingYear: 'desc' }, { agriDroneId: 'desc' }],
     });
-    if (!intro) {
+    if (intros.length === 0) {
         return { rows: [] };
     }
-    const demoAgg = await sumDemonstrationsForIntro(intro.agriDroneId, intro.kvkId, filters);
-    const rows = buildParameterRows(intro, demoAgg);
-    return { rows };
+
+    const rows = [];
+    for (let i = 0; i < intros.length; i++) {
+        const intro = intros[i];
+        const demoAgg = await sumDemonstrationsForIntro(intro.agriDroneId, intro.kvkId, filters);
+        const introRows = buildParameterRows(intro, demoAgg);
+        if (i > 0) rows.push({ sNo: '', parameterName: '', details: '', _spacer: true });
+        rows.push(...introRows);
+    }
+
+    const first = intros[0];
+    return {
+        kvkName: first.kvk?.kvkName || '',
+        stateName: first.kvk?.state?.stateName || '',
+        districtName: first.kvk?.district?.districtName || '',
+        rows,
+    };
 }
 
 /**

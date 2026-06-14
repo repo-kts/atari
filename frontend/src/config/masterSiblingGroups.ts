@@ -87,10 +87,15 @@ export const MASTER_SIBLING_GROUPS = {
     // Employee Masters
     EMPLOYEE_MASTERS: [
         ENTITY_PATHS.STAFF_CATEGORY,
+        ENTITY_PATHS.JOB_TYPE,
         ENTITY_PATHS.PAY_LEVEL,
         ENTITY_PATHS.PAY_SCALE,
         ENTITY_PATHS.SANCTIONED_POST,
         ENTITY_PATHS.DISCIPLINE,
+    ],
+
+    BANK_MASTERS: [
+        ENTITY_PATHS.BANK_ACCOUNT_TYPE,
     ],
 
     // Calendar & Context Masters

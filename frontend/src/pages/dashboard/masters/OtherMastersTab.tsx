@@ -8,6 +8,7 @@ const sections: FeatureSection[] = [
         icon: <Users className="w-5 h-5" />,
         items: [
             { label: 'Staff Category Master', path: '/all-master/staff-category' },
+            { label: 'Job Type Master', path: '/all-master/job-type' },
             { label: 'Pay Level Master', path: '/all-master/pay-level' },
             { label: 'Pay Scale Master', path: '/all-master/pay-scale' },
             { label: 'Sanctioned Post Master', path: '/all-master/sanctioned-post' },
@@ -15,10 +16,18 @@ const sections: FeatureSection[] = [
         ],
     },
     {
+        title: 'Bank Masters',
+        icon: <IndianRupee className="w-5 h-5" />,
+        items: [
+            { label: 'Bank Account Type Master', path: '/all-master/bank-account-type' },
+        ],
+    },
+    {
         title: 'Calendar & Context Masters',
         icon: <Landmark className="w-5 h-5" />,
         items: [
             { label: 'Season Master', path: '/all-master/season' },
+            { label: 'Unit Master', path: '/all-master/unit' },
             { label: 'Crop Type Master', path: '/all-master/crop-type' },
             { label: 'Important Day Master', path: '/all-master/important-day' },
         ],

@@ -19,6 +19,7 @@ function tableCss() {
   .ad-intro-tbl td:nth-child(2) { width:42%; text-align:left; }
   .ad-intro-tbl td:nth-child(3) { width:50%; text-align:left; }
   .ad-intro-spacer td { border:none; height:10px; padding:4px 0; }
+  .ad-intro-kvk td { background:#d9d9d9; font-weight:bold; text-align:left; }
 `;
 }
 
@@ -27,6 +28,9 @@ function renderIntroTable(rows) {
         ? rows.map((r) => {
             if (r._spacer) {
                 return '<tr class="ad-intro-spacer"><td colspan="3"></td></tr>';
+            }
+            if (r._header) {
+                return `<tr class="ad-intro-kvk"><td colspan="3">${esc(r.label)}</td></tr>`;
             }
             return `
       <tr>

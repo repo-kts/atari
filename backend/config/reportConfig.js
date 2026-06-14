@@ -78,26 +78,6 @@ const reportConfig = {
             ],
         },
         {
-            id: '1.3',
-            title: 'Employee Details',
-            description: 'Heads of KVKs (position order = 1)',
-            subsection: true,
-            parentSectionId: '1',
-            dataSource: 'kvkEmployeesHeads',
-            format: 'custom',
-            customTemplate: 'about-kvk-employee-contacts',
-            filters: {
-                dateFields: ['createdAt'],
-            },
-            fields: [
-                { dbField: 'kvk.kvkName', displayName: 'KVK' },
-                { dbField: 'staffName', displayName: 'Name' },
-                { dbField: 'residence', displayName: 'Residence', optional: true },
-                { dbField: 'mobile', displayName: 'Mobile' },
-                { dbField: 'email', displayName: 'Email' },
-            ],
-        },
-        {
             id: '1.4',
             title: 'All KVK staff Details',
             description: 'All active employees/staff of the KVK',
@@ -118,6 +98,9 @@ const reportConfig = {
                 { dbField: 'payLevel.levelName', displayName: 'Pay Scale with Present Basic', optional: true },
                 { dbField: 'dateOfJoining', displayName: 'Date of joining', type: 'date' },
                 { dbField: 'staffCategory.categoryName', displayName: 'Category (SC/ST/ OBC/ General)', optional: true },
+                { dbField: 'jobType', displayName: 'Job Type', optional: true },
+                { dbField: 'mobile', displayName: 'Mobile', optional: true },
+                { dbField: 'email', displayName: 'Email', optional: true },
             ],
         },  
         {
@@ -158,16 +141,15 @@ const reportConfig = {
             fields: [
                 { dbField: 'kvk.kvkName', displayName: 'KVK' },
                 { dbField: 'vehicleName', displayName: 'Type of vehicle' },
+                { dbField: 'registrationNo', displayName: 'Registration No.' },
                 { dbField: 'yearOfPurchase', displayName: 'Year of purchase' },
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
-                { dbField: 'totalRun', displayName: 'Total Run(km/hrs)', optional: true },
-                { dbField: 'presentStatus', displayName: 'Present status' },
             ],
         },
         {
             id: '1.7',
-            title: 'Vehicles Records',
-            description: 'Vehicle reporting-year records (Vehicle Details form)',
+            title: 'Vehicle Status',
+            description: 'Vehicle reporting-year status (run, present status, repairing cost)',
             subsection: true,
             parentSectionId: '1',
             dataSource: 'kvkVehicleDetails',
@@ -192,27 +174,27 @@ const reportConfig = {
         {
             id: '1.8',
             title: 'Equipment Details',
-            description: 'All equipments and their details',
+            description: 'All equipments and their static details',
             subsection: true,
             parentSectionId: '1',
             dataSource: 'kvkEquipments',
-            format: 'grouped-table',
+            format: 'custom',
+            customTemplate: 'about-kvk-equipment-details-table',
             filters: {
                 dateFields: ['createdAt'],
             },
             fields: [
+                { dbField: 'kvk.kvkName', displayName: 'KVK' },
                 { dbField: 'equipmentName', displayName: 'Equipment Name' },
                 { dbField: 'yearOfPurchase', displayName: 'Year of Purchase' },
-                { dbField: 'totalCost', displayName: 'Total Cost', type: 'currency' },
-                { dbField: 'presentStatus', displayName: 'Present Status' },
+                { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
                 { dbField: 'sourceOfFunding', displayName: 'Source of Funding' },
-                { dbField: 'reportingYear', displayName: 'Reporting Year', optional: true },
             ],
         },
         {
             id: '1.9',
-            title: 'Equipment Records',
-            description: 'Equipment reporting-year records (Equipment Details form)',
+            title: 'Equipment Status',
+            description: 'Equipment reporting-year status (present status by year)',
             subsection: true,
             parentSectionId: '1',
             dataSource: 'kvkEquipmentRecords',
@@ -231,8 +213,61 @@ const reportConfig = {
                 { dbField: 'presentStatus', displayName: 'Present status' },
             ],
         },
+        {
+            id: '1.10',
+            title: 'Land Details',
+            description: 'Land holdings of the KVK (item-wise area)',
+            subsection: true,
+            parentSectionId: '1',
+            dataSource: 'kvkLandDetails',
+            format: 'custom',
+            customTemplate: 'about-kvk-land',
+            filters: {
+                dateFields: [],
+            },
+            fields: [
+                { dbField: 'kvk.kvkName', displayName: 'KVK' },
+                { dbField: 'item', displayName: 'Item' },
+                { dbField: 'areaHa', displayName: 'Area (ha)' },
+            ],
+        },
+        {
+            id: '1.11',
+            title: 'Staff Transferred',
+            description: 'Staff transferred in/out of the KVK (who, from, to, when)',
+            subsection: true,
+            parentSectionId: '1',
+            dataSource: 'kvkStaffTransferred',
+            format: 'custom',
+            customTemplate: 'about-kvk-staff-transferred',
+            filters: {
+                dateFields: [],
+            },
+            fields: [
+                { dbField: 'staffName', displayName: 'Name' },
+                { dbField: 'originalKvk.kvkName', displayName: 'Transferred From' },
+                { dbField: 'kvk.kvkName', displayName: 'Transferred To' },
+                { dbField: 'lastTransferDate', displayName: 'Transfer Date', type: 'date' },
+                { dbField: 'transferCount', displayName: 'No. of Transfers' },
+            ],
+        },
 
         // ── Achievements ───────────────────────────────────
+        {
+            id: '2.1',
+            title: 'Technical Achievement Summary',
+            description: 'Target vs achievement across OFT, FLD, Training, Extension and Production',
+            subsection: true,
+            parentSectionId: '2',
+            dataSource: 'technicalAchievementSummary',
+            format: 'custom',
+            customTemplate: 'technical-achievement-summary',
+            filters: {
+                dateFields: ['startDate'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [],
+        },
         {
             id: '2.2',
             title: 'OFT Summary',
@@ -401,6 +436,9 @@ const reportConfig = {
             title: 'Soil & Water Testing - Laboratory Equipment',
             description: 'Equipment available in the Soil and Water Testing Laboratory (name and quantity)',
             subsection: true,
+            // Excluded from the report index (not part of the approved Achievements
+            // structure); only "Analysis Details" (2.14) shows under Soil & Water Testing.
+            hideInReport: true,
             parentSectionId: '2',
             dataSource: 'soilWaterEquipmentReport',
             format: 'custom',
@@ -1902,6 +1940,7 @@ function _buildTaxonomyChapter(parent, taxonomy, selectedById, consumed, heading
 function _appendLeftovers(chapter, parentId, selectedById, consumed, headingById, taxonomyGroupCount = 0) {
     const leftovers = [];
     selectedById.forEach((section, id) => {
+        if (section.hideInReport) { consumed.add(id); return; }
         if (String(section.parentSectionId) === parentId && !consumed.has(id)) {
             leftovers.push(section);
         }

@@ -1,4 +1,7 @@
 const prisma = require('../config/prisma.js');
+const { OFT_STATUS } = require('../constants/oftStatus.js');
+const { FLD_STATUS } = require('../constants/fldStatus.js');
+const { getCurrentFiscalYear } = require('../utils/fiscalYear.js');
 
 const ROLE_SCOPE_KEYS = {
   zone_admin: 'zoneId',
@@ -24,12 +27,21 @@ const TARGET_TYPE = {
 };
 
 const PRODUCTION_CATEGORY_ALIASES = {
-  [TARGET_TYPE.SEED_PRODUCTION]: ['Seed Production', 'Seeds'],
-  [TARGET_TYPE.PLANTING_MATERIAL]: ['Planting Material'],
+  [TARGET_TYPE.SEED_PRODUCTION]: [
+    'Seed Production',
+    'Seeds',
+    'Seed Production at Seed Village',
+    'Production of Seed',
+  ],
+  [TARGET_TYPE.PLANTING_MATERIAL]: [
+    'Planting Material',
+    'Production of Planting Material',
+  ],
   [TARGET_TYPE.LIVESTOCK]: [
     'Livestock Strains and Fish Fingerlings Produced',
     'Livestock Products',
     'Fish Fingerlings',
+    'Production of Livestock and Fisheries Material',
   ],
 };
 
@@ -39,7 +51,7 @@ function toNumber(value) {
 }
 
 function parseReportingYear(inputYear) {
-  const fallbackYear = new Date().getFullYear();
+  const fallbackYear = getCurrentFiscalYear();
   if (inputYear === undefined || inputYear === null || inputYear === '') {
     return fallbackYear;
   }
@@ -54,6 +66,15 @@ function parseReportingYear(inputYear) {
 function buildFiscalYearRange(reportingYear) {
   const start = new Date(Date.UTC(reportingYear, 3, 1, 0, 0, 0, 0));
   const endExclusive = new Date(Date.UTC(reportingYear + 1, 3, 1, 0, 0, 0, 0));
+  return { start, endExclusive };
+}
+
+// Tables tagged with a `reportingYear` date carry a year label (the forms store
+// it as Jan 1 of the chosen year), not an activity date — match them by
+// calendar year, like every other report does, instead of the fiscal window.
+function buildCalendarYearRange(reportingYear) {
+  const start = new Date(Date.UTC(reportingYear, 0, 1, 0, 0, 0, 0));
+  const endExclusive = new Date(Date.UTC(reportingYear + 1, 0, 1, 0, 0, 0, 0));
   return { start, endExclusive };
 }
 
@@ -189,7 +210,7 @@ const technicalAchievementSummaryService = {
       orderBy: [{ kvkName: 'asc' }, { kvkId: 'asc' }],
     });
 
-    const currentYear = new Date().getFullYear();
+    const currentYear = getCurrentFiscalYear();
     const parsedYears = Array.from({ length: 20 }, (_, index) => currentYear - index);
 
     return {
@@ -204,6 +225,8 @@ const technicalAchievementSummaryService = {
     const year = parseReportingYear(reportingYear);
     const resolvedKvkId = await resolveKvkFilter(actor, kvkId);
     const { start, endExclusive } = buildFiscalYearRange(year);
+    const calendarYear = buildCalendarYearRange(year);
+    const reportingYearWindow = { gte: calendarYear.start, lt: calendarYear.endExclusive };
 
     const baseWhere = buildKvkScopedWhere(actor, resolvedKvkId);
 
@@ -232,6 +255,9 @@ const technicalAchievementSummaryService = {
       prisma.kvkoft.aggregate({
         where: {
           ...baseWhere,
+          // Transfer-to-next-year clones the record; the stale source row would
+          // double-count the same trial, so only ongoing/completed rows count.
+          status: { not: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR },
           OR: [
             { expectedCompletionDate: { gte: start, lt: endExclusive } },
             { expectedCompletionDate: null, oftStartDate: { gte: start, lt: endExclusive } },
@@ -255,6 +281,7 @@ const technicalAchievementSummaryService = {
       prisma.kvkFldIntroduction.aggregate({
         where: {
           ...baseWhere,
+          ongoingCompleted: { not: FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR },
           OR: [
             { expectedCompletionDate: { gte: start, lt: endExclusive } },
             { expectedCompletionDate: null, startDate: { gte: start, lt: endExclusive } },
@@ -323,7 +350,7 @@ const technicalAchievementSummaryService = {
       prisma.kvkProductionSupply.aggregate({
         where: {
           ...baseWhere,
-          reportingYear: { gte: start, lt: endExclusive },
+          reportingYear: reportingYearWindow,
           ...buildCategoryWhere(PRODUCTION_CATEGORY_ALIASES[TARGET_TYPE.SEED_PRODUCTION]),
         },
         _sum: {
@@ -343,7 +370,7 @@ const technicalAchievementSummaryService = {
       prisma.kvkProductionSupply.aggregate({
         where: {
           ...baseWhere,
-          reportingYear: { gte: start, lt: endExclusive },
+          reportingYear: reportingYearWindow,
           ...buildCategoryWhere(PRODUCTION_CATEGORY_ALIASES[TARGET_TYPE.PLANTING_MATERIAL]),
         },
         _sum: {
@@ -363,7 +390,7 @@ const technicalAchievementSummaryService = {
       prisma.kvkProductionSupply.aggregate({
         where: {
           ...baseWhere,
-          reportingYear: { gte: start, lt: endExclusive },
+          reportingYear: reportingYearWindow,
           ...buildCategoryWhere(PRODUCTION_CATEGORY_ALIASES[TARGET_TYPE.LIVESTOCK]),
         },
         _sum: {
@@ -383,7 +410,7 @@ const technicalAchievementSummaryService = {
       prisma.kkvSoilWaterAnalysis.aggregate({
         where: {
           ...baseWhere,
-          reportingYear: { gte: start, lt: endExclusive },
+          reportingYear: reportingYearWindow,
         },
         _sum: {
           samplesAnalysed: true,
@@ -402,7 +429,7 @@ const technicalAchievementSummaryService = {
         by: ['publicationId'],
         where: {
           ...baseWhere,
-          reportingYear: { gte: start, lt: endExclusive },
+          reportingYear: reportingYearWindow,
         },
         _count: { _all: true },
       }),

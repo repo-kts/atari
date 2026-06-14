@@ -83,7 +83,7 @@ function renderOutreachTable(firstColHeader, rows, grandTotal, caption, yearLabe
         ${cellsFromDataRow({ label: 'Total', ...gt })}
       </tr>`;
     return `
-  <div class="eox-sec">${esc(caption)} during the year ${esc(yearLabel)}</div>
+  <div class="eox-sec">${esc(caption)}${yearLabel ? ` for ${esc(yearLabel)}` : ''}</div>
   <table class="eox-tbl">
     ${theadHtml(firstColHeader)}
     <tbody>${body}${grandRow}</tbody>

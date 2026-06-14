@@ -10,13 +10,21 @@ model KvkFldIntroduction {
   kvkStaffId                  Int
   seasonId                    Int?
   sectorId                    Int?
+  sectorOther                 String?                     @map("sector_other")
   thematicAreaId              Int?
+  thematicAreaOther           String?                     @map("thematic_area_other")
   categoryId                  Int?
+  categoryOther               String?                     @map("category_other")
   subCategoryId               Int?
+  subCategoryOther            String?                     @map("sub_category_other")
   cropId                      Int?
+  cropOther                   String?                     @map("crop_other")
   fldName                     String                      @map("fld_name")
   noOfDemonstration           Int                         @map("no_of_demonstration")
   quantity                    Float                       @map("quantity")
+  // Used when the crop's quantity data type is string/boolean (e.g. "N/A");
+  // numeric types continue to use `quantity`.
+  quantityText                String?                     @map("quantity_text")
   unit                        String?                     @map("unit")
   startDate                   DateTime                    @map("start_date")
   expectedCompletionDate      DateTime?                   @map("expected_completion_date")

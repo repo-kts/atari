@@ -2,6 +2,8 @@ import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
 
@@ -27,6 +29,15 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
 
     const recordId = formData?.aryaCurrentYearId ?? formData?.id ?? null
     const kvkId = formData?.kvkId ?? null
+
+    const enterpriseOptions = React.useMemo(
+        () => createMasterDataOptions(aryaEnterprises, 'enterpriseId', 'enterpriseName', { flagKey: 'isOther' }),
+        [aryaEnterprises]
+    )
+    const { isOtherSelected: isOtherEnterprise, otherResetPatch: enterpriseResetPatch } = useOtherSpecify(
+        enterpriseOptions,
+        formData.enterpriseId
+    )
 
     const renderPhotoSection = () => (
         <FormAttachmentSection
@@ -59,9 +70,17 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Name of enterprises"
                                 required
                                 value={formData.enterpriseId || ''}
-                                onChange={(value) => setFormData((prev: any) => ({ ...prev, enterpriseId: value }))}
-                                options={createMasterDataOptions(aryaEnterprises, 'enterpriseId', 'enterpriseName')}
+                                onChange={(value) => setFormData((prev: any) => ({ ...prev, enterpriseId: value, ...enterpriseResetPatch(value, 'enterpriseOther') }))}
+                                options={enterpriseOptions}
                             />
+                            {isOtherEnterprise && (
+                                <SpecifyOtherInput
+                                    label="Please specify other enterprise"
+                                    required
+                                    value={formData.enterpriseOther}
+                                    onChange={(e) => setFormData((prev: any) => ({ ...prev, enterpriseOther: e.target.value }))}
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -120,9 +139,17 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Name of enterprises"
                                 required
                                 value={formData.enterpriseId || ''}
-                                onChange={(value) => setFormData((prev: any) => ({ ...prev, enterpriseId: value }))}
-                                options={createMasterDataOptions(aryaEnterprises, 'enterpriseId', 'enterpriseName')}
+                                onChange={(value) => setFormData((prev: any) => ({ ...prev, enterpriseId: value, ...enterpriseResetPatch(value, 'enterpriseOther') }))}
+                                options={enterpriseOptions}
                             />
+                            {isOtherEnterprise && (
+                                <SpecifyOtherInput
+                                    label="Please specify other enterprise"
+                                    required
+                                    value={formData.enterpriseOther}
+                                    onChange={(e) => setFormData((prev: any) => ({ ...prev, enterpriseOther: e.target.value }))}
+                                />
+                            )}
                         </div>
                     </div>
 

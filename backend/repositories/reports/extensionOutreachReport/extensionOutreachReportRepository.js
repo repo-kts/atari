@@ -3,6 +3,7 @@
  */
 const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
+const { yearLabelFromFilters } = require('../reportYearLabel.js');
 
 function safeInt(v) {
     if (v === null || v === undefined || v === '') return 0;
@@ -204,11 +205,12 @@ function normalizeFlexibleRow(r) {
     };
 }
 
-function buildPayloadFromRecords(records) {
+function buildPayloadFromRecords(records, filters = {}) {
     const norm = Array.isArray(records)
         ? records.map((r) => normalizeFlexibleRow(r))
         : [];
-    const yearLabel = inferYearLabel(norm);
+    // Year label from the selected filter, not the data (#231/#223).
+    const yearLabel = yearLabelFromFilters(filters);
 
     if (norm.length === 0) {
         return {
@@ -281,7 +283,7 @@ async function fetchExtensionActivities(kvkId, filters = {}) {
 
 async function getExtensionOutreachReportData(kvkId, filters = {}) {
     const records = await fetchExtensionActivities(kvkId, filters);
-    const payload = buildPayloadFromRecords(records);
+    const payload = buildPayloadFromRecords(records, filters);
     return { payload, records };
 }
 

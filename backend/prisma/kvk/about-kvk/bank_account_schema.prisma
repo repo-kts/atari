@@ -1,7 +1,10 @@
 model KvkBankAccount {
   bankAccountId Int         @id @default(autoincrement()) @map("bank_account_id")
   kvkId         Int
-  accountType   AccountType @map("account_type")
+  // Master-backed bank account type (Saving/Current/Revolving Fund/…).
+  bankAccountTypeMasterId Int? @map("bank_account_type_master_id")
+  // Free-text value when the selected account type is the "Other" option (#237).
+  accountTypeOther    String? @map("account_type_other")
   accountName   String      @map("account_name")
   bankName      String      @map("bank_name")
   location      String      @map("location")
@@ -9,13 +12,9 @@ model KvkBankAccount {
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
   kvk           Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  bankAccountType BankAccountTypeMaster? @relation(fields: [bankAccountTypeMasterId], references: [bankAccountTypeId], onDelete: SetNull)
 
   @@index([kvkId])
+  @@index([bankAccountTypeMasterId])
   @@map("kvk_bank_account")
-}
-
-enum AccountType {
-  KVK
-  REVOLVING_FUND
-  OTHER
 }

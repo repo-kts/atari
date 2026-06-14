@@ -8,6 +8,21 @@ const prisma = require('../../config/prisma.js');
 
 // Entity configuration mapping
 const ENTITY_CONFIG = {
+    'units': {
+        model: 'unit',
+        idField: 'unitId',
+        nameField: 'unitName',
+        extraFields: ['isOther'],
+        allowDeleteWithDependents: true, // crop/product reference it via onDelete: SetNull
+        includes: {
+            _count: {
+                select: {
+                    fldCrops: true,
+                    products: true,
+                },
+            },
+        },
+    },
     'seasons': {
         model: 'season',
         idField: 'seasonId',
@@ -45,6 +60,34 @@ const ENTITY_CONFIG = {
             _count: {
                 select: {
                     staff: true,
+                },
+            },
+        },
+    },
+    'job-type': {
+        model: 'jobTypeMaster',
+        idField: 'jobTypeId',
+        nameField: 'name',
+        extraFields: ['isOther'],
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
+        includes: {
+            _count: {
+                select: {
+                    staff: true,
+                },
+            },
+        },
+    },
+    'bank-account-type': {
+        model: 'bankAccountTypeMaster',
+        idField: 'bankAccountTypeId',
+        nameField: 'name',
+        extraFields: ['isOther'],
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
+        includes: {
+            _count: {
+                select: {
+                    bankAccounts: true,
                 },
             },
         },
@@ -359,6 +402,7 @@ const ENTITY_CONFIG = {
         model: 'accountTypeMaster',
         idField: 'accountTypeId',
         nameField: 'accountType',
+        extraFields: ['isOther'],
         includes: {},
     },
     'programme-type': {

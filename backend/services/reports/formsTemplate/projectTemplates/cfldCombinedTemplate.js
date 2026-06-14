@@ -450,37 +450,19 @@ function renderSeasonWiseTable(ctx, records) {
     return renderCfldTable(headers, rows);
 }
 
+/**
+ * Super-admin / aggregated layout: the SAME four tables as the KVK side, grouped
+ * by state (one "State: X" block per state).
+ */
 function renderSuperAdminLayout(ctx, records) {
-    const byCropType = groupBy(records, r => r.cropTypeName || 'Unknown Crop Type');
-    const cropTypeSections = Array.from(byCropType.entries())
+    const byState = groupBy(records, r => r.stateName || 'Unknown');
+    return Array.from(byState.entries())
         .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([cropType, cropTypeRecords], cropIndex) => {
-            const bySeason = groupBy(cropTypeRecords, r => r.seasonName || 'Unknown');
-            const seasonSections = Array.from(bySeason.entries())
-                .sort((a, b) => seasonOrder(a[0]) - seasonOrder(b[0]) || a[0].localeCompare(b[0]))
-                .map(([season, seasonRecords]) => `
-                    <h3 class="about-kvk-subheading">Cluster Front Line Demonstration on ${ctx._escapeHtml(season)}</h3>
-                    ${renderSeasonWiseTable(ctx, seasonRecords)}
-                `)
-                .join('');
-
-            return `
-                <div class="about-kvk-report">
-                    <h2 class="about-kvk-heading">${cropIndex + 1}. ${ctx._escapeHtml(cropType)}</h2>
-                    <h3 class="about-kvk-subheading">A. State-wise subsection</h3>
-                    <h3 class="about-kvk-subheading">State wise details of Cluster Front Line Demonstration</h3>
-                    ${renderStateWiseTable(ctx, cropTypeRecords)}
-                    <h3 class="about-kvk-subheading">B. Season-wise subsection</h3>
-                    ${seasonSections}
-                </div>
-            `;
-        })
+        .map(([state, stateRecords]) => `
+            <h2 class="about-kvk-heading" style="margin-top:14px;">State: ${ctx._escapeHtml(state)}</h2>
+            ${renderKvkLayout(ctx, stateRecords)}
+        `)
         .join('');
-
-    return `
-        <h2 class="about-kvk-heading">3. Cluster Front Line Demonstration on</h2>
-        ${cropTypeSections}
-    `;
 }
 
 function renderCfldCombinedSection(section, data, sectionId, isFirstSection, reportContext = {}) {

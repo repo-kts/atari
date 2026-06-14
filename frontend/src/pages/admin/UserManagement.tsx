@@ -306,6 +306,11 @@ export const UserManagement: React.FC = () => {
                                                                             phoneNumber: user.phoneNumber,
                                                                             roleId: user.roleId,
                                                                             roleName: user.roleName,
+                                                                            zoneId: user.zoneId,
+                                                                            stateId: user.stateId,
+                                                                            districtId: user.districtId,
+                                                                            orgId: user.orgId,
+                                                                            kvkId: user.kvkId,
                                                                             permissions: user.permissions,
                                                                         })
                                                                         setIsEditModalOpen(true)

@@ -31,7 +31,14 @@ function _formatMonthYear(dateValue) {
  */
 function _formatTechnologiesHtml(technologies, escapeHtml) {
     if (!Array.isArray(technologies) || technologies.length === 0) return '-';
-    return technologies.map(tech => {
+    // Only render options the user actually filled in. The form exposes a fixed
+    // set of slots (FP, TO1..TO5, CD, CV); empty ones (e.g. CD:, CV:, TO3:) must
+    // not show as blank labelled rows.
+    const filled = technologies.filter(
+        (tech) => (tech.details || '').trim() !== ''
+    );
+    if (filled.length === 0) return '-';
+    return filled.map(tech => {
         const label = tech.optionKey === 'FP'
             ? 'Farmer Practice'
             : (tech.optionName || tech.optionKey || '-');
@@ -192,7 +199,16 @@ function _renderResultsSection(resultReport) {
     if (!resultReport) return '';
 
     const tables = resultReport.tables;
-    const hasContent = (Array.isArray(tables) && tables.length > 0) || resultReport.resultText;
+    // Result photos are form attachments (each with a caption); fall back to the
+    // legacy single photograph_path if no attachments exist.
+    const photos = Array.isArray(resultReport.photos) && resultReport.photos.length > 0
+        ? resultReport.photos
+        : (resultReport.photographUrl
+            ? [{ url: resultReport.photographUrl, caption: resultReport.photographName || '' }]
+            : []);
+    const hasContent = (Array.isArray(tables) && tables.length > 0)
+        || resultReport.resultText
+        || photos.length > 0;
 
     if (!hasContent) return '';
 
@@ -215,6 +231,22 @@ function _renderResultsSection(resultReport) {
             <p style="margin:12px 0 0 0;font-size:9pt;">
                 <em><strong>Result:</strong></em> ${this._escapeHtml(resultReport.resultText)}
             </p>`;
+    }
+
+    // Result photographs with captions (#241). Each photo is wrapped in a
+    // <figure> so the Word/Excel exporters can pair the image with its caption.
+    if (photos.length > 0) {
+        html += `<div style="margin:12px 0 0 0;">`;
+        for (const p of photos) {
+            if (!p || !p.url) continue;
+            html += `
+                <figure style="display:inline-block;margin:0 12px 12px 0;text-align:center;vertical-align:top;">
+                    <img src="${this._escapeHtml(p.url)}" alt="OFT result photograph"
+                         style="max-width:280px;max-height:260px;border:0.5px solid #ccc;" />
+                    ${p.caption ? `<figcaption style="font-size:8pt;margin-top:4px;">${this._escapeHtml(p.caption)}</figcaption>` : ''}
+                </figure>`;
+        }
+        html += `</div>`;
     }
 
     html += `

@@ -58,11 +58,14 @@ export const ENTITY_CATEGORIES = {
     ] as ExtendedEntityType[],
     OTHER_MASTERS: [
         ENTITY_TYPES.STAFF_CATEGORY,
+        ENTITY_TYPES.JOB_TYPE,
+        ENTITY_TYPES.BANK_ACCOUNT_TYPE,
         ENTITY_TYPES.PAY_LEVEL,
         ENTITY_TYPES.PAY_SCALE,
         ENTITY_TYPES.DISCIPLINE,
         ENTITY_TYPES.SANCTIONED_POST,
         ENTITY_TYPES.SEASON,
+        ENTITY_TYPES.UNIT,
         ENTITY_TYPES.CROP_TYPE,
         ENTITY_TYPES.INFRASTRUCTURE_MASTER,
         ENTITY_TYPES.IMPORTANT_DAY,
@@ -262,6 +265,8 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
 
         // Other Masters
         '/all-master/staff-category': ENTITY_TYPES.STAFF_CATEGORY,
+        '/all-master/job-type': ENTITY_TYPES.JOB_TYPE,
+        '/all-master/bank-account-type': ENTITY_TYPES.BANK_ACCOUNT_TYPE,
         '/all-master/pay-level': ENTITY_TYPES.PAY_LEVEL,
         '/all-master/pay-scale': ENTITY_TYPES.PAY_SCALE,
         '/all-master/asset-funding-source': ENTITY_TYPES.ASSET_FUNDING_SOURCE,
@@ -270,6 +275,7 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/all-master/discipline': ENTITY_TYPES.DISCIPLINE,
         '/all-master/sanctioned-post': ENTITY_TYPES.SANCTIONED_POST,
         '/all-master/season': ENTITY_TYPES.SEASON,
+        '/all-master/unit': ENTITY_TYPES.UNIT,
         '/all-master/crop-type': ENTITY_TYPES.CROP_TYPE,
         '/all-master/infrastructure-master': ENTITY_TYPES.INFRASTRUCTURE_MASTER,
         '/all-master/important-day': ENTITY_TYPES.IMPORTANT_DAY,

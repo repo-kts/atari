@@ -9,6 +9,7 @@
 export interface TrainingType {
     trainingTypeId: number;
     trainingTypeName: string;
+    isOther?: boolean;
     _count?: {
         trainingAreas: number;
     };
@@ -18,6 +19,7 @@ export interface TrainingArea {
     trainingAreaId: number;
     trainingAreaName: string;
     trainingTypeId: number;
+    isOther?: boolean;
     trainingType?: {
         trainingTypeId: number;
         trainingTypeName: string;
@@ -31,6 +33,7 @@ export interface TrainingThematicArea {
     trainingThematicAreaId: number;
     trainingThematicAreaName: string;
     trainingAreaId: number;
+    isOther?: boolean;
     trainingArea?: {
         trainingAreaId: number;
         trainingAreaName: string;
@@ -48,11 +51,13 @@ export interface TrainingThematicArea {
 export interface ExtensionActivity {
     extensionActivityId: number;
     extensionName: string;
+    isOther?: boolean;
 }
 
 export interface OtherExtensionActivity {
     otherExtensionActivityId: number;
     otherExtensionName: string;
+    isOther?: boolean;
 }
 
 // ============================================
@@ -70,16 +75,19 @@ export interface Event {
 
 export interface TrainingTypeFormData {
     trainingTypeName: string;
+    isOther?: boolean;
 }
 
 export interface TrainingAreaFormData {
     trainingAreaName: string;
     trainingTypeId: number;
+    isOther?: boolean;
 }
 
 export interface TrainingThematicAreaFormData {
     trainingThematicAreaName: string;
     trainingAreaId: number;
+    isOther?: boolean;
 }
 
 export interface ExtensionActivityFormData {

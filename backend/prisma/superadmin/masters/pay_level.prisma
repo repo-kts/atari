@@ -1,6 +1,7 @@
 model PayLevelMaster {
   payLevelId Int        @id @default(autoincrement()) @map("pay_level_id")
   levelName  String     @unique @map("level_name")
+  isOther    Boolean    @default(false) @map("is_other")
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
   staff      KvkStaff[]
