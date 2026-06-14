@@ -44,6 +44,8 @@ const MASTER_CATALOG = {
     },
     // The parent vehicle, used by the vehicle-details FK picker.
     vehicle: { model: 'kvkVehicle', idField: 'vehicleId', nameField: 'vehicleName' },
+    // The parent equipment, used by the equipment-details FK picker.
+    kvkEquipment: { model: 'kvkEquipment', idField: 'equipmentId', nameField: 'equipmentName' },
     kvkStaff: { model: 'kvkStaff', idField: 'kvkStaffId', nameField: 'staffName' },
     season: { model: 'season', idField: 'seasonId', nameField: 'seasonName' },
     oftSubject: { model: 'oftSubject', idField: 'oftSubjectId', nameField: 'subjectName' },

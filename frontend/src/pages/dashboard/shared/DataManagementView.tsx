@@ -223,8 +223,18 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Get entity type from path
     const entityType = getEntityTypeFromPath(location.pathname)
 
-    // Use centralized hook factory
-    const activeHook = useEntityHook(entityType)
+    // Use centralized hook factory — pass pagination params so server-side hooks
+    // (e.g. Equipment Master) can fetch the right page/search from the API.
+    const activeHook = useEntityHook(entityType, {
+        page: currentPage,
+        limit: 10,
+        search: debouncedSearch,
+    })
+
+    // Detect server-side pagination (e.g. Equipment Master returns serverPagination)
+    const serverPagination = (activeHook as any)?.serverPagination as
+        | { total: number; totalPages: number }
+        | undefined
 
     // Check if this is Employee Details view
     const isEmployeeDetails = entityType === ENTITY_TYPES.KVK_EMPLOYEES
@@ -379,7 +389,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }, [reportingYearFrom, reportingYearTo])
 
     // Filter data based on search - memoized for performance
+    // When serverPagination is active the hook already returns the right page
+    // slice + handles search on the backend, so skip client-side filtering.
     const filteredData = useMemo(() => {
+        if (serverPagination) return items
         const maxDate = new Date()
         maxDate.setHours(23, 59, 59, 999)
         const rawFromDate = reportingYearFrom
@@ -413,13 +426,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 return value && String(value).toLowerCase().includes(query)
             })
         })
-    }, [items, debouncedSearch, fields, reportingYearFrom, reportingYearTo])
+    }, [items, debouncedSearch, fields, reportingYearFrom, reportingYearTo, serverPagination])
 
     // Apply per-column filters (Excel-style: sort + text + multi-select) on top
     // of the search/year-filtered set. The column-filter dropdown's unique-value
     // list is computed from `filteredData` so it represents the full visible
     // dataset before column filters narrow it further.
     const columnFilteredData = useMemo(() => {
+        if (serverPagination) return items
         const result = applyColumnFilters(filteredData, fields, columnFilters)
         // Default alphabetical order (by the first column) unless the user has
         // applied an explicit column sort.
@@ -439,10 +453,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 sensitivity: 'base',
             })
         })
-    }, [filteredData, fields, columnFilters])
+    }, [filteredData, fields, columnFilters, serverPagination, items])
 
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
+        if (serverPagination) {
+            const totalPages = serverPagination.totalPages || 1
+            const safePage = Math.min(currentPage, totalPages)
+            const startIndex = (safePage - 1) * itemsPerPage
+            const endIndex = startIndex + items.length
+            return { totalPages, safePage, startIndex, endIndex, paginatedData: items }
+        }
         const totalPages = Math.max(
             1,
             Math.ceil(columnFilteredData.length / itemsPerPage)
@@ -454,7 +475,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         const paginatedData = columnFilteredData.slice(startIndex, endIndex)
 
         return { totalPages, safePage, startIndex, endIndex, paginatedData }
-    }, [columnFilteredData, currentPage, itemsPerPage])
+    }, [columnFilteredData, currentPage, itemsPerPage, serverPagination, items])
 
     const { totalPages, safePage, startIndex, endIndex, paginatedData } =
         paginationData
@@ -1903,7 +1924,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         totalPages={totalPages}
                                         startIndex={startIndex}
                                         endIndex={endIndex}
-                                        totalItems={columnFilteredData.length}
+                                        totalItems={serverPagination ? serverPagination.total : columnFilteredData.length}
                                         onPageChange={setCurrentPage}
                                     />
                                 </>
