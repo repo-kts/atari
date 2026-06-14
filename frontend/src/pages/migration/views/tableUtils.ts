@@ -10,9 +10,10 @@ export interface IndexedRow {
 /** Nested objects from atariams.org DataTables rows → flat columns for tables. */
 const NESTED_FLATTEN: Record<string, string[]> = {
     kvks: ['kvk_name'],
+    kvk: ['kvk_name'],
     subject_name: ['oft_subject'],
     cropcategory: ['title'],
-    crop: ['crop_name'],
+    crop: ['crop_name', 'name'],
 }
 
 /** Keys too noisy for spreadsheet views (HTML blobs, row counters). */

@@ -49,6 +49,20 @@ async function fetchFromCurl(curl) {
         if (Array.isArray(json.data)) json.data = rows;
     }
 
+    // cfld technical parameter list lacks detail fields — enrich from each edit page.
+    if (req.url.includes('/project/cfld') && !req.url.includes('cfld-extension') && !req.url.includes('cfld-budget') && rows.length) {
+        const { enrichCfldRows } = require('./modules/cfldTechnicalParameter.js');
+        rows = await enrichCfldRows(rows, req.headers);
+        if (Array.isArray(json.data)) json.data = rows;
+    }
+
+    // cfld extension activity list lacks demographic fields — enrich from each edit page.
+    if (req.url.includes('cfld-extension-activity') && rows.length) {
+        const { enrichCfldExtRows } = require('./modules/cfldExtensionActivity.js');
+        rows = await enrichCfldExtRows(rows, req.headers);
+        if (Array.isArray(json.data)) json.data = rows;
+    }
+
     return { raw: json, rowCount: rows.length };
 }
 
