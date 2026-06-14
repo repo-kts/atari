@@ -54,11 +54,14 @@ export interface TransformResult {
     report: TransformReport
 }
 
+export type RowAction = 'created' | 'updated' | 'skipped' | 'failed'
+
 export interface SeedResult {
     created: number
     updated: number
     skipped: number
     failed: Array<{ index: number; message: string }>
+    actions: RowAction[]
 }
 
 export const migrationApi = {

@@ -72,6 +72,9 @@ const MASTER_CATALOG = {
     cfldCrop: { model: 'fLDCropMaster', idField: 'cfldId', nameField: 'cropName' },
     cropType: { model: 'cropType', idField: 'typeId', nameField: 'typeName' },
     extensionActivity: { model: 'extensionActivity', idField: 'extensionActivityId', nameField: 'extensionName' },
+    equipmentType: { model: 'equipmentTypeMaster', idField: 'equipmentTypeId', nameField: 'name' },
+    equipmentMaster: { model: 'equipmentMaster', idField: 'equipmentMasterId', nameField: 'name' },
+    equipmentStatus: { model: 'equipmentPresentStatusMaster', idField: 'equipmentStatusId', nameField: 'statusLabel' },
 };
 
 function getMaster(key) {
