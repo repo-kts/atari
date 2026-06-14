@@ -10,7 +10,7 @@ module.exports = {
     naturalKey: ['equipmentId', 'reportingYear'],
 
     foreignKeys: {
-        equipmentId: { master: 'equipmentMaster' },
+        equipmentId: { master: 'kvkEquipment' },
         equipmentStatusId: { master: 'equipmentStatus' },
         assetFundingSourceId: { master: 'assetFundingSource' },
     },
@@ -61,7 +61,16 @@ module.exports = {
         }
 
         // ── Reporting year ────────────────────────────────────────────────
-        const reportingYear = parseDate(row.reporting_year);
+        // Old site shows fiscal years as "YYYY-YYYY" — parseDate returns null for those;
+        // extract the first year so it matches how equipment.js stored the detail record.
+        let reportingYear = parseDate(row.reporting_year);
+        if (!reportingYear) {
+            const m = String(row.reporting_year ?? '').trim().match(/^(\d{4})-\d{4}$/);
+            if (m) {
+                reportingYear = parseDate(m[1]);
+                warn('reportingYear', `Fiscal year "${row.reporting_year}" → Jan 1 of ${m[1]}`);
+            }
+        }
         if (!reportingYear) err('reportingYear', `Bad/missing reporting_year "${row.reporting_year}"`);
 
         // ── Present status → EquipmentPresentStatusMaster (find-or-create) ─
@@ -82,13 +91,15 @@ module.exports = {
             err('equipmentStatusId', 'equipmentStatusId required — no present_status on row');
         }
 
-        // ── Source of fund → AssetFundingSourceMaster (optional) ──────────
+        // ── Source of fund → AssetFundingSourceMaster (find-or-create) ──────
         let assetFundingSourceId = null;
         const rawFunding = decodeEntities(cleanText(row.source_of_fund || ''));
         if (rawFunding) {
-            const fs = await r.resolve('assetFundingSourceMaster', 'name', 'assetFundingSourceId', rawFunding);
-            if (fs.matched) assetFundingSourceId = fs.id;
-            else warn('assetFundingSourceId', `Funding source "${rawFunding}" not found — stored as null`);
+            const fs = await r.findOrCreate('assetFundingSourceMaster', 'name', 'assetFundingSourceId', rawFunding);
+            if (fs.id) {
+                assetFundingSourceId = fs.id;
+                if (fs.created) warn('assetFundingSourceId', `Created funding source "${rawFunding}"`);
+            }
         }
 
         return {

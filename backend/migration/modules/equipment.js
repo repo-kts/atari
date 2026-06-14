@@ -133,37 +133,6 @@ module.exports = {
             }
         }
 
-        // ── Per-year detail ───────────────────────────────────────────────
-        // The list API usually omits reporting_year; fall back to Jan-1 of purchase year.
-        let reportingYear = parseDate(row.reporting_year);
-        if (!reportingYear && yearOfPurchase) {
-            reportingYear = new Date(`${yearOfPurchase}-01-01T00:00:00.000Z`);
-            warn('_detail.reportingYear', `reporting_year missing — using purchase year ${yearOfPurchase}`);
-        } else if (!reportingYear) {
-            warn('_detail.reportingYear', `Bad/missing reporting_year "${row.reporting_year}"`);
-        }
-
-        // Present status → EquipmentPresentStatusMaster (find-or-create)
-        let equipmentStatusId = null;
-        const rawStatus = decodeEntities(cleanText(row.present_status || row.equipment_status || ''));
-        if (rawStatus) {
-            let statusMaster = await prisma.equipmentPresentStatusMaster.findFirst({
-                where: { statusLabel: { equals: rawStatus, mode: 'insensitive' } },
-            });
-            if (!statusMaster) {
-                statusMaster = await prisma.equipmentPresentStatusMaster.create({
-                    data: { statusCode: rawStatus, statusLabel: rawStatus },
-                });
-                warn('_detail.equipmentStatusId', `Created equipment status "${rawStatus}"`);
-            }
-            equipmentStatusId = statusMaster.equipmentStatusId;
-        } else {
-            err('_detail.equipmentStatusId', 'equipmentStatusId required — no present_status on row');
-        }
-
-        // Detail-level funding source defaults to parent; override only if explicit field present
-        const detailFundingSourceId = assetFundingSourceId;
-
         return {
             data: {
                 kvkId,
@@ -176,24 +145,18 @@ module.exports = {
                 yearOfPurchase,
                 totalCost,
                 assetFundingSourceId,
-                // detail sub-record
-                _detail: reportingYear ? {
-                    reportingYear,
-                    equipmentStatusId,
-                    assetFundingSourceId: detailFundingSourceId,
-                } : null,
             },
             issues,
         };
     },
 
     async seedRecord(prisma, data) {
-        const detail = data._detail || null;
         const parentData = { ...data };
         delete parentData._detail;
 
         // Upsert parent KvkEquipment by kvkId + identifierCode (if present),
-        // else kvkId + equipmentName + yearOfPurchase
+        // else kvkId + equipmentName + yearOfPurchase.
+        // Details are NOT seeded here — run the equipment-details module for that.
         let existing;
         if (parentData.identifierCode) {
             existing = await prisma.kvkEquipment.findFirst({
@@ -210,39 +173,13 @@ module.exports = {
             });
         }
 
-        let equipmentId;
         if (existing) {
             await prisma.kvkEquipment.update({
                 where: { equipmentId: existing.equipmentId },
                 data: parentData,
             });
-            equipmentId = existing.equipmentId;
         } else {
-            const created = await prisma.kvkEquipment.create({ data: parentData });
-            equipmentId = created.equipmentId;
-        }
-
-        // Upsert KvkEquipmentDetail (unique per equipmentId + reportingYear)
-        if (detail && detail.reportingYear && detail.equipmentStatusId) {
-            await prisma.kvkEquipmentDetail.upsert({
-                where: {
-                    equipmentId_reportingYear: {
-                        equipmentId,
-                        reportingYear: detail.reportingYear,
-                    },
-                },
-                create: {
-                    kvkId: parentData.kvkId,
-                    equipmentId,
-                    reportingYear: detail.reportingYear,
-                    equipmentStatusId: detail.equipmentStatusId,
-                    assetFundingSourceId: detail.assetFundingSourceId ?? null,
-                },
-                update: {
-                    equipmentStatusId: detail.equipmentStatusId,
-                    assetFundingSourceId: detail.assetFundingSourceId ?? null,
-                },
-            });
+            await prisma.kvkEquipment.create({ data: parentData });
         }
 
         return existing ? 'updated' : 'created';
