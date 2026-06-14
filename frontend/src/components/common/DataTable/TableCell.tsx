@@ -98,11 +98,15 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
             ONGOING: 'Ongoing',
             COMPLETED: 'Completed',
             TRANSFERRED_TO_NEXT_YEAR: 'Transferred to Next Year',
+            TRANSFERRED: 'Transferred to Next Year',
+            TRANSFERED: 'Transferred to Next Year',
         }
         const classMap: Record<string, string> = {
             ONGOING: 'bg-amber-100 text-amber-700 border border-amber-200',
             COMPLETED: 'bg-green-100 text-green-700 border border-green-200',
             TRANSFERRED_TO_NEXT_YEAR: 'bg-blue-100 text-blue-700 border border-blue-200',
+            TRANSFERRED: 'bg-blue-100 text-blue-700 border border-blue-200',
+            TRANSFERED: 'bg-blue-100 text-blue-700 border border-blue-200',
         }
         const label = labelMap[rawStatus] || (rawStatus ? rawStatus.replace(/_/g, ' ') : 'Unknown')
         return (

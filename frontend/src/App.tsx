@@ -28,6 +28,7 @@ import { Reports } from './pages/features/Reports'
 import { FormSummary } from './pages/features/FormSummary'
 import { TechnicalAchievementSummary } from './pages/dashboard/forms/TechnicalAchievementSummary'
 import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
+import { MigrationTool } from './pages/migration/MigrationTool'
 import {
     projectsRoutes,
     allMastersRoutes,
@@ -203,6 +204,16 @@ function AppRoutes() {
                         element={
                             <ProtectedRoute requiredModuleCode="reports">
                                 <Reports />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Data Migration tool (admin-only) */}
+                    <Route
+                        path="/migration"
+                        element={
+                            <ProtectedRoute requiredRole={ADMIN_ROLES}>
+                                <MigrationTool />
                             </ProtectedRoute>
                         }
                     />
