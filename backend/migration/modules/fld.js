@@ -64,13 +64,53 @@ function parseInputValue(html, name) {
     return '';
 }
 
+async function fetchStaffMap(headers) {
+    // Fetch all staff from the old site and return a Map: oldStaffId → staffName.
+    try {
+        const url = 'https://atariams.org/staff-data?draw=1&start=0&length=9999&search=';
+        const res = await fetch(url, {
+            headers: {
+                ...headers,
+                accept: 'application/json, text/javascript, */*; q=0.01',
+                'x-requested-with': 'XMLHttpRequest',
+                referer: 'https://atariams.org/view-staff',
+            },
+        });
+        if (!res.ok) {
+            console.error(`[fetchStaffMap] HTTP ${res.status}`);
+            return new Map();
+        }
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); } catch {
+            console.error('[fetchStaffMap] non-JSON response:', text.slice(0, 200));
+            return new Map();
+        }
+        const staffRows = Array.isArray(json.data) ? json.data : [];
+        console.log(`[fetchStaffMap] fetched ${staffRows.length} staff rows`);
+        const map = new Map();
+        for (const s of staffRows) {
+            const id = s.id ?? s.staff_id;
+            const name = s.staff_name;
+            if (id && name) map.set(Number(id), String(name).trim());
+        }
+        return map;
+    } catch (e) {
+        console.error('[fetchStaffMap] error:', e.message);
+        return new Map();
+    }
+}
+
 async function enrichFldRows(rows, headers) {
     const fetchHeaders = {
         ...headers,
         accept: 'text/html,application/xhtml+xml',
         referer: 'https://atariams.org/view-fld',
     };
-    
+
+    // Pre-fetch staff map so numeric staff_id on list rows can be resolved without edit HTML
+    const staffMap = await fetchStaffMap(headers);
+
     const concurrency = 5;
     const enriched = new Array(rows.length);
     
@@ -84,10 +124,12 @@ async function enrichFldRows(rows, headers) {
                 return;
             }
             
-            let enrichedRow = { 
-                ...row, 
-                _editHtml: null, 
-                _resultHtml: null 
+            const resolvedStaffName = row.staff_id ? (staffMap.get(Number(row.staff_id)) || null) : null;
+            let enrichedRow = {
+                ...row,
+                _editHtml: null,
+                _resultHtml: null,
+                _staffName: resolvedStaffName,
             };
             
             // 1. Fetch edit-fld page
@@ -195,10 +237,18 @@ module.exports = {
         // 1. Staff Resolution
         let staffLabel = null;
         if (row._editHtml) {
-            const parsedStaff = parseSelectedOption(row._editHtml, 'staff_id');
+            const selectNames = [...row._editHtml.matchAll(/<select[^>]*name="([^"]+)"/gi)].map(m => m[1]);
+            if (selectNames.length) console.log('[FLD] edit HTML select names:', selectNames.join(', '));
+            const parsedStaff =
+                parseSelectedOption(row._editHtml, 'staff_id') ||
+                parseSelectedOption(row._editHtml, 'staff') ||
+                parseSelectedOption(row._editHtml, 'kvk_staff_id') ||
+                parseSelectedOption(row._editHtml, 'employee_id');
             if (parsedStaff) staffLabel = parsedStaff.name;
         }
         if (!staffLabel) staffLabel = decodeEntities(row.staff);
+        // Fallback: resolved during enrichment from the old site's staff-data endpoint
+        if (!staffLabel && row._staffName) staffLabel = row._staffName;
 
         let kvkStaffId = null;
         if (staffLabel) {
@@ -217,8 +267,10 @@ module.exports = {
                 kvkStaffId = hit ? hit.kvkStaffId : null;
             }
         }
-        if (!kvkStaffId && staffLabel) {
-            err('kvkStaffId', `Staff "${staffLabel}" not found — migrate Employees first or pick manually`);
+        if (!kvkStaffId) {
+            err('kvkStaffId', staffLabel
+                ? `Staff "${staffLabel}" not found — migrate Employees first or pick manually`
+                : 'No staff on old row — pick one manually in the FK picker');
         }
 
         // 2. Season Resolution
@@ -279,6 +331,12 @@ module.exports = {
             const parsedTA = parseSelectedOption(row._editHtml, 'thematic_area_id') || parseSelectedOption(row._editHtml, 'thematic_area');
             if (parsedTA) thematicAreaLabel = parsedTA.name;
         }
+        if (!thematicAreaLabel) {
+            // List API embeds thematic_area as a JSON object or string with .name
+            let taObj = row.thematic_area;
+            if (typeof taObj === 'string') { try { taObj = JSON.parse(taObj); } catch { taObj = null; } }
+            if (taObj?.name) thematicAreaLabel = decodeEntities(cleanText(taObj.name));
+        }
         if (thematicAreaLabel) {
             const ta = await r.resolve('fldThematicArea', 'thematicAreaName', 'thematicAreaId', thematicAreaLabel);
             if (ta.matched) {
@@ -320,6 +378,13 @@ module.exports = {
             const parsedSub = parseSelectedOption(row._editHtml, 'subcategory_id') || parseSelectedOption(row._editHtml, 'subcategory');
             if (parsedSub) subCategoryLabel = parsedSub.name;
         }
+        if (!subCategoryLabel) {
+            // List API embeds subcategory as a JSON object or string with .name/.title
+            let subObj = row.subcategory || row.sub_category;
+            if (typeof subObj === 'string') { try { subObj = JSON.parse(subObj); } catch { subObj = null; } }
+            if (subObj?.name) subCategoryLabel = decodeEntities(cleanText(subObj.name));
+            else if (subObj?.title) subCategoryLabel = decodeEntities(cleanText(subObj.title));
+        }
         if (subCategoryLabel) {
             const sub = await r.resolve('fldSubcategory', 'subCategoryName', 'subCategoryId', subCategoryLabel);
             if (sub.matched) {
@@ -332,6 +397,14 @@ module.exports = {
                 });
                 subCategoryId = created.id;
                 warn('subCategoryId', `Created subcategory "${subCategoryLabel}"`);
+            }
+        }
+        if (!subCategoryId && row.crop?.subcategory_id) {
+            // Fallback: try old-site subcategory_id directly (works if our seed IDs align)
+            const byId = await r.resolveById('fldSubcategory', 'subCategoryName', 'subCategoryId', row.crop.subcategory_id);
+            if (byId.matched) {
+                subCategoryId = byId.id;
+                warn('subCategoryId', `Resolved subcategory by old-site id ${row.crop.subcategory_id}`);
             }
         }
 

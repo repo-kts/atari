@@ -26,13 +26,23 @@ module.exports = {
         const warn = (field, message) => issues.push({ field, message, severity: 'warn' });
         const err = (field, message) => issues.push({ field, message, severity: 'error' });
 
-        // Resolve the parent vehicle in OUR db (must be migrated first).
-        const vehicleName = cleanText(row.vehicle?.vehicle_name);
-        const vehicleId = vehicleName
-            ? await r.findId('kvkVehicle', { kvkId: ctx.kvkId, vehicleName }, 'vehicleId')
-            : null;
+        // DataTables returns the `vehicle` column as a JSON string — parse it first.
+        let vehicleObj = row.vehicle || {};
+        if (typeof vehicleObj === 'string') {
+            try { vehicleObj = JSON.parse(vehicleObj); } catch { vehicleObj = {}; }
+        }
+        const vehicleName = cleanText(vehicleObj.vehicle_name);
+        const registrationNo = cleanText(vehicleObj.registration_no);
+
+        let vehicleId = null;
+        if (vehicleName) {
+            vehicleId = await r.findId('kvkVehicle', { kvkId: ctx.kvkId, vehicleName }, 'vehicleId');
+        }
+        if (!vehicleId && registrationNo) {
+            vehicleId = await r.findId('kvkVehicle', { kvkId: ctx.kvkId, registrationNo }, 'vehicleId');
+        }
         if (!vehicleId) {
-            err('vehicleId', `Parent vehicle "${vehicleName}" not found for this KVK — migrate Vehicles first, or pick it`);
+            err('vehicleId', `Parent vehicle "${vehicleName || registrationNo || '?'}" not found — migrate Vehicles first`);
         }
 
         // present_status -> status master; find-or-create (status master has a
