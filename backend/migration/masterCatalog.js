@@ -69,6 +69,9 @@ const MASTER_CATALOG = {
         nameField: 'subCategoryName',
     },
     fldCrop: { model: 'fldCrop', idField: 'cropId', nameField: 'cropName' },
+    cfldCrop: { model: 'fLDCropMaster', idField: 'cfldId', nameField: 'cropName' },
+    cropType: { model: 'cropType', idField: 'typeId', nameField: 'typeName' },
+    extensionActivity: { model: 'extensionActivity', idField: 'extensionActivityId', nameField: 'extensionName' },
 };
 
 function getMaster(key) {

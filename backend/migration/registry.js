@@ -10,6 +10,9 @@ const specs = [
     require('./modules/vehicle.js'),
     require('./modules/vehicleDetails.js'),
     require('./modules/fld.js'),
+    require('./modules/cfldTechnicalParameter.js'),
+    require('./modules/cfldExtensionActivity.js'),
+    require('./modules/cfldBudgetUtilization.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
