@@ -84,6 +84,8 @@ const MASTER_CATALOG = {
     trainingClientele: { model: 'clienteleMaster', idField: 'clienteleId', nameField: 'name' },
     trainingFundingSource: { model: 'fundingSourceMaster', idField: 'fundingSourceId', nameField: 'name' },
     courseCoordinator: { model: 'courseCoordinatorMaster', idField: 'coordinatorId', nameField: 'name' },
+    // FldActivity master — what kvk_extension_activity.activityId references.
+    fldActivity: { model: 'fldActivity', idField: 'activityId', nameField: 'activityName' },
 };
 
 function getMaster(key) {
