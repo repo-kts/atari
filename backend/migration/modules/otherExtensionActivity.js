@@ -109,27 +109,8 @@ module.exports = {
     },
 
     async seedRecord(prisma, data) {
-        // Distinct source rows can share kvk+activity+date but differ by staff /
-        // count, so match on all of those to avoid one row overwriting another.
-        const where = {
-            kvkId: data.kvkId,
-            staffId: data.staffId ?? null,
-            numberOfActivities: data.numberOfActivities,
-            ...(data.startDate ? { startDate: data.startDate } : {}),
-            ...(data.endDate ? { endDate: data.endDate } : {}),
-        };
-        if (data.activityTypeId != null) where.activityTypeId = data.activityTypeId;
-        else if (data.activityTypeOther) where.activityTypeOther = data.activityTypeOther;
-
-        const existing = await prisma.kvkOtherExtensionActivity.findFirst({ where });
-
-        if (existing) {
-            await prisma.kvkOtherExtensionActivity.update({
-                where: { otherExtensionActivityId: existing.otherExtensionActivityId },
-                data,
-            });
-            return 'updated';
-        }
+        // Always insert — the old site has genuine duplicate rows (same kvk, staff,
+        // activity, dates, count) that are distinct records. Never update/dedupe.
         await prisma.kvkOtherExtensionActivity.create({ data });
         return 'created';
     },
