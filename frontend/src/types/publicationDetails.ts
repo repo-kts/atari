@@ -9,8 +9,12 @@ export interface PublicationDetails {
     publicationId?: number;
     title: string;
     authorName: string;
-    journalName: string;
+    journalName?: string | null;
     naasRating?: number | null;
+    publisherName?: string | null;
+    venue?: string | null;
+    isbnNumber?: string | null;
+    publicationName?: string;
     createdAt: string;
     updatedAt: string;
     reportingYear?: string | number;
@@ -37,8 +41,12 @@ export interface PublicationDetailsFormData {
     publication?: string | number;
     title: string;
     authorName: string;
-    journalName: string;
+    journalName?: string;
     naasRating?: string | number;
+    publisherName?: string;
+    venue?: string;
+    isbnNumber?: string;
+    publicationName?: string;
 }
 
 // ============================================

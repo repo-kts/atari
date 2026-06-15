@@ -133,7 +133,7 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
                 path: config.subcategoryPath || '',
             })
         }
-        breadcrumbs.push({ label: config.title, path: config.path })
+        breadcrumbs.push({ label: config.title, path: path })
     } else if (config.category === 'Projects') {
         breadcrumbs.push({ label: 'Form Management', path: '/forms' })
         breadcrumbs.push({ label: 'Achievements', path: '/forms/achievements' })
@@ -141,7 +141,7 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
         if (config.subcategory) {
             breadcrumbs.push({ label: config.subcategory, path: '/forms/achievements/projects' })
         }
-        breadcrumbs.push({ label: config.title, path: config.path })
+        breadcrumbs.push({ label: config.title, path: path })
     } else if (config.category === 'Form Management' && config.subcategory === 'About KVK') {
         breadcrumbs.push({ label: 'Form Management', path: '/forms' })
         breadcrumbs.push({ label: 'About KVK', path: '/forms/about-kvk' })
@@ -152,19 +152,31 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
                 breadcrumbs.push({ label: parentConfig.title, path: parentConfig.path })
             }
         }
-        breadcrumbs.push({ label: config.title, path: config.path })
+        breadcrumbs.push({ label: config.title, path: path })
     } else if (config.category === 'Form Management') {
         breadcrumbs.push({ label: 'Form Management', path: '/forms' })
         if (config.subcategory) {
             breadcrumbs.push({ label: config.subcategory, path: config.parent || '/forms' })
         }
-        breadcrumbs.push({ label: config.title, path: config.path })
+        breadcrumbs.push({ label: config.title, path: path })
     } else if (config.category === 'Admin') {
         breadcrumbs.push({ label: 'Dashboard', path: '/dashboard' })
-        breadcrumbs.push({ label: config.title, path: config.path })
+        if (config.parent) {
+            const parentConfig = getRouteConfig(config.parent)
+            if (parentConfig) {
+                breadcrumbs.push({ label: parentConfig.title, path: parentConfig.path })
+            }
+        }
+        breadcrumbs.push({ label: config.title, path: path })
     } else if (config.category === 'Features') {
         breadcrumbs.push({ label: 'Dashboard', path: '/dashboard' })
-        breadcrumbs.push({ label: config.title, path: config.path })
+        if (config.parent) {
+            const parentConfig = getRouteConfig(config.parent)
+            if (parentConfig) {
+                breadcrumbs.push({ label: parentConfig.title, path: parentConfig.path })
+            }
+        }
+        breadcrumbs.push({ label: config.title, path: path })
     }
 
     return breadcrumbs
