@@ -709,26 +709,11 @@ module.exports = {
         delete mainData._socioEconomicParameters;
         delete mainData._farmersPerceptionParameters;
 
-        const where = {
-            kvkId: mainData.kvkId,
-            cropId: mainData.cropId,
-            technologyDemonstrated: mainData.technologyDemonstrated,
-            month: mainData.month,
-            status: mainData.status,
-        };
-        const existing = await prisma.cfldTechnicalParameter.findFirst({ where });
-
-        let cfldTechId;
-        if (existing) {
-            await prisma.cfldTechnicalParameter.update({
-                where: { cfldTechId: existing.cfldTechId },
-                data: mainData,
-            });
-            cfldTechId = existing.cfldTechId;
-        } else {
-            const created = await prisma.cfldTechnicalParameter.create({ data: mainData });
-            cfldTechId = created.cfldTechId;
-        }
+        // Always insert a new technical-parameter record — distinct source rows can
+        // share kvk + crop + technology + month + status but are separate records.
+        // Matching/updating would collapse them.
+        const created = await prisma.cfldTechnicalParameter.create({ data: mainData });
+        const cfldTechId = created.cfldTechId;
 
         if (ep) {
             await prisma.cfldEconomicParameters.upsert({
@@ -752,6 +737,6 @@ module.exports = {
             });
         }
 
-        return existing ? 'updated' : 'created';
+        return 'created';
     },
 };

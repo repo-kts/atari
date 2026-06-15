@@ -269,26 +269,11 @@ module.exports = {
         const mainData = { ...data };
         delete mainData._budgetItems;
 
-        // Upsert main record
-        const where = {
-            kvkId: mainData.kvkId,
-            year: mainData.year,
-            cropId: mainData.cropId ?? null,
-            seasonId: mainData.seasonId ?? null,
-        };
-        const existing = await prisma.kvkBudgetUtilization.findFirst({ where });
-
-        let budgetId;
-        if (existing) {
-            await prisma.kvkBudgetUtilization.update({
-                where: { budgetId: existing.budgetId },
-                data: mainData,
-            });
-            budgetId = existing.budgetId;
-        } else {
-            const created = await prisma.kvkBudgetUtilization.create({ data: mainData });
-            budgetId = created.budgetId;
-        }
+        // Always insert a new main record — distinct source rows can share kvk +
+        // year + crop + season but are separate records. Matching/updating would
+        // collapse them.
+        const created = await prisma.kvkBudgetUtilization.create({ data: mainData });
+        const budgetId = created.budgetId;
 
         // Upsert each budget line item (find-or-create BudgetItem by name)
         for (const item of budgetItems) {
@@ -315,6 +300,6 @@ module.exports = {
             });
         }
 
-        return existing ? 'updated' : 'created';
+        return 'created';
     },
 };

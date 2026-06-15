@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, type ReactNode } from 'react'
 import { TableView } from '../views/TableView'
 import { MatrixView } from '../views/MatrixView'
 import {
@@ -25,6 +25,9 @@ interface RecordsViewerProps {
     defaultView?: ViewMode
     fk?: FkEditing
     rowActions?: RowAction[]
+    visibleIndices?: Set<number>
+    /** Extra controls rendered in the header, before the Jump selector. */
+    headerExtra?: ReactNode
 }
 
 /**
@@ -42,6 +45,8 @@ export function RecordsViewer({
     defaultView = 'table',
     fk,
     rowActions,
+    visibleIndices,
+    headerExtra,
 }: RecordsViewerProps) {
     const [view, setView] = useState<ViewMode>(defaultView)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -78,6 +83,7 @@ export function RecordsViewer({
                     )}
                 </div>
                 <div className="flex items-center gap-3">
+                    {headerExtra}
                     {/* Quick-Jump Selector */}
                     {hasData && view !== 'json' && cols.length > 0 && (
                         <div className="flex items-center gap-1.5 text-xs">
@@ -174,9 +180,9 @@ export function RecordsViewer({
                         {JSON.stringify(data, null, 2)}
                     </pre>
                 ) : view === 'table' ? (
-                    <TableView data={data} fk={fk} idPrefix={idPrefix} rowActions={rowActions} />
+                    <TableView data={data} fk={fk} idPrefix={idPrefix} rowActions={rowActions} visibleIndices={visibleIndices} />
                 ) : (
-                    <MatrixView data={data} fk={fk} idPrefix={idPrefix} />
+                    <MatrixView data={data} fk={fk} idPrefix={idPrefix} visibleIndices={visibleIndices} />
                 )}
             </div>
         </div>

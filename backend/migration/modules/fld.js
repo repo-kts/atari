@@ -599,54 +599,24 @@ module.exports = {
     },
 
     async seedRecord(prisma, data, { kvkId }) {
-        const existing = await prisma.kvkFldIntroduction.findFirst({
-            where: {
-                kvkId: data.kvkId,
-                fldName: data.fldName,
-                ...(data.startDate ? { startDate: data.startDate } : {}),
-            }
-        });
-        
         const fldResult = data.fldResult;
         const fldData = { ...data };
         delete fldData.fldResult;
-        
-        if (existing) {
-            await prisma.kvkFldIntroduction.update({
-                where: { kvkFldId: existing.kvkFldId },
-                data: fldData,
-            });
-            
-            if (fldResult) {
-                await prisma.kvkFldResult.upsert({
-                    where: { kvkFldId: existing.kvkFldId },
-                    update: fldResult,
-                    create: {
-                        kvkFldId: existing.kvkFldId,
-                        ...fldResult,
-                    }
-                });
-            } else {
-                if (fldData.ongoingCompleted === 'ONGOING') {
-                    await prisma.kvkFldResult.deleteMany({
-                        where: { kvkFldId: existing.kvkFldId }
-                    });
+
+        // Always insert a new FLD record — distinct source rows can share kvk +
+        // name + start date but are separate records. Matching/updating would
+        // collapse them.
+        const created = await prisma.kvkFldIntroduction.create({
+            data: fldData,
+        });
+        if (fldResult) {
+            await prisma.kvkFldResult.create({
+                data: {
+                    kvkFldId: created.kvkFldId,
+                    ...fldResult,
                 }
-            }
-            return 'updated';
-        } else {
-            const created = await prisma.kvkFldIntroduction.create({
-                data: fldData,
             });
-            if (fldResult) {
-                await prisma.kvkFldResult.create({
-                    data: {
-                        kvkFldId: created.kvkFldId,
-                        ...fldResult,
-                    }
-                });
-            }
-            return 'created';
         }
+        return 'created';
     }
 };

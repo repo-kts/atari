@@ -1,12 +1,6 @@
-import { useState } from 'react'
 import { FkCell } from '../components/FkCell'
-import {
-    collectColumns,
-    formatCell,
-    isEmpty,
-    toIndexedRows,
-    type FkEditing,
-} from './tableUtils'
+import { CollapsibleCell, EditableCell } from '../components/CellRenderers'
+import { collectColumns, toIndexedRows, type FkEditing } from './tableUtils'
 import type { RowAction } from '../../../services/migrationApi'
 
 const ACTION_STYLES: Record<RowAction, { bg: string; text: string; label: string }> = {
@@ -21,54 +15,22 @@ interface TableViewProps {
     fk?: FkEditing
     idPrefix?: string
     rowActions?: RowAction[]
-}
-
-function CollapsibleCell({ value }: { value: unknown }) {
-    const [expanded, setExpanded] = useState(false)
-    const formatted = formatCell(value)
-    const isLongText = typeof value === 'string' && value.length > 40
-
-    if (!isLongText) {
-        return (
-            <span className={isEmpty(value) ? 'text-gray-300' : 'text-gray-800'}>
-                {formatted}
-            </span>
-        )
-    }
-
-    const text = String(value)
-
-    return (
-        <div className="flex flex-col gap-1 max-w-[320px]">
-            <div
-                className={`text-gray-800 transition-all text-xs font-mono break-words ${
-                    expanded ? 'whitespace-normal' : 'truncate'
-                }`}
-                title={text}
-            >
-                {expanded ? text : text.slice(0, 40) + '...'}
-            </div>
-            <button
-                type="button"
-                onClick={(e) => {
-                    e.stopPropagation()
-                    setExpanded(!expanded)
-                }}
-                className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 self-start mt-0.5 select-none"
-            >
-                {expanded ? 'Collapse' : 'Expand'}
-            </button>
-        </div>
-    )
+    /** When set, only rows whose original index is in the set are rendered. */
+    visibleIndices?: Set<number>
 }
 
 /** Spreadsheet view: one record per row, one field per column. */
-export function TableView({ data, fk, idPrefix = 'raw', rowActions }: TableViewProps) {
-    const rows = toIndexedRows(data)
-    if (rows.length === 0) {
+export function TableView({ data, fk, idPrefix = 'raw', rowActions, visibleIndices }: TableViewProps) {
+    const allRows = toIndexedRows(data)
+    if (allRows.length === 0) {
         return <p className="p-3 text-sm text-gray-400">No tabular rows.</p>
     }
-    const cols = collectColumns(rows.map(r => r.row))
+    // Columns from the full set so they stay stable when filtering rows.
+    const cols = collectColumns(allRows.map(r => r.row))
+    const rows = visibleIndices ? allRows.filter(r => visibleIndices.has(r.index)) : allRows
+    if (rows.length === 0) {
+        return <p className="p-3 text-sm text-gray-400">No rows match the current filter.</p>
+    }
     const fkMeta = (c: string) => fk?.foreignKeys[c]
 
     return (
@@ -131,16 +93,29 @@ export function TableView({ data, fk, idPrefix = 'raw', rowActions }: TableViewP
                                                         : null
                                                 }
                                                 onChange={v => fk.onEditCell(index, c, v)}
+                                                onFillUnmatched={
+                                                    fk.onFillUnmatched
+                                                        ? v => fk.onFillUnmatched!(c, v)
+                                                        : undefined
+                                                }
                                             />
                                         </td>
                                     )
                                 }
+                                const canEdit = !!fk?.onEditField && !isPlaceholder
                                 return (
                                     <td
                                         key={c}
                                         className="border-b border-r border-gray-200 px-3 py-2"
                                     >
-                                        <CollapsibleCell value={row[c]} />
+                                        {canEdit ? (
+                                            <EditableCell
+                                                value={row[c]}
+                                                onCommit={v => fk!.onEditField!(index, c, v)}
+                                            />
+                                        ) : (
+                                            <CollapsibleCell value={row[c]} />
+                                        )}
                                     </td>
                                 )
                             })}

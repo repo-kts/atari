@@ -619,74 +619,14 @@ module.exports = {
         const { technologies, resultReport, ...oftData } = data;
         void kvkId;
 
-        const where = {
-            kvkId: oftData.kvkId,
-            title: oftData.title,
-            oftStartDate: oftData.oftStartDate,
-        };
-        const existing = await prisma.kvkoft.findFirst({ where });
-
         const techCreate = (technologies || []).map((t, index) => ({
             optionKey: t.optionKey || `opt_${index + 1}`,
             optionName: t.optionName,
             details: t.details || null,
         }));
 
-        let savedReportId = null;
-
-        if (existing) {
-            await prisma.kvkoftTechnology.deleteMany({ where: { kvkOftId: existing.kvkOftId } });
-            
-            const updatePayload = {
-                ...oftData,
-                technologies: { create: techCreate },
-            };
-            
-            if (resultReport) {
-                const existingReport = await prisma.oftResultReport.findFirst({
-                    where: { kvkOftId: existing.kvkOftId }
-                });
-                if (existingReport) {
-                    const updatedReport = await prisma.oftResultReport.update({
-                        where: { oftResultReportId: existingReport.oftResultReportId },
-                        data: {
-                            finalRecommendation: resultReport.finalRecommendation,
-                            constraintsFeedback: resultReport.constraintsFeedback,
-                            farmersParticipationProcess: resultReport.farmersParticipationProcess,
-                            resultText: resultReport.resultText,
-                            remark: resultReport.remark || '',
-                            photographName: resultReport.photographName || null,
-                        }
-                    });
-                    savedReportId = updatedReport.oftResultReportId;
-                } else {
-                    const createdReport = await prisma.oftResultReport.create({
-                        data: {
-                            kvkOftId: existing.kvkOftId,
-                            finalRecommendation: resultReport.finalRecommendation,
-                            constraintsFeedback: resultReport.constraintsFeedback,
-                            farmersParticipationProcess: resultReport.farmersParticipationProcess,
-                            resultText: resultReport.resultText,
-                            remark: resultReport.remark || '',
-                            photographName: resultReport.photographName || null,
-                        }
-                    });
-                    savedReportId = createdReport.oftResultReportId;
-                }
-            }
-
-            await prisma.kvkoft.update({
-                where: { kvkOftId: existing.kvkOftId },
-                data: updatePayload,
-            });
-
-            if (resultReport && savedReportId && resultReport.tables) {
-                await saveResultReportTables(prisma, savedReportId, resultReport.tables);
-            }
-
-            return 'updated';
-        }
-
+        // Always insert a new OFT — distinct source rows can share kvk + title +
+        // start date but are separate records. Matching/updating would collapse them.
         const createPayload = {
             ...oftData,
             technologies: { create: techCreate },
