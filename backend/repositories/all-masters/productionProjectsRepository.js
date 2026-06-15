@@ -267,10 +267,14 @@ async function findById(entityName, id) {
  */
 function sanitizeData(config, data) {
     const sanitized = {};
+    // Relation fields (e.g. productCategory/productType/unit) are never scalars on the
+    // Prisma write input — drop them whether they arrive as objects or null.
+    const relationKeys = config.includes ? Object.keys(config.includes) : [];
     for (const [key, value] of Object.entries(data)) {
         // Skip ID field, _count, timestamps, and nested objects
         if (key === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
         if (key === 'createdAt' || key === 'updatedAt') continue;
+        if (relationKeys.includes(key)) continue;
         if (value !== null && typeof value === 'object') continue;
         if (value === undefined) continue;
         // Parse FK fields as integers
