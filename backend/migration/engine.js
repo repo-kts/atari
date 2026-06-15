@@ -63,6 +63,13 @@ async function fetchFromCurl(curl) {
         if (Array.isArray(json.data)) json.data = rows;
     }
 
+    // training list carries a numeric staff/coordinator id — map it to a name via staff-data.
+    if (req.url.includes('achievements-of-training') && rows.length) {
+        const { enrichTrainingRows } = require('./modules/training.js');
+        rows = await enrichTrainingRows(rows, req.headers);
+        if (Array.isArray(json.data)) json.data = rows;
+    }
+
     return { raw: json, rowCount: rows.length };
 }
 
