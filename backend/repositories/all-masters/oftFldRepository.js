@@ -339,6 +339,12 @@ function sanitizeData(config, data) {
     const sanitized = {};
     // Fields to exclude for master data entities
     const excludeFields = ['kvkId', 'kvk_id'];
+    // Relation field names (from include config) must never be written as scalars.
+    // A leaked relation key (e.g. `unit: null`) forces Prisma's checked update
+    // variant, which then rejects the scalar FK args (categoryId, unitId, …).
+    const relationFields = config.includes
+        ? Object.keys(config.includes).filter((k) => k !== '_count')
+        : [];
 
     // Validate all required fields (including foreign keys and name field)
     if (config.requiredFields && Array.isArray(config.requiredFields)) {
@@ -358,6 +364,7 @@ function sanitizeData(config, data) {
         if (key === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
         if (key === 'createdAt' || key === 'updatedAt') continue;
         if (excludeFields.includes(key)) continue; // Exclude kvkId for master data entities
+        if (relationFields.includes(key)) continue; // Never write relation fields as scalars
         if (value !== null && typeof value === 'object') continue;
         if (value === undefined) continue;
 
