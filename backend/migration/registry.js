@@ -15,6 +15,8 @@ const specs = [
     require('./modules/cfldTechnicalParameter.js'),
     require('./modules/cfldExtensionActivity.js'),
     require('./modules/cfldBudgetUtilization.js'),
+    require('./modules/training.js'),
+    require('./modules/extensionActivity.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
