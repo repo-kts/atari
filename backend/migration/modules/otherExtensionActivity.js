@@ -2,15 +2,14 @@ const { normalize } = require('../masterResolver.js');
 const { parseDate, decodeEntities, cleanText } = require('../util.js');
 
 /**
- * Module spec: KVK Extension Activities (Achievements). Source: atariams.org
- * `extension-programmes`. Writes kvk_extension_activity.
+ * Module spec: KVK Other Extension Activities (Achievements). Source:
+ * atariams.org `other-extension-activities`. Writes kvk_other_extension_activity.
  *
  * Every field lives on the DataTables list row (nested kvk/staff/extension_activity
- * objects + flat farmer/official counts), so no per-row edit-page fetch is needed.
+ * objects) — no per-row edit-page fetch. No farmer/official demographics here.
  *
- * Note: the activity FK on our schema points at the FldActivity master
- * (fld_activity), which is what the live form resolves against — NOT the global
- * ExtensionActivity master. Unmatched names are parked in `activityOther`.
+ * The activity FK points at the OtherExtensionActivity master
+ * (other_extension_activity). Unmatched names are parked in `activityTypeOther`.
  */
 
 function intOrZero(v) {
@@ -28,16 +27,16 @@ function asObject(value) {
 }
 
 module.exports = {
-    key: 'extension-activity',
-    label: 'Extension Activities',
-    model: 'kvkExtensionActivity',
-    idField: 'extensionActivityId',
-    naturalKey: ['kvkId', 'activityId', 'staffId', 'startDate', 'endDate', 'numberOfActivities'],
+    key: 'other-extension-activity',
+    label: 'Other Extension Activities',
+    model: 'kvkOtherExtensionActivity',
+    idField: 'otherExtensionActivityId',
+    naturalKey: ['kvkId', 'activityTypeId', 'staffId', 'startDate', 'endDate', 'numberOfActivities'],
 
     foreignKeys: {
         kvkId: { master: 'kvk' },
         staffId: { master: 'kvkStaff' },
-        activityId: { master: 'fldActivity', otherField: 'activityOther' },
+        activityTypeId: { master: 'otherExtensionActivity', otherField: 'activityTypeOther' },
     },
 
     async transform(row, ctx) {
@@ -70,17 +69,17 @@ module.exports = {
             warn('staffId', 'No staff on old row — pick manually if needed');
         }
 
-        // 3. Activity ← extension_activity.name → FldActivity master. Park unmatched in Other.
-        let activityId = null;
-        let activityOther = null;
+        // 3. Activity ← extension_activity.name → OtherExtensionActivity master. Park unmatched in Other.
+        let activityTypeId = null;
+        let activityTypeOther = null;
         const actObj = asObject(row.extension_activity);
         const activityName = decodeEntities(cleanText(actObj?.name || row['extension_activity.name'] || ''));
         if (activityName) {
-            const a = await r.resolve('fldActivity', 'activityName', 'activityId', activityName);
-            if (a.matched) activityId = a.id;
+            const a = await r.resolve('otherExtensionActivity', 'otherExtensionName', 'otherExtensionActivityId', activityName);
+            if (a.matched) activityTypeId = a.id;
             else {
-                activityOther = activityName;
-                warn('activityId', `Activity "${activityName}" not in master — parked in Other`);
+                activityTypeOther = activityName;
+                warn('activityTypeId', `Activity "${activityName}" not in master — parked in Other`);
             }
         }
 
@@ -95,32 +94,15 @@ module.exports = {
         if (!startDate) err('startDate', `Missing/invalid start date "${row.start_date}"`);
         if (!endDate) err('endDate', `Missing/invalid end date "${row.end_date}"`);
 
-        // 6. Farmer counts ← farmer_* ; Official counts ← extension_* (flat on row).
         const data = {
             kvkId,
             fldId: null,
             staffId,
-            activityId,
-            activityOther,
+            activityTypeId,
+            activityTypeOther,
             numberOfActivities,
             startDate,
             endDate,
-            farmersGeneralM: intOrZero(row.farmer_general_m),
-            farmersGeneralF: intOrZero(row.farmer_general_f),
-            farmersObcM: intOrZero(row.farmer_obc_m),
-            farmersObcF: intOrZero(row.farmer_obc_f),
-            farmersScM: intOrZero(row.farmer_sc_m),
-            farmersScF: intOrZero(row.farmer_sc_f),
-            farmersStM: intOrZero(row.farmer_st_m),
-            farmersStF: intOrZero(row.farmer_st_f),
-            officialsGeneralM: intOrZero(row.extension_general_m),
-            officialsGeneralF: intOrZero(row.extension_general_f),
-            officialsObcM: intOrZero(row.extension_obc_m),
-            officialsObcF: intOrZero(row.extension_obc_f),
-            officialsScM: intOrZero(row.extension_sc_m),
-            officialsScF: intOrZero(row.extension_sc_f),
-            officialsStM: intOrZero(row.extension_st_m),
-            officialsStF: intOrZero(row.extension_st_f),
         };
 
         return { data, issues };
@@ -129,7 +111,7 @@ module.exports = {
     async seedRecord(prisma, data) {
         // Always insert — the old site has genuine duplicate rows (same kvk, staff,
         // activity, dates, count) that are distinct records. Never update/dedupe.
-        await prisma.kvkExtensionActivity.create({ data });
+        await prisma.kvkOtherExtensionActivity.create({ data });
         return 'created';
     },
 };
