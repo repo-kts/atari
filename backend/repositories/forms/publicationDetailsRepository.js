@@ -143,11 +143,12 @@ const publicationDetailsRepository = {
                 await _validateForeignKey(publicationId, 'publication', 'publicationId', 'Publication', false);
             }
 
-            // Validate required fields
+            // Validate required fields (always-required core fields)
             const title = _normalizeString(data.title, 'Title', false);
             const authorName = _normalizeString(data.authorName, 'Author Name', false);
-            // Type-specific fields are all optional at the DB layer; per-type
-            // required validation is enforced client-side based on publication type.
+
+            // Type-specific fields are optional at the DB layer — which ones are
+            // shown/required is driven by the selected publication type on the client.
             const journalName = _normalizeString(data.journalName, 'Journal Name', true);
             const publisherName = _normalizeString(data.publisherName, 'Name Of Publisher', true);
             const venue = _normalizeString(data.venue, 'Venue', true);

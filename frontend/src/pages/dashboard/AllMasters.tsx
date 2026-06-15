@@ -104,6 +104,8 @@ export const AllMasters: React.FC = () => {
         if (currentPath.startsWith('/all-master/zones') ||
             currentPath.startsWith('/all-master/states') ||
             currentPath.startsWith('/all-master/organizations') ||
+            currentPath.startsWith('/all-master/universities') ||
+            currentPath.startsWith('/all-master/kvks') ||
             currentPath.startsWith('/all-master/districts')) {
             return 'basic'
         }
@@ -114,13 +116,6 @@ export const AllMasters: React.FC = () => {
         }
         if (currentPath.startsWith('/all-master/nicra')) {
             return 'nicra-masters'
-        }
-        if (currentPath.startsWith('/all-master/season') ||
-            currentPath.startsWith('/all-master/sanctioned-post') ||
-            currentPath.startsWith('/all-master/enterprise-type') ||
-            currentPath.startsWith('/all-master/dignitary-type') ||
-            currentPath.startsWith('/all-master/other-masters')) {
-            return 'other-masters'
         }
         if (currentPath.startsWith('/all-master/training') ||
             currentPath.startsWith('/all-master/extension-activity') ||
@@ -138,6 +133,10 @@ export const AllMasters: React.FC = () => {
         }
         if (currentPath.startsWith('/all-master/publication')) {
             return 'publications'
+        }
+        // Fallback: any other sub-route under /all-master/ belongs to 'other-masters'
+        if (currentPath.startsWith('/all-master/')) {
+            return 'other-masters'
         }
 
         return tabs[0].id
