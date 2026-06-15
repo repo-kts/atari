@@ -7,6 +7,25 @@ const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = 
  * Business logic layer for OFT, FLD, and CFLD master data operations
  */
 
+/**
+ * Build the additional WHERE filters that scope a uniqueness check.
+ * For entities whose nameField is unique only within a parent (e.g. a crop name
+ * is unique per category+subcategory, not globally), config.uniqueScopeFields
+ * lists the FK fields to include. Returns {} when no scoping is configured.
+ */
+function buildScopeFilters(config, data) {
+    const filters = {};
+    if (!config || !Array.isArray(config.uniqueScopeFields)) return filters;
+    for (const field of config.uniqueScopeFields) {
+        const value = data[field];
+        if (value === undefined || value === null || value === '') continue;
+        const parsed = field.endsWith('Id') ? parseInt(value, 10) : value;
+        if (typeof parsed === 'number' && isNaN(parsed)) continue;
+        filters[field] = parsed;
+    }
+    return filters;
+}
+
 class OftFldService {
     /**
      * Get all entities with pagination and filtering
@@ -96,7 +115,9 @@ class OftFldService {
             if (config && config.nameField && data[config.nameField]) {
                 const exists = await oftFldRepository.nameExists(
                     entityName,
-                    data[config.nameField]
+                    data[config.nameField],
+                    null,
+                    buildScopeFilters(config, data)
                 );
                 if (exists) {
                     throw new ConflictError(`${entityName} with this ${config.nameField} already exists`);
@@ -140,18 +161,20 @@ class OftFldService {
         
         try {
             // Check if entity exists
-            await this.getById(entityName, id);
+            const existing = await this.getById(entityName, id);
 
             // Get entity config for duplicate name check
             const { getEntityConfig } = require('../../repositories/all-masters/oftFldRepository.js');
             const config = getEntityConfig ? getEntityConfig(entityName) : null;
 
-            // Check for duplicate names (excluding current entity)
+            // Check for duplicate names (excluding current entity).
+            // Merge existing row so scope fields absent from a partial update still apply.
             if (config && config.nameField && data[config.nameField]) {
                 const exists = await oftFldRepository.nameExists(
                     entityName,
                     data[config.nameField],
-                    id
+                    id,
+                    buildScopeFilters(config, { ...existing, ...data })
                 );
                 if (exists) {
                     throw new ConflictError(`${entityName} with this ${config.nameField} already exists`);

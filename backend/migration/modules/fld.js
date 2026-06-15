@@ -198,6 +198,7 @@ module.exports = {
         categoryId: { master: 'fldCategory', otherField: 'categoryOther' },
         subCategoryId: { master: 'fldSubcategory', otherField: 'subCategoryOther' },
         cropId: { master: 'fldCrop', otherField: 'cropOther' },
+        unitId: { master: 'unit' },
     },
 
     async transform(row, ctx) {
@@ -440,17 +441,19 @@ module.exports = {
         if (row._editHtml) {
             const rawStart = parseInputValue(row._editHtml, 'start_date');
             const rawEnd = parseInputValue(row._editHtml, 'end_date') || parseInputValue(row._editHtml, 'expected_completion_date');
-            if (rawStart) startDate = new Date(rawStart);
-            if (rawEnd) expectedCompletionDate = new Date(rawEnd);
+            if (rawStart) { const d = new Date(rawStart); if (!isNaN(d.getTime())) startDate = d; }
+            if (rawEnd) { const d = new Date(rawEnd); if (!isNaN(d.getTime())) expectedCompletionDate = d; }
         }
         if (!startDate && row.start_date) {
-            startDate = new Date(row.start_date);
+            const d = new Date(row.start_date);
+            if (!isNaN(d.getTime())) startDate = d;
         }
         if (!expectedCompletionDate && row.end_date) {
-            expectedCompletionDate = new Date(row.end_date);
+            const d = new Date(row.end_date);
+            if (!isNaN(d.getTime())) expectedCompletionDate = d;
         }
         if (!startDate) {
-            err('startDate', 'Missing Start Date');
+            warn('startDate', 'Missing Start Date — will be null in DB (fill manually)');
         }
 
         const status = normalizeFldStatus(getRawStatusText(row));
@@ -458,7 +461,8 @@ module.exports = {
         // 9. Demonstration Counts & Quantity/Unit
         let noOfDemonstration = 0;
         let quantity = 0;
-        let unit = 'ha';
+        let unit = null;
+        let unitId = null;
         let quantityText = null;
 
         if (row._editHtml) {
@@ -471,10 +475,22 @@ module.exports = {
                 quantityText = rawQty;
                 quantity = 0;
             }
-            unit = parseInputValue(row._editHtml, 'unit') || 'ha';
+            unit = parseInputValue(row._editHtml, 'unit') || null;
         } else {
             noOfDemonstration = intOrZero(row.no_of_demonstration);
             quantity = parseFloat(row.area || row.quantity) || 0;
+            unit = cleanText(row.unit) || null;
+        }
+
+        // Resolve unit string → unit master FK (find-or-create)
+        if (unit) {
+            const um = await r.findOrCreate('unit', 'unitName', 'unitId', unit);
+            if (um.id) {
+                unitId = um.id;
+                if (um.created) warn('unitId', `Created new unit "${unit}" (#${um.id})`);
+            }
+        } else {
+            warn('unitId', 'No unit on old row — unitId left blank');
         }
 
         // 10. Farmer Demographics
@@ -553,8 +569,8 @@ module.exports = {
             noOfDemonstration,
             quantity,
             quantityText,
-            unit,
-            startDate: startDate || new Date(),
+            unitId,
+            startDate: startDate || null,
             expectedCompletionDate,
             generalM,
             generalF,
@@ -576,7 +592,7 @@ module.exports = {
             where: {
                 kvkId: data.kvkId,
                 fldName: data.fldName,
-                startDate: data.startDate,
+                ...(data.startDate ? { startDate: data.startDate } : {}),
             }
         });
         

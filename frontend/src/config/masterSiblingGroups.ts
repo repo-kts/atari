@@ -101,6 +101,7 @@ export const MASTER_SIBLING_GROUPS = {
     // Calendar & Context Masters
     CALENDAR_MASTERS: [
         ENTITY_PATHS.SEASON,
+        ENTITY_PATHS.UNIT,
         ENTITY_PATHS.CROP_TYPE,
         ENTITY_PATHS.IMPORTANT_DAY,
     ],

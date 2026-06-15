@@ -1164,7 +1164,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                     subCategoryOther: '',
                                     cropOther: '',
                                     // Women Empowerment has no measurable unit/quantity — clear any stale values.
-                                    ...(isWomenEmpowerment ? { unit: '', quantity: '', area: '' } : {}),
+                                    ...(isWomenEmpowerment ? { unitId: null, unit: '', quantity: '', area: '' } : {}),
                                     // Clear the "specify other" text unless the newly picked sector is the Other row.
                                     ...sectorResetPatch(value, 'sectorOther'),
                                 });
@@ -1329,6 +1329,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     cropId: numericValue,
+                                    unitId: selCrop?.unit?.unitId ?? null,
                                     unit: selCrop?.unit?.unitName ?? '',
                                     quantity: '',
                                     quantityText: '',
@@ -1388,7 +1389,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                     <FormInput
                                         label="Unit"
                                         value={masterUnit}
-                                        readOnly
+                                        disabled
                                         onChange={() => {}}
                                         placeholder={formData.cropId ? '' : 'Select crop'}
                                     />
@@ -1547,6 +1548,21 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             }}
                             options={createMasterDataOptions(activityList, 'activityId', 'activityName')}
                             emptyMessage="No activities available"
+                        />
+
+                        <FormInput
+                            label="No. of activities"
+                            required
+                            type="number"
+                            min={1}
+                            wholeNumberOnly
+                            value={(formData.numberOfActivities ?? formData.noOfActivities ?? formData.activityCount) ?? ''}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                numberOfActivities: e.target.value,
+                                noOfActivities: e.target.value,
+                                activityCount: e.target.value,
+                            })}
                         />
                     </div>
 

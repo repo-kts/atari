@@ -35,6 +35,7 @@ const FLD_CONFIG = {
         category: { select: { categoryId: true, categoryName: true } },
         subCategory: { select: { subCategoryId: true, subCategoryName: true } },
         crop: { select: { cropId: true, cropName: true } },
+        unitMaster: { select: { unitId: true, unitName: true } },
         fldResult: true,
     },
     filterableFields: ['seasonId', 'sectorId', 'thematicAreaId', 'categoryId', 'subCategoryId', 'cropId'],
@@ -211,6 +212,7 @@ const UPDATE_FIELD_DEFINITIONS = [
         backendField: 'startDate',
         errorMessage: 'Start Date must be a valid date',
         errorField: 'startDate',
+        options: { required: false },
     },
     {
         fieldNames: ['quantity', 'area', 'areaHa'],
@@ -227,6 +229,14 @@ const UPDATE_FIELD_DEFINITIONS = [
         errorMessage: 'Unit is invalid',
         errorField: 'unit',
         options: { allowEmpty: true },
+    },
+    {
+        fieldNames: ['unitId'],
+        type: 'integer',
+        backendField: 'unitId',
+        errorMessage: 'Unit ID is invalid',
+        errorField: 'unitId',
+        options: { required: false },
     },
     {
         fieldNames: ['quantityText'],
@@ -323,6 +333,9 @@ const fldRepository = {
             unit: isWomenEmpowermentSector
                 ? null
                 : (typeof data.unit === 'string' ? (data.unit.trim() || null) : null),
+            unitId: isWomenEmpowermentSector
+                ? null
+                : (data.unitId != null ? (parseInt(String(data.unitId), 10) || null) : null),
             // Free-text quantity for crops whose master quantity data type is
             // string/boolean (e.g. "N/A"); numeric types use `quantity`.
             quantityText: isWomenEmpowermentSector
@@ -389,12 +402,11 @@ const fldRepository = {
                 CREATE_FIELD_DEFINITIONS.noOfDemonstration.errorField,
                 { allowNegative: false }
             ),
-            startDate: validateRequiredDate(
-                data,
-                CREATE_FIELD_DEFINITIONS.startDate.fieldNames,
-                CREATE_FIELD_DEFINITIONS.startDate.errorMessage,
-                CREATE_FIELD_DEFINITIONS.startDate.errorField
-            ),
+            startDate: (() => {
+                if (!data.startDate) return null;
+                const d = new Date(data.startDate);
+                return Number.isNaN(d.getTime()) ? null : d;
+            })(),
             quantity: isWomenEmpowermentSector
                 ? 0
                 : validateRequiredNumber(
@@ -673,6 +685,7 @@ const fldRepository = {
                 noOfDemonstration: sourceFld.noOfDemonstration,
                 quantity: sourceFld.quantity,
                 unit: sourceFld.unit,
+                unitId: sourceFld.unitId,
                 startDate: nextStartDate,
                 generalM: sourceFld.generalM,
                 generalF: sourceFld.generalF,
@@ -808,7 +821,8 @@ function _mapResponse(r) {
         completedAt: completionDate,
         quantity: r.quantity,
         quantityText: r.quantityText,
-        unit: r.unit,
+        unit: r.unitMaster?.unitName ?? r.unit,
+        unitId: r.unitId,
         gen_m: r.generalM,
         generalM: r.generalM,
         gen_f: r.generalF,

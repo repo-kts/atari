@@ -216,7 +216,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.dry10 || ''}
+                                value={formData.dry10 ?? ''}
                                 onChange={(e) => setFormData({ ...formData, dry10: e.target.value })}
                             />
                             <FormInput
@@ -224,7 +224,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.dry15 || ''}
+                                value={formData.dry15 ?? ''}
                                 onChange={(e) => setFormData({ ...formData, dry15: e.target.value })}
                             />
                             <FormInput
@@ -232,7 +232,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.dry20 || ''}
+                                value={formData.dry20 ?? ''}
                                 onChange={(e) => setFormData({ ...formData, dry20: e.target.value })}
                             />
                             <FormInput
@@ -240,7 +240,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.intensiveRain || ''}
+                                value={formData.intensiveRain ?? ''}
                                 onChange={(e) => setFormData({ ...formData, intensiveRain: e.target.value })}
                             />
                         </div>
@@ -402,7 +402,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
+                                value={formData.genMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
@@ -410,7 +410,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
+                                value={formData.genFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
@@ -418,7 +418,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
+                                value={formData.obcMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
@@ -426,7 +426,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
+                                value={formData.obcFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
@@ -557,7 +557,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
+                                value={formData.genMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
@@ -565,7 +565,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
+                                value={formData.genFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
@@ -573,7 +573,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
+                                value={formData.obcMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
@@ -581,7 +581,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
+                                value={formData.obcFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
@@ -666,7 +666,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
+                                value={formData.genMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
@@ -674,7 +674,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
+                                value={formData.genFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
@@ -682,7 +682,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
+                                value={formData.obcMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
@@ -690,7 +690,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
+                                value={formData.obcFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
@@ -877,7 +877,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
+                                value={formData.genMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
@@ -885,7 +885,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
+                                value={formData.genFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
@@ -893,7 +893,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
+                                value={formData.obcMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
@@ -901,7 +901,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
+                                value={formData.obcFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
@@ -1080,7 +1080,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
+                                value={formData.genMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
@@ -1088,7 +1088,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
+                                value={formData.genFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
@@ -1096,7 +1096,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
+                                value={formData.obcMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
@@ -1104,7 +1104,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
+                                value={formData.obcFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput

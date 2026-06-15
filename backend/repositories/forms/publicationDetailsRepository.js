@@ -103,6 +103,7 @@ const _mapResponse = (r) => {
         venue: r.venue,
         isbnNumber: r.isbnNumber,
         publicationId: r.publicationId,
+        publicationName: r.publication?.publicationName,
         year: reportingYear,
         publication: r.publication?.publicationName || r.publicationId,
     };

@@ -26,7 +26,8 @@ model KvkFldIntroduction {
   // numeric types continue to use `quantity`.
   quantityText                String?                     @map("quantity_text")
   unit                        String?                     @map("unit")
-  startDate                   DateTime                    @map("start_date")
+  unitId                      Int?                        @map("unit_id")
+  startDate                   DateTime?                   @map("start_date")
   expectedCompletionDate      DateTime?                   @map("expected_completion_date")
   generalM                    Int                         @map("general_m")
   generalF                    Int                         @map("general_f")
@@ -47,10 +48,11 @@ model KvkFldIntroduction {
   crop                        FldCrop?                    @relation(fields: [cropId], references: [cropId], onDelete: SetNull)
   kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   kvkStaff                    KvkStaff                    @relation(fields: [kvkStaffId], references: [kvkStaffId])
-season                      Season?                     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  season                      Season?                     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
   sector                      Sector?                     @relation(fields: [sectorId], references: [sectorId], onDelete: SetNull)
   subCategory                 FldSubcategory?             @relation(fields: [subCategoryId], references: [subCategoryId], onDelete: SetNull)
   thematicArea                FldThematicArea?            @relation(fields: [thematicAreaId], references: [thematicAreaId], onDelete: SetNull)
+  unitMaster                  Unit?                       @relation(fields: [unitId], references: [unitId], onDelete: SetNull)
   kvkOtherExtensionActivities KvkOtherExtensionActivity[]
 
   @@index([kvkId])
@@ -61,6 +63,7 @@ season                      Season?                     @relation(fields: [seaso
   @@index([subCategoryId])
   @@index([cropId])
   @@index([kvkStaffId])
+  @@index([unitId])
   @@index([expectedCompletionDate])
   @@map("kvk_fld_introduction")
 }

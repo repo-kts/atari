@@ -57,7 +57,10 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
     const handlePublicationChange = useCallback(
         (value: string | number) => {
             setFormData((prev: any) => {
-                const selectedPublication = publicationItems.find((p: any) => p.publicationId === value)
+                // Loose match: select values come back as strings, publicationId is numeric.
+                const selectedPublication = publicationItems.find(
+                    (p: any) => String(p.publicationId) === String(value)
+                )
                 return {
                     ...prev,
                     publication: value,
@@ -115,10 +118,34 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
         [setFormData]
     )
 
+    const handlePublicationNameChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, publicationName: e.target.value }))
+        },
+        [setFormData]
+    )
+
+    // Resolve the selected publication's name from its id so conditional fields
+    // work for BOTH create (just-selected id) and edit (id loaded from record).
+    // Falls back to any name already on formData when items aren't loaded yet.
+    const selectedPublicationName = useMemo(() => {
+        const id = formData.publicationId ?? formData.publication
+        if (id !== undefined && id !== null && id !== '') {
+            const match = publicationItems.find(
+                (p: any) => String(p.publicationId) === String(id)
+            )
+            if (match) return match.publicationName
+        }
+        return (
+            formData.publicationName ??
+            (typeof formData.publication === 'string' ? formData.publication : '')
+        )
+    }, [formData.publicationId, formData.publication, formData.publicationName, publicationItems])
+
     // Which type-specific fields to show, driven by the selected publication type.
     // Defaults to "Name Of Publisher" only for any type not explicitly mapped.
     const fieldConfig = useMemo(() => {
-        const name = String(formData.publicationName ?? '').trim()
+        const name = String(selectedPublicationName ?? '').trim()
         switch (name) {
             case 'Research Paper Published':
                 return { journal: true, naas: true, publisher: false, venue: false, isbn: false }
@@ -130,14 +157,7 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
             default:
                 return { journal: false, naas: false, publisher: true, venue: false, isbn: false }
         }
-    }, [formData.publicationName])
-
-    const handlePublicationNameChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData((prev: any) => ({ ...prev, publicationName: e.target.value }))
-        },
-        [setFormData]
-    )
+    }, [selectedPublicationName])
 
     if (!entityType) return null
 

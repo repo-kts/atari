@@ -637,15 +637,15 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
 
                     <FormSection title="Farmers Details">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" wholeNumberOnly value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" wholeNumberOnly value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" wholeNumberOnly value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" wholeNumberOnly value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
+                            <FormInput label="General_M" required type="number" wholeNumberOnly value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
+                            <FormInput label="General_F" required type="number" wholeNumberOnly value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" wholeNumberOnly value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" wholeNumberOnly value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" wholeNumberOnly value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" wholeNumberOnly value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" wholeNumberOnly value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" wholeNumberOnly value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
 
                         <div className="flex flex-wrap gap-3 pt-4">
@@ -728,7 +728,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             type="number"
                             wholeNumberOnly
-                            value={formData.activityCount || ''}
+                            value={formData.activityCount ?? ''}
                             onChange={(e) => setFormData({ ...formData, activityCount: e.target.value })}
                         />
                         <div className="hidden md:block"></div> {/* Spacer */}
@@ -799,15 +799,15 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
 
                     <FormSection title="Extension Officials">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" wholeNumberOnly value={formData.ext_gen_m || ''} onChange={e => setFormData({ ...formData, ext_gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" wholeNumberOnly value={formData.ext_gen_f || ''} onChange={e => setFormData({ ...formData, ext_gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" wholeNumberOnly value={formData.ext_obc_m || ''} onChange={e => setFormData({ ...formData, ext_obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" wholeNumberOnly value={formData.ext_obc_f || ''} onChange={e => setFormData({ ...formData, ext_obc_f: e.target.value })} />
+                            <FormInput label="General_M" required type="number" wholeNumberOnly value={formData.ext_gen_m ?? ''} onChange={e => setFormData({ ...formData, ext_gen_m: e.target.value })} />
+                            <FormInput label="General_F" required type="number" wholeNumberOnly value={formData.ext_gen_f ?? ''} onChange={e => setFormData({ ...formData, ext_gen_f: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" wholeNumberOnly value={formData.ext_obc_m ?? ''} onChange={e => setFormData({ ...formData, ext_obc_m: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" wholeNumberOnly value={formData.ext_obc_f ?? ''} onChange={e => setFormData({ ...formData, ext_obc_f: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" wholeNumberOnly value={formData.ext_sc_m || ''} onChange={e => setFormData({ ...formData, ext_sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" wholeNumberOnly value={formData.ext_sc_f || ''} onChange={e => setFormData({ ...formData, ext_sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.ext_st_m || ''} onChange={e => setFormData({ ...formData, ext_st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.ext_st_f || ''} onChange={e => setFormData({ ...formData, ext_st_f: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" wholeNumberOnly value={formData.ext_sc_m ?? ''} onChange={e => setFormData({ ...formData, ext_sc_m: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" wholeNumberOnly value={formData.ext_sc_f ?? ''} onChange={e => setFormData({ ...formData, ext_sc_f: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.ext_st_m ?? ''} onChange={e => setFormData({ ...formData, ext_st_m: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.ext_st_f ?? ''} onChange={e => setFormData({ ...formData, ext_st_f: e.target.value })} />
                         </div>
 
                         <div className="flex flex-wrap gap-3 pt-4">
@@ -890,7 +890,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             type="number"
                             wholeNumberOnly
-                            value={formData.activityCount || ''}
+                            value={formData.activityCount ?? ''}
                             onChange={(e) => setFormData({ ...formData, activityCount: e.target.value })}
                         />
                         <div className="hidden md:block"></div> {/* Spacer */}
@@ -941,7 +941,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             type="number"
                             wholeNumberOnly
-                            value={formData.activityCount || ''}
+                            value={formData.activityCount ?? ''}
                             onChange={(e) => setFormData({ ...formData, activityCount: e.target.value })}
                         />
                         <div className="md:col-span-2">
@@ -1092,15 +1092,15 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
 
                     <FormSection title="Extension Officials">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" wholeNumberOnly value={formData.ext_gen_m || ''} onChange={e => setFormData({ ...formData, ext_gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" wholeNumberOnly value={formData.ext_gen_f || ''} onChange={e => setFormData({ ...formData, ext_gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" wholeNumberOnly value={formData.ext_obc_m || ''} onChange={e => setFormData({ ...formData, ext_obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" wholeNumberOnly value={formData.ext_obc_f || ''} onChange={e => setFormData({ ...formData, ext_obc_f: e.target.value })} />
+                            <FormInput label="General_M" required type="number" wholeNumberOnly value={formData.ext_gen_m ?? ''} onChange={e => setFormData({ ...formData, ext_gen_m: e.target.value })} />
+                            <FormInput label="General_F" required type="number" wholeNumberOnly value={formData.ext_gen_f ?? ''} onChange={e => setFormData({ ...formData, ext_gen_f: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" wholeNumberOnly value={formData.ext_obc_m ?? ''} onChange={e => setFormData({ ...formData, ext_obc_m: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" wholeNumberOnly value={formData.ext_obc_f ?? ''} onChange={e => setFormData({ ...formData, ext_obc_f: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" wholeNumberOnly value={formData.ext_sc_m || ''} onChange={e => setFormData({ ...formData, ext_sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" wholeNumberOnly value={formData.ext_sc_f || ''} onChange={e => setFormData({ ...formData, ext_sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.ext_st_m || ''} onChange={e => setFormData({ ...formData, ext_st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.ext_st_f || ''} onChange={e => setFormData({ ...formData, ext_st_f: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" wholeNumberOnly value={formData.ext_sc_m ?? ''} onChange={e => setFormData({ ...formData, ext_sc_m: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" wholeNumberOnly value={formData.ext_sc_f ?? ''} onChange={e => setFormData({ ...formData, ext_sc_f: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.ext_st_m ?? ''} onChange={e => setFormData({ ...formData, ext_st_m: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.ext_st_f ?? ''} onChange={e => setFormData({ ...formData, ext_st_f: e.target.value })} />
                         </div>
 
                         <div className="flex flex-wrap gap-3 pt-4">

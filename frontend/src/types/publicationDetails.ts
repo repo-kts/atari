@@ -14,6 +14,7 @@ export interface PublicationDetails {
     publisherName?: string | null;
     venue?: string | null;
     isbnNumber?: string | null;
+    publicationName?: string;
     createdAt: string;
     updatedAt: string;
     reportingYear?: string | number;
@@ -45,6 +46,7 @@ export interface PublicationDetailsFormData {
     publisherName?: string;
     venue?: string;
     isbnNumber?: string;
+    publicationName?: string;
 }
 
 // ============================================
