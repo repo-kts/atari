@@ -78,6 +78,12 @@ const MASTER_CATALOG = {
     equipmentMaster: { model: 'equipmentMaster', idField: 'equipmentMasterId', nameField: 'name' },
     equipmentStatus: { model: 'equipmentPresentStatusMaster', idField: 'equipmentStatusId', nameField: 'statusLabel' },
     unit: { model: 'unit', idField: 'unitId', nameField: 'unitName' },
+    trainingType: { model: 'trainingType', idField: 'trainingTypeId', nameField: 'trainingTypeName' },
+    trainingArea: { model: 'trainingArea', idField: 'trainingAreaId', nameField: 'trainingAreaName' },
+    trainingThematicArea: { model: 'trainingThematicArea', idField: 'trainingThematicAreaId', nameField: 'trainingThematicAreaName' },
+    trainingClientele: { model: 'clienteleMaster', idField: 'clienteleId', nameField: 'name' },
+    trainingFundingSource: { model: 'fundingSourceMaster', idField: 'fundingSourceId', nameField: 'name' },
+    courseCoordinator: { model: 'courseCoordinatorMaster', idField: 'coordinatorId', nameField: 'name' },
 };
 
 function getMaster(key) {
