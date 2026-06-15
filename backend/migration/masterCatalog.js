@@ -77,6 +77,7 @@ const MASTER_CATALOG = {
     equipmentType: { model: 'equipmentTypeMaster', idField: 'equipmentTypeId', nameField: 'name' },
     equipmentMaster: { model: 'equipmentMaster', idField: 'equipmentMasterId', nameField: 'name' },
     equipmentStatus: { model: 'equipmentPresentStatusMaster', idField: 'equipmentStatusId', nameField: 'statusLabel' },
+    unit: { model: 'unit', idField: 'unitId', nameField: 'unitName' },
 };
 
 function getMaster(key) {

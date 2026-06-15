@@ -8,8 +8,9 @@ model Unit {
   isOther   Boolean   @default(false) @map("is_other")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
-  fldCrops  FldCrop[]
-  products  Product[]
+  fldCrops         FldCrop[]
+  products         Product[]
+  fldIntroductions KvkFldIntroduction[]
 
   @@index([unitName])
   @@map("unit")
