@@ -490,7 +490,18 @@ module.exports = {
                 if (um.created) warn('unitId', `Created new unit "${unit}" (#${um.id})`);
             }
         } else {
-            warn('unitId', 'No unit on old row — unitId left blank');
+            // No unit on the old row — default so the FK stays valid, and flag it
+            // so the operator can correct it. Women Empowerment activities aren't
+            // area-based, so they default to N/A; everything else defaults to Ha.
+            const isWomenEmpowerment = /women\s*empowerment/i.test(sectorLabel || '');
+            const defaultUnitName = isWomenEmpowerment ? 'N/A' : 'Ha';
+            const defUnit = await r.findOrCreate('unit', 'unitName', 'unitId', defaultUnitName);
+            if (defUnit.id) {
+                unitId = defUnit.id;
+                warn('unitId', `No unit on old row — defaulted to ${defaultUnitName} (#${defUnit.id}). Please change the unit if it should be other than ${defaultUnitName}.`);
+            } else {
+                warn('unitId', 'No unit on old row — unitId left blank');
+            }
         }
 
         // 10. Farmer Demographics
