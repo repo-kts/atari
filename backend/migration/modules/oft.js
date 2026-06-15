@@ -508,7 +508,11 @@ module.exports = {
             warn('technologies', 'Could not fetch edit page — technology options missing');
         }
         if (technologies.length === 0) {
-            err('technologies', 'At least one technology option with details is required');
+            if (status === 'TRANSFERRED_TO_NEXT_YEAR') {
+                warn('technologies', 'Transferred OFT has no technologies yet — seeded with empty array');
+            } else {
+                err('technologies', 'At least one technology option with details is required');
+            }
         }
 
         const numberOfLocation = intOrZero(row.no_of_location);
