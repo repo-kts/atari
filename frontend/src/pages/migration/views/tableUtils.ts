@@ -150,7 +150,12 @@ export function collectColumns(rows: Row[]): string[] {
 export interface FkEditing {
     foreignKeys: Record<string, { master: string; otherField?: string }>
     fkOptions: Record<string, { value: number; label: string }[]>
+    /** Pick an FK master id for one cell. */
     onEditCell: (rowIndex: number, field: string, value: number | null) => void
+    /** Edit any non-FK scalar cell (writes into the shared records state). */
+    onEditField?: (rowIndex: number, field: string, value: unknown) => void
+    /** Copy an FK value into every still-unmatched row in the same column. */
+    onFillUnmatched?: (field: string, value: number) => void
 }
 
 /** Render one cell value compactly: nested objects collapse to JSON, null shows ·. */

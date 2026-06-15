@@ -154,34 +154,10 @@ module.exports = {
         const parentData = { ...data };
         delete parentData._detail;
 
-        // Upsert parent KvkEquipment by kvkId + identifierCode (if present),
-        // else kvkId + equipmentName + yearOfPurchase.
-        // Details are NOT seeded here — run the equipment-details module for that.
-        let existing;
-        if (parentData.identifierCode) {
-            existing = await prisma.kvkEquipment.findFirst({
-                where: { kvkId: parentData.kvkId, identifierCode: parentData.identifierCode },
-            });
-        }
-        if (!existing && parentData.equipmentName && parentData.yearOfPurchase) {
-            existing = await prisma.kvkEquipment.findFirst({
-                where: {
-                    kvkId: parentData.kvkId,
-                    equipmentName: parentData.equipmentName,
-                    yearOfPurchase: parentData.yearOfPurchase,
-                },
-            });
-        }
-
-        if (existing) {
-            await prisma.kvkEquipment.update({
-                where: { equipmentId: existing.equipmentId },
-                data: parentData,
-            });
-        } else {
-            await prisma.kvkEquipment.create({ data: parentData });
-        }
-
-        return existing ? 'updated' : 'created';
+        // Always insert a new KvkEquipment — distinct source rows can share name /
+        // year / identifier but are separate records. Matching/updating would
+        // collapse them. Details are NOT seeded here — run equipment-details for that.
+        await prisma.kvkEquipment.create({ data: parentData });
+        return 'created';
     },
 };

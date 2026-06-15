@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import { Button } from '../../components/ui/button'
 import {
     migrationApi,
@@ -33,8 +33,9 @@ export function MigrationTool() {
     const [rowCount, setRowCount] = useState<number | null>(null)
     const [splitPercent, setSplitPercent] = useState<number>(50)
     const [verticalSplit, setVerticalSplit] = useState<number>(65)
+    const [showErrorsOnly, setShowErrorsOnly] = useState<boolean>(false)
 
-    const handleMouseDown = (e: React.MouseEvent) => {
+    const handleMouseDown = (e: ReactMouseEvent) => {
         e.preventDefault()
         const startX = e.clientX
         const startSplit = splitPercent
@@ -58,7 +59,7 @@ export function MigrationTool() {
         document.addEventListener('mouseup', handleMouseUp)
     }
 
-    const handleVerticalMouseDown = (e: React.MouseEvent) => {
+    const handleVerticalMouseDown = (e: ReactMouseEvent) => {
         e.preventDefault()
         const startY = e.clientY
         const startSplit = verticalSplit
@@ -200,6 +201,72 @@ export function MigrationTool() {
         )
     }
 
+    // Free-form edit of any non-FK cell. Persists in `records`, which is what we
+    // push to the DB (Push sends the edited records, not the transform output).
+    const onEditField = (rowIndex: number, field: string, value: unknown) => {
+        setRecords(prev =>
+            prev.map((r, i) => (i !== rowIndex || !r ? r : { ...r, [field]: value })),
+        )
+    }
+
+    // Copy an FK pick into every still-unmatched row in the same column — one
+    // click to fill all the empty cells of that column.
+    const onFillUnmatched = (field: string, value: number) => {
+        const meta = activeModule?.foreignKeys[field]
+        setRecords(prev =>
+            prev.map(r => {
+                if (!r) return r
+                const cur = r[field]
+                if (cur !== null && cur !== undefined && cur !== '') return r
+                const next: Row = { ...r, [field]: value }
+                if (meta?.otherField) next[meta.otherField] = null
+                return next
+            }),
+        )
+    }
+
+    // Recompute the report against the CURRENT records so manual fixes clear in
+    // real time: an error issue is dropped once its field now has a value, which
+    // re-enables Push without a re-Transform. Warnings are left untouched.
+    const liveReport = useMemo(() => {
+        if (!transformed) return null
+        const errorResolved = (field: string, rec: Row | null) => {
+            if (!rec) return false
+            const v = rec[field]
+            return v !== null && v !== undefined && v !== ''
+        }
+        const rows = transformed.report.rows
+            .map(r => {
+                const rec = records[r.index] ?? null
+                const issues = r.issues.filter(
+                    it => !(it.severity === 'error' && errorResolved(it.field, rec)),
+                )
+                return { index: r.index, issues }
+            })
+            .filter(r => r.issues.length > 0)
+        const errorCount = rows.reduce(
+            (n, r) => n + r.issues.filter(i => i.severity === 'error').length,
+            0,
+        )
+        const warnCount = rows.reduce(
+            (n, r) => n + r.issues.filter(i => i.severity === 'warn').length,
+            0,
+        )
+        return { ...transformed.report, rows, errorCount, warnCount, seedable: errorCount === 0 }
+    }, [transformed, records])
+
+    // Original indices of rows that still carry an unresolved error — drives the
+    // "show only errors" filter.
+    const errorIndices = useMemo(() => {
+        const s = new Set<number>()
+        liveReport?.rows.forEach(r => {
+            if (r.issues.some(i => i.severity === 'error')) s.add(r.index)
+        })
+        return s
+    }, [liveReport])
+
+    const visibleIndices = showErrorsOnly ? errorIndices : undefined
+
     const displayRecords = useMemo(() => {
         const source = records.length > 0 ? records : transformed?.records
         if (!source) return undefined
@@ -215,11 +282,11 @@ export function MigrationTool() {
     }, [records, transformed])
 
     const fk: FkEditing | undefined = activeModule
-        ? { foreignKeys: activeModule.foreignKeys, fkOptions, onEditCell }
+        ? { foreignKeys: activeModule.foreignKeys, fkOptions, onEditCell, onEditField, onFillUnmatched }
         : undefined
 
     const canTransform = raw !== undefined && kvkId !== '' && moduleKey !== ''
-    const canSeed = !!transformed && transformed.report.seedable
+    const canSeed = !!liveReport && liveReport.seedable
 
     return (
         <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 p-4">
@@ -289,29 +356,6 @@ export function MigrationTool() {
                 </div>
             )}
 
-            {/* Split Sizer Control */}
-            <div className="flex items-center gap-2 border-t border-gray-100 pt-2 text-xs text-gray-500">
-                <span className="font-semibold text-gray-700">Resize Panels:</span>
-                <input
-                    type="range"
-                    min="20"
-                    max="80"
-                    value={splitPercent}
-                    onChange={e => setSplitPercent(Number(e.target.value))}
-                    className="h-2 w-40 cursor-pointer appearance-none rounded-lg bg-gray-200 accent-blue-600 focus:outline-none"
-                    title="Slide to resize the panels left/right"
-                />
-                <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">
-                    {splitPercent}% / {100 - splitPercent}%
-                </span>
-                <button
-                    type="button"
-                    onClick={() => setSplitPercent(50)}
-                    className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 active:bg-gray-100 font-medium transition-colors"
-                >
-                    Reset Split
-                </button>
-            </div>
 
             {/* Panes */}
             <div className="flex min-h-0 flex-1 gap-0 overflow-hidden relative">
@@ -344,6 +388,26 @@ export function MigrationTool() {
                             badge={transformed ? `${transformed.report.mapped} mapped` : undefined}
                             placeholder="Transform to see records mapped to your DB schema."
                             rowActions={rowActions}
+                            visibleIndices={visibleIndices}
+                            headerExtra={
+                                transformed ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowErrorsOnly(v => !v)}
+                                        disabled={!showErrorsOnly && errorIndices.size === 0}
+                                        title="Show only rows that still have unresolved errors"
+                                        className={`rounded border px-2 py-1 text-xs font-medium transition-colors ${
+                                            showErrorsOnly
+                                                ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100'
+                                                : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50'
+                                        }`}
+                                    >
+                                        {showErrorsOnly
+                                            ? 'Show all rows'
+                                            : `Errors only (${errorIndices.size})`}
+                                    </button>
+                                ) : undefined
+                            }
                         />
                     </div>
                     {transformed && (
@@ -357,7 +421,7 @@ export function MigrationTool() {
                                 <div className="h-0.5 w-12 bg-gray-300 rounded-full"></div>
                             </div>
                             <div style={{ height: `${100 - verticalSplit}%` }} className="min-h-0 overflow-auto">
-                                <MigrationReport report={transformed.report} />
+                                <MigrationReport report={liveReport ?? transformed.report} />
                             </div>
                         </>
                     )}

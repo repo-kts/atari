@@ -132,8 +132,10 @@ async function transform(moduleKey, kvkId, raw) {
 }
 
 /**
- * Idempotent seed: find-or-update by the spec's naturalKey, so re-running the
- * same data never duplicates. Skips rows that failed to map (null).
+ * Insert-only seed: every mapped row is created as a new record. The old site
+ * has genuine duplicate-looking rows that differ only in fields not covered by a
+ * naturalKey, so matching/updating would collapse distinct records into one.
+ * Never dedupe — always insert. Skips rows that failed to map (null).
  */
 async function seed(moduleKey, kvkId, records) {
     const spec = getModule(moduleKey);
@@ -157,19 +159,9 @@ async function seed(moduleKey, kvkId, records) {
                 result.actions.push(resolved);
                 continue;
             }
-            const where = {};
-            for (const k of spec.naturalKey) where[k] = data[k];
-            const existing = await model.findFirst({ where });
-            if (existing) {
-                const idField = spec.idField || Object.keys(existing).find(k => /Id$/.test(k));
-                await model.update({ where: { [idField]: existing[idField] }, data });
-                result.updated++;
-                result.actions.push('updated');
-            } else {
-                await model.create({ data });
-                result.created++;
-                result.actions.push('created');
-            }
+            await model.create({ data });
+            result.created++;
+            result.actions.push('created');
         } catch (err) {
             result.failed.push({ index, message: err.message });
             result.actions.push('failed');
