@@ -32,7 +32,7 @@ module.exports = {
     label: 'Extension Activities',
     model: 'kvkExtensionActivity',
     idField: 'extensionActivityId',
-    naturalKey: ['kvkId', 'activityId', 'startDate'],
+    naturalKey: ['kvkId', 'activityId', 'staffId', 'startDate', 'endDate', 'numberOfActivities'],
 
     foreignKeys: {
         kvkId: { master: 'kvk' },
@@ -127,10 +127,14 @@ module.exports = {
     },
 
     async seedRecord(prisma, data) {
-        // Match on kvk + activity (or its Other text) + start date to avoid dupes on re-run.
+        // Distinct source rows can share kvk+activity+date but differ by staff /
+        // count, so match on all of those to avoid one row overwriting another.
         const where = {
             kvkId: data.kvkId,
+            staffId: data.staffId ?? null,
+            numberOfActivities: data.numberOfActivities,
             ...(data.startDate ? { startDate: data.startDate } : {}),
+            ...(data.endDate ? { endDate: data.endDate } : {}),
         };
         if (data.activityId != null) where.activityId = data.activityId;
         else if (data.activityOther) where.activityOther = data.activityOther;
