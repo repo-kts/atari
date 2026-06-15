@@ -93,14 +93,14 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             type="number"
                             value={formData.number ?? ''}
-                            onChange={(e) => setFormData({ ...formData, number: parseInt(e.target.value) || 0 })}
+                            onChange={(e) => setFormData({ ...formData, number: e.target.value })}
                         />
                         <FormInput
                             label="Area (sqm)"
                             required
                             type="number"
                             value={formData.areaSqm ?? ''}
-                            onChange={(e) => setFormData({ ...formData, areaSqm: parseFloat(e.target.value) || 0 })}
+                            onChange={(e) => setFormData({ ...formData, areaSqm: e.target.value })}
                         />
                     </div>
 
@@ -114,32 +114,32 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
-                                onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalM: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalF: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcM: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcF: e.target.value })}
                             />
                         </div>
 
@@ -149,38 +149,38 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scMale || ''}
-                                onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
+                                value={formData.scM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scM: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.scF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scF: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stMale || ''}
-                                onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
+                                value={formData.stM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stM: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.stF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stF: e.target.value })}
                             />
                         </div>
                         <CasteGenderTotals
                             values={formData}
-                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
-                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                            maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                            femaleFields={['generalF', 'obcF', 'scF', 'stF']}
                         />
                     </div>
                 </div>
@@ -245,7 +245,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             type="number"
                             step="0.01"
                             value={formData.areaHa ?? ''}
-                            onChange={(e) => setFormData({ ...formData, areaHa: parseFloat(e.target.value) || 0 })}
+                            onChange={(e) => setFormData({ ...formData, areaHa: e.target.value })}
                         />
                     </div>
 
@@ -259,32 +259,32 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
-                                onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalM: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalF: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcM: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcF: e.target.value })}
                             />
                         </div>
 
@@ -294,38 +294,38 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scMale || ''}
-                                onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
+                                value={formData.scM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scM: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.scF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scF: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stMale || ''}
-                                onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
+                                value={formData.stM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stM: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.stF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stF: e.target.value })}
                             />
                         </div>
                         <CasteGenderTotals
                             values={formData}
-                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
-                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                            maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                            femaleFields={['generalF', 'obcF', 'scF', 'stF']}
                         />
                     </div>
                 </div>
@@ -380,32 +380,32 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
-                                onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalM: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalF: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcM: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcF: e.target.value })}
                             />
                         </div>
 
@@ -415,38 +415,38 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scMale || ''}
-                                onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
+                                value={formData.scM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scM: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.scF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scF: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stMale || ''}
-                                onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
+                                value={formData.stM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stM: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.stF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stF: e.target.value })}
                             />
                         </div>
                         <CasteGenderTotals
                             values={formData}
-                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
-                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                            maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                            femaleFields={['generalF', 'obcF', 'scF', 'stF']}
                         />
                     </div>
                 </div>
@@ -495,7 +495,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             type="number"
                             wholeNumberOnly
                             value={formData.noOfDays || ''}
-                            onChange={(e) => setFormData({ ...formData, noOfDays: parseInt(e.target.value) || 0 })}
+                            onChange={(e) => setFormData({ ...formData, noOfDays: e.target.value })}
                         />
                         <FormInput
                             label="No of courses"
@@ -503,7 +503,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             type="number"
                             wholeNumberOnly
                             value={formData.noOfCourses || ''}
-                            onChange={(e) => setFormData({ ...formData, noOfCourses: parseInt(e.target.value) || 0 })}
+                            onChange={(e) => setFormData({ ...formData, noOfCourses: e.target.value })}
                         />
                         <FormSelect
                             label="On Campus/Off Campus"
@@ -534,32 +534,32 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
-                                onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalM: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalF: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcM: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcF: e.target.value })}
                             />
                         </div>
 
@@ -569,38 +569,38 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scMale || ''}
-                                onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
+                                value={formData.scM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scM: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.scF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scF: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stMale || ''}
-                                onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
+                                value={formData.stM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stM: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.stF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stF: e.target.value })}
                             />
                         </div>
                         <CasteGenderTotals
                             values={formData}
-                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
-                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                            maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                            femaleFields={['generalF', 'obcF', 'scF', 'stF']}
                         />
                     </div>
                 </div>
@@ -643,7 +643,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             type="number"
                             wholeNumberOnly
                             value={formData.noOfActivities || ''}
-                            onChange={(e) => setFormData({ ...formData, noOfActivities: parseInt(e.target.value) || 0 })}
+                            onChange={(e) => setFormData({ ...formData, noOfActivities: e.target.value })}
                         />
                     </div>
 
@@ -657,32 +657,32 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genMale || ''}
-                                onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalM: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.genFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.generalF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, generalF: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcMale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcM: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.obcFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.obcF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, obcF: e.target.value })}
                             />
                         </div>
 
@@ -692,38 +692,38 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scMale || ''}
-                                onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
+                                value={formData.scM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scM: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.scFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.scF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, scF: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stMale || ''}
-                                onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
+                                value={formData.stM ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stM: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 wholeNumberOnly
-                                value={formData.stFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
+                                value={formData.stF ?? ''}
+                                onChange={(e) => setFormData({ ...formData, stF: e.target.value })}
                             />
                         </div>
                         <CasteGenderTotals
                             values={formData}
-                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
-                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                            maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                            femaleFields={['generalF', 'obcF', 'scF', 'stF']}
                         />
                     </div>
                 </div>

@@ -131,6 +131,8 @@ const ENTITY_CONFIG = {
         tableName: 'crop',
         idColumn: 'crop_id',
         requiredFields: ['subCategoryId', 'categoryId', 'cropName'],
+        // cropName is unique only within a category+subcategory, not globally.
+        uniqueScopeFields: ['categoryId', 'subCategoryId'],
         includes: {
             subCategory: {
                 select: {
