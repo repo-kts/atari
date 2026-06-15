@@ -57,7 +57,10 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
     const handlePublicationChange = useCallback(
         (value: string | number) => {
             setFormData((prev: any) => {
-                const selectedPublication = publicationItems.find((p: any) => p.publicationId === value)
+                // Loose match: select values come back as strings, publicationId is numeric.
+                const selectedPublication = publicationItems.find(
+                    (p: any) => String(p.publicationId) === String(value)
+                )
                 return {
                     ...prev,
                     publication: value,
@@ -94,12 +97,67 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
         [setFormData]
     )
 
+    const handlePublisherNameChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, publisherName: e.target.value }))
+        },
+        [setFormData]
+    )
+
+    const handleVenueChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, venue: e.target.value }))
+        },
+        [setFormData]
+    )
+
+    const handleIsbnNumberChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, isbnNumber: e.target.value }))
+        },
+        [setFormData]
+    )
+
     const handlePublicationNameChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             setFormData((prev: any) => ({ ...prev, publicationName: e.target.value }))
         },
         [setFormData]
     )
+
+    // Resolve the selected publication's name from its id so conditional fields
+    // work for BOTH create (just-selected id) and edit (id loaded from record).
+    // Falls back to any name already on formData when items aren't loaded yet.
+    const selectedPublicationName = useMemo(() => {
+        const id = formData.publicationId ?? formData.publication
+        if (id !== undefined && id !== null && id !== '') {
+            const match = publicationItems.find(
+                (p: any) => String(p.publicationId) === String(id)
+            )
+            if (match) return match.publicationName
+        }
+        return (
+            formData.publicationName ??
+            (typeof formData.publication === 'string' ? formData.publication : '')
+        )
+    }, [formData.publicationId, formData.publication, formData.publicationName, publicationItems])
+
+    // Which type-specific fields to show, driven by the selected publication type.
+    // Defaults to "Name Of Publisher" only for any type not explicitly mapped.
+    const fieldConfig = useMemo(() => {
+        const name = String(selectedPublicationName ?? '').trim()
+        switch (name) {
+            case 'Research Paper Published':
+                return { journal: true, naas: true, publisher: false, venue: false, isbn: false }
+            case 'Abstracts Published in Seminar or Conference or Symposia':
+                return { journal: false, naas: false, publisher: true, venue: true, isbn: false }
+            case 'Books Published':
+            case 'Book Chapter Published':
+                return { journal: false, naas: false, publisher: true, venue: false, isbn: true }
+            default:
+                return { journal: false, naas: false, publisher: true, venue: false, isbn: false }
+        }
+    }, [selectedPublicationName])
 
     if (!entityType) return null
 
@@ -149,21 +207,50 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                             value={formData.authorName ?? ''}
                             onChange={handleAuthorNameChange}
                         />
-                        <FormInput
-                            label="Journal Name"
-                            required
-                            value={formData.journalName ?? ''}
-                            onChange={handleJournalNameChange}
-                        />
-                        <FormInput
-                            label="NAAS Rating"
-                            type="number"
-                            value={formData.naasRating ?? ''}
-                            onChange={(e) =>
-                                setFormData((prev: any) => ({ ...prev, naasRating: e.target.value }))
-                            }
-                            placeholder="e.g. 5.59"
-                        />
+                        {fieldConfig.journal && (
+                            <FormInput
+                                label="Name Of Journal"
+                                required
+                                value={formData.journalName ?? ''}
+                                onChange={handleJournalNameChange}
+                            />
+                        )}
+                        {fieldConfig.naas && (
+                            <FormInput
+                                label="NAAS Rating"
+                                type="number"
+                                required
+                                value={formData.naasRating ?? ''}
+                                onChange={(e) =>
+                                    setFormData((prev: any) => ({ ...prev, naasRating: e.target.value }))
+                                }
+                                placeholder="e.g. 5.59"
+                            />
+                        )}
+                        {fieldConfig.publisher && (
+                            <FormInput
+                                label="Name Of Publisher"
+                                required
+                                value={formData.publisherName ?? ''}
+                                onChange={handlePublisherNameChange}
+                            />
+                        )}
+                        {fieldConfig.venue && (
+                            <FormInput
+                                label="Venue"
+                                required
+                                value={formData.venue ?? ''}
+                                onChange={handleVenueChange}
+                            />
+                        )}
+                        {fieldConfig.isbn && (
+                            <FormInput
+                                label="ISBN Number"
+                                required
+                                value={formData.isbnNumber ?? ''}
+                                onChange={handleIsbnNumberChange}
+                            />
+                        )}
                     </div>
                 </div>
             )}
