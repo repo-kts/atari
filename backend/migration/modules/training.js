@@ -267,21 +267,8 @@ module.exports = {
     },
 
     async seedRecord(prisma, data) {
-        const existing = await prisma.trainingAchievement.findFirst({
-            where: {
-                kvkId: data.kvkId,
-                titleOfTraining: data.titleOfTraining,
-                ...(data.startDate ? { startDate: data.startDate } : {}),
-            },
-        });
-
-        if (existing) {
-            await prisma.trainingAchievement.update({
-                where: { trainingAchievementId: existing.trainingAchievementId },
-                data,
-            });
-            return 'updated';
-        }
+        // Always insert — distinct source rows can share kvk + title + start date
+        // but differ in other fields. Matching/updating would collapse them.
         await prisma.trainingAchievement.create({ data });
         return 'created';
     },
