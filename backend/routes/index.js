@@ -131,6 +131,10 @@ router.use('/reports', reportRoutes);
 // Data-migration tool (old atariams.org -> this app). Admin-only, self-contained.
 router.use('/migration', require('../migration/routes.js'));
 
+// TEMPORARY migration cleanup: per-module "Delete All" for a KVK's own data.
+// Mounted outside /forms so it skips the form-payload middlewares.
+router.use('/maintenance', require('./forms/kvkModuleWipeRoutes.js'));
+
 
 
 
