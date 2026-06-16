@@ -82,29 +82,54 @@ module.exports = {
                 row.equipment_name,
             ),
         );
+        // Reverse-engineering: the old site's equipment name is a messy raw string
+        // (Company / Brand / Model). The migration-only equipment_model_master maps
+        // each such raw name to its curated parent EquipmentMaster (+ type). Match
+        // there first to recover the proper hierarchy; the raw name itself becomes
+        // company_brand_model below. resolvedEquipName holds the curated parent
+        // name so the record's equipment_name is clean.
+        let resolvedEquipName = null;
         if (rawEquipName) {
-            // Use MasterResolver: normalizes whitespace/case/punctuation before matching,
-            // so hidden encoding differences (non-breaking spaces etc.) don't cause misses.
-            const em = await r.resolve('equipmentMaster', 'name', 'equipmentMasterId', rawEquipName);
-            if (em.matched) {
-                equipmentMasterId = em.id;
-                // Backfill equipmentTypeId from the master row when type wasn't in raw data
-                if (!equipmentTypeId) {
+            // MasterResolver normalizes whitespace/case/punctuation before matching.
+            const model = await r.resolve('equipmentModelMaster', 'name', 'equipmentModelId', rawEquipName);
+            if (model.matched) {
+                const modelRow = await prisma.equipmentModelMaster.findUnique({
+                    where: { equipmentModelId: model.id },
+                    select: {
+                        equipmentMasterId: true,
+                        equipmentMaster: { select: { equipmentTypeId: true, name: true } },
+                    },
+                });
+                if (modelRow) {
+                    equipmentMasterId = modelRow.equipmentMasterId;
+                    resolvedEquipName = modelRow.equipmentMaster?.name || null;
+                    if (!equipmentTypeId) equipmentTypeId = modelRow.equipmentMaster?.equipmentTypeId ?? null;
+                }
+            }
+            // Fallback: some old names already equal a curated EquipmentMaster name.
+            if (!equipmentMasterId) {
+                const em = await r.resolve('equipmentMaster', 'name', 'equipmentMasterId', rawEquipName);
+                if (em.matched) {
+                    equipmentMasterId = em.id;
                     const emRow = await prisma.equipmentMaster.findUnique({
                         where: { equipmentMasterId: em.id },
-                        select: { equipmentTypeId: true },
+                        select: { equipmentTypeId: true, name: true },
                     });
-                    if (emRow?.equipmentTypeId) equipmentTypeId = emRow.equipmentTypeId;
+                    resolvedEquipName = emRow?.name || null;
+                    if (!equipmentTypeId && emRow?.equipmentTypeId) equipmentTypeId = emRow.equipmentTypeId;
+                } else {
+                    warn('equipmentMasterId', `"${rawEquipName}" not in equipment model/master — parents left null, raw kept as company/brand/model`);
                 }
-            } else {
-                warn('equipmentMasterId', `EquipmentMaster "${rawEquipName}" not found — stored as null`);
             }
         }
 
         // ── Scalar fields ─────────────────────────────────────────────────
-        const equipmentName = decodeEntities(cleanText(row.equipment_name || rawEquipName || ''));
+        // equipment_name = the curated parent name when reverse-resolved, else the
+        // raw old-site name. company_brand_model = the old raw name (it IS the
+        // model/brand/company) unless the old row carried an explicit one.
+        const equipmentName = decodeEntities(cleanText(resolvedEquipName || row.equipment_name || rawEquipName || ''));
         const companyBrandModel = decodeEntities(cleanText(
-            row.company_brand_model || row.company || row.brand || '',
+            row.company_brand_model || row.company || row.brand || rawEquipName || '',
         ));
         const identifierCode = decodeEntities(cleanText(
             row.identifier_code || row.identifier || row.code || '',
