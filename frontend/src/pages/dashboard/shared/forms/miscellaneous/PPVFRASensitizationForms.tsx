@@ -126,7 +126,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 label="General_M"
                                 required
                                 type="number"
-                                value={formData.generalM || ''}
+                                value={formData.generalM ?? ''}
                                 onChange={handleNumberChange('generalM')}
                                 placeholder="0"
                             />
@@ -135,7 +135,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 label="General_F"
                                 required
                                 type="number"
-                                value={formData.generalF || ''}
+                                value={formData.generalF ?? ''}
                                 onChange={handleNumberChange('generalF')}
                                 placeholder="0"
                             />
@@ -144,7 +144,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 label="OBC_M"
                                 required
                                 type="number"
-                                value={formData.obcM || ''}
+                                value={formData.obcM ?? ''}
                                 onChange={handleNumberChange('obcM')}
                                 placeholder="0"
                             />
@@ -153,7 +153,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 label="OBC_F"
                                 required
                                 type="number"
-                                value={formData.obcF || ''}
+                                value={formData.obcF ?? ''}
                                 onChange={handleNumberChange('obcF')}
                                 placeholder="0"
                             />
@@ -162,7 +162,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 label="SC_M"
                                 required
                                 type="number"
-                                value={formData.scM || ''}
+                                value={formData.scM ?? ''}
                                 onChange={handleNumberChange('scM')}
                                 placeholder="0"
                             />
@@ -171,7 +171,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 label="SC_F"
                                 required
                                 type="number"
-                                value={formData.scF || ''}
+                                value={formData.scF ?? ''}
                                 onChange={handleNumberChange('scF')}
                                 placeholder="0"
                             />
@@ -180,7 +180,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 label="ST_M"
                                 required
                                 type="number"
-                                value={formData.stM || ''}
+                                value={formData.stM ?? ''}
                                 onChange={handleNumberChange('stM')}
                                 placeholder="0"
                             />
@@ -189,7 +189,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 label="ST_F"
                                 required
                                 type="number"
-                                value={formData.stF || ''}
+                                value={formData.stF ?? ''}
                                 onChange={handleNumberChange('stF')}
                                 placeholder="0"
                             />

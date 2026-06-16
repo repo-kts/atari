@@ -59,7 +59,7 @@ export const PrevalentDiseaseForms: React.FC<PrevalentDiseaseFormsProps> = ({
                         required
                         type="number"
                         step="0.01"
-                        value={formData.percentCommodityLoss || formData.commodityLossPercent || ''}
+                        value={formData.percentCommodityLoss ?? formData.commodityLossPercent ?? ''}
                         onChange={(e) => setFormData({ ...formData, percentCommodityLoss: e.target.value, commodityLossPercent: e.target.value })}
                         placeholder="0.00"
                     />
@@ -68,7 +68,7 @@ export const PrevalentDiseaseForms: React.FC<PrevalentDiseaseFormsProps> = ({
                         required
                         type="number"
                         step="0.01"
-                        value={formData.preventiveMeasuresTaken || formData.preventiveMeasuresArea || ''}
+                        value={formData.preventiveMeasuresTaken ?? formData.preventiveMeasuresArea ?? ''}
                         onChange={(e) => setFormData({ ...formData, preventiveMeasuresTaken: e.target.value, preventiveMeasuresArea: e.target.value })}
                         placeholder="0.00"
                     />
@@ -96,7 +96,7 @@ export const PrevalentDiseaseForms: React.FC<PrevalentDiseaseFormsProps> = ({
                         required
                         type="number"
                         step="0.01"
-                        value={formData.numberOfDeath || formData.morbidityRate || formData.mortalityCount || ''}
+                        value={formData.numberOfDeath ?? formData.morbidityRate ?? formData.mortalityCount ?? ''}
                         onChange={(e) => setFormData({
                             ...formData,
                             numberOfDeath: e.target.value,
@@ -109,7 +109,7 @@ export const PrevalentDiseaseForms: React.FC<PrevalentDiseaseFormsProps> = ({
                         label="Number of animals vaccinated"
                         required
                         type="number"
-                        value={formData.numberOfAnimalsVaccinated || formData.animalsTreated || ''}
+                        value={formData.numberOfAnimalsVaccinated ?? formData.animalsTreated ?? ''}
                         onChange={(e) => setFormData({ ...formData, numberOfAnimalsVaccinated: e.target.value, animalsTreated: e.target.value })}
                         placeholder="0"
                     />

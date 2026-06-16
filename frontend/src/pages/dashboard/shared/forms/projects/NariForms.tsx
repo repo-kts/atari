@@ -494,7 +494,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             type="number"
                             wholeNumberOnly
-                            value={formData.noOfDays || ''}
+                            value={formData.noOfDays ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfDays: e.target.value })}
                         />
                         <FormInput
@@ -502,7 +502,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             type="number"
                             wholeNumberOnly
-                            value={formData.noOfCourses || ''}
+                            value={formData.noOfCourses ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfCourses: e.target.value })}
                         />
                         <FormSelect
@@ -642,7 +642,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             type="number"
                             wholeNumberOnly
-                            value={formData.noOfActivities || ''}
+                            value={formData.noOfActivities ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfActivities: e.target.value })}
                         />
                     </div>

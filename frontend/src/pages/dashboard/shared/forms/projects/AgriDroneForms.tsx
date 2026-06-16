@@ -279,7 +279,7 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="No of farmers participated"
                             required
                             type="number"
-                            value={formData.noOfFarmers || formData.noOfFarmersParticipated || ''}
+                            value={formData.noOfFarmers ?? formData.noOfFarmersParticipated ?? ''}
                             onChange={(e) =>
                                 setFormData({ ...formData, noOfFarmers: e.target.value, noOfFarmersParticipated: e.target.value })
                             }
