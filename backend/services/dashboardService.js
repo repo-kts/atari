@@ -161,7 +161,7 @@ const dashboardService = {
       oftTotal,
       fldRecordCount,
       trainingTotal,
-      extensionSum,
+      extensionCount,
       staffTotal,
       oftStatusGroup,
       oftCompletedGroup,
@@ -183,10 +183,7 @@ const dashboardService = {
       prisma.kvkoft.count({ where: oftWhere }),
       prisma.kvkFldIntroduction.count({ where: fldWhere }),
       prisma.trainingAchievement.count({ where: trainingWhere }),
-      prisma.kvkExtensionActivity.aggregate({
-        where: extensionWhere,
-        _sum: { numberOfActivities: true },
-      }),
+      prisma.kvkExtensionActivity.count({ where: extensionWhere }),
       prisma.kvkStaff.count({
         where: buildStaffWhere(listWhere),
       }),
@@ -218,7 +215,7 @@ const dashboardService = {
       prisma.kvkExtensionActivity.groupBy({
         by: ['kvkId'],
         where: extensionWhere,
-        _sum: { numberOfActivities: true },
+        _count: { _all: true },
       }),
       prisma.trainingAchievement.groupBy({
         by: ['kvkId'],
@@ -228,7 +225,7 @@ const dashboardService = {
       prisma.kvkExtensionActivity.groupBy({
         by: ['kvkId'],
         where: { ...extensionWhere, endDate: { lt: now } },
-        _sum: { numberOfActivities: true },
+        _count: { _all: true },
       }),
       prisma.kvkStaff.groupBy({
         by: ['sanctionedPostId'],
@@ -265,7 +262,7 @@ const dashboardService = {
     const oftCompletedByKvk = countMapFromGroup(oftCompletedGroup);
     const fldCompletedByKvk = countMapFromGroup(fldCompletedGroup);
     const trainAch = new Map(trainingGroup.map((g) => [g.kvkId, g._count._all]));
-    const extAch = new Map(extensionGroup.map((g) => [g.kvkId, toNumber(g._sum?.numberOfActivities)]));
+    const extAch = new Map(extensionGroup.map((g) => [g.kvkId, toNumber(g._count?._all)]));
 
     function buildStatusMap(rows, statusKey, mapping) {
       const m = new Map();
@@ -292,7 +289,7 @@ const dashboardService = {
       trainingCompletedGroup.map((g) => [g.kvkId, toNumber(g._count?._all)])
     );
     const extensionCompletedByKvk = new Map(
-      extensionCompletedGroup.map((g) => [g.kvkId, toNumber(g._sum?.numberOfActivities)])
+      extensionCompletedGroup.map((g) => [g.kvkId, toNumber(g._count?._all)])
     );
 
     function emptySegments() {
@@ -401,7 +398,8 @@ const dashboardService = {
         totalOft: oftTotal,
         totalFld: fldRecordCount,
         training: trainingTotal,
-        extension: toNumber(extensionSum?._sum?.numberOfActivities),
+        // entry/record count, consistent with OFT/FLD/training charts
+        extension: toNumber(extensionCount),
         totalStaff: staffTotal,
       },
       perKvk,
