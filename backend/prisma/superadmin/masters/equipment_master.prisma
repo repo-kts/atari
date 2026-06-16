@@ -7,6 +7,8 @@ model EquipmentMaster {
 
   equipmentType EquipmentTypeMaster @relation(fields: [equipmentTypeId], references: [equipmentTypeId], onDelete: Cascade)
   equipments    KvkEquipment[]
+  // Migration-only reverse-lookup rows (old-site raw names). See EquipmentModelMaster.
+  equipmentModels EquipmentModelMaster[]
 
   @@unique([equipmentTypeId, name])
   @@index([equipmentTypeId])

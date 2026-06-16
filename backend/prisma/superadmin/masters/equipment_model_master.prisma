@@ -1,0 +1,21 @@
+/// MIGRATION-ONLY reverse-lookup table. Holds the old site's raw equipment
+/// names ("Original Equipment" = Company / Brand / Model), each linked to its
+/// curated parent EquipmentMaster. The equipment migration matches an old raw
+/// name here to recover the proper EquipmentMaster + EquipmentType, then stores
+/// the raw name on kvk_equipment.company_brand_model. Not surfaced in the
+/// frontend and never written to at KVK runtime.
+model EquipmentModelMaster {
+  equipmentModelId  Int      @id @default(autoincrement()) @map("equipment_model_id")
+  equipmentMasterId Int      @map("equipment_master_id")
+  name              String   @map("name")
+  isOther           Boolean  @default(false) @map("is_other")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  equipmentMaster EquipmentMaster @relation(fields: [equipmentMasterId], references: [equipmentMasterId], onDelete: Cascade)
+
+  @@unique([equipmentMasterId, name])
+  @@index([equipmentMasterId])
+  @@index([name])
+  @@map("equipment_model_master")
+}
