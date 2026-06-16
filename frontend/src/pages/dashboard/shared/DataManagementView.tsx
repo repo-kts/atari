@@ -11,6 +11,7 @@ import {
     ChevronDown,
     RotateCcw,
     FilterX,
+    Trash2,
 } from 'lucide-react'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
@@ -53,6 +54,7 @@ import { useDeleteHandler } from '@/hooks/useDeleteHandler'
 import { useEditHandler } from '@/hooks/useEditHandler'
 import { useExportHandler } from '@/hooks/useExportHandler'
 import { useToast } from '@/hooks/useToast'
+import { wipeKvkModule, WIPEABLE_ENTITY_TYPES } from '@/services/maintenanceApi'
 import {
     useTransferOftToNextYear,
     useRevokeOftTransfer,
@@ -277,6 +279,56 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         return routeConfig.canCreate.includes(user.role)
     }
     const showAddButton = canUserCreate()
+
+    // ── TEMPORARY migration cleanup: per-module "Delete All" ─────────────
+    // Only for KVK accounts (scoped to their own kvkId on the backend), only on
+    // modules the backend registry supports, and only with DELETE permission.
+    const canWipeModule =
+        !!entityType &&
+        WIPEABLE_ENTITY_TYPES.has(entityType) &&
+        !!user &&
+        (user.role === 'kvk_admin' || user.role === 'kvk_user') &&
+        !!user.kvkId &&
+        (!moduleCode || hasPermission('DELETE', moduleCode))
+
+    const handleWipeAll = () => {
+        if (!entityType) return
+        const label = title.replace(/ Master$/, '')
+        confirm(
+            {
+                title: `Delete ALL ${label} data?`,
+                message:
+                    `This permanently deletes EVERY ${label} record for your KVK ` +
+                    `(not just this page). This migration-cleanup action cannot be ` +
+                    `undone. Are you sure you want to continue?`,
+                variant: 'danger',
+                confirmText: 'Delete All',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    const res = await wipeKvkModule(entityType)
+                    if (activeHook && 'refetch' in activeHook) {
+                        await (activeHook as any).refetch()
+                    }
+                    queryClient.invalidateQueries()
+                    setCurrentPage(1)
+                    alert({
+                        title: 'Deleted',
+                        message: res?.message || 'All records deleted.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                } catch (err: any) {
+                    alert({
+                        title: 'Delete failed',
+                        message: err?.message || 'Failed to delete records.',
+                        variant: 'error',
+                    })
+                }
+            }
+        )
+    }
 
     // Determine if Edit button should be shown for a given item
     const canEditItem = (item: any) => {
@@ -1761,6 +1813,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         >
                                             <Plus className="w-4 h-4" />
                                             Add New
+                                        </button>
+                                    )}
+
+                                    {canWipeModule && (
+                                        <button
+                                            onClick={handleWipeAll}
+                                            title="Delete ALL records of this module for your KVK (migration cleanup)"
+                                            className="h-10 flex items-center gap-2 px-4 bg-white text-[#C62828] border border-[#E57373] rounded-xl text-sm font-medium hover:bg-[#FFEBEE] transition-all duration-200"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Delete All
                                         </button>
                                     )}
                                 </div>
