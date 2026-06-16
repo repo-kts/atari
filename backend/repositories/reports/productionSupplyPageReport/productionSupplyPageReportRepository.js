@@ -200,7 +200,8 @@ function mapPrismaRowToReportRow(r) {
         productType: r.productTypeOther || r.productType?.productCategoryType,
         product: r.productOther || r.product?.productName,
         speciesName: r.speciesName,
-        unit: r.unit,
+        // Unit derives from the linked product's master unit (no stored column).
+        unit: r.product?.unit?.unitName || '',
         quantity: r.quantity,
         value: r.value,
         valueRs: r.value,
@@ -235,7 +236,7 @@ async function fetchProductionSupplyRecordsForReport(kvkId, filters = {}) {
             kvk: { select: { kvkName: true } },
             productCategory: { select: { productCategoryName: true } },
             productType: { select: { productCategoryType: true } },
-            product: { select: { productName: true } },
+            product: { select: { productName: true, unit: { select: { unitName: true } } } },
         },
         orderBy: { createdAt: 'desc' },
     });

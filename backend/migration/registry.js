@@ -20,6 +20,7 @@ const specs = [
     require('./modules/otherExtensionActivity.js'),
     require('./modules/technologyWeek.js'),
     require('./modules/celebrationDay.js'),
+    require('./modules/productionSupply.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
