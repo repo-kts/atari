@@ -9,7 +9,8 @@ productCategoryId  Int?             @map("product_category_id")
   productId          Int?             @map("product_id")
   productOther       String?          @map("product_other")
   speciesName        String           @map("species_name")
-  unit               String
+  // Unit is no longer stored here — it derives from the linked Product's master
+  // unit (Product.unit). Edit the product's unit to change it everywhere.
   quantity           Float
   // Used when the product's quantity data type is string/boolean (e.g. "N/A");
   // numeric types continue to use `quantity`.

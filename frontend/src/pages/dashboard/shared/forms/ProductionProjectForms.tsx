@@ -140,17 +140,15 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
 
     const handleProductChange = useCallback((value: string | number) => {
         // Species / Breed / Variety is free text now — don't overwrite it.
-        // Pull the product's master-defined unit; reset quantity inputs.
-        const selProduct: any = products.find((p: any) => Number(p.productId) === Number(value))
+        // Unit derives from the product master (read-only) — not tracked here.
         setFormData({
             ...formData,
             productId: value,
-            unit: selProduct?.unit?.unitName ?? '',
             quantity: '',
             quantityText: '',
             ...productResetPatch(value, 'productOther'),
         })
-    }, [formData, setFormData, productResetPatch, products])
+    }, [formData, setFormData, productResetPatch])
 
     const handleSpeciesNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, speciesName: e.target.value })
@@ -495,13 +493,14 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                         {(() => {
                             const selectedProduct: any = products.find((p: any) => Number(p.productId) === Number(formData.productId))
                             const dataType = selectedProduct?.quantityDataType || 'decimal'
-                            const masterUnit = selectedProduct?.unit?.unitName || formData.unit || ''
+                            // Unit is read-only, sourced from the product master.
+                            const masterUnit = selectedProduct?.unit?.unitName || ''
                             const required = Boolean(selectedProduct?.quantityRequired)
                             const setText = (v: string) =>
-                                setFormData({ ...formData, quantityText: v, quantity: 0, unit: masterUnit })
+                                setFormData({ ...formData, quantityText: v, quantity: 0 })
                             const setNumber = (raw: string) => {
                                 const v = dataType === 'number' ? raw.replace(/[^0-9]/g, '') : raw
-                                setFormData({ ...formData, quantity: v, quantityText: null, unit: masterUnit })
+                                setFormData({ ...formData, quantity: v, quantityText: null })
                             }
                             return (
                                 <div className="grid grid-cols-2 gap-4">

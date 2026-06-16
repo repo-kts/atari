@@ -66,7 +66,8 @@ export interface ProductionSupplyFormData {
     productId?: number;
     prodType?: string | number;
     speciesName: string;
-    unit: string;
+    // Unit is derived from the product master (read-only) — not submitted.
+    unit?: string;
     quantity: number | string;
     value: number | string;
     // Participant fields (frontend format)

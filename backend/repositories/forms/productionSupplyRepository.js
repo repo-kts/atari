@@ -118,7 +118,8 @@ const _mapResponse = (r) => {
         product: r.productOther || r.product?.productName,
         productOther: r.productOther ?? '',
         speciesBreedVariety: r.speciesName,
-        unit: r.unit,
+        // Unit derives from the linked product's master unit (no stored column).
+        unit: r.product?.unit?.unitName || '',
         quantity: r.quantity,
         quantityText: r.quantityText,
         valueRs: r.value,
@@ -181,11 +182,9 @@ const productionSupplyRepository = {
                 await _validateForeignKey(productId, 'product', 'productId', 'Product', false);
             }
 
-            // Validate required fields. Unit now comes from the product's master
-            // (read-only in the form), so accept any non-empty value instead of a
-            // hardcoded list.
+            // Validate required fields. Unit is no longer stored — it derives from
+            // the linked product's master unit at read time.
             const speciesName = _normalizeString(data.speciesName, 'Species / Breed / Variety', false);
-            const unit = _normalizeString(data.unit, 'Unit', false);
             const quantity = _parseFloat(data.quantity, 'Quantity', false);
             const value = _parseFloat(data.value, 'Value', false);
             // Free-text quantity for products whose master quantity data type is
@@ -204,7 +203,6 @@ const productionSupplyRepository = {
                 productId: productId ? parseInteger(productId, 'productId', false) : null,
                 productOther: _normalizeString(data.productOther, 'productOther', true),
                 speciesName,
-                unit,
                 quantity,
                 quantityText,
                 value,
@@ -218,7 +216,7 @@ const productionSupplyRepository = {
                     kvk: { select: { kvkName: true } },
                     productCategory: { select: { productCategoryName: true } },
                     productType: { select: { productCategoryType: true } },
-                    product: { select: { productName: true } },
+                    product: { select: { productName: true, unit: { select: { unitName: true } } } },
                 }
             });
 
@@ -286,7 +284,7 @@ const productionSupplyRepository = {
                     kvk: { select: { kvkName: true } },
                     productCategory: { select: { productCategoryName: true } },
                     productType: { select: { productCategoryType: true } },
-                    product: { select: { productName: true } },
+                    product: { select: { productName: true, unit: { select: { unitName: true } } } },
                 },
                 orderBy: { createdAt: 'desc' },
             });
@@ -320,7 +318,7 @@ const productionSupplyRepository = {
                     kvk: { select: { kvkName: true } },
                     productCategory: { select: { productCategoryName: true } },
                     productType: { select: { productCategoryType: true } },
-                    product: { select: { productName: true } },
+                    product: { select: { productName: true, unit: { select: { unitName: true } } } },
                 },
             });
 
@@ -423,10 +421,7 @@ const productionSupplyRepository = {
                 updateData.speciesName = _normalizeString(data.speciesName, 'Species / Breed / Variety', false);
             }
 
-            if (data.unit !== undefined) {
-                // Unit comes from the product master (read-only) — accept any value.
-                updateData.unit = _normalizeString(data.unit, 'Unit', false);
-            }
+            // Unit is derived from the product master — never stored/updated here.
 
             if (data.quantity !== undefined) {
                 updateData.quantity = _parseFloat(data.quantity, 'Quantity', false);
@@ -452,7 +447,7 @@ const productionSupplyRepository = {
                     kvk: { select: { kvkName: true } },
                     productCategory: { select: { productCategoryName: true } },
                     productType: { select: { productCategoryType: true } },
-                    product: { select: { productName: true } },
+                    product: { select: { productName: true, unit: { select: { unitName: true } } } },
                 },
             });
 

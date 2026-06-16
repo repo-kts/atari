@@ -12,9 +12,15 @@ const { parseDate, decodeEntities, cleanText } = require('../util.js');
  * Product hierarchy: category.name → ProductCategory, type.name → ProductType,
  * product.name → Product. Each is resolved by name and parked in its *_other
  * column when unmatched (all three FKs are nullable). `variety` is the new
- * `speciesName`. `unit` is not on the old row — it's derived from the resolved
- * Product's unit master (the new form keeps it read-only). The old `*_t` totals
- * are derived on the old site and recomputed in our UI — dropped here.
+ * `speciesName`. The old `*_t` totals are derived on the old site and recomputed
+ * in our UI — dropped here.
+ *
+ * Unit: kvk_production_supply no longer stores a unit — it derives from the
+ * linked Product's master unit. Old rows never carry one, and many Products lack
+ * a unit link. The grid exposes an editable `unitId` picker (prefilled from the
+ * Product's current link); on seed it's back-filled onto the Product master
+ * (only when the Product has no unit yet — existing links are never overwritten)
+ * so the app's production-supply form shows that unit read-only off the Product.
  */
 
 function intOrZero(v) {
@@ -37,19 +43,19 @@ function asObject(value) {
     return null;
 }
 
-/** Derive the read-only unit string from the resolved Product's unit master. */
-async function unitForProduct(productId) {
-    if (!productId) return '';
+/** The resolved Product's currently-linked unit, if any. */
+async function unitInfoForProduct(productId) {
+    if (!productId) return { unitId: null, unitName: '' };
     const product = await prisma.product.findUnique({
         where: { productId },
         select: { unitId: true },
     });
-    if (!product?.unitId) return '';
+    if (!product?.unitId) return { unitId: null, unitName: '' };
     const unit = await prisma.unit.findUnique({
         where: { unitId: product.unitId },
         select: { unitName: true },
     });
-    return unit?.unitName || '';
+    return { unitId: product.unitId, unitName: unit?.unitName || '' };
 }
 
 module.exports = {
@@ -64,6 +70,9 @@ module.exports = {
         productCategoryId: { master: 'productCategory', otherField: 'productCategoryOther' },
         productTypeId: { master: 'productType', otherField: 'productTypeOther' },
         productId: { master: 'product', otherField: 'productOther' },
+        // Editable unit picker. Not a kvk_production_supply column — seedRecord
+        // turns it into the `unit` string AND back-fills the Product's unitId.
+        unitId: { master: 'unit' },
     },
 
     async transform(row, ctx) {
@@ -119,10 +128,12 @@ module.exports = {
         const speciesName = decodeEntities(cleanText(row.variety || ''));
         if (!speciesName) warn('speciesName', 'No variety on old row');
 
-        // 5. Unit (REQUIRED string) — derived from the resolved Product's unit master.
-        let unit = '';
-        if (productId) unit = await unitForProduct(productId);
-        if (!unit) warn('unit', 'Unit not derivable — set manually after migrate');
+        // 5. Unit — not stored on the record; derives from the Product master.
+        // Prefill the editable unitId picker from the Product's current link (if
+        // any); the operator sets it in the grid for products that still lack a
+        // unit, and seedRecord back-fills the Product master.
+        const { unitId } = await unitInfoForProduct(productId);
+        if (!unitId) warn('unitId', 'Product has no unit in master — pick one to back-fill it');
 
         // 6. Quantity / value (both REQUIRED numbers). Non-numeric quantity is
         // parked in quantityText (matches the string/boolean datatype path).
@@ -146,7 +157,9 @@ module.exports = {
             productId,
             productOther,
             speciesName,
-            unit,
+            // Virtual — editable in the grid, consumed/stripped by seedRecord.
+            // Not a kvk_production_supply column; only back-fills Product.unitId.
+            unitId,
             quantity,
             quantityText,
             value,
@@ -165,9 +178,29 @@ module.exports = {
     },
 
     async seedRecord(prisma, data) {
+        // `unitId` is a virtual grid field, not a kvk_production_supply column.
+        // Unit isn't stored on the record — it's only back-filled onto the Product.
+        const { unitId, ...record } = data;
+
         // Always insert — the old site holds genuine duplicate rows that are
         // distinct records. No dedupe.
-        await prisma.kvkProductionSupply.create({ data });
+        await prisma.kvkProductionSupply.create({ data: record });
+
+        // Back-fill the Product master's unit when it's missing one. Never
+        // overwrite an existing link — curated units win.
+        if (record.productId && unitId) {
+            const product = await prisma.product.findUnique({
+                where: { productId: record.productId },
+                select: { unitId: true },
+            });
+            if (product && product.unitId == null) {
+                await prisma.product.update({
+                    where: { productId: record.productId },
+                    data: { unitId: Number(unitId) },
+                });
+            }
+        }
+
         return 'created';
     },
 };
