@@ -360,7 +360,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                                     label="No. of farmers covered"
                                     required
                                     type="number"
-                                    value={formData[`${section.prefix}NoOfFarmersCovered`] || ''}
+                                    value={formData[`${section.prefix}NoOfFarmersCovered`] ?? ''}
                                     onChange={handleNumberChange(`${section.prefix}NoOfFarmersCovered`)}
                                     placeholder="Enter number"
                                 />
@@ -368,7 +368,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                                     label="No of advisories sent"
                                     required
                                     type="number"
-                                    value={formData[`${section.prefix}NoOfAdvisoriesSent`] || ''}
+                                    value={formData[`${section.prefix}NoOfAdvisoriesSent`] ?? ''}
                                     onChange={handleNumberChange(`${section.prefix}NoOfAdvisoriesSent`)}
                                     placeholder="Enter number"
                                 />
@@ -377,42 +377,42 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                                 <FormInput
                                     label="Crop"
                                     required
-                                    value={formData[`${section.prefix}Crop`] || ''}
+                                    value={formData[`${section.prefix}Crop`] ?? ''}
                                     onChange={handleFieldChange(`${section.prefix}Crop`)}
                                     placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Livestock"
                                     required
-                                    value={formData[`${section.prefix}Livestock`] || ''}
+                                    value={formData[`${section.prefix}Livestock`] ?? ''}
                                     onChange={handleFieldChange(`${section.prefix}Livestock`)}
                                     placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Weather"
                                     required
-                                    value={formData[`${section.prefix}Weather`] || ''}
+                                    value={formData[`${section.prefix}Weather`] ?? ''}
                                     onChange={handleFieldChange(`${section.prefix}Weather`)}
                                     placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Marketing"
                                     required
-                                    value={formData[`${section.prefix}Marketing`] || ''}
+                                    value={formData[`${section.prefix}Marketing`] ?? ''}
                                     onChange={handleFieldChange(`${section.prefix}Marketing`)}
                                     placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Awareness"
                                     required
-                                    value={formData[`${section.prefix}Awareness`] || ''}
+                                    value={formData[`${section.prefix}Awareness`] ?? ''}
                                     onChange={handleFieldChange(`${section.prefix}Awareness`)}
                                     placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Other Enterprises"
                                     required
-                                    value={formData[`${section.prefix}OtherEnterprises`] || ''}
+                                    value={formData[`${section.prefix}OtherEnterprises`] ?? ''}
                                     onChange={handleFieldChange(`${section.prefix}OtherEnterprises`)}
                                     placeholder="Enter details"
                                 />
