@@ -90,6 +90,10 @@ const MASTER_CATALOG = {
     otherExtensionActivity: { model: 'otherExtensionActivity', idField: 'otherExtensionActivityId', nameField: 'otherExtensionName' },
     // ImportantDay master — what kvk_important_day_celebration.importantDayId references.
     importantDay: { model: 'importantDay', idField: 'importantDayId', nameField: 'dayName' },
+    // Product hierarchy — what kvk_production_supply.{category,type,product} reference.
+    productCategory: { model: 'productCategory', idField: 'productCategoryId', nameField: 'productCategoryName' },
+    productType: { model: 'productType', idField: 'productTypeId', nameField: 'productCategoryType' },
+    product: { model: 'product', idField: 'productId', nameField: 'productName' },
 };
 
 function getMaster(key) {
