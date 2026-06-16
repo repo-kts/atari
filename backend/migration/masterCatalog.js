@@ -88,6 +88,8 @@ const MASTER_CATALOG = {
     fldActivity: { model: 'fldActivity', idField: 'activityId', nameField: 'activityName' },
     // OtherExtensionActivity master — what kvk_other_extension_activity.activityTypeId references.
     otherExtensionActivity: { model: 'otherExtensionActivity', idField: 'otherExtensionActivityId', nameField: 'otherExtensionName' },
+    // ImportantDay master — what kvk_important_day_celebration.importantDayId references.
+    importantDay: { model: 'importantDay', idField: 'importantDayId', nameField: 'dayName' },
 };
 
 function getMaster(key) {
