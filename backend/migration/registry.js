@@ -19,6 +19,7 @@ const specs = [
     require('./modules/extensionActivity.js'),
     require('./modules/otherExtensionActivity.js'),
     require('./modules/technologyWeek.js'),
+    require('./modules/celebrationDay.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
