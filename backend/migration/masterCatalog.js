@@ -94,6 +94,8 @@ const MASTER_CATALOG = {
     productCategory: { model: 'productCategory', idField: 'productCategoryId', nameField: 'productCategoryName' },
     productType: { model: 'productType', idField: 'productTypeId', nameField: 'productCategoryType' },
     product: { model: 'product', idField: 'productId', nameField: 'productName' },
+    // SoilWaterAnalysis master — what kvk_soil_water_analysis.analysisId references.
+    soilWaterAnalysis: { model: 'soilWaterAnalysis', idField: 'soilWaterAnalysisId', nameField: 'analysisName' },
 };
 
 function getMaster(key) {
