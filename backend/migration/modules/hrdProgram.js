@@ -16,9 +16,9 @@ const { parseDate, decodeEntities, cleanText } = require('../util.js');
  * (the FK picker lets the operator set it).
  *
  * `organizer` is NOT NULL on the new model but has no counterpart on the old
- * row — defaults to '' and is reported so the operator can fill it in. Dates are
- * dd-mm-yyyy on the old site; both are required, so each falls back to the other
- * when one is missing.
+ * row — the old form only captures `venue`, so organizer is seeded from the same
+ * venue value (operator refines it in the editable grid). Dates are dd-mm-yyyy on
+ * the old site; both are required, so each falls back to the other when missing.
  */
 
 function asObject(value) {
@@ -101,12 +101,14 @@ module.exports = {
         const startDate = startIso ? new Date(startIso) : null;
         const endDate = endIso ? new Date(endIso) : null;
 
-        // 5. Organizer — NOT NULL but absent on the old row.
-        const organizer = decodeEntities(cleanText(row.organizer)) || '';
-        if (!organizer) warn('organizer', 'No organizer on old row — fill in manually');
-
-        // 6. Venue (defaults to '' on the model).
+        // 5. Venue (defaults to '' on the model).
         const venue = decodeEntities(cleanText(row.venue)) || '';
+
+        // 6. Organizer — NOT NULL but absent on the old row. The old form only
+        // captures `venue`, so seed organizer from the same value (operator can
+        // refine it in the editable grid).
+        const organizer = venue;
+        if (!organizer) warn('organizer', 'No venue on old row to seed organizer — fill in manually');
 
         const data = {
             kvkId,
