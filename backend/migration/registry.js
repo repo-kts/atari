@@ -22,6 +22,7 @@ const specs = [
     require('./modules/celebrationDay.js'),
     require('./modules/productionSupply.js'),
     require('./modules/soilWaterAnalysis.js'),
+    require('./modules/publication.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
