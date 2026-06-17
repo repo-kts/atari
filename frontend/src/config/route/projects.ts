@@ -74,10 +74,10 @@ export const projectsRoutes: RouteConfig[] = [
     // FPO
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.FPO.DETAILS,
-        title: 'FPO Details',
+        title: 'Details FPO and CBBO',
         description: 'Formation and Promotion of FPOs as CBBOs under NCDC funding',
         category: 'Projects',
-        subcategory: 'FPO',
+        subcategory: 'FPO and CBBO',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
         fields: FIELD_GROUPS.FPO_DETAILS,
@@ -88,7 +88,7 @@ export const projectsRoutes: RouteConfig[] = [
         title: 'FPO Management',
         description: 'FPO Management',
         category: 'Projects',
-        subcategory: 'FPO',
+        subcategory: 'FPO and CBBO',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
         fields: FIELD_GROUPS.FPO_MANAGEMENT,
@@ -206,7 +206,7 @@ export const projectsRoutes: RouteConfig[] = [
         title: 'CSISA',
         description: 'Cereal Systems Initiative for South Asia (CSISA)',
         category: 'Projects',
-        subcategory: 'CSISA',
+        // subcategory: 'CSISA',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
         fields: FIELD_GROUPS.CSISA,
@@ -479,7 +479,7 @@ export const projectsRoutes: RouteConfig[] = [
     // Other direct links
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.SEED_HUB_PROGRAM,
-        title: 'Seed Hub Program',
+        title: 'Program',
         description: 'Seed Hub Program details',
         category: 'Projects',
         subcategory: 'Seed Hub',
