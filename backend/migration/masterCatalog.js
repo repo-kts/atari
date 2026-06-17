@@ -98,6 +98,9 @@ const MASTER_CATALOG = {
     soilWaterAnalysis: { model: 'soilWaterAnalysis', idField: 'soilWaterAnalysisId', nameField: 'analysisName' },
     // Publication type master — what kvk_publication_details.publicationId references.
     publication: { model: 'publication', idField: 'publicationId', nameField: 'publicationName' },
+    // CRA system masters — what cra_details.{croppingSystemId,farmingSystemId} reference.
+    craCropingSystem: { model: 'craCropingSystem', idField: 'craCropingSystemId', nameField: 'cropName' },
+    craFarmingSystem: { model: 'craFarmingSystem', idField: 'craFarmingSystemId', nameField: 'farmingSystemName' },
 };
 
 function getMaster(key) {

@@ -3,7 +3,7 @@ model FpoManagement {
   kvkId                 Int
   fpoName               String      @map("fpo_name")
   address               String      @map("address")
-  registrationNumber    String      @unique @map("registration_number")
+  registrationNumber    String      @map("registration_number")
   registrationDate      DateTime    @map("registration_date")
   proposedActivity      String      @map("proposed_activity")
   commodityIdentified   String      @map("commodity_identified")
