@@ -1,3 +1,4 @@
+const prisma = require('../../config/prisma.js');
 const { normalize } = require('../masterResolver.js');
 const { parseDate, decodeEntities, cleanText } = require('../util.js');
 
@@ -11,14 +12,47 @@ const { parseDate, decodeEntities, cleanText } = require('../util.js');
  * Masters resolved by name:
  *   - season.season_name        → Season (seasonId, nullable)
  *   - croping_system            → CraCropingSystem.cropName; the raw name is
- *     ALWAYS kept in the required `croppingSystem` string, and additionally
- *     matched to croppingSystemId / parked in croppingSystemOther.
- *   - farming_system.name       → CraFarmingSystem.farmingSystemName; matched to
- *     farmingSystemId or parked in farmingSystemOther (no required name column).
+ *     ALWAYS kept in the required `croppingSystem` string. When it isn't already
+ *     a master, a CraCropingSystem row is CREATED under the resolved season and
+ *     its id used for croppingSystemId.
+ *   - farming_system.name       → CraFarmingSystem.farmingSystemName; same
+ *     find-or-create-under-season behaviour for farmingSystemId.
  *
- * Old `*_t` totals (general_t, total_m, sub_total, …) are derived on the old
- * site and recomputed in our UI — dropped here.
+ * Both CRA system masters are season-scoped (NOT NULL seasonId), so creation
+ * needs a resolved season. When the season is unmatched we can't create the
+ * master — the name is parked in the corresponding *_other column instead and a
+ * warning is raised. cropName/farmingSystemName have no unique constraint, so we
+ * find-or-create per (season, normalized name): the lookup is cached per season
+ * on ctx and any row created here is found on the next Transform, so repeated
+ * runs never duplicate.
  */
+
+/**
+ * Find a season-scoped CRA system master by normalized name, creating it under
+ * that season when absent. @returns {Promise<number|null>} the master id, or
+ * null when no season is resolved (caller parks the name in *_other).
+ */
+async function findOrCreateSeasonScoped(ctx, model, nameField, idField, cacheKey, seasonId, rawName) {
+    if (!rawName || !seasonId) return null;
+    if (!ctx[cacheKey]) ctx[cacheKey] = new Map();
+    let byName = ctx[cacheKey].get(seasonId);
+    if (!byName) {
+        const rows = await prisma[model].findMany({
+            where: { seasonId },
+            select: { [idField]: true, [nameField]: true },
+        });
+        byName = new Map(rows.map(r => [normalize(r[nameField]), r[idField]]));
+        ctx[cacheKey].set(seasonId, byName);
+    }
+    const norm = normalize(rawName);
+    if (byName.has(norm)) return byName.get(norm);
+    const created = await prisma[model].create({
+        data: { [nameField]: rawName, seasonId },
+        select: { [idField]: true },
+    });
+    byName.set(norm, created[idField]);
+    return created[idField];
+}
 
 function intOrZero(v) {
     const n = parseInt(String(v ?? '').trim(), 10);
@@ -91,24 +125,37 @@ module.exports = {
         const interventions = decodeEntities(cleanText(row.technology_demo)) || '';
         if (!interventions) warn('interventions', 'No technology_demo on old row');
 
-        // 5. Cropping system — raw name always kept in the required string field,
-        // plus matched to the master (else parked in *_other).
+        // 5. Cropping system — raw name always kept in the required string field.
+        // Find the season-scoped master or CREATE it; only fall back to *_other
+        // when no season is resolved (the master needs a season).
         const croppingSystem = decodeEntities(cleanText(row.croping_system)) || '';
         if (!croppingSystem) warn('croppingSystem', 'No croping_system on old row');
         let croppingSystemId = null, croppingSystemOther = null;
         if (croppingSystem) {
-            const c = await r.resolve('craCropingSystem', 'cropName', 'craCropingSystemId', croppingSystem);
-            if (c.matched) croppingSystemId = c.id;
-            else { croppingSystemOther = croppingSystem; warn('croppingSystemId', `Cropping system "${croppingSystem}" not in master — parked in Other`); }
+            if (seasonId) {
+                croppingSystemId = await findOrCreateSeasonScoped(
+                    ctx, 'craCropingSystem', 'cropName', 'craCropingSystemId',
+                    '_craCropBySeason', seasonId, croppingSystem,
+                );
+            } else {
+                croppingSystemOther = croppingSystem;
+                warn('croppingSystemId', `Cropping system "${croppingSystem}" — no season resolved, can't create master, parked in Other`);
+            }
         }
 
-        // 6. Farming system — match the master, else park name in *_other.
+        // 6. Farming system — same find-or-create-under-season behaviour.
         let farmingSystemId = null, farmingSystemOther = null;
         const farmingName = decodeEntities(cleanText(asObject(row.farming_system)?.name || row['farming_system.name'] || ''));
         if (farmingName) {
-            const f = await r.resolve('craFarmingSystem', 'farmingSystemName', 'craFarmingSystemId', farmingName);
-            if (f.matched) farmingSystemId = f.id;
-            else { farmingSystemOther = farmingName; warn('farmingSystemId', `Farming system "${farmingName}" not in master — parked in Other`); }
+            if (seasonId) {
+                farmingSystemId = await findOrCreateSeasonScoped(
+                    ctx, 'craFarmingSystem', 'farmingSystemName', 'craFarmingSystemId',
+                    '_craFarmBySeason', seasonId, farmingName,
+                );
+            } else {
+                farmingSystemOther = farmingName;
+                warn('farmingSystemId', `Farming system "${farmingName}" — no season resolved, can't create master, parked in Other`);
+            }
         }
 
         // 7. Area (REQUIRED Float).
