@@ -27,6 +27,8 @@ const specs = [
     require('./modules/scientistAward.js'),
     require('./modules/farmerAward.js'),
     require('./modules/hrdProgram.js'),
+    require('./modules/craDetails.js'),
+    require('./modules/craExtensionActivity.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
