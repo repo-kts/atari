@@ -23,6 +23,7 @@ const specs = [
     require('./modules/productionSupply.js'),
     require('./modules/soilWaterAnalysis.js'),
     require('./modules/publication.js'),
+    require('./modules/scientistAward.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
