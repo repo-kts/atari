@@ -129,4 +129,5 @@ budget), training, extension activity (+other), technology week, celebration
 day, production supply, soil-water analysis, publication, awards (KVK /
 scientist / farmer), HRD program, CRA (details / extension activity), FPO
 (CBBO / management), DRMR (details / activity), **NARI (nutrition garden /
-bio-fortified crops)**.
+bio-fortified crops / value addition / training programme / extension
+activity)**.
