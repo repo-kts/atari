@@ -35,7 +35,7 @@ export const Modal: React.FC<ModalProps> = ({
 
             {/* Modal - stop propagation so clicks inside don't close */}
             <div
-                className={`relative z-10 bg-white rounded-xl border border-[#E0E0E0] shadow-xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
+                className={`relative z-10 bg-white rounded-4xl border border-[#E0E0E0] shadow-xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -55,7 +55,7 @@ export const Modal: React.FC<ModalProps> = ({
                 )}
 
                 {/* Content */}
-                <div className="px-6 py-4">{children}</div>
+                <div className="px-4 py-4">{children}</div>
             </div>
         </div>
     )

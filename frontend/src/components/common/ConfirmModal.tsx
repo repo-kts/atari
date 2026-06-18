@@ -1,6 +1,7 @@
 import React from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { AlertTriangle, Info, XCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { LoadingButton } from './LoadingButton'
 
 interface ConfirmModalProps {
@@ -75,13 +76,15 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E0E0E0]">
-                    <button
+                    <Button
+                        variant="outline"
+                        size="md"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="px-4 py-2 text-[#757575] hover:text-[#212121] font-medium rounded-xl hover:bg-[#F5F5F5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="border-[#E0E0E0] text-[#757575] hover:text-[#212121] hover:bg-[#F5F5F5]"
                     >
                         {cancelText}
-                    </button>
+                    </Button>
                     <LoadingButton
                         onClick={handleConfirm}
                         isLoading={isLoading}
