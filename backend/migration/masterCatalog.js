@@ -105,6 +105,8 @@ const MASTER_CATALOG = {
     nariActivity: { model: 'nariActivity', idField: 'nariActivityId', nameField: 'activityName' },
     nutritionGardenType: { model: 'nutritionGardenType', idField: 'nutritionGardenTypeId', nameField: 'name' },
     cropCategory: { model: 'cropCategory', idField: 'cropCategoryId', nameField: 'name' },
+    // ARYA enterprise master — what arya_current_year/arya_prev_year.enterpriseId references.
+    enterprise: { model: 'enterprise', idField: 'enterpriseId', nameField: 'enterpriseName' },
 };
 
 function getMaster(key) {
