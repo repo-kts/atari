@@ -283,7 +283,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.quantity || ''}
+                                value={formData.quantity ?? ''}
                                 onChange={handleNumberChange('quantity')}
                                 placeholder="Enter quantity"
                             />
@@ -297,7 +297,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.costOfInputs || ''}
+                                value={formData.costOfInputs ?? ''}
                                 onChange={handleNumberChange('costOfInputs')}
                                 placeholder="Enter cost"
                             />
@@ -307,7 +307,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.grossIncome || ''}
+                                value={formData.grossIncome ?? ''}
                                 onChange={handleNumberChange('grossIncome')}
                                 placeholder="Enter gross income"
                             />
@@ -392,7 +392,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.quantity || ''}
+                                value={formData.quantity ?? ''}
                                 onChange={handleNumberChange('quantity')}
                                 placeholder="Enter quantity"
                             />
@@ -406,7 +406,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.costOfInputs || ''}
+                                value={formData.costOfInputs ?? ''}
                                 onChange={handleNumberChange('costOfInputs')}
                                 placeholder="Enter cost"
                             />
@@ -416,7 +416,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.grossIncome || ''}
+                                value={formData.grossIncome ?? ''}
                                 onChange={handleNumberChange('grossIncome')}
                                 placeholder="Enter gross income"
                             />
@@ -475,7 +475,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.costOfInputs || ''}
+                                value={formData.costOfInputs ?? ''}
                                 onChange={handleNumberChange('costOfInputs')}
                                 placeholder="Enter cost"
                             />
@@ -485,7 +485,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.grossIncome || ''}
+                                value={formData.grossIncome ?? ''}
                                 onChange={handleNumberChange('grossIncome')}
                                 placeholder="Enter gross income"
                             />
@@ -546,7 +546,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.quantity || ''}
+                                value={formData.quantity ?? ''}
                                 onChange={handleNumberChange('quantity')}
                                 placeholder="Enter quantity"
                             />
@@ -560,7 +560,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.costOfInputs || ''}
+                                value={formData.costOfInputs ?? ''}
                                 onChange={handleNumberChange('costOfInputs')}
                                 placeholder="Enter cost"
                             />
@@ -570,7 +570,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.grossIncome || ''}
+                                value={formData.grossIncome ?? ''}
                                 onChange={handleNumberChange('grossIncome')}
                                 placeholder="Enter gross income"
                             />

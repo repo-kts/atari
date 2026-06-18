@@ -101,6 +101,10 @@ const MASTER_CATALOG = {
     // CRA system masters — what cra_details.{croppingSystemId,farmingSystemId} reference.
     craCropingSystem: { model: 'craCropingSystem', idField: 'craCropingSystemId', nameField: 'cropName' },
     craFarmingSystem: { model: 'craFarmingSystem', idField: 'craFarmingSystemId', nameField: 'farmingSystemName' },
+    // NARI masters — nutrition garden references activity + garden type.
+    nariActivity: { model: 'nariActivity', idField: 'nariActivityId', nameField: 'activityName' },
+    nutritionGardenType: { model: 'nutritionGardenType', idField: 'nutritionGardenTypeId', nameField: 'name' },
+    cropCategory: { model: 'cropCategory', idField: 'cropCategoryId', nameField: 'name' },
 };
 
 function getMaster(key) {

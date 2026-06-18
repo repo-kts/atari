@@ -31,6 +31,10 @@ const specs = [
     require('./modules/craExtensionActivity.js'),
     require('./modules/fpoCbbo.js'),
     require('./modules/fpoManagement.js'),
+    require('./modules/drmrDetails.js'),
+    require('./modules/drmrActivity.js'),
+    require('./modules/nariNutritionGarden.js'),
+    require('./modules/nariBioFortifiedCrop.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
