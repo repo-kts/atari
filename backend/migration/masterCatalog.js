@@ -110,6 +110,9 @@ const MASTER_CATALOG = {
     // TSP/SCSP masters — what tsp_scsp.{tspScspTypeId,activityId} reference.
     tspScspType: { model: 'tspScspTypeMaster', idField: 'tspScspTypeId', nameField: 'typeName' },
     tspScspActivity: { model: 'tspScspActivities', idField: 'tspScspActivityId', nameField: 'activityName' },
+    // NICRA details masters — what nicra_details.{nicraCategoryId,nicraSubCategoryId} reference.
+    nicraCategory: { model: 'nicraCategory', idField: 'nicraCategoryId', nameField: 'categoryName' },
+    nicraSubCategory: { model: 'nicraSubCategory', idField: 'nicraSubCategoryId', nameField: 'subCategoryName' },
 };
 
 function getMaster(key) {
