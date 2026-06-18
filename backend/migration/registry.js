@@ -38,6 +38,8 @@ const specs = [
     require('./modules/nariValueAddition.js'),
     require('./modules/nariTrainingProgramme.js'),
     require('./modules/nariExtensionActivity.js'),
+    require('./modules/aryaCurrentYear.js'),
+    require('./modules/aryaPrevYear.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
