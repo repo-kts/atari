@@ -105,6 +105,11 @@ const MASTER_CATALOG = {
     nariActivity: { model: 'nariActivity', idField: 'nariActivityId', nameField: 'activityName' },
     nutritionGardenType: { model: 'nutritionGardenType', idField: 'nutritionGardenTypeId', nameField: 'name' },
     cropCategory: { model: 'cropCategory', idField: 'cropCategoryId', nameField: 'name' },
+    // ARYA enterprise master — what arya_current_year/arya_prev_year.enterpriseId references.
+    enterprise: { model: 'enterprise', idField: 'enterpriseId', nameField: 'enterpriseName' },
+    // TSP/SCSP masters — what tsp_scsp.{tspScspTypeId,activityId} reference.
+    tspScspType: { model: 'tspScspTypeMaster', idField: 'tspScspTypeId', nameField: 'typeName' },
+    tspScspActivity: { model: 'tspScspActivities', idField: 'tspScspActivityId', nameField: 'activityName' },
 };
 
 function getMaster(key) {
