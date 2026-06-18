@@ -2,6 +2,7 @@ import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput } from '../shared/FormComponents'
 import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
+import { parseDecimalInput } from '@/utils/formNumericGuards'
 
 interface DrmrFormsProps {
     entityType: string
@@ -122,80 +123,89 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             label="Yield Improved Practice(Kg/ha)"
                             required
                             type="number"
+                            step="any"
                             value={formData.yieldImproved ?? ''}
-                            onChange={(e) => setFormData({ ...formData, yieldImproved: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, yieldImproved: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="Yield Farmer Practise(Kg/ha)"
                             required
                             type="number"
+                            step="any"
                             value={formData.yieldFarmerPractise ?? ''}
-                            onChange={(e) => setFormData({ ...formData, yieldFarmerPractise: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, yieldFarmerPractise: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="Yield Increase(%)"
                             required
                             type="number"
+                            step="any"
                             value={formData.yieldIncreasePercent ?? ''}
-                            onChange={(e) => setFormData({ ...formData, yieldIncreasePercent: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, yieldIncreasePercent: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="Cost of Cultivation Improved Practice(Rs./ha)"
                             required
                             type="number"
+                            step="any"
                             value={formData.costImproved ?? ''}
-                            onChange={(e) => setFormData({ ...formData, costImproved: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, costImproved: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="Cost of Cultivation Farmer Practice(Rs./ha)"
                             required
                             type="number"
+                            step="any"
                             value={formData.costFarmerPractise ?? ''}
-                            onChange={(e) => setFormData({ ...formData, costFarmerPractise: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, costFarmerPractise: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="Gross Return Improved Practice(Rs./ha)"
                             required
                             type="number"
+                            step="any"
                             value={formData.grossReturnImproved ?? ''}
-                            onChange={(e) => setFormData({ ...formData, grossReturnImproved: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, grossReturnImproved: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="Gross Return Farmer Practice(Rs./ha)"
                             required
                             type="number"
+                            step="any"
                             value={formData.grossReturnFarmerPractise ?? ''}
-                            onChange={(e) => setFormData({ ...formData, grossReturnFarmerPractise: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, grossReturnFarmerPractise: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="Net Return Improved Practice(Rs./ha)"
                             required
                             type="number"
+                            step="any"
                             value={formData.netReturnImproved ?? ''}
-                            onChange={(e) => setFormData({ ...formData, netReturnImproved: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, netReturnImproved: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="Net Return Farmer Practice(Rs./ha)"
                             required
                             type="number"
+                            step="any"
                             value={formData.netReturnFarmerPractise ?? ''}
-                            onChange={(e) => setFormData({ ...formData, netReturnFarmerPractise: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, netReturnFarmerPractise: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="B:C ratio Improved Practice"
                             required
                             type="number"
-                            step="0.01"
+                            step="any"
                             value={formData.bcRatioImproved ?? ''}
-                            onChange={(e) => setFormData({ ...formData, bcRatioImproved: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, bcRatioImproved: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
                             label="B:C ratio Farmer Practice"
                             required
                             type="number"
-                            step="0.01"
+                            step="any"
                             value={formData.bcRatioFarmerPractise ?? ''}
-                            onChange={(e) => setFormData({ ...formData, bcRatioFarmerPractise: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, bcRatioFarmerPractise: parseDecimalInput(e.target.value) })}
                         />
                     </div>
                 </div>

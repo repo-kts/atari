@@ -13,11 +13,10 @@ export const Card: React.FC<CardProps> = ({
 }) => {
     return (
         <div
-            className={`bg-[#FAF9F6] rounded-xl transition-all duration-200 ${
-                onClick
-                    ? 'cursor-pointer hover:border-[#BDBDBD] hover:shadow-md'
-                    : ''
-            } ${className}`}
+            className={`bg-[#FAF9F6] rounded-xl transition-all duration-200 ${onClick
+                ? 'cursor-pointer hover:border-[#BDBDBD] hover:shadow-md'
+                : ''
+                } ${className}`}
             onClick={onClick}
         >
             {children}
@@ -35,7 +34,7 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
     className = '',
 }) => {
     return (
-        <div className={`px-6 py-4 border-b border-[#E0E0E0] ${className}`}>
+        <div className={`px-4 py-4 border-b border-[#E0E0E0] ${className}`}>
             {children}
         </div>
     )
