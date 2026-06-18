@@ -42,6 +42,10 @@ const specs = [
     require('./modules/aryaPrevYear.js'),
     require('./modules/csisa.js'),
     require('./modules/tspScsp.js'),
+    require('./modules/nicraBasicInfo.js'),
+    require('./modules/nicraDetails.js'),
+    require('./modules/nicraTraining.js'),
+    require('./modules/nicraExtensionActivity.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));
