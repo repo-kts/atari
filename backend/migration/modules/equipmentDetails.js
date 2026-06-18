@@ -10,7 +10,7 @@ module.exports = {
     naturalKey: ['equipmentId', 'reportingYear'],
 
     foreignKeys: {
-        equipmentId: { master: 'kvkEquipment' },
+        equipmentId: { master: 'equipmentMaster' },
         equipmentStatusId: { master: 'equipmentStatus' },
         assetFundingSourceId: { master: 'assetFundingSource' },
     },
@@ -48,16 +48,30 @@ module.exports = {
                 '',
             ),
         );
+        // The OLD site has only two equipment masters: type + equipment. Those old
+        // equipment names were loaded into our (temporary) equipment_model_master,
+        // each pointing at a curated EquipmentMaster. So resolve the raw detail name
+        // → equipment_model row → its equipmentMasterId, and use THAT as equipmentId.
+        // Fallback: the name may already equal an EquipmentMaster name directly.
         let equipmentId = null;
         if (equipmentName) {
-            const parent = await prisma.kvkEquipment.findFirst({
-                where: { kvkId, equipmentName: { equals: equipmentName, mode: 'insensitive' } },
-                select: { equipmentId: true },
-            });
-            if (parent) equipmentId = parent.equipmentId;
-            else err('equipmentId', `Parent equipment "${equipmentName}" not found — migrate Equipment first`);
+            const model = await r.resolve('equipmentModelMaster', 'name', 'equipmentModelId', equipmentName);
+            if (model.matched) {
+                const modelRow = await prisma.equipmentModelMaster.findUnique({
+                    where: { equipmentModelId: model.id },
+                    select: { equipmentMasterId: true },
+                });
+                equipmentId = modelRow?.equipmentMasterId ?? null;
+            }
+            if (!equipmentId) {
+                const em = await r.resolve('equipmentMaster', 'name', 'equipmentMasterId', equipmentName);
+                if (em.matched) equipmentId = em.id;
+            }
+            if (!equipmentId) {
+                err('equipmentId', `Equipment "${equipmentName}" not found in equipment_model/equipment master`);
+            }
         } else {
-            err('equipmentId', 'Missing equipment.equipment_name — cannot link to parent');
+            err('equipmentId', 'Missing equipment.equipment_name — cannot resolve equipment');
         }
 
         // ── Reporting year ────────────────────────────────────────────────
@@ -92,8 +106,10 @@ module.exports = {
         }
 
         // ── Source of fund → AssetFundingSourceMaster (find-or-create) ──────
+        // Old site stores "no source" as 0 — map that (and empty) to the "-" master.
         let assetFundingSourceId = null;
-        const rawFunding = decodeEntities(cleanText(row.source_of_fund || ''));
+        let rawFunding = decodeEntities(cleanText(row.source_of_fund || ''));
+        if (!rawFunding || rawFunding === '0') rawFunding = '-';
         if (rawFunding) {
             const fs = await r.findOrCreate('assetFundingSourceMaster', 'name', 'assetFundingSourceId', rawFunding);
             if (fs.id) {
