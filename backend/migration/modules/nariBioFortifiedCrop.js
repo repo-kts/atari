@@ -39,6 +39,21 @@ function asObject(value) {
     return null;
 }
 
+/**
+ * Old site stores crop_category in the singular ("Cereal", "Vegetable"); the
+ * new CropCategory master is plural ("Cereals", "Vegetables"). Map the
+ * normalized old value → the canonical master name so it resolves without a
+ * manual grid pick. Curated, fixed list — both singular and plural keyed.
+ */
+const CROP_CATEGORY_ALIASES = {
+    cereal: 'Cereals', cereals: 'Cereals',
+    vegetable: 'Vegetables', vegetables: 'Vegetables',
+    pulse: 'Pulses', pulses: 'Pulses',
+    oilseed: 'Oilseeds', oilseeds: 'Oilseeds',
+    fruit: 'Fruits', fruits: 'Fruits',
+    other: 'Other', others: 'Other',
+};
+
 module.exports = {
     key: 'nari-bio-fortified-crop',
     label: 'NARI Bio-fortified Crops (Nutri-Smart village)',
@@ -108,7 +123,9 @@ module.exports = {
         let cropCategoryId = null;
         const cropCategory = decodeEntities(cleanText(row.crop_category)) || '';
         if (cropCategory) {
-            const c = await r.resolve('cropCategory', 'name', 'cropCategoryId', cropCategory);
+            // Canonicalise old singular → master plural before resolving.
+            const canonical = CROP_CATEGORY_ALIASES[normalize(cropCategory)] || cropCategory;
+            const c = await r.resolve('cropCategory', 'name', 'cropCategoryId', canonical);
             if (c.matched) cropCategoryId = c.id;
             else error('cropCategoryId', `Crop category "${cropCategory}" not in master — pick one in the grid`);
         } else {
