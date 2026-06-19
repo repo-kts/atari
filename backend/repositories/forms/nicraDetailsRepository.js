@@ -11,6 +11,48 @@ const safeParseInt = (val) => {
     return isNaN(parsed) ? 0 : parsed;
 };
 
+// Nullable variants for subcategory-specific conditional fields: blank/absent → null.
+const nullableInt = (val) => {
+    if (val === null || val === undefined || val === '') return null;
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? null : parsed;
+};
+
+const nullableFloat = (val) => {
+    if (val === null || val === undefined || val === '') return null;
+    const parsed = parseFloat(val);
+    return isNaN(parsed) ? null : parsed;
+};
+
+// All subcategory-specific conditional columns, grouped by JS type.
+const CONDITIONAL_INT_FIELDS = [
+    'newNos', 'renovatedNos', 'noOfAnimalCovered', 'lessOneYrCalf', 'heifer', 'adult',
+    'kid', 'buck', 'doe', 'chickLt9Weeks', 'growingChickens9To20Weeks', 'gt20Weeks',
+    'noOfAnimalsUnit', 'demoUnitSizeNos',
+];
+const CONDITIONAL_FLOAT_FIELDS = [
+    'storageCapacityCuM', 'protectiveIrrigationPotentialHa', 'croppingIntensityIncreasePct',
+    'fodderQuantityUtilized', 'reducedFodderPurchasePct', 'coverageAreaHa', 'fishYield',
+    'milkYield', 'survivalRateDemo', 'survivalRateLocal', 'survivalIncreasePct',
+];
+const CONDITIONAL_STRING_FIELDS = ['typeOfAnimal', 'fishSpecies', 'animalName'];
+
+const buildConditionalCreate = (data) => {
+    const out = {};
+    for (const f of CONDITIONAL_INT_FIELDS) out[f] = nullableInt(data[f]);
+    for (const f of CONDITIONAL_FLOAT_FIELDS) out[f] = nullableFloat(data[f]);
+    for (const f of CONDITIONAL_STRING_FIELDS) out[f] = (data[f] && String(data[f]).trim()) || null;
+    return out;
+};
+
+const buildConditionalUpdate = (data, existing) => {
+    const out = {};
+    for (const f of CONDITIONAL_INT_FIELDS) out[f] = data[f] !== undefined ? nullableInt(data[f]) : existing[f];
+    for (const f of CONDITIONAL_FLOAT_FIELDS) out[f] = data[f] !== undefined ? nullableFloat(data[f]) : existing[f];
+    for (const f of CONDITIONAL_STRING_FIELDS) out[f] = data[f] !== undefined ? ((String(data[f]).trim()) || null) : existing[f];
+    return out;
+};
+
 const nicraDetailsRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -43,8 +85,10 @@ const nicraDetailsRepository = {
                 grossReturn: safeParseFloat(data.grossReturn),
                 netReturn: safeParseFloat(data.netReturn),
                 bcrRatio: safeParseFloat(data.bcrRatio),
+                ...buildConditionalCreate(data),
                 reportingYear: (() => {
                     const d = parseReportingYearDate(data.reportingYear);
+                    if (!d) throw new Error('Reporting year is required');
                     ensureNotFutureDate(d);
                     return d;
                 })(),
@@ -145,9 +189,11 @@ const nicraDetailsRepository = {
                 grossReturn: data.grossReturn !== undefined ? safeParseFloat(data.grossReturn) : existing.grossReturn,
                 netReturn: data.netReturn !== undefined ? safeParseFloat(data.netReturn) : existing.netReturn,
                 bcrRatio: data.bcrRatio !== undefined ? safeParseFloat(data.bcrRatio) : existing.bcrRatio,
+                ...buildConditionalUpdate(data, existing),
                 reportingYear: data.reportingYear !== undefined
                     ? (() => {
                         const d = parseReportingYearDate(data.reportingYear);
+                        if (!d) throw new Error('Reporting year is required');
                         ensureNotFutureDate(d);
                         return d;
                     })()
