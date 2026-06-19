@@ -30,6 +30,101 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
     const recordId = formData?.aryaCurrentYearId ?? formData?.id ?? null
     const kvkId = formData?.kvkId ?? null
 
+    // --- ARYA Current Year: Financial Impact labels vary by enterprise --------
+    // The three quantity/rate fields below reuse generic DB columns
+    // (avgSizeOfUnit, totalProductionPerYear, saleValueOfProduce); only their
+    // labels change per selected enterprise. Unmapped enterprises (incl. the
+    // "Others" catch-all) fall back to the generic default labels.
+    const selectedEnterpriseName = React.useMemo(() => {
+        const match = (aryaEnterprises as any[]).find(
+            (e: any) => String(e.enterpriseId) === String(formData.enterpriseId ?? ''),
+        )
+        return String(match?.enterpriseName || '').trim()
+    }, [aryaEnterprises, formData.enterpriseId])
+
+    const DEFAULT_FINANCIAL_LABELS = {
+        sizeLabel: 'Average size of each unit (agro rental unit)',
+        productionLabel: 'Total Production unit/year',
+        saleLabel: 'Sale value of Produce',
+    }
+    const ENTERPRISE_FINANCIAL_LABELS: Record<
+        string,
+        { sizeLabel: string; productionLabel: string; saleLabel: string }
+    > = {
+        'Pig Farming': {
+            sizeLabel: 'No. of Sow+Boar',
+            productionLabel: 'Adult or Piglet or Pork',
+            saleLabel: 'Rs/Pig , Rs/Piglet , Rs./ Kg Meat',
+        },
+        'Goat Farming': {
+            sizeLabel: 'No. of Goat',
+            productionLabel: 'No. of Goat or Kid Goat or Meat or Manure',
+            saleLabel: 'Rs/Goat , Rs/Kid Goat , Rs/Kg Meat',
+        },
+        'Poultry Farming': {
+            sizeLabel: 'No. of Birds or chicks',
+            productionLabel: 'Birds or Kg or Eggs',
+            saleLabel: 'Rs/Kg,Rs/Egg,Rs/Bird',
+        },
+        'Quail Farming': {
+            sizeLabel: 'No. of Birds or chicks',
+            productionLabel: 'Birds or Kg or Eggs',
+            saleLabel: 'Rs/Kg,Rs/Egg,Rs/Bird',
+        },
+        'Duck Farming': {
+            sizeLabel: 'No. of Birds or chicks',
+            productionLabel: 'Birds or Kg or Eggs',
+            saleLabel: 'Rs/Kg,Rs/Egg,Rs/Bird',
+        },
+        'Fish Farming': {
+            sizeLabel: 'Kg or No. of Finerlings',
+            productionLabel: 'Kg or No. of Finerlings',
+            saleLabel: 'Rs/Kg or Rs/Fingerling',
+        },
+        'Bee keeping': {
+            sizeLabel: 'No. of Boxes',
+            productionLabel: 'Honey or wax',
+            saleLabel: 'Rs/Kg',
+        },
+        'Mushroom Production': {
+            sizeLabel: 'No. of Bags',
+            productionLabel: 'Kg',
+            saleLabel: 'Rs/Kg',
+        },
+        'Banana Fibre Extraction': {
+            sizeLabel: 'Kg/Saplings',
+            productionLabel: 'Kg/Saplings',
+            saleLabel: 'Rs/Kg',
+        },
+        'Seed Production': {
+            sizeLabel: 'Kg/Saplings',
+            productionLabel: 'Kg/Saplings',
+            saleLabel: 'Rs/Kg',
+        },
+        'Nursery Management': {
+            sizeLabel: 'No. of Seedlings/Saplings',
+            productionLabel: 'No. of Seedlings/Saplings',
+            saleLabel: 'Rs/Seedlings or Rs/Saplings',
+        },
+        'Processing and Value Addition(Product Name)': {
+            sizeLabel: 'Kg or Lit',
+            productionLabel: 'Kg or Lit',
+            saleLabel: 'Rs/Kg or Rs/lit',
+        },
+        'Food Processing': {
+            sizeLabel: 'Kg or Lit',
+            productionLabel: 'Kg or Lit',
+            saleLabel: 'Rs/Kg or Rs/lit',
+        },
+        'Lac Farming': {
+            sizeLabel: 'No. of Trees',
+            productionLabel: 'Brood Lac or Stick Lac',
+            saleLabel: 'Rs/Kg Brood or Rs./Stick Lac',
+        },
+    }
+    const financialLabels =
+        ENTERPRISE_FINANCIAL_LABELS[selectedEnterpriseName] ?? DEFAULT_FINANCIAL_LABELS
+
     const enterpriseOptions = React.useMemo(
         () => createMasterDataOptions(aryaEnterprises, 'enterpriseId', 'enterpriseName', { flagKey: 'isOther' }),
         [aryaEnterprises]
@@ -112,11 +207,11 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Financial Impact</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormInput label="Average size of each unit (agro rental unit)" type="number" required value={formData.avgSizeOfUnit ?? ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, avgSizeOfUnit: e.target.value }))} />
-                            <FormInput label="Total Production unit/year" type="number" required value={formData.totalProductionPerYear ?? ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, totalProductionPerYear: e.target.value }))} />
+                            <FormInput label={financialLabels.sizeLabel} type="number" required value={formData.avgSizeOfUnit ?? ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, avgSizeOfUnit: e.target.value }))} />
+                            <FormInput label={financialLabels.productionLabel} type="number" required value={formData.totalProductionPerYear ?? ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, totalProductionPerYear: e.target.value }))} />
                             <FormInput label="Per unit cost of Production" type="number" required value={formData.perUnitCostOfProduction ?? ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, perUnitCostOfProduction: e.target.value }))} />
-                            <FormInput label="Sale value of Produce" type="number" required value={formData.saleValueOfProduce ?? ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, saleValueOfProduce: e.target.value }))} />
-                            <FormInput label="Employment generated (man-days)" type="number" required value={formData.employmentGeneratedMandays ?? ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, employmentGeneratedMandays: e.target.value }))} />
+                            <FormInput label={financialLabels.saleLabel} type="number" required value={formData.saleValueOfProduce ?? ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, saleValueOfProduce: e.target.value }))} />
+                            <FormInput label="Employment generated (mandays)" type="number" required value={formData.employmentGeneratedMandays ?? ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, employmentGeneratedMandays: e.target.value }))} />
                         </div>
                         <div className="mt-6">{renderPhotoSection()}</div>
                     </div>
