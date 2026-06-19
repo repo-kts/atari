@@ -528,7 +528,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Normal Crops Grown"
                             required
-                            type="number"
+                            type="text"
                             value={formData.normalCropsGrown ?? ''}
                             onChange={(e) => setFormData({ ...formData, normalCropsGrown: e.target.value })}
                         />

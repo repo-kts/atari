@@ -101,7 +101,7 @@ function mapFarmersFormToCreate(data) {
         address: data.address || '',
         noOfIndigenousCows: (data.noOfIndigenousCows || data.noOfAnimals) ? safeInt(data.noOfIndigenousCows || data.noOfAnimals, null) : null,
         landHolding: data.landHolding ? safeFloat(data.landHolding, null) : null,
-        normalCropsGrown: data.normalCropsGrown !== undefined && data.normalCropsGrown !== '' ? safeInt(data.normalCropsGrown, null) : null,
+        normalCropsGrown: data.normalCropsGrown != null && data.normalCropsGrown !== '' ? String(data.normalCropsGrown) : null,
         practicingYearsOfNaturalFarming: data.practicingYearOfNaturalFarming != null && data.practicingYearOfNaturalFarming !== ''
             ? String(data.practicingYearOfNaturalFarming)
             : null,
@@ -300,7 +300,7 @@ const farmersPracticingRepository = {
                         : existing.noOfIndigenousCows,
                     landHolding: data.landHolding !== undefined ? safeFloat(data.landHolding, null) : existing.landHolding,
                     normalCropsGrown: data.normalCropsGrown !== undefined
-                        ? (data.normalCropsGrown === '' ? null : safeInt(data.normalCropsGrown, null))
+                        ? (data.normalCropsGrown === '' || data.normalCropsGrown === null ? null : String(data.normalCropsGrown))
                         : existing.normalCropsGrown,
                     practicingYearsOfNaturalFarming: (() => {
                         const v = pickStrFromPayload(data, 'practicingYearsOfNaturalFarming', 'practicingYearOfNaturalFarming');
