@@ -58,8 +58,8 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
         },
         'Goat Farming': {
             sizeLabel: 'No. of Goat',
-            productionLabel: 'No. of Goat or Young Goat or Meat or Manure',
-            saleLabel: 'Rs/Goat , Rs/Young Goat , Rs/Kg Meat',
+            productionLabel: 'No. of Goat or Kid Goat or Meat or Manure',
+            saleLabel: 'Rs/Goat , Rs/Kid Goat , Rs/Kg Meat',
         },
         'Poultry Farming': {
             sizeLabel: 'No. of Birds or chicks',
