@@ -9,7 +9,7 @@ model FarmersPracticingNaturalFarming {
   address                                    String
   noOfIndigenousCows                         Int?      @map("no_of_indigenous_cows")
   landHolding                                Float?    @map("land_holding")
-  normalCropsGrown                           Int?      @map("normal_crops_grown")
+  normalCropsGrown                           String?   @map("normal_crops_grown")
   practicingYearsOfNaturalFarming            String?   @map("practicing_years_of_natural_farming")
   areaCoveredUnderNaturalFarming             Float     @default(0) @map("area_covered_under_natural_farming")
   cropGrownUnderNaturalFarming               String    @default("") @map("crop_grown_under_natural_farming")
