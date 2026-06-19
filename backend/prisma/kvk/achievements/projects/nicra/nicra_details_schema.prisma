@@ -47,6 +47,45 @@ model NicraDetails {
   grossReturn            Float            @map("gross_return")
   netReturn              Float            @map("net_return")
   bcrRatio               Float            @map("bcr_ratio")
+
+  // --- Subcategory-specific conditional fields (all nullable; only the set
+  // relevant to the selected NICRA sub-category is filled by the form) ---
+  // NRM › Rainwater harvesting structures developed
+  newNos                          Int?   @map("new_nos")
+  renovatedNos                    Int?   @map("renovated_nos")
+  storageCapacityCuM              Float? @map("storage_capacity_cu_m")
+  protectiveIrrigationPotentialHa Float? @map("protective_irrigation_potential_ha")
+  croppingIntensityIncreasePct    Float? @map("cropping_intensity_increase_pct")
+  // Crop production › Integration of cropping system with other farming
+  fodderQuantityUtilized          Float? @map("fodder_quantity_utilized")
+  reducedFodderPurchasePct        Float? @map("reduced_fodder_purchase_pct")
+  // Crop production › Performance of Community nurseries
+  coverageAreaHa                  Float? @map("coverage_area_ha")
+  // Livestock & Fisheries › vaccination camps / Goat-sheep-pig / poultry
+  typeOfAnimal                    String? @map("type_of_animal")
+  noOfAnimalCovered               Int?   @map("no_of_animal_covered")
+  lessOneYrCalf                   Int?   @map("less_one_yr_calf")
+  heifer                          Int?   @map("heifer")
+  adult                           Int?   @map("adult")
+  kid                             Int?   @map("kid")
+  buck                            Int?   @map("buck")
+  doe                             Int?   @map("doe")
+  chickLt9Weeks                   Int?   @map("chick_lt_9_weeks")
+  growingChickens9To20Weeks       Int?   @map("growing_chickens_9_to_20_weeks")
+  gt20Weeks                       Int?   @map("gt_20_weeks")
+  // Livestock & Fisheries › Performance of fish in the ponds/ water bodies
+  fishSpecies                     String? @map("fish_species")
+  fishYield                       Float? @map("fish_yield")
+  // Livestock demonstration in NICRA adopted villages (Buffalo/Cow/Goat/Poultry)
+  animalName                      String? @map("animal_name")
+  noOfAnimalsUnit                 Int?   @map("no_of_animals_unit")
+  milkYield                       Float? @map("milk_yield")
+  // Performance of improved shelters for poultry and dairy animals
+  demoUnitSizeNos                 Int?   @map("demo_unit_size_nos")
+  survivalRateDemo                Float? @map("survival_rate_demo")
+  survivalRateLocal               Float? @map("survival_rate_local")
+  survivalIncreasePct             Float? @map("survival_increase_pct")
+
   photographs            String?          @map("photographs")
   uploadFile             String?          @map("upload_file")
   reportingYear DateTime? @map("reporting_year")
