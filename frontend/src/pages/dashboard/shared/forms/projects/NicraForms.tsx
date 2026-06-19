@@ -155,6 +155,363 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     }, [formData, setFormData]);
 
     const todayYmd = formatLocalDateYmd();
+
+    // --- NICRA Details: subcategory-driven conditional layouts ---------------
+    // The chosen sub-category decides which fields show. Any sub-category not
+    // listed here falls back to the default (full) layout.
+    const selectedSubName = React.useMemo(() => {
+        const subId = formData.subCategoryId || formData.nicraSubCategoryId
+        const match = (subCategories as any[]).find(
+            (sc: any) => (sc.nicraSubCategoryId || sc.id || sc.subCategoryId) === subId,
+        )
+        return String(match?.subCategoryName || '').trim()
+    }, [subCategories, formData.subCategoryId, formData.nicraSubCategoryId])
+
+    const MONTH_OPTIONS = [
+        { value: 'JANUARY', label: 'January' },
+        { value: 'FEBRUARY', label: 'February' },
+        { value: 'MARCH', label: 'March' },
+        { value: 'APRIL', label: 'April' },
+        { value: 'MAY', label: 'May' },
+        { value: 'JUNE', label: 'June' },
+        { value: 'JULY', label: 'July' },
+        { value: 'AUGUST', label: 'August' },
+        { value: 'SEPTEMBER', label: 'September' },
+        { value: 'OCTOBER', label: 'October' },
+        { value: 'NOVEMBER', label: 'November' },
+        { value: 'DECEMBER', label: 'December' },
+    ]
+
+    const numInput = (
+        label: string,
+        key: string,
+        opts: { required?: boolean; whole?: boolean; step?: string } = {},
+    ) => (
+        <FormInput
+            label={label}
+            required={opts.required}
+            type="number"
+            wholeNumberOnly={opts.whole}
+            step={opts.step}
+            value={formData[key] ?? ''}
+            onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+        />
+    )
+
+    const textInput = (label: string, key: string, required = false) => (
+        <FormInput
+            label={label}
+            required={required}
+            value={formData[key] ?? ''}
+            onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+        />
+    )
+
+    const renderFstType = () => textInput('FST type', 'fstType', true)
+    const renderTechDemonstrated = () =>
+        textInput('Technology demonstrated', 'technologyDemonstrated', true)
+    const renderCropName = () => textInput('Crop Name', 'cropName')
+    const renderAreaOrUnit = () => textInput('Area (ha) / Unit', 'areaOrUnit')
+
+    const renderSeason = () => (
+        <MasterDataDropdown
+            label="Season"
+            required
+            value={formData.seasonId ?? ''}
+            onChange={(value) => setFormData({ ...formData, seasonId: value })}
+            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
+            emptyMessage="No seasons available"
+        />
+    )
+
+    const renderMonth = () => (
+        <FormSelect
+            label="Month"
+            required
+            value={formData.month ?? ''}
+            onChange={(e) => setFormData({ ...formData, month: e.target.value })}
+            options={MONTH_OPTIONS}
+        />
+    )
+
+    const renderFarmers = () => (
+        <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-gray-800">Farmers Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-x divide-gray-100">
+                {numInput('General_M', 'genMale', { required: true, whole: true })}
+                {numInput('General_F', 'genFemale', { required: true, whole: true })}
+                {numInput('OBC_M', 'obcMale', { required: true, whole: true })}
+                {numInput('OBC_F', 'obcFemale', { required: true, whole: true })}
+                {numInput('SC_M', 'scMale', { required: true })}
+                {numInput('SC_F', 'scFemale', { required: true })}
+                {numInput('ST_M', 'stMale', { required: true })}
+                {numInput('ST_F', 'stFemale', { required: true })}
+            </div>
+            <CasteGenderTotals
+                values={formData}
+                maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+            />
+        </div>
+    )
+
+    const renderEconomics = (
+        opts: {
+            title?: string
+            costLabel?: string
+            showGrossReturn?: boolean
+            netLabel?: string
+        } = {},
+    ) => {
+        const {
+            title = 'Economics of demonstration (Rs/ha)',
+            costLabel = 'Gross Cost',
+            showGrossReturn = false,
+            netLabel = 'Net return',
+        } = opts
+        return (
+            <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {numInput(costLabel, 'grossCost', { required: true })}
+                    {showGrossReturn && numInput('Gross return', 'grossReturn', { required: true })}
+                    {numInput(netLabel, 'netReturn', { required: true })}
+                    {numInput('BCR ration', 'bcrRatio', { required: true, step: '0.01' })}
+                </div>
+            </div>
+        )
+    }
+
+    // Exact sub-category names (must match seed master in seed-masters.js).
+    const SUB = {
+        RAINWATER: 'Rainwater harvesting structures developed',
+        INTEGRATION: 'Integration of cropping system with other farming',
+        COMMUNITY_NURSERY: 'Performance of Community nurseries',
+        VACCINATION: 'Performance of various vaccination camps organized',
+        GOAT_SHEEP_PIG: 'For Goat/ sheep/ pig',
+        POULTRY: 'For poultry',
+        FISH: 'Performance of fish in the ponds/ water bodies',
+        LIVESTOCK_BUFFALO:
+            'Performance of livestock demonstration in NICRA adopted villages (Buffalo/ Cow)',
+        LIVESTOCK_GOAT:
+            'Performance of livestock demonstration in NICRA adopted villages (Goat/ sheep/ Pig)',
+        LIVESTOCK_POULTRY:
+            'Performance of livestock demonstration in NICRA adopted villages (poultry)',
+        SHELTERS: 'Performance of improved shelters for poultry and dairy animals',
+    }
+
+    // Renders the body (everything after the category/sub-category selectors)
+    // for the selected NICRA Details sub-category.
+    const renderNicraDetailsBody = () => {
+        switch (selectedSubName) {
+            case SUB.RAINWATER:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {numInput('New (Nos.)', 'newNos', { required: true, whole: true })}
+                            {numInput('Renovated (Nos.)', 'renovatedNos', { required: true, whole: true })}
+                            {numInput('Storage capacity (cu m)', 'storageCapacityCuM', { required: true })}
+                            {numInput('Protective irrigation potential (ha)', 'protectiveIrrigationPotentialHa', { required: true })}
+                            {numInput('Cropping intensity (%) increase', 'croppingIntensityIncreasePct', { required: true })}
+                        </div>
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.INTEGRATION:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {renderCropName()}
+                            {renderSeason()}
+                            {numInput('Fodder quantity (dry/ green) utilized for livestock', 'fodderQuantityUtilized', { required: true })}
+                            {renderAreaOrUnit()}
+                            {textInput('Yield (q/ha)', 'yield')}
+                            {numInput('% of reduced fodder purchase from outside', 'reducedFodderPurchasePct', { required: true })}
+                        </div>
+                        {renderFarmers()}
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.COMMUNITY_NURSERY:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {renderCropName()}
+                            {renderSeason()}
+                            {renderTechDemonstrated()}
+                            {renderAreaOrUnit()}
+                            {numInput('Coverage area (ha)', 'coverageAreaHa')}
+                        </div>
+                        {renderFarmers()}
+                        {renderEconomics({ costLabel: 'Cost of Cultivation of nursery', netLabel: 'Net Return from nursery' })}
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.VACCINATION:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {textInput('Type of animal', 'typeOfAnimal')}
+                            {renderMonth()}
+                            {renderTechDemonstrated()}
+                            {numInput('No. of animal covered', 'noOfAnimalCovered', { whole: true })}
+                        </div>
+                        {renderFarmers()}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {numInput('Less 1 yr calf', 'lessOneYrCalf', { whole: true })}
+                            {numInput('Heifer', 'heifer', { whole: true })}
+                            {numInput('Adult', 'adult', { whole: true })}
+                        </div>
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.GOAT_SHEEP_PIG:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {textInput('Type of animal', 'typeOfAnimal')}
+                            {renderMonth()}
+                            {renderTechDemonstrated()}
+                            {numInput('No. of animal covered', 'noOfAnimalCovered', { whole: true })}
+                        </div>
+                        {renderFarmers()}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {numInput('Kid', 'kid', { whole: true })}
+                            {numInput('Buck', 'buck', { whole: true })}
+                            {numInput('Doe', 'doe', { whole: true })}
+                        </div>
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.POULTRY:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {textInput('Type of animal', 'typeOfAnimal')}
+                            {renderMonth()}
+                            {renderTechDemonstrated()}
+                            {numInput('No. of animal covered', 'noOfAnimalCovered', { whole: true })}
+                        </div>
+                        {renderFarmers()}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {numInput('Chick (<9 weeks)', 'chickLt9Weeks', { whole: true })}
+                            {numInput('Growing chickens (9-20 week)', 'growingChickens9To20Weeks', { whole: true })}
+                            {numInput('> 20 weeks', 'gt20Weeks', { whole: true })}
+                        </div>
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.FISH:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {textInput('Fish species', 'fishSpecies')}
+                            {renderTechDemonstrated()}
+                            {renderAreaOrUnit()}
+                            {numInput('Fish yield (q/ha)', 'fishYield')}
+                        </div>
+                        {renderFarmers()}
+                        {renderEconomics({ costLabel: 'Cost of Cultivation', netLabel: 'Net Return' })}
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.LIVESTOCK_BUFFALO:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {textInput('Animal name', 'animalName')}
+                            {renderSeason()}
+                            {renderTechDemonstrated()}
+                            {numInput('No. of animals/ unit', 'noOfAnimalsUnit', { whole: true })}
+                            {numInput('Milk yield (liters/ lactation)', 'milkYield')}
+                        </div>
+                        {renderFarmers()}
+                        {renderEconomics({ costLabel: 'Gross Cost', netLabel: 'Net Return' })}
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.LIVESTOCK_GOAT:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {textInput('Animal name', 'animalName')}
+                            {renderSeason()}
+                            {renderTechDemonstrated()}
+                            {numInput('No. of animals/ unit', 'noOfAnimalsUnit', { whole: true })}
+                            {numInput('Body wt. (Kg / animal)', 'bodyWeight')}
+                        </div>
+                        {renderFarmers()}
+                        {renderEconomics({ costLabel: 'Gross Cost', netLabel: 'Net Return' })}
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.LIVESTOCK_POULTRY:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {textInput('Birds name', 'animalName')}
+                            {renderSeason()}
+                            {renderTechDemonstrated()}
+                            {numInput('No. of birds/ unit', 'noOfAnimalsUnit', { whole: true })}
+                            {numInput('Body wt. (Kg / bird)', 'bodyWeight')}
+                        </div>
+                        {renderFarmers()}
+                        {renderEconomics({ costLabel: 'Gross Cost', netLabel: 'Net Return' })}
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            case SUB.SHELTERS:
+                return (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {renderFstType()}
+                            {renderTechDemonstrated()}
+                            {numInput('Demo. Unit size (No.)', 'demoUnitSizeNos', { whole: true })}
+                        </div>
+                        <div className="space-y-6">
+                            <h3 className="text-xl font-semibold text-gray-800">Survival Rate</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                {numInput('Demo', 'survivalRateDemo', { required: true })}
+                                {numInput('Local', 'survivalRateLocal', { required: true })}
+                                {numInput('% Increase in survival', 'survivalIncreasePct', { required: true })}
+                            </div>
+                        </div>
+                        {renderFarmers()}
+                        {renderEconomics({ costLabel: 'Gross Cost', netLabel: 'Net Return' })}
+                        {renderPhotosAndDocs()}
+                    </>
+                )
+            default:
+                return renderNicraDetailsDefaultBody()
+        }
+    }
+
+    // Default layout — used for any sub-category without a custom layout.
+    const renderNicraDetailsDefaultBody = () => (
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {renderFstType()}
+                {renderCropName()}
+                {renderSeason()}
+                {renderTechDemonstrated()}
+                {renderAreaOrUnit()}
+                {textInput('Yield (q/ha)', 'yield')}
+            </div>
+            {renderFarmers()}
+            {renderEconomics({ costLabel: 'Gross Cost', netLabel: 'Net Return' })}
+            {renderPhotosAndDocs()}
+        </>
+    )
+
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC && (
@@ -327,180 +684,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 setFormData({ ...formData, subCategoryId: id })
                             }}
                         />
-                        <FormInput
-                            label="FST type"
-                            required
-                            value={formData.fstType ?? ''}
-                            onChange={(e) => setFormData({ ...formData, fstType: e.target.value })}
-                        />
-                        <FormInput
-                            label="Crop Name"
-                            required
-                            value={formData.cropName ?? ''}
-                            onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
-                        />
-                        <MasterDataDropdown
-                            label="Season"
-                            required
-                            value={formData.seasonId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, seasonId: value })}
-                            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
-                            emptyMessage="No seasons available"
-                        />
-                        <FormSelect
-                            label="Month"
-                            required
-                            value={formData.month ?? ''}
-                            onChange={(e) => setFormData({ ...formData, month: e.target.value })}
-                            options={[
-                                { value: 'JANUARY', label: 'January' },
-                                { value: 'FEBRUARY', label: 'February' },
-                                { value: 'MARCH', label: 'March' },
-                                { value: 'APRIL', label: 'April' },
-                                { value: 'MAY', label: 'May' },
-                                { value: 'JUNE', label: 'June' },
-                                { value: 'JULY', label: 'July' },
-                                { value: 'AUGUST', label: 'August' },
-                                { value: 'SEPTEMBER', label: 'September' },
-                                { value: 'OCTOBER', label: 'October' },
-                                { value: 'NOVEMBER', label: 'November' },
-                                { value: 'DECEMBER', label: 'December' },
-                            ]}
-                        />
-                        <FormInput
-                            label="Technology demonstrated"
-                            required
-                            value={formData.technologyDemonstrated ?? ''}
-                            onChange={(e) => setFormData({ ...formData, technologyDemonstrated: e.target.value })}
-                        />
-                        <FormInput
-                            label="Area (ha) / Unit"
-                            required
-                            value={formData.areaOrUnit ?? ''}
-                            onChange={(e) => setFormData({ ...formData, areaOrUnit: e.target.value })}
-                        />
-                        <FormInput
-                            label="Variety (kg / animal)"
-                            required
-                            type="number"
-                            value={formData.bodyWeight ?? ''}
-                            onChange={(e) => setFormData({ ...formData, bodyWeight: e.target.value })}
-                        />
-                        <FormInput
-                            label="Yield (q/ ha)"
-                            required
-                            value={formData.yield ?? ''}
-                            onChange={(e) => setFormData({ ...formData, yield: e.target.value })}
-                        />
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-semibold text-gray-800">Farmers Details</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-x divide-gray-100">
-                            <FormInput
-                                label="General_M"
-                                required
-                                type="number"
-                                wholeNumberOnly
-                                value={formData.genMale ?? ''}
-                                onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
-                            />
-                            <FormInput
-                                label="General_F"
-                                required
-                                type="number"
-                                wholeNumberOnly
-                                value={formData.genFemale ?? ''}
-                                onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
-                            />
-                            <FormInput
-                                label="OBC_M"
-                                required
-                                type="number"
-                                wholeNumberOnly
-                                value={formData.obcMale ?? ''}
-                                onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
-                            />
-                            <FormInput
-                                label="OBC_F"
-                                required
-                                type="number"
-                                wholeNumberOnly
-                                value={formData.obcFemale ?? ''}
-                                onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
-                            />
-                            <FormInput
-                                label="SC_M"
-                                required
-                                type="number"
-                                value={formData.scMale ?? ''}
-                                onChange={(e) => setFormData({ ...formData, scMale: e.target.value })}
-                            />
-                            <FormInput
-                                label="SC_F"
-                                required
-                                type="number"
-                                value={formData.scFemale ?? ''}
-                                onChange={(e) => setFormData({ ...formData, scFemale: e.target.value })}
-                            />
-                            <FormInput
-                                label="ST_M"
-                                required
-                                type="number"
-                                value={formData.stMale ?? ''}
-                                onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
-                            />
-                            <FormInput
-                                label="ST_F"
-                                required
-                                type="number"
-                                value={formData.stFemale ?? ''}
-                                onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
-                            />
-                        </div>
-                        <CasteGenderTotals
-                            values={formData}
-                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
-                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
-                        />
-                    </div>
-
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-semibold text-gray-800">Economics of demonstration (Rs/ha)</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                            <FormInput
-                                label="Gross Cost"
-                                required
-                                type="number"
-                                value={formData.grossCost ?? ''}
-                                onChange={(e) => setFormData({ ...formData, grossCost: e.target.value })}
-                            />
-                            <FormInput
-                                label="Gross return"
-                                required
-                                type="number"
-                                value={formData.grossReturn ?? ''}
-                                onChange={(e) => setFormData({ ...formData, grossReturn: e.target.value })}
-                            />
-                            <FormInput
-                                label="Net return"
-                                required
-                                type="number"
-                                value={formData.netReturn ?? ''}
-                                onChange={(e) => setFormData({ ...formData, netReturn: e.target.value })}
-                            />
-                            <FormInput
-                                label="BCR ration"
-                                required
-                                type="number"
-                                step="0.01"
-                                value={formData.bcrRatio ?? ''}
-                                onChange={(e) => setFormData({ ...formData, bcrRatio: e.target.value })}
-                            />
-                        </div>
-                    </div>
-
-                    {renderPhotosAndDocs()}
+                    {renderNicraDetailsBody()}
                 </div>
             )}
 
