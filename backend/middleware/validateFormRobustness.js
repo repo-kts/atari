@@ -92,10 +92,16 @@ function isValidNumberString(v) {
     return /^-?\d+(\.\d+)?$/.test(v.trim());
 }
 
+// Free-text fields that may hold a numeric-looking value but must be stored as
+// text — skip numeric validation/coercion so "2" or "2.5" save as-is.
+const NON_NUMERIC_TEXT_KEYS = new Set(['normalcropsgrown']);
+
 function validateNumbers(body) {
     for (const [key, value] of Object.entries(body || {})) {
         // Skip id fields
         if (key.toLowerCase().endsWith('id')) continue;
+        // Skip declared free-text fields (stored as String in the DB).
+        if (NON_NUMERIC_TEXT_KEYS.has(key.toLowerCase())) continue;
         if (value === null || value === undefined || value === '') continue;
 
         if (!isValidNumberString(value)) continue;
