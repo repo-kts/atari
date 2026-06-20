@@ -113,6 +113,12 @@ const MASTER_CATALOG = {
     // NICRA details masters — what nicra_details.{nicraCategoryId,nicraSubCategoryId} reference.
     nicraCategory: { model: 'nicraCategory', idField: 'nicraCategoryId', nameField: 'categoryName' },
     nicraSubCategory: { model: 'nicraSubCategory', idField: 'nicraSubCategoryId', nameField: 'subCategoryName' },
+    // NICRA seed-bank/fodder-bank master — what nicra_intervention.seedBankFodderBankId references.
+    nicraSeedBankFodderBank: { model: 'nicraSeedBankFodderBankMaster', idField: 'nicraSeedBankFodderBankId', nameField: 'name' },
+    // NICRA dignitary-type master — what nicra_dignitaries_visited.dignitaryTypeId references.
+    nicraDignitaryType: { model: 'nicraDignitaryTypeMaster', idField: 'nicraDignitaryTypeId', nameField: 'name' },
+    // NICRA PI-type master — what nicra_pi_copi.piTypeId references.
+    nicraPiType: { model: 'nicraPiTypeMaster', idField: 'nicraPiTypeId', nameField: 'name' },
 };
 
 function getMaster(key) {
