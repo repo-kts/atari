@@ -67,7 +67,17 @@ function shouldAllowDecimal(key) {
         // soil params
         k.includes('ph') ||
         k.includes('ec') ||
-        k.includes('oc')
+        k.includes('oc') ||
+        // Natural-farming observation comparisons — every with_/without_ (and the
+        // _practicing_ variants) field is a scientific reading that can be fractional
+        // (plant height, available N/P/K, soluble salt, microbes, …).
+        k.startsWith('with_') ||
+        k.startsWith('without_') ||
+        // soil microbe / microbial counts (e.g. ×10^n cfu) can be fractional
+        k.includes('microbe') ||
+        k.includes('microbial') ||
+        // soil-information before/after available N/P/K readings (beforeN, afterK, …)
+        /^(before|after)[npk]$/.test(k)
     );
 }
 
