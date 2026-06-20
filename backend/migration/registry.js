@@ -54,6 +54,13 @@ const specs = [
     require('./modules/nicraConvergenceProgramme.js'),
     require('./modules/nicraDignitariesVisited.js'),
     require('./modules/nicraPiCopi.js'),
+    require('./modules/nfGeographicalInfo.js'),
+    require('./modules/nfPhysicalInfo.js'),
+    require('./modules/nfDemonstrationInfo.js'),
+    require('./modules/nfFarmersPracticing.js'),
+    require('./modules/nfBeneficiariesDetails.js'),
+    require('./modules/nfSoilDataInfo.js'),
+    require('./modules/nfFinancialInfo.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));

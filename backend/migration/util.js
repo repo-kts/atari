@@ -76,6 +76,55 @@ function stripHtml(value) {
     return String(value).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Natural-farming "observation_recorded" is an entity-encoded JSON array of
+ * {parameter, with_nf, without_nf}. Both the demonstration and farmer-practicing
+ * tables store the same 15-parameter shape; the new models split each into
+ * `<base>With` / `<base>Without` Float columns. Maps each old parameter label to
+ * its column base; values "N/A"/blank → null.
+ * @returns {Object} e.g. { plantHeightWith: 87.4, plantHeightWithout: 89.9, … }
+ */
+const NF_OBSERVATION_FIELD_MAP = {
+    'Plant height (cm)': 'plantHeight',
+    'Other relevant parameter': 'otherRelevantParameter',
+    'Yield (q/ha)': 'yield',
+    'Cost of cultivation (Rs/ha)': 'cost',
+    'Gross Return (Rs/ha)': 'grossReturn',
+    'Net Return (Rs/ha)': 'netReturn',
+    'B:C Ratio': 'bcRatio',
+    'Soil PH': 'soilPh',
+    'Soil OC (%)': 'soilOc',
+    'Soil EC (dS/m)': 'soilEc',
+    'Available N (Kg/ha)': 'availableN',
+    'Available P (Kg/ha)': 'availableP',
+    'Available K (Kg/ha)': 'availableK',
+    'Soil Microbes (cfu)': 'soilMicrobes',
+    'Any other, specify': 'anyOther',
+};
+
+function nfFloatOrNull(v) {
+    if (v == null) return null;
+    const s = String(v).trim();
+    if (!s || s.toLowerCase() === 'n/a') return null;
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : null;
+}
+
+function parseNfObservation(raw) {
+    const out = {};
+    if (raw == null) return out;
+    let arr;
+    try { arr = JSON.parse(decodeEntities(String(raw))); } catch { return out; }
+    if (!Array.isArray(arr)) return out;
+    for (const item of arr) {
+        const base = NF_OBSERVATION_FIELD_MAP[String(item?.parameter ?? '').trim()];
+        if (!base) continue;
+        out[`${base}With`] = nfFloatOrNull(item.with_nf);
+        out[`${base}Without`] = nfFloatOrNull(item.without_nf);
+    }
+    return out;
+}
+
 module.exports = {
     parseDate,
     parseYearMonth,
@@ -84,4 +133,5 @@ module.exports = {
     cleanText,
     toBool,
     stripHtml,
+    parseNfObservation,
 };
