@@ -119,6 +119,10 @@ const MASTER_CATALOG = {
     nicraDignitaryType: { model: 'nicraDignitaryTypeMaster', idField: 'nicraDignitaryTypeId', nameField: 'name' },
     // NICRA PI-type master — what nicra_pi_copi.piTypeId references.
     nicraPiType: { model: 'nicraPiTypeMaster', idField: 'nicraPiTypeId', nameField: 'name' },
+    // Natural-farming activity master — what physical_info / financial_information.activityId reference.
+    naturalFarmingActivity: { model: 'naturalFarmingActivityMaster', idField: 'naturalFarmingActivityId', nameField: 'activityName' },
+    // Natural-farming soil-parameter master — what soil_data_information.soilParameterId references.
+    naturalFarmingSoilParameter: { model: 'naturalFarmingSoilParameterMaster', idField: 'naturalFarmingSoilParameterId', nameField: 'parameterName' },
 };
 
 function getMaster(key) {
