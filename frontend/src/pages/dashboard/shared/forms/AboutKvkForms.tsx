@@ -64,7 +64,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: fundingSources = [] } = useFundingSources()
     const { data: assetFundingSources = [] } = useAssetFundingSources()
     const { data: equipmentTypes = [] } = useEquipmentTypes()
-    const { data: equipmentMasters = [] } = useEquipmentMasters()
+    const {
+        data: equipmentMasters = [],
+        isLoading: isLoadingEquipmentMasters,
+        error: equipmentMastersError,
+    } = useEquipmentMasters()
+    const equipmentMastersErrorText = equipmentMastersError
+        ? 'Failed to load equipment. Please try again.'
+        : undefined
     const { data: bankAccountTypes = [] } = useBankAccountTypes()
     const { data: jobTypes = [] } = useJobTypes()
 
@@ -225,6 +232,50 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         )
         return toOptions(filtered, 'equipmentId', equipmentOptionLabel)
     }, [equipments, formData._filterEquipmentTypeId, formData._filterEquipmentMasterId])
+
+    // Backfill the Equipment Details "Equipment Type" / "Equipment (Model/Brand)"
+    // filter selects when editing. These are UI-only helper fields (not stored on
+    // the detail record), so on edit they start empty even though the underlying
+    // equipment IS selected. Derive them from the selected equipment so both
+    // dropdowns show the right value. If the equipment itself has no type/master
+    // (e.g. some migrated rows), they stay empty — there's nothing to show.
+    React.useEffect(() => {
+        if (entityType !== ENTITY_TYPES.KVK_EQUIPMENT_DETAILS) return
+        if (formData.equipmentId == null) return
+        if (
+            formData._filterEquipmentTypeId != null ||
+            formData._filterEquipmentMasterId != null
+        )
+            return
+        const eq = (equipments as any[]).find(
+            (e) => Number(e.equipmentId) === Number(formData.equipmentId),
+        )
+        if (!eq) return
+        if (eq.equipmentTypeId == null && eq.equipmentMasterId == null) return
+        setFormData((prev: any) => ({
+            ...prev,
+            _filterEquipmentTypeId: eq.equipmentTypeId ?? prev._filterEquipmentTypeId ?? null,
+            _filterEquipmentMasterId: eq.equipmentMasterId ?? prev._filterEquipmentMasterId ?? null,
+        }))
+    }, [entityType, formData.equipmentId, equipments, setFormData])
+
+    // Equipment Details inherits its Source of Funding from the selected equipment
+    // (the backend always derives it). Mirror the selected equipment's funding into
+    // the read-only field so the form shows the correct, consistent value.
+    React.useEffect(() => {
+        if (entityType !== ENTITY_TYPES.KVK_EQUIPMENT_DETAILS) return
+        const eq = formData.equipmentId != null
+            ? (equipments as any[]).find(
+                (e) => Number(e.equipmentId) === Number(formData.equipmentId),
+            )
+            : null
+        const inherited = eq ? eq.assetFundingSourceId ?? null : null
+        setFormData((prev: any) =>
+            prev.assetFundingSourceId === inherited
+                ? prev
+                : { ...prev, assetFundingSourceId: inherited },
+        )
+    }, [entityType, formData.equipmentId, equipments, setFormData])
 
     // Sync kvkId from user when KVK role - use functional update to avoid dependency on formData
     React.useEffect(() => {
@@ -759,7 +810,18 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             required
                             value={formData.equipmentMasterId != null ? String(formData.equipmentMasterId) : ''}
                             onChange={(e) => setFormData({ ...formData, equipmentMasterId: e.target.value ? parseInt(e.target.value) : null })}
-                            disabled={!formData.equipmentTypeId}
+                            disabled={!formData.equipmentTypeId || isLoadingEquipmentMasters}
+                            error={equipmentMastersErrorText}
+                            placeholder={
+                                isLoadingEquipmentMasters
+                                    ? 'Loading equipment…'
+                                    : equipmentMastersError
+                                        ? 'Failed to load equipment'
+                                        : formData.equipmentTypeId &&
+                                            equipmentMasterOptionsForForm.length === 0
+                                            ? 'No equipment for this type'
+                                            : 'Select'
+                            }
                             options={equipmentMasterOptionsForForm}
                         />
                     </div>
@@ -929,8 +991,10 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 equipmentId: null,
                             })}
                             dependsOn={{ value: formData._filterEquipmentTypeId, field: 'equipmentTypeId' }}
+                            isLoading={isLoadingEquipmentMasters}
+                            error={equipmentMastersErrorText}
                             emptyMessage="No equipment models registered for this type"
-                            loadingMessage="Filtering models..."
+                            loadingMessage="Loading equipment…"
                             options={equipmentMasterOptionsForFilter}
                         />
                     </div>
@@ -953,10 +1017,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, equipmentStatusId: parseInt(e.target.value) })}
                         options={equipmentStatusOptions}
                     />
+                    {/* Funding source is inherited from the selected equipment — */}
+                    {/* read-only here; the backend always derives it from the parent. */}
                     <FormSelect
-                        label="Source of Funding"
+                        label="Source of Funding (from equipment)"
                         value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
-                        onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
+                        onChange={() => { }}
+                        disabled
+                        placeholder={formData.equipmentId ? '—' : 'Select an equipment first'}
                         options={assetFundingSourceOptions}
                     />
                 </div>

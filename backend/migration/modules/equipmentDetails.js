@@ -10,9 +10,9 @@ module.exports = {
     naturalKey: ['equipmentId', 'reportingYear'],
 
     foreignKeys: {
-        equipmentId: { master: 'equipmentMaster' },
+        equipmentId: { master: 'kvkEquipment' },
         equipmentStatusId: { master: 'equipmentStatus' },
-        assetFundingSourceId: { master: 'assetFundingSource' },
+        // assetFundingSourceId is inherited from the parent equipment, not picked.
     },
 
     async transform(row, ctx) {
@@ -41,6 +41,12 @@ module.exports = {
         const kvkId = ctx.kvkId;
 
         // ── Resolve parent KvkEquipment (must be migrated first) ──────────
+        // kvk_equipment_detail.equipment_id is a FK to KvkEquipment (the per-KVK
+        // parent record), NOT to EquipmentMaster. So resolve the parent record's
+        // autoincrement id for THIS kvk by the old equipment name, mirroring how
+        // vehicle-details resolves its parent vehicle. The Equipment module stores
+        // the old raw name as companyBrandModel (and a curated name as
+        // equipmentName), so try both. Run the Equipment module first.
         const equipmentName = decodeEntities(
             cleanText(
                 row.equipment?.equipment_name ||
@@ -48,30 +54,25 @@ module.exports = {
                 '',
             ),
         );
-        // The OLD site has only two equipment masters: type + equipment. Those old
-        // equipment names were loaded into our (temporary) equipment_model_master,
-        // each pointing at a curated EquipmentMaster. So resolve the raw detail name
-        // → equipment_model row → its equipmentMasterId, and use THAT as equipmentId.
-        // Fallback: the name may already equal an EquipmentMaster name directly.
         let equipmentId = null;
         if (equipmentName) {
-            const model = await r.resolve('equipmentModelMaster', 'name', 'equipmentModelId', equipmentName);
-            if (model.matched) {
-                const modelRow = await prisma.equipmentModelMaster.findUnique({
-                    where: { equipmentModelId: model.id },
-                    select: { equipmentMasterId: true },
-                });
-                equipmentId = modelRow?.equipmentMasterId ?? null;
+            equipmentId = await r.findId(
+                'kvkEquipment',
+                { kvkId, companyBrandModel: equipmentName },
+                'equipmentId',
+            );
+            if (!equipmentId) {
+                equipmentId = await r.findId(
+                    'kvkEquipment',
+                    { kvkId, equipmentName },
+                    'equipmentId',
+                );
             }
             if (!equipmentId) {
-                const em = await r.resolve('equipmentMaster', 'name', 'equipmentMasterId', equipmentName);
-                if (em.matched) equipmentId = em.id;
-            }
-            if (!equipmentId) {
-                err('equipmentId', `Equipment "${equipmentName}" not found in equipment_model/equipment master`);
+                err('equipmentId', `Parent equipment "${equipmentName}" not found for this KVK — migrate Equipment first`);
             }
         } else {
-            err('equipmentId', 'Missing equipment.equipment_name — cannot resolve equipment');
+            err('equipmentId', 'Missing equipment.equipment_name — cannot resolve parent equipment');
         }
 
         // ── Reporting year ────────────────────────────────────────────────
@@ -105,17 +106,18 @@ module.exports = {
             err('equipmentStatusId', 'equipmentStatusId required — no present_status on row');
         }
 
-        // ── Source of fund → AssetFundingSourceMaster (find-or-create) ──────
-        // Old site stores "no source" as 0 — map that (and empty) to the "-" master.
+        // ── Source of fund → inherited from the PARENT equipment ───────────
+        // The detail's funding source is not captured separately; it always
+        // mirrors the parent KvkEquipment's assetFundingSourceId. Pull it from the
+        // parent record we resolved above (the old row's own source_of_fund is
+        // ignored on purpose).
         let assetFundingSourceId = null;
-        let rawFunding = decodeEntities(cleanText(row.source_of_fund || ''));
-        if (!rawFunding || rawFunding === '0') rawFunding = '-';
-        if (rawFunding) {
-            const fs = await r.findOrCreate('assetFundingSourceMaster', 'name', 'assetFundingSourceId', rawFunding);
-            if (fs.id) {
-                assetFundingSourceId = fs.id;
-                if (fs.created) warn('assetFundingSourceId', `Created funding source "${rawFunding}"`);
-            }
+        if (equipmentId) {
+            const parent = await prisma.kvkEquipment.findUnique({
+                where: { equipmentId },
+                select: { assetFundingSourceId: true },
+            });
+            assetFundingSourceId = parent?.assetFundingSourceId ?? null;
         }
 
         return {
