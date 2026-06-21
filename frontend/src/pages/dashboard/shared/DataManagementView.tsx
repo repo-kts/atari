@@ -238,6 +238,22 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         | { total: number; totalPages: number }
         | undefined
 
+    // Server-paginated masters only return the current page, so search and the
+    // column-filter value lists would be limited to those ~10 rows. These master
+    // tables are small, so also fetch the WHOLE dataset and run the normal
+    // client-side pipeline (search + column filters + their unique-value lists +
+    // pagination) over it. Falls back to the server page until the full set loads.
+    const fullDataHook = useEntityHook(entityType, {
+        page: 1,
+        limit: 5000,
+        search: '',
+    })
+    const fullItems = Array.isArray((fullDataHook as any)?.data)
+        ? (fullDataHook as any).data
+        : []
+    // Use the server page only while the full dataset is still loading.
+    const useServerPaging = !!serverPagination && fullItems.length === 0
+
     // Check if this is Employee Details view
     const isEmployeeDetails = entityType === ENTITY_TYPES.KVK_EMPLOYEES
 
@@ -387,6 +403,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // successful mutation/invalidation, so the table re-renders automatically without
     // needing a manual local state layer or a page refresh.
     const items = Array.isArray(activeHook?.data) ? activeHook.data : []
+    // Base dataset for the client-side pipeline: the full set for server-paginated
+    // entities (once loaded), otherwise the hook's already-complete data.
+    const baseItems = serverPagination && fullItems.length > 0 ? fullItems : items
 
     // Resolve fields using centralized utility function
     // This ensures fields are always available even when there's no data
@@ -444,7 +463,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // When serverPagination is active the hook already returns the right page
     // slice + handles search on the backend, so skip client-side filtering.
     const filteredData = useMemo(() => {
-        if (serverPagination) return items
+        if (useServerPaging) return items
         const maxDate = new Date()
         maxDate.setHours(23, 59, 59, 999)
         const rawFromDate = reportingYearFrom
@@ -465,7 +484,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     ? rawToDate
                     : rawFromDate
                 : rawToDate
-        const yearFiltered = items.filter((item: any) =>
+        const yearFiltered = baseItems.filter((item: any) =>
             itemMatchesDateRangeFilter(item, fromDate, toDate, maxDate)
         )
 
@@ -478,14 +497,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 return value && String(value).toLowerCase().includes(query)
             })
         })
-    }, [items, debouncedSearch, fields, reportingYearFrom, reportingYearTo, serverPagination])
+    }, [baseItems, items, debouncedSearch, fields, reportingYearFrom, reportingYearTo, useServerPaging])
 
     // Apply per-column filters (Excel-style: sort + text + multi-select) on top
     // of the search/year-filtered set. The column-filter dropdown's unique-value
     // list is computed from `filteredData` so it represents the full visible
     // dataset before column filters narrow it further.
     const columnFilteredData = useMemo(() => {
-        if (serverPagination) return items
+        if (useServerPaging) return items
         const result = applyColumnFilters(filteredData, fields, columnFilters)
         // Default alphabetical order (by the first column) unless the user has
         // applied an explicit column sort.
@@ -505,11 +524,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 sensitivity: 'base',
             })
         })
-    }, [filteredData, fields, columnFilters, serverPagination, items])
+    }, [filteredData, fields, columnFilters, useServerPaging, items])
 
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
-        if (serverPagination) {
+        if (useServerPaging && serverPagination) {
             const totalPages = serverPagination.totalPages || 1
             const safePage = Math.min(currentPage, totalPages)
             const startIndex = (safePage - 1) * itemsPerPage
@@ -527,7 +546,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         const paginatedData = columnFilteredData.slice(startIndex, endIndex)
 
         return { totalPages, safePage, startIndex, endIndex, paginatedData }
-    }, [columnFilteredData, currentPage, itemsPerPage, serverPagination, items])
+    }, [columnFilteredData, currentPage, itemsPerPage, useServerPaging, serverPagination, items])
 
     const { totalPages, safePage, startIndex, endIndex, paginatedData } =
         paginationData
@@ -1348,6 +1367,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }, [isMobileRouteMenuOpen, isExportMenuOpen, isOftFldTabMenuOpen])
 
     const loading = getHookLoading(activeHook)
+    // Server-paginated hooks (e.g. Equipment Master) keep the previous page via
+    // placeholderData, so isLoading is false during a search/page change — only
+    // isFetching flips. Surface that as an overlay spinner so the user sees the
+    // table is refreshing without the rows vanishing.
+    const isFetching = Boolean((activeHook as any)?.isFetching)
 
     return (
         <div className="flex flex-col h-full bg-white sm:rounded-2xl p-1 overflow-hidden">
@@ -1903,7 +1927,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             </div>
                         </div>
 
-                        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                        <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden">
+                            {isFetching && !loading && (
+                                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#487749]"></div>
+                                </div>
+                            )}
                             {loading ? (
                                 <LoadingState />
                             ) : isKvkRoleWithoutKvk ? (
@@ -1987,7 +2016,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         totalPages={totalPages}
                                         startIndex={startIndex}
                                         endIndex={endIndex}
-                                        totalItems={serverPagination ? serverPagination.total : columnFilteredData.length}
+                                        totalItems={useServerPaging && serverPagination ? serverPagination.total : columnFilteredData.length}
                                         onPageChange={setCurrentPage}
                                     />
                                 </>

@@ -997,13 +997,20 @@ async function create(entityName, data) {
     if (entityName === 'kvk-equipment-details') {
         const parsedReportingYear = parseReportingYearDate(sanitizedData.reportingYear);
         ensureNotFutureDate(parsedReportingYear);
+        const equipmentId = sanitizeInteger(sanitizedData.equipmentId);
+        // Funding source is never taken from the client — it always mirrors the
+        // parent equipment's source of funding.
+        const parentEquip = equipmentId != null
+            ? await prisma.kvkEquipment.findUnique({
+                where: { equipmentId },
+                select: { assetFundingSourceId: true },
+            })
+            : null;
         const finalData = {
             kvkId: sanitizeInteger(sanitizedData.kvkId),
-            equipmentId: sanitizeInteger(sanitizedData.equipmentId),
+            equipmentId,
             reportingYear: parsedReportingYear,
-            assetFundingSourceId: sanitizedData.assetFundingSourceId != null
-                ? sanitizeInteger(sanitizedData.assetFundingSourceId)
-                : null,
+            assetFundingSourceId: parentEquip?.assetFundingSourceId ?? null,
             equipmentStatusId: sanitizeInteger(sanitizedData.equipmentStatusId),
         };
 
@@ -1140,12 +1147,26 @@ async function update(entityName, id, data) {
             ensureNotFutureDate(parsedReportingYear);
             finalUpdateData.reportingYear = parsedReportingYear;
         }
-        if (sanitizedData.assetFundingSourceId !== undefined) {
-            finalUpdateData.assetFundingSourceId = sanitizedData.assetFundingSourceId == null
-                ? null
-                : sanitizeInteger(sanitizedData.assetFundingSourceId);
-        }
         if (sanitizedData.equipmentStatusId !== undefined) finalUpdateData.equipmentStatusId = sanitizeInteger(sanitizedData.equipmentStatusId);
+
+        // Funding source is never taken from the client — it always mirrors the
+        // parent equipment. Recompute from the effective equipmentId (the updated
+        // one, or the existing record's if equipment isn't being changed).
+        let effectiveEquipmentId = finalUpdateData.equipmentId;
+        if (effectiveEquipmentId == null) {
+            const existing = await prisma.kvkEquipmentDetail.findUnique({
+                where: { [config.idField]: resolvedId },
+                select: { equipmentId: true },
+            });
+            effectiveEquipmentId = existing?.equipmentId ?? null;
+        }
+        if (effectiveEquipmentId != null) {
+            const parentEquip = await prisma.kvkEquipment.findUnique({
+                where: { equipmentId: effectiveEquipmentId },
+                select: { assetFundingSourceId: true },
+            });
+            finalUpdateData.assetFundingSourceId = parentEquip?.assetFundingSourceId ?? null;
+        }
 
         return executePrismaWrite(entityName, 'update', async () => {
             return await prisma[config.model].update({
@@ -1493,8 +1514,11 @@ async function getEquipmentsForDropdown(kvkId, reportingYear) {
             identifierCode: true,
             equipmentTypeId: true,
             equipmentMasterId: true,
+            // Equipment Details inherits its funding source from the equipment.
+            assetFundingSourceId: true,
             equipmentType: { select: { equipmentTypeId: true, name: true } },
             equipmentMaster: { select: { equipmentMasterId: true, name: true } },
+            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
         },
         orderBy: [{ equipmentTypeId: 'asc' }, { equipmentMasterId: 'asc' }, { equipmentName: 'asc' }],
     });
