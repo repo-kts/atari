@@ -1,5 +1,5 @@
 import { useState, useRef, type ReactNode } from 'react'
-import { TableView } from '../views/TableView'
+import { TableView, type RowSelection } from '../views/TableView'
 import { MatrixView } from '../views/MatrixView'
 import {
     hasTabularRows,
@@ -26,6 +26,8 @@ interface RecordsViewerProps {
     fk?: FkEditing
     rowActions?: RowAction[]
     visibleIndices?: Set<number>
+    /** Per-row push selection (table view only). */
+    selection?: RowSelection
     /** Extra controls rendered in the header, before the Jump selector. */
     headerExtra?: ReactNode
 }
@@ -46,6 +48,7 @@ export function RecordsViewer({
     fk,
     rowActions,
     visibleIndices,
+    selection,
     headerExtra,
 }: RecordsViewerProps) {
     const [view, setView] = useState<ViewMode>(defaultView)
@@ -180,7 +183,7 @@ export function RecordsViewer({
                         {JSON.stringify(data, null, 2)}
                     </pre>
                 ) : view === 'table' ? (
-                    <TableView data={data} fk={fk} idPrefix={idPrefix} rowActions={rowActions} visibleIndices={visibleIndices} />
+                    <TableView data={data} fk={fk} idPrefix={idPrefix} rowActions={rowActions} visibleIndices={visibleIndices} selection={selection} />
                 ) : (
                     <MatrixView data={data} fk={fk} idPrefix={idPrefix} visibleIndices={visibleIndices} />
                 )}
