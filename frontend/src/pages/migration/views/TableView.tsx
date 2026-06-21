@@ -10,6 +10,15 @@ const ACTION_STYLES: Record<RowAction, { bg: string; text: string; label: string
     failed:  { bg: 'bg-red-100',  text: 'text-red-700',  label: 'failed'  },
 }
 
+/** Optional per-row include/exclude checkbox (push selection). */
+export interface RowSelection {
+    selected: Set<number>
+    onToggle: (index: number) => void
+    /** Selectable original indices — drives the header "select all" checkbox. */
+    selectable: Set<number>
+    onToggleAll: (checked: boolean) => void
+}
+
 interface TableViewProps {
     data: unknown
     fk?: FkEditing
@@ -17,10 +26,11 @@ interface TableViewProps {
     rowActions?: RowAction[]
     /** When set, only rows whose original index is in the set are rendered. */
     visibleIndices?: Set<number>
+    selection?: RowSelection
 }
 
 /** Spreadsheet view: one record per row, one field per column. */
-export function TableView({ data, fk, idPrefix = 'raw', rowActions, visibleIndices }: TableViewProps) {
+export function TableView({ data, fk, idPrefix = 'raw', rowActions, visibleIndices, selection }: TableViewProps) {
     const allRows = toIndexedRows(data)
     if (allRows.length === 0) {
         return <p className="p-3 text-sm text-gray-400">No tabular rows.</p>
@@ -33,12 +43,28 @@ export function TableView({ data, fk, idPrefix = 'raw', rowActions, visibleIndic
     }
     const fkMeta = (c: string) => fk?.foreignKeys[c]
 
+    const allSelected =
+        !!selection && selection.selectable.size > 0 &&
+        [...selection.selectable].every(i => selection.selected.has(i))
+
     return (
         <table className="w-full border-separate border-spacing-0 text-xs">
             <thead className="sticky top-0 z-20 bg-gray-50">
                 <tr>
                     <th className="sticky left-0 z-30 bg-gray-100 border-b border-r border-gray-200 px-3 py-2 text-left font-semibold text-gray-500 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                        #
+                        <div className="flex items-center gap-2">
+                            {selection && (
+                                <input
+                                    type="checkbox"
+                                    checked={allSelected}
+                                    disabled={selection.selectable.size === 0}
+                                    onChange={e => selection.onToggleAll(e.target.checked)}
+                                    title="Select all pushable rows"
+                                    className="h-3.5 w-3.5 cursor-pointer"
+                                />
+                            )}
+                            <span>#</span>
+                        </div>
                     </th>
                     {cols.map(c => (
                         <th
@@ -68,7 +94,23 @@ export function TableView({ data, fk, idPrefix = 'raw', rowActions, visibleIndic
                                 isPlaceholder ? 'bg-red-50' : 'bg-white'
                             }`}>
                                 <div className="flex flex-col items-start gap-0.5">
-                                    <span className="text-gray-400 text-xs">{index}</span>
+                                    <div className="flex items-center gap-1.5">
+                                        {selection && (
+                                            <input
+                                                type="checkbox"
+                                                checked={selection.selected.has(index)}
+                                                disabled={!selection.selectable.has(index)}
+                                                onChange={() => selection.onToggle(index)}
+                                                title={
+                                                    selection.selectable.has(index)
+                                                        ? 'Include this row in push'
+                                                        : 'Not pushable (unmapped or has errors)'
+                                                }
+                                                className="h-3.5 w-3.5 cursor-pointer disabled:cursor-not-allowed"
+                                            />
+                                        )}
+                                        <span className="text-gray-400 text-xs">{index}</span>
+                                    </div>
                                     {rowActions?.[index] && (() => {
                                         const s = ACTION_STYLES[rowActions[index]]
                                         return (

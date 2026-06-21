@@ -29,6 +29,7 @@ import { FormSummary } from './pages/features/FormSummary'
 import { TechnicalAchievementSummary } from './pages/dashboard/forms/TechnicalAchievementSummary'
 import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
 import { MigrationTool } from './pages/migration/MigrationTool'
+import { SuperMigrationTool } from './pages/migration/SuperMigrationTool'
 import {
     projectsRoutes,
     allMastersRoutes,
@@ -214,6 +215,16 @@ function AppRoutes() {
                         element={
                             <ProtectedRoute requiredRole={ADMIN_ROLES}>
                                 <MigrationTool />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Super Data Migration — KVK resolved per-row (admin-only) */}
+                    <Route
+                        path="/super-migration"
+                        element={
+                            <ProtectedRoute requiredRole={ADMIN_ROLES}>
+                                <SuperMigrationTool />
                             </ProtectedRoute>
                         }
                     />
