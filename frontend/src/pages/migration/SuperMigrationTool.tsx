@@ -1,0 +1,558 @@
+import { useCallback, useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { Button } from '../../components/ui/button'
+import { superMigrationApi } from '../../services/superMigrationApi'
+import {
+    migrationApi,
+    type MigrationKvk,
+    type ModuleInfo,
+    type TransformResult,
+    type SeedResult,
+    type RowAction,
+} from '../../services/migrationApi'
+import { RecordsViewer } from './components/RecordsViewer'
+import { MigrationReport } from './components/MigrationReport'
+import { SearchableSelect } from './components/SearchableSelect'
+import type { FkEditing } from './views/tableUtils'
+import type { RowSelection } from './views/TableView'
+
+type Busy = '' | 'fetch' | 'transform' | 'seed'
+type Row = Record<string, unknown>
+
+/**
+ * Super-migration workbench. Same flow as MigrationTool but WITHOUT a KVK
+ * picker: paste a superadmin curl (kvk_id empty → all KVKs) -> pick module ->
+ * Fetch -> Transform (each row's KVK is resolved on the backend from the row's
+ * own kvk.kvk_name) -> review + fix FKs inline -> Push to DB.
+ */
+export function SuperMigrationTool() {
+    const [modules, setModules] = useState<ModuleInfo[]>([])
+    const [moduleKey, setModuleKey] = useState<string | ''>('')
+    const [curl, setCurl] = useState('')
+
+    const [raw, setRaw] = useState<unknown>(undefined)
+    const [rowCount, setRowCount] = useState<number | null>(null)
+    const [splitPercent, setSplitPercent] = useState<number>(50)
+    const [verticalSplit, setVerticalSplit] = useState<number>(65)
+    const [showErrorsOnly, setShowErrorsOnly] = useState<boolean>(false)
+
+    const handleMouseDown = (e: ReactMouseEvent) => {
+        e.preventDefault()
+        const startX = e.clientX
+        const startSplit = splitPercent
+
+        const container = e.currentTarget.parentElement
+        const containerWidth = container ? container.getBoundingClientRect().width : window.innerWidth
+
+        const handleMouseMove = (moveEvent: MouseEvent) => {
+            const deltaX = moveEvent.clientX - startX
+            const deltaPercent = (deltaX / containerWidth) * 100
+            const nextPercent = Math.min(Math.max(startSplit + deltaPercent, 15), 85)
+            setSplitPercent(nextPercent)
+        }
+
+        const handleMouseUp = () => {
+            document.removeEventListener('mousemove', handleMouseMove)
+            document.removeEventListener('mouseup', handleMouseUp)
+        }
+
+        document.addEventListener('mousemove', handleMouseMove)
+        document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    const handleVerticalMouseDown = (e: ReactMouseEvent) => {
+        e.preventDefault()
+        const startY = e.clientY
+        const startSplit = verticalSplit
+
+        const container = e.currentTarget.parentElement
+        const containerHeight = container ? container.getBoundingClientRect().height : window.innerHeight
+
+        const handleMouseMove = (moveEvent: MouseEvent) => {
+            const deltaY = moveEvent.clientY - startY
+            const deltaPercent = (deltaY / containerHeight) * 100
+            const nextPercent = Math.min(Math.max(startSplit + deltaPercent, 20), 85)
+            setVerticalSplit(nextPercent)
+        }
+        const handleMouseUp = () => {
+            document.removeEventListener('mousemove', handleMouseMove)
+            document.removeEventListener('mouseup', handleMouseUp)
+        }
+        document.addEventListener('mousemove', handleMouseMove)
+        document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    const [transformed, setTransformed] = useState<TransformResult | null>(null)
+    const [records, setRecords] = useState<Array<Row | null>>([])
+    const [fkOptions, setFkOptions] = useState<Record<string, { value: number; label: string }[]>>(
+        {},
+    )
+    const [seedResult, setSeedResult] = useState<SeedResult | null>(null)
+    const [rowActions, setRowActions] = useState<RowAction[]>([])
+
+    // Push filters: which KVKs and which individual rows to migrate. Populated
+    // (all-selected) after each transform; both gate what gets pushed.
+    const [kvkNames, setKvkNames] = useState<Record<number, string>>({})
+    const [selectedKvkIds, setSelectedKvkIds] = useState<Set<number>>(new Set())
+    const [excludedRows, setExcludedRows] = useState<Set<number>>(new Set())
+
+    const [busy, setBusy] = useState<Busy>('')
+    const [error, setError] = useState('')
+
+    const activeModule = useMemo(
+        () => modules.find(m => m.key === moduleKey) || null,
+        [modules, moduleKey],
+    )
+
+    useEffect(() => {
+        superMigrationApi
+            .getModules()
+            .then(r => setModules(r.modules))
+            .catch(e => setError(e.message))
+        // KVK id → name map, only to label the per-KVK push filter chips.
+        migrationApi
+            .getKvks()
+            .then(r =>
+                setKvkNames(
+                    Object.fromEntries((r.kvks as MigrationKvk[]).map(k => [k.kvkId, k.kvkName])),
+                ),
+            )
+            .catch(() => {})
+    }, [])
+
+    // Load FK master options for the selected module's pickers. `force` refetches
+    // even cached masters — needed after a transform, since find-or-create specs
+    // (e.g. payScale) may have added new master rows we must now show by label.
+    const loadFkOptions = useCallback(
+        (force = false) => {
+            if (!activeModule) return
+            const masters = [...new Set(Object.values(activeModule.foreignKeys).map(f => f.master))]
+            masters.forEach(master => {
+                if (!force && fkOptions[master]) return
+                superMigrationApi
+                    .getMasterOptions(master)
+                    .then(r =>
+                        setFkOptions(prev => ({
+                            ...prev,
+                            [master]: r.options.map(o => ({
+                                value: o.id,
+                                label: `${o.label} (#${o.id})`,
+                            })),
+                        })),
+                    )
+                    .catch(e =>
+                        setError(
+                            `Couldn't load master "${master}" options: ${e.message}. ` +
+                                `If the backend was running before this feature was added, restart it.`,
+                        ),
+                    )
+            })
+        },
+        [activeModule, fkOptions],
+    )
+
+    useEffect(() => {
+        loadFkOptions(false)
+    }, [loadFkOptions])
+
+    const run = async (label: Busy, fn: () => Promise<void>) => {
+        setError('')
+        setBusy(label)
+        try {
+            await fn()
+        } catch (e) {
+            setError(e instanceof Error ? e.message : String(e))
+        } finally {
+            setBusy('')
+        }
+    }
+
+    const onFetch = () =>
+        run('fetch', async () => {
+            setTransformed(null)
+            setRecords([])
+            setSeedResult(null)
+            setRowActions([])
+            const out = await superMigrationApi.fetchCurl(curl)
+            setRaw(out.raw)
+            setRowCount(out.rowCount)
+        })
+
+    const onTransform = () =>
+        run('transform', async () => {
+            setSeedResult(null)
+            setRowActions([])
+            const out = await superMigrationApi.transform(moduleKey, raw)
+            setTransformed(out)
+            const recs = out.records as Array<Row | null>
+            setRecords(recs)
+            // Default: every KVK present is selected, no rows excluded.
+            const ids = new Set<number>()
+            recs.forEach(r => {
+                const id = r?.kvkId
+                if (typeof id === 'number') ids.add(id)
+            })
+            setSelectedKvkIds(ids)
+            setExcludedRows(new Set())
+            loadFkOptions(true)
+        })
+
+    const onSeed = () =>
+        run('seed', async () => {
+            // Push only selected rows; unselected become null → skipped server-side.
+            // Index positions are preserved so returned actions align with the table.
+            const filtered = records.map((r, i) => (selectedRowIndices.has(i) ? r : null))
+            const out = await superMigrationApi.seed(moduleKey, filtered)
+            setSeedResult(out)
+            setRowActions(out.actions ?? [])
+        })
+
+    const onEditCell = (rowIndex: number, field: string, value: number | null) => {
+        const meta = activeModule?.foreignKeys[field]
+        setRecords(prev =>
+            prev.map((r, i) => {
+                if (i !== rowIndex || !r) return r
+                const next: Row = { ...r, [field]: value }
+                if (meta?.otherField && value != null) next[meta.otherField] = null
+                return next
+            }),
+        )
+    }
+
+    const onEditField = (rowIndex: number, field: string, value: unknown) => {
+        setRecords(prev =>
+            prev.map((r, i) => (i !== rowIndex || !r ? r : { ...r, [field]: value })),
+        )
+    }
+
+    const onFillUnmatched = (field: string, value: number) => {
+        const meta = activeModule?.foreignKeys[field]
+        setRecords(prev =>
+            prev.map(r => {
+                if (!r) return r
+                const cur = r[field]
+                if (cur !== null && cur !== undefined && cur !== '') return r
+                const next: Row = { ...r, [field]: value }
+                if (meta?.otherField) next[meta.otherField] = null
+                return next
+            }),
+        )
+    }
+
+    const liveReport = useMemo(() => {
+        if (!transformed) return null
+        const errorResolved = (field: string, rec: Row | null) => {
+            if (!rec) return false
+            const v = rec[field]
+            return v !== null && v !== undefined && v !== ''
+        }
+        const rows = transformed.report.rows
+            .map(r => {
+                const rec = records[r.index] ?? null
+                const issues = r.issues.filter(
+                    it => !(it.severity === 'error' && errorResolved(it.field, rec)),
+                )
+                return { index: r.index, issues }
+            })
+            .filter(r => r.issues.length > 0)
+        const errorCount = rows.reduce(
+            (n, r) => n + r.issues.filter(i => i.severity === 'error').length,
+            0,
+        )
+        const warnCount = rows.reduce(
+            (n, r) => n + r.issues.filter(i => i.severity === 'warn').length,
+            0,
+        )
+        return { ...transformed.report, rows, errorCount, warnCount, seedable: errorCount === 0 }
+    }, [transformed, records])
+
+    const errorIndices = useMemo(() => {
+        const s = new Set<number>()
+        liveReport?.rows.forEach(r => {
+            if (r.issues.some(i => i.severity === 'error')) s.add(r.index)
+        })
+        return s
+    }, [liveReport])
+
+    // Distinct KVKs present across the mapped records, with per-KVK row counts —
+    // drives the "push these KVKs" filter chips.
+    const kvkGroups = useMemo(() => {
+        const m = new Map<number, number>()
+        records.forEach(r => {
+            const id = r?.kvkId
+            if (typeof id === 'number') m.set(id, (m.get(id) ?? 0) + 1)
+        })
+        return [...m.entries()]
+            .map(([id, count]) => ({ id, count, name: kvkNames[id] ?? `KVK #${id}` }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+    }, [records, kvkNames])
+
+    const allKvkSelected =
+        kvkGroups.length > 0 && kvkGroups.every(g => selectedKvkIds.has(g.id))
+
+    // Rows that CAN be pushed: mapped, no unresolved error, and in a selected KVK.
+    const selectableIndices = useMemo(() => {
+        const s = new Set<number>()
+        records.forEach((r, i) => {
+            if (!r) return
+            const id = r.kvkId
+            if (typeof id !== 'number' || !selectedKvkIds.has(id)) return
+            if (errorIndices.has(i)) return
+            s.add(i)
+        })
+        return s
+    }, [records, selectedKvkIds, errorIndices])
+
+    // Rows actually selected to push = selectable minus the ones the user unchecked.
+    const selectedRowIndices = useMemo(() => {
+        const s = new Set<number>()
+        selectableIndices.forEach(i => {
+            if (!excludedRows.has(i)) s.add(i)
+        })
+        return s
+    }, [selectableIndices, excludedRows])
+
+    const onToggleKvk = (id: number) =>
+        setSelectedKvkIds(prev => {
+            const n = new Set(prev)
+            if (n.has(id)) n.delete(id)
+            else n.add(id)
+            return n
+        })
+
+    const selection: RowSelection = {
+        selected: selectedRowIndices,
+        selectable: selectableIndices,
+        onToggle: index =>
+            setExcludedRows(prev => {
+                const n = new Set(prev)
+                if (n.has(index)) n.delete(index)
+                else n.add(index)
+                return n
+            }),
+        onToggleAll: checked =>
+            setExcludedRows(prev => {
+                const n = new Set(prev)
+                selectableIndices.forEach(i => (checked ? n.delete(i) : n.add(i)))
+                return n
+            }),
+    }
+
+    // Display filter: combine errors-only with the per-KVK filter. Rows without a
+    // kvkId (unmapped/null) are kept so their errors stay visible.
+    const visibleIndices = useMemo(() => {
+        const kvkFilterActive = !allKvkSelected
+        if (!showErrorsOnly && !kvkFilterActive) return undefined
+        const s = new Set<number>()
+        for (let i = 0; i < records.length; i++) {
+            if (showErrorsOnly && !errorIndices.has(i)) continue
+            if (kvkFilterActive) {
+                const id = records[i]?.kvkId
+                if (typeof id === 'number' && !selectedKvkIds.has(id)) continue
+            }
+            s.add(i)
+        }
+        return s
+    }, [showErrorsOnly, allKvkSelected, errorIndices, records, selectedKvkIds])
+
+    const displayRecords = useMemo(() => {
+        const source = records.length > 0 ? records : transformed?.records
+        if (!source) return undefined
+        return source.map((r, index) => {
+            if (r) return r
+            const issueRow = transformed?.report.rows.find(x => x.index === index)
+            const summary =
+                issueRow?.issues
+                    .map(i => `[${i.severity}] ${i.field}: ${i.message}`)
+                    .join(' | ') || 'Transform returned null for this row'
+            return { _status: 'not mapped', _issues: summary }
+        })
+    }, [records, transformed])
+
+    const fk: FkEditing | undefined = activeModule
+        ? { foreignKeys: activeModule.foreignKeys, fkOptions, onEditCell, onEditField, onFillUnmatched }
+        : undefined
+
+    const canTransform = raw !== undefined && moduleKey !== ''
+    // Selective push: enabled as long as at least one row is selected (clean rows
+    // can ship even while others still carry errors).
+    const canSeed = selectedRowIndices.size > 0
+
+    return (
+        <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 p-4">
+            <div>
+                <h1 className="text-xl font-bold text-gray-800">Super Data Migration</h1>
+                <p className="text-sm text-gray-500">
+                    Paste a superadmin curl (kvk_id empty → all KVKs), pick module, transform; each
+                    row's target KVK is resolved automatically from the row. Fix FKs, push.
+                </p>
+            </div>
+
+            {/* Controls — no KVK picker; KVK comes from each row. */}
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[240px_1fr_auto]">
+                <SearchableSelect
+                    options={modules.map(m => ({ value: m.key, label: m.label }))}
+                    value={moduleKey}
+                    onChange={v => setModuleKey(v === '' ? '' : String(v))}
+                    placeholder="Search module…"
+                />
+                <textarea
+                    className="min-h-[40px] rounded-md border border-gray-300 px-3 py-2 font-mono text-xs"
+                    placeholder="Paste superadmin curl copied from atariams.org devtools…"
+                    value={curl}
+                    onChange={e => setCurl(e.target.value)}
+                />
+                <div className="flex items-start gap-2">
+                    <Button onClick={onFetch} disabled={!curl || busy !== ''}>
+                        {busy === 'fetch' ? 'Fetching…' : 'Fetch'}
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={onTransform}
+                        disabled={!canTransform || busy !== ''}
+                    >
+                        {busy === 'transform' ? 'Transforming…' : 'Transform'}
+                    </Button>
+                    <Button
+                        onClick={onSeed}
+                        disabled={!canSeed || busy !== ''}
+                        className="bg-green-600 hover:bg-green-700"
+                    >
+                        {busy === 'seed'
+                            ? 'Pushing…'
+                            : `Push to DB${transformed ? ` (${selectedRowIndices.size})` : ''}`}
+                    </Button>
+                </div>
+            </div>
+
+            {error && (
+                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
+
+            {seedResult && (
+                <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+                    Pushed — created {seedResult.created}, updated {seedResult.updated}, skipped{' '}
+                    {seedResult.skipped}
+                    {seedResult.failed.length > 0 &&
+                        `, failed ${seedResult.failed.length} (${seedResult.failed
+                            .map(f => `#${f.index}: ${f.message}`)
+                            .join('; ')})`}
+                </div>
+            )}
+
+            {/* Per-KVK push filter — pick which KVKs to migrate. */}
+            {transformed && kvkGroups.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                    <span className="text-xs font-semibold text-gray-600">Push KVKs:</span>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setSelectedKvkIds(
+                                allKvkSelected ? new Set() : new Set(kvkGroups.map(g => g.id)),
+                            )
+                        }
+                        className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                    >
+                        {allKvkSelected ? 'Clear all' : 'Select all'}
+                    </button>
+                    {kvkGroups.map(g => {
+                        const on = selectedKvkIds.has(g.id)
+                        return (
+                            <button
+                                key={g.id}
+                                type="button"
+                                onClick={() => onToggleKvk(g.id)}
+                                className={`rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                                    on
+                                        ? 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                                        : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
+                                }`}
+                                title={`${g.name} — ${g.count} rows`}
+                            >
+                                {on ? '✓ ' : ''}
+                                {g.name} ({g.count})
+                            </button>
+                        )
+                    })}
+                </div>
+            )}
+
+            {/* Panes */}
+            <div className="flex min-h-0 flex-1 gap-0 overflow-hidden relative">
+                <div style={{ width: `${splitPercent}%` }} className="min-w-0 h-full flex flex-col pr-2">
+                    <RecordsViewer
+                        title="Raw response (old site)"
+                        data={raw}
+                        defaultView="table"
+                        badge={rowCount != null ? `${rowCount} rows` : undefined}
+                        placeholder="Fetch a curl to see the old-site response here."
+                    />
+                </div>
+
+                {/* Draggable Divider */}
+                <div
+                    onMouseDown={handleMouseDown}
+                    className="w-2 hover:w-2.5 bg-gray-100 hover:bg-blue-500 cursor-col-resize self-stretch transition-colors select-none flex items-center justify-center relative z-30"
+                    title="Drag to resize panes"
+                >
+                    <div className="w-0.5 h-12 bg-gray-300 rounded-full"></div>
+                </div>
+
+                <div style={{ width: `${100 - splitPercent}%` }} className="min-w-0 h-full flex flex-col pl-2">
+                    <div style={{ height: `${transformed ? verticalSplit : 100}%` }} className="min-h-0 flex flex-col">
+                        <RecordsViewer
+                            title="Mapped to our schema"
+                            data={displayRecords}
+                            defaultView="table"
+                            fk={fk}
+                            badge={
+                                transformed
+                                    ? `${transformed.report.mapped} mapped · ${selectedRowIndices.size} selected`
+                                    : undefined
+                            }
+                            placeholder="Transform to see records mapped to your DB schema."
+                            rowActions={rowActions}
+                            visibleIndices={visibleIndices}
+                            selection={transformed ? selection : undefined}
+                            headerExtra={
+                                transformed ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowErrorsOnly(v => !v)}
+                                        disabled={!showErrorsOnly && errorIndices.size === 0}
+                                        title="Show only rows that still have unresolved errors"
+                                        className={`rounded border px-2 py-1 text-xs font-medium transition-colors ${
+                                            showErrorsOnly
+                                                ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100'
+                                                : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50'
+                                        }`}
+                                    >
+                                        {showErrorsOnly
+                                            ? 'Show all rows'
+                                            : `Errors only (${errorIndices.size})`}
+                                    </button>
+                                ) : undefined
+                            }
+                        />
+                    </div>
+                    {transformed && (
+                        <>
+                            {/* Vertical draggable divider */}
+                            <div
+                                onMouseDown={handleVerticalMouseDown}
+                                className="h-2 hover:h-2.5 bg-gray-100 hover:bg-blue-500 cursor-row-resize w-full transition-colors select-none flex items-center justify-center"
+                                title="Drag to resize"
+                            >
+                                <div className="h-0.5 w-12 bg-gray-300 rounded-full"></div>
+                            </div>
+                            <div style={{ height: `${100 - verticalSplit}%` }} className="min-h-0 overflow-auto">
+                                <MigrationReport report={liveReport ?? transformed.report} />
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
