@@ -258,10 +258,19 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         const match = text.match(/^(\d{4})/)
         return match ? Number(match[1]) : null
     }
+    // The FLD "belongs" to its START YEAR (what the FLD list grid shows),
+    // not its expectedCompletionDate (which is required and often a later
+    // year). Prefer the precomputed numeric startYear, then fall back to
+    // raw dates. startYear is already a year number, so don't run it
+    // through getYearValue (new Date(2025) would resolve to 1970).
+    const getFldYear = (f: any): number | null => {
+        if (f?.startYear != null) return Number(f.startYear)
+        return getYearValue(f?.startDate ?? f?.expectedCompletionDate ?? f?.reportingYear)
+    }
     const fldOptionsByKvkAndYear = useMemo(() => {
         return (fldList as any[]).filter((f: any) => {
             const fldKvkId = f.kvkId ?? f.kvk?.kvkId
-            const fldYear = getYearValue(f.expectedCompletionDate ?? f.startDate ?? f.reportingYear)
+            const fldYear = getFldYear(f)
             const selectedYear = getYearValue(selectedReportingYear)
             const kvkMatch = activeKvkId ? Number(fldKvkId) === Number(activeKvkId) : true
             const yearMatch = selectedYear ? Number(fldYear) === Number(selectedYear) : false
@@ -384,7 +393,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         return (fldList as any[])
             .filter((f: any) => {
                 const fldKvkId = f.kvkId ?? f.kvk?.kvkId
-                const fldYear = getYearValue(f.expectedCompletionDate ?? f.startDate ?? f.reportingYear)
+                const fldYear = getFldYear(f)
                 return Number(fldKvkId) === kvkId && Number(fldYear) === reportingYear
             })
             .map((f: any) => ({
