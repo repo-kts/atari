@@ -537,8 +537,11 @@ export function useEquipmentMasters() {
     const queryClient = useQueryClient();
 
     const query = useQuery({
-        queryKey: ['equipment-masters'],
-        queryFn: () => otherMastersApi.getEquipmentMasters().then((res) => res.data),
+        // No-arg list endpoint caps at the backend default (100), which can drop
+        // whole equipment types from dependent dropdowns. Request the full set —
+        // these master tables are small.
+        queryKey: ['equipment-masters', 'all'],
+        queryFn: () => otherMastersApi.getEquipmentMasters({ limit: 5000 }).then((res) => res.data),
         staleTime: 5 * 60 * 1000,
     });
 
