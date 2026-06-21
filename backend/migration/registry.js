@@ -61,6 +61,10 @@ const specs = [
     require('./modules/nfBeneficiariesDetails.js'),
     require('./modules/nfSoilDataInfo.js'),
     require('./modules/nfFinancialInfo.js'),
+    require('./modules/agriDrone.js'),
+    require('./modules/agriDroneDemonstration.js'),
+    require('./modules/seedHubProgram.js'),
+    require('./modules/otherProgramme.js'),
 ];
 
 const byKey = new Map(specs.map(s => [s.key, s]));

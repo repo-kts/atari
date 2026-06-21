@@ -48,6 +48,9 @@ const MASTER_CATALOG = {
     kvkEquipment: { model: 'kvkEquipment', idField: 'equipmentId', nameField: 'equipmentName' },
     kvkStaff: { model: 'kvkStaff', idField: 'kvkStaffId', nameField: 'staffName' },
     season: { model: 'season', idField: 'seasonId', nameField: 'seasonName' },
+    district: { model: 'districtMaster', idField: 'districtId', nameField: 'districtName' },
+    // The parent agri drone, used by the agri-drone-demonstration FK picker.
+    agriDrone: { model: 'kvkAgriDrone', idField: 'agriDroneId', nameField: 'pilotName' },
     oftSubject: { model: 'oftSubject', idField: 'oftSubjectId', nameField: 'subjectName' },
     oftThematicArea: {
         model: 'oftThematicArea',
