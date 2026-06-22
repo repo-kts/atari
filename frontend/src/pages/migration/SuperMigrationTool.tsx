@@ -25,12 +25,12 @@ type Row = Record<string, unknown>
 // sees "NetworkError". Instead we slice the rows into batches and call the
 // backend once per batch, accumulating results in order. Each batch stays well
 // under the limit. ~200 rows/batch balances round-trips against per-call cost.
-const BATCH_SIZE = 200
+const BATCH_SIZE = 50
 
 // OFT/FLD transform enriches each row from its edit page (extra HTTP per row),
 // so they need a smaller batch than the insert-only modules to stay under the
 // wall. Keep in sync with the backend ENRICHERS map.
-const ENRICH_BATCH_SIZE = 60
+const ENRICH_BATCH_SIZE = 50
 const ENRICH_MODULES = new Set(['oft', 'fld'])
 
 // Mirror backend engine.extractRows: pull the row array out of a raw response
