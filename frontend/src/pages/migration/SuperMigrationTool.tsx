@@ -12,6 +12,7 @@ import {
 import { RecordsViewer } from './components/RecordsViewer'
 import { MigrationReport } from './components/MigrationReport'
 import { SearchableSelect } from './components/SearchableSelect'
+import { KvkSelectDropdown, type KvkOption } from './components/KvkSelectDropdown'
 import type { FkEditing } from './views/tableUtils'
 import type { RowSelection } from './views/TableView'
 
@@ -40,6 +41,59 @@ function extractRows(raw: unknown): Row[] {
     return []
 }
 
+// Mirror backend superEngine.rowKvkName so we can group/filter the raw rows by
+// KVK BEFORE transform (the backend resolves each row's KVK from its own
+// `kvk_name`, which may sit nested or under a flat dotted key). Keeping the same
+// extraction rules means the names we filter on match the names the backend
+// resolves, so a selected subset transforms exactly the rows we expect.
+function asRowObject(value: unknown): Record<string, unknown> | null {
+    if (value == null) return null
+    if (typeof value === 'object') return value as Record<string, unknown>
+    if (typeof value === 'string') {
+        try {
+            return JSON.parse(value)
+        } catch {
+            return null
+        }
+    }
+    return null
+}
+
+function findKvkName(obj: unknown, depth = 0): string {
+    const o = asRowObject(obj)
+    if (!o || depth > 2) return ''
+    if (typeof o.kvk_name === 'string' && o.kvk_name.trim()) return o.kvk_name
+    for (const key of Object.keys(o)) {
+        const v = o[key]
+        if (key.endsWith('.kvk_name') && typeof v === 'string' && v.trim()) return v
+        const child = asRowObject(v)
+        if (child) {
+            const found = findKvkName(child, depth + 1)
+            if (found) return found
+        }
+    }
+    return ''
+}
+
+function decodeEntities(value: string): string {
+    return value
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#0?39;/g, "'")
+        .trim()
+}
+
+// Empty string = no resolvable KVK name on the row (backend reports these as
+// errors); we keep them as a distinct, selectable group.
+function rowKvkName(row: Row): string {
+    const found = findKvkName(row)
+    const cleaned = found ? String(found).trim() : ''
+    if (!cleaned || cleaned.toLowerCase() === 'n/a') return ''
+    return decodeEntities(cleaned)
+}
+
 /**
  * Super-migration workbench. Same flow as MigrationTool but WITHOUT a KVK
  * picker: paste a superadmin curl (kvk_id empty → all KVKs) -> pick module ->
@@ -53,6 +107,9 @@ export function SuperMigrationTool() {
 
     const [raw, setRaw] = useState<unknown>(undefined)
     const [rowCount, setRowCount] = useState<number | null>(null)
+    // Pre-transform KVK filter: distinct old-site KVK names the user wants to
+    // migrate. Empty set = none; defaults to all after each fetch.
+    const [selectedRawKvks, setSelectedRawKvks] = useState<Set<string>>(new Set())
     const [enrichTruncated, setEnrichTruncated] = useState(false)
     const [splitPercent, setSplitPercent] = useState<number>(50)
     const [verticalSplit, setVerticalSplit] = useState<number>(65)
@@ -127,6 +184,24 @@ export function SuperMigrationTool() {
         () => modules.find(m => m.key === moduleKey) || null,
         [modules, moduleKey],
     )
+
+    // Distinct KVKs in the raw pull (name → row count) — drives the pre-transform
+    // picker. Recomputed whenever a new curl is fetched.
+    const rawKvkGroups = useMemo<KvkOption[]>(() => {
+        const m = new Map<string, number>()
+        extractRows(raw).forEach(r => {
+            const name = rowKvkName(r)
+            m.set(name, (m.get(name) ?? 0) + 1)
+        })
+        return [...m.entries()]
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+    }, [raw])
+
+    // Default to every KVK selected each time a fresh pull arrives.
+    useEffect(() => {
+        setSelectedRawKvks(new Set(rawKvkGroups.map(g => g.name)))
+    }, [rawKvkGroups])
 
     useEffect(() => {
         superMigrationApi
@@ -208,7 +283,13 @@ export function SuperMigrationTool() {
         run('transform', async () => {
             setSeedResult(null)
             setRowActions([])
-            const allRows = extractRows(raw)
+            // Only transform rows whose KVK the user picked — a 900+ row
+            // superadmin pull can be migrated a few KVKs at a time, keeping each
+            // run small and fast. Filtering here means the unselected rows are
+            // never sent or processed at all.
+            const allRows = extractRows(raw).filter(r =>
+                selectedRawKvks.has(rowKvkName(r)),
+            )
 
             // Accumulate batch results in original row order. Report row indices
             // are batch-local, so shift them by the batch offset to stay aligned
@@ -455,7 +536,7 @@ export function SuperMigrationTool() {
         ? { foreignKeys: activeModule.foreignKeys, fkOptions, onEditCell, onEditField, onFillUnmatched }
         : undefined
 
-    const canTransform = raw !== undefined && moduleKey !== ''
+    const canTransform = raw !== undefined && moduleKey !== '' && selectedRawKvks.size > 0
     // Selective push: enabled as long as at least one row is selected (clean rows
     // can ship even while others still carry errors).
     const canSeed = selectedRowIndices.size > 0
@@ -512,6 +593,23 @@ export function SuperMigrationTool() {
                     </Button>
                 </div>
             </div>
+
+            {/* Pre-transform KVK filter — restrict the transform to a subset of
+                KVKs so a large superadmin pull can be migrated in batches. */}
+            {rawKvkGroups.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                    <KvkSelectDropdown
+                        options={rawKvkGroups}
+                        selected={selectedRawKvks}
+                        onChange={setSelectedRawKvks}
+                    />
+                    {selectedRawKvks.size === 0 && (
+                        <span className="text-xs text-amber-700">
+                            Select at least one KVK to transform.
+                        </span>
+                    )}
+                </div>
+            )}
 
             {error && (
                 <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
