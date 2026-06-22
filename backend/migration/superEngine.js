@@ -84,7 +84,14 @@ async function superTransform(moduleKey, raw, headers) {
     // headers, passed through from the pasted curl.
     const enricher = ENRICHERS[moduleKey];
     if (enricher && headers && rows.length) {
-        rows = await enricher(rows, headers);
+        try {
+            rows = await enricher(rows, headers);
+        } catch {
+            // Enrichment is best-effort: per-row fetches already degrade to a
+            // warning, but if the whole enrich step throws (e.g. the old site
+            // drops the connection) keep the un-enriched rows so the transform
+            // still completes instead of failing the request.
+        }
     }
 
     const records = [];
