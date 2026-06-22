@@ -58,15 +58,34 @@ function rowKvkName(row) {
     return decodeEntities(cleanText(findKvkName(row))) || '';
 }
 
+// Module key -> transform-time row enricher (edit-page fetches), for modules
+// whose list JSON omits detail fields. Mirrors the fetch-time enrichers, but
+// runs over the selected-KVK batch only. Keep in sync with the defer*Enrich
+// flags passed by superRoutes /fetch.
+const ENRICHERS = {
+    oft: (rows, headers) => require('./modules/oft.js').enrichOftRows(rows, headers),
+    fld: (rows, headers) => require('./modules/fld.js').enrichFldRows(rows, headers),
+};
+
 /**
  * Transform every old row, resolving each row's KVK independently. Rows whose
  * KVK name is missing or not present in our DB are reported as errors and
  * skipped (null), exactly like an unmapped row.
  */
-async function superTransform(moduleKey, raw) {
+async function superTransform(moduleKey, raw, headers) {
     const spec = getModule(moduleKey);
     const resolver = new MasterResolver();
-    const rows = extractRows(raw);
+    let rows = extractRows(raw);
+
+    // Some modules' full detail lives only on each row's edit page, not the list
+    // JSON. Fetch defers that enrichment (see engine.fetchFromCurl defer*Enrich)
+    // so we do it HERE — over just the rows in this transform batch, which are
+    // already filtered to the user's selected KVKs. Needs the old-site session
+    // headers, passed through from the pasted curl.
+    const enricher = ENRICHERS[moduleKey];
+    if (enricher && headers && rows.length) {
+        rows = await enricher(rows, headers);
+    }
 
     const records = [];
     const rowReports = [];

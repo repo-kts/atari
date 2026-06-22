@@ -111,7 +111,7 @@ async function enrichFldRows(rows, headers) {
     // Pre-fetch staff map so numeric staff_id on list rows can be resolved without edit HTML
     const staffMap = await fetchStaffMap(headers);
 
-    const concurrency = 5;
+    const concurrency = 20;
     const enriched = new Array(rows.length);
     
     for (let i = 0; i < rows.length; i += concurrency) {

@@ -44,7 +44,7 @@ async function enrichWithinBudget(rawRows, enrichFn, headers) {
  * Replay a pasted curl command server-side (browser can't — cross-origin +
  * the old site's session cookie). Returns the parsed JSON body.
  */
-async function fetchFromCurl(curl) {
+async function fetchFromCurl(curl, opts = {}) {
     const req = parseCurl(curl);
     const res = await fetch(req.url, {
         method: req.method,
@@ -66,7 +66,11 @@ async function fetchFromCurl(curl) {
     let enrichTruncated = false;
 
     // oft-data list JSON lacks technology options — enrich from each edit page.
-    if (req.url.includes('oft-data') && rows.length) {
+    // Super-migration defers this to transform-time (opts.deferOftEnrich) so only
+    // the rows for the user's SELECTED KVKs are enriched, not all 500+ — the
+    // edit-page fetch is the slow part. Per-KVK migration still enriches here
+    // (its pull is already one KVK, so the row count is small).
+    if (!opts.deferOftEnrich && req.url.includes('oft-data') && rows.length) {
         const { enrichOftRows } = require('./modules/oft.js');
         const out = await enrichWithinBudget(rows, enrichOftRows, req.headers);
         rows = out.rows;
@@ -75,7 +79,9 @@ async function fetchFromCurl(curl) {
     }
 
     // fld-data list JSON lacks full details — enrich from each edit page.
-    if (req.url.includes('fld-data') && rows.length) {
+    // Like OFT, super-migration defers this to transform-time (opts.deferFldEnrich)
+    // so only the selected-KVK rows are enriched, not all 800+.
+    if (!opts.deferFldEnrich && req.url.includes('fld-data') && rows.length) {
         const { enrichFldRows } = require('./modules/fld.js');
         const out = await enrichWithinBudget(rows, enrichFldRows, req.headers);
         rows = out.rows;
