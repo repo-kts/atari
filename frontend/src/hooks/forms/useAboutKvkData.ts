@@ -462,17 +462,23 @@ export type AboutKvkEntity =
     | typeof ENTITY_TYPES.KVK_EQUIPMENT_DETAILS;
 
 export function useAboutKvkData(entityType: AboutKvkEntity | null) {
-    // We must call all hooks unconditionally to satisfy React rules
-    const kvks = useKvks();
-    const accounts = useKvkBankAccounts();
-    const employees = useKvkEmployees();
-    const transferred = useKvkStaffTransferred();
-    const infra = useKvkInfrastructure();
-    const landDetails = useKvkLandDetails();
-    const vehicles = useKvkVehicles();
-    const vehicleDetails = useKvkVehicleDetails();
-    const equipments = useKvkEquipments();
-    const equipmentDetails = useKvkEquipmentDetails();
+    // We must call all hooks unconditionally to satisfy React rules.
+    // DataManagementView runs its own client-side search/filter/pagination over
+    // the FULL dataset, so each list must return every row — not the backend's
+    // default first page (limit 100, see aboutKvkController). Request the repo's
+    // hard cap (Math.min(limit, 10000)) so cross-KVK views (e.g. super-admin
+    // seeing 1500+ equipments) aren't silently truncated to 100.
+    const FULL = { limit: 10000 };
+    const kvks = useKvks(FULL);
+    const accounts = useKvkBankAccounts(FULL);
+    const employees = useKvkEmployees(FULL);
+    const transferred = useKvkStaffTransferred(FULL);
+    const infra = useKvkInfrastructure(FULL);
+    const landDetails = useKvkLandDetails(FULL);
+    const vehicles = useKvkVehicles(FULL);
+    const vehicleDetails = useKvkVehicleDetails(FULL);
+    const equipments = useKvkEquipments(FULL);
+    const equipmentDetails = useKvkEquipmentDetails(FULL);
 
     if (!entityType) {
         return {

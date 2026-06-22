@@ -18,6 +18,28 @@ import type { RowSelection } from './views/TableView'
 type Busy = '' | 'fetch' | 'transform' | 'seed'
 type Row = Record<string, unknown>
 
+// A superadmin pull is hundreds/thousands of rows, and both transform (per-row
+// DB lookups) and seed (per-row insert) run serially server-side — one giant
+// request blows the 60s serverless wall (Vercel maxDuration) and the client
+// sees "NetworkError". Instead we slice the rows into batches and call the
+// backend once per batch, accumulating results in order. Each batch stays well
+// under the limit. ~200 rows/batch balances round-trips against per-call cost.
+const BATCH_SIZE = 200
+
+// Mirror backend engine.extractRows: pull the row array out of a raw response
+// (DataTables `data`, nested `data.data`, or a bare array) so we can batch it.
+// Backend transform accepts a bare array (extractRows handles it), so each
+// batch is sent as a plain slice.
+function extractRows(raw: unknown): Row[] {
+    if (Array.isArray(raw)) return raw as Row[]
+    const r = raw as { data?: unknown } | null
+    if (r && Array.isArray(r.data)) return r.data as Row[]
+    if (r && r.data && Array.isArray((r.data as { data?: unknown }).data)) {
+        return (r.data as { data: Row[] }).data
+    }
+    return []
+}
+
 /**
  * Super-migration workbench. Same flow as MigrationTool but WITHOUT a KVK
  * picker: paste a superadmin curl (kvk_id empty → all KVKs) -> pick module ->
@@ -98,6 +120,8 @@ export function SuperMigrationTool() {
 
     const [busy, setBusy] = useState<Busy>('')
     const [error, setError] = useState('')
+    // Batch progress for the chunked transform/seed (null when idle).
+    const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
 
     const activeModule = useMemo(
         () => modules.find(m => m.key === moduleKey) || null,
@@ -164,6 +188,7 @@ export function SuperMigrationTool() {
             setError(e instanceof Error ? e.message : String(e))
         } finally {
             setBusy('')
+            setProgress(null)
         }
     }
 
@@ -183,13 +208,46 @@ export function SuperMigrationTool() {
         run('transform', async () => {
             setSeedResult(null)
             setRowActions([])
-            const out = await superMigrationApi.transform(moduleKey, raw)
-            setTransformed(out)
-            const recs = out.records as Array<Row | null>
-            setRecords(recs)
+            const allRows = extractRows(raw)
+
+            // Accumulate batch results in original row order. Report row indices
+            // are batch-local, so shift them by the batch offset to stay aligned
+            // with the flat `records` array the UI keys everything off.
+            const records: Array<Row | null> = []
+            const reportRows: TransformResult['report']['rows'] = []
+            let errorCount = 0
+            let warnCount = 0
+
+            setProgress({ done: 0, total: allRows.length })
+            for (let off = 0; off < allRows.length; off += BATCH_SIZE) {
+                const slice = allRows.slice(off, off + BATCH_SIZE)
+                const out = await superMigrationApi.transform(moduleKey, slice)
+                ;(out.records as Array<Row | null>).forEach(r => records.push(r))
+                out.report.rows.forEach(rr =>
+                    reportRows.push({ ...rr, index: rr.index + off }),
+                )
+                errorCount += out.report.errorCount
+                warnCount += out.report.warnCount
+                setProgress({ done: Math.min(off + slice.length, allRows.length), total: allRows.length })
+            }
+            setProgress(null)
+
+            const merged: TransformResult = {
+                records,
+                report: {
+                    total: allRows.length,
+                    mapped: records.filter(Boolean).length,
+                    errorCount,
+                    warnCount,
+                    seedable: errorCount === 0,
+                    rows: reportRows,
+                },
+            }
+            setTransformed(merged)
+            setRecords(records)
             // Default: every KVK present is selected, no rows excluded.
             const ids = new Set<number>()
-            recs.forEach(r => {
+            records.forEach(r => {
                 const id = r?.kvkId
                 if (typeof id === 'number') ids.add(id)
             })
@@ -203,9 +261,32 @@ export function SuperMigrationTool() {
             // Push only selected rows; unselected become null → skipped server-side.
             // Index positions are preserved so returned actions align with the table.
             const filtered = records.map((r, i) => (selectedRowIndices.has(i) ? r : null))
-            const out = await superMigrationApi.seed(moduleKey, filtered)
-            setSeedResult(out)
-            setRowActions(out.actions ?? [])
+
+            // Batch the insert the same way as transform so a large push can't
+            // overrun the serverless wall. Accumulate counts, and concat the
+            // per-row actions in order; failed indices are batch-local, so shift
+            // them by the batch offset to point at the real table row.
+            const merged: SeedResult = {
+                created: 0,
+                updated: 0,
+                skipped: 0,
+                failed: [],
+                actions: [],
+            }
+            setProgress({ done: 0, total: filtered.length })
+            for (let off = 0; off < filtered.length; off += BATCH_SIZE) {
+                const slice = filtered.slice(off, off + BATCH_SIZE)
+                const out = await superMigrationApi.seed(moduleKey, slice)
+                merged.created += out.created
+                merged.updated += out.updated
+                merged.skipped += out.skipped
+                out.failed.forEach(f => merged.failed.push({ ...f, index: f.index + off }))
+                ;(out.actions ?? []).forEach(a => merged.actions.push(a))
+                setProgress({ done: Math.min(off + slice.length, filtered.length), total: filtered.length })
+            }
+            setProgress(null)
+            setSeedResult(merged)
+            setRowActions(merged.actions)
         })
 
     const onEditCell = (rowIndex: number, field: string, value: number | null) => {
@@ -412,7 +493,11 @@ export function SuperMigrationTool() {
                         onClick={onTransform}
                         disabled={!canTransform || busy !== ''}
                     >
-                        {busy === 'transform' ? 'Transforming…' : 'Transform'}
+                        {busy === 'transform'
+                            ? progress
+                                ? `Transforming ${progress.done}/${progress.total}…`
+                                : 'Transforming…'
+                            : 'Transform'}
                     </Button>
                     <Button
                         onClick={onSeed}
@@ -420,7 +505,9 @@ export function SuperMigrationTool() {
                         className="bg-green-600 hover:bg-green-700"
                     >
                         {busy === 'seed'
-                            ? 'Pushing…'
+                            ? progress
+                                ? `Pushing ${progress.done}/${progress.total}…`
+                                : 'Pushing…'
                             : `Push to DB${transformed ? ` (${selectedRowIndices.size})` : ''}`}
                     </Button>
                 </div>
