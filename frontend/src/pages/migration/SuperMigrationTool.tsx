@@ -31,6 +31,7 @@ export function SuperMigrationTool() {
 
     const [raw, setRaw] = useState<unknown>(undefined)
     const [rowCount, setRowCount] = useState<number | null>(null)
+    const [enrichTruncated, setEnrichTruncated] = useState(false)
     const [splitPercent, setSplitPercent] = useState<number>(50)
     const [verticalSplit, setVerticalSplit] = useState<number>(65)
     const [showErrorsOnly, setShowErrorsOnly] = useState<boolean>(false)
@@ -175,6 +176,7 @@ export function SuperMigrationTool() {
             const out = await superMigrationApi.fetchCurl(curl)
             setRaw(out.raw)
             setRowCount(out.rowCount)
+            setEnrichTruncated(out.enrichTruncated === true)
         })
 
     const onTransform = () =>
@@ -427,6 +429,15 @@ export function SuperMigrationTool() {
             {error && (
                 <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                     {error}
+                </div>
+            )}
+
+            {enrichTruncated && (
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                    Edit-page enrichment hit its time budget and was cut short —
+                    later rows fall back to inline list fields, so some detail
+                    columns may be incomplete. Push what maps cleanly, then re-run
+                    the affected KVKs via the per-KVK migration tool for full detail.
                 </div>
             )}
 

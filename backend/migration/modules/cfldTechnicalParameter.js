@@ -375,8 +375,10 @@ module.exports = {
                 else seasonOther = sel.name;
             }
         }
-        if (!seasonId && row.crop?.season_id) {
-            const nm = SEASON_MAP[row.crop.season_id];
+        if (!seasonId) {
+            // List JSON carries season_id inline; crop.season_id is the fallback.
+            const oldSeason = row.season_id ?? row.crop?.season_id;
+            const nm = SEASON_MAP[oldSeason];
             if (nm) {
                 const s = await r.resolve('season', 'seasonName', 'seasonId', nm);
                 if (s.matched) seasonId = s.id;
@@ -462,8 +464,11 @@ module.exports = {
         if (!technologyDemonstrated) err('technologyDemonstrated', 'Missing technology demonstrated');
 
         // ── Variety name ─────────────────────────────────────────────────
-        let varietyName = '';
-        if (html) varietyName = decodeEntities(cleanText(parseInputValue(html, 'variety_name'))) || '';
+        let varietyName = decodeEntities(cleanText(row.variety_name)) || '';
+        if (html) {
+            const v = decodeEntities(cleanText(parseInputValue(html, 'variety_name'))) || '';
+            if (v) varietyName = v;
+        }
         if (!varietyName) {
             varietyName = 'Not specified';
             warn('varietyName', 'Missing variety_name — defaulted to "Not specified"');
@@ -472,9 +477,10 @@ module.exports = {
         // ── Existing farmer practice ──────────────────────────────────────
         // Old site stores this as "existing_variety_name" (misleadingly named —
         // it's the existing farmer practice / variety in farmer's field).
-        let existingFarmerPractice = '';
+        let existingFarmerPractice =
+            decodeEntities(cleanText(row.existing_variety_name)) || '';
         if (html) {
-            existingFarmerPractice =
+            const v =
                 decodeEntities(
                     cleanText(
                         parseInputValue(html, 'existing_variety_name') ||
@@ -483,6 +489,7 @@ module.exports = {
                         parseInputValue(html, 'existing_farmer_practice'),
                     ),
                 ) || '';
+            if (v) existingFarmerPractice = v;
         }
         if (!existingFarmerPractice) warn('existingFarmerPractice', 'Missing — stored as empty string');
 
@@ -509,14 +516,16 @@ module.exports = {
         let districtYield = floatOrZero(row.district_yield);
         let stateYield = floatOrZero(row.state_yield);
         let potentialYield = floatOrZero(row.potential_yield);
-        let farmerYield = 0;
-        let demoYieldMax = 0;
-        let demoYieldMin = 0;
-        let demoYieldAvg = 0;
-        let percentIncrease = 0;
-        let yieldGapDistrictMinimized = 0;
-        let yieldGapStateMinimized = 0;
-        let yieldGapPotentialMinimized = 0;
+        // List JSON carries these inline (same field names as the edit form);
+        // seed from the row, let html override when an edit page is present.
+        let farmerYield = floatOrZero(row.existing_yield);
+        let demoYieldMax = floatOrZero(row.yield_max);
+        let demoYieldMin = floatOrZero(row.yield_min);
+        let demoYieldAvg = floatOrZero(row.yield_avg);
+        let percentIncrease = floatOrZero(row.yield_increase);
+        let yieldGapDistrictMinimized = floatOrZero(row.yield_gap_d);
+        let yieldGapStateMinimized = floatOrZero(row.yield_gap_s);
+        let yieldGapPotentialMinimized = floatOrZero(row.yield_gap_p);
 
         if (html) {
             farmerYield = floatOrZero(parseInputValue(html, 'existing_yield') || parseInputValue(html, 'farmer_yield'));
@@ -536,8 +545,12 @@ module.exports = {
         }
 
         // ── Farmer demographics ───────────────────────────────────────────
-        let generalM = 0, generalF = 0, obcM = 0, obcF = 0;
-        let scM = 0, scF = 0, stM = 0, stF = 0;
+        // Inline list fields carry the caste/gender split directly (general_m …
+        // st_f); seed from them, let an edit page override when present.
+        let generalM = intOrZero(row.general_m), generalF = intOrZero(row.general_f);
+        let obcM = intOrZero(row.obc_m), obcF = intOrZero(row.obc_f);
+        let scM = intOrZero(row.sc_m), scF = intOrZero(row.sc_f);
+        let stM = intOrZero(row.st_m), stF = intOrZero(row.st_f);
         if (html) {
             generalM = intOrZero(parseInputValue(html, 'general_m'));
             generalF = intOrZero(parseInputValue(html, 'general_f'));
@@ -547,13 +560,6 @@ module.exports = {
             scF = intOrZero(parseInputValue(html, 'sc_f'));
             stM = intOrZero(parseInputValue(html, 'st_m'));
             stF = intOrZero(parseInputValue(html, 'st_f'));
-        } else {
-            // No edit HTML: put list sub_total into generalM as best-effort
-            const listTotal = intOrZero(row.sub_total);
-            if (listTotal > 0) {
-                generalM = listTotal;
-                warn('generalM', `No edit page — placed sub_total (${listTotal}) into generalM`);
-            }
         }
 
         // ── Photo paths ───────────────────────────────────────────────────

@@ -27,10 +27,35 @@ function asObject(value) {
     return null;
 }
 
-/** Pull the old-site KVK name out of a row, decoded the same way the specs do. */
+/**
+ * Pull the old-site KVK name out of a row, decoded the same way the specs do.
+ * The KVK object lives under different keys per endpoint — `kvk`, `kvks`
+ * (infra/equipment), or nested under a parent relation (`equipment.kvks`,
+ * `agri_drone.kvk`). Rather than hard-code every variant, search the row (and
+ * its nested objects, depth-bounded) for any `kvk_name`, plus any flat dotted
+ * key ending in `.kvk_name`. One row only ever carries its own KVK, so the
+ * first match is the right one.
+ */
+function findKvkName(obj, depth = 0) {
+    const o = asObject(obj);
+    if (!o || depth > 2) return '';
+    if (typeof o.kvk_name === 'string' && o.kvk_name.trim()) return o.kvk_name;
+    for (const key of Object.keys(o)) {
+        // flat dotted key, e.g. 'equipment.kvks.kvk_name'
+        if (key.endsWith('.kvk_name') && typeof o[key] === 'string' && o[key].trim()) {
+            return o[key];
+        }
+        const child = asObject(o[key]);
+        if (child) {
+            const found = findKvkName(child, depth + 1);
+            if (found) return found;
+        }
+    }
+    return '';
+}
+
 function rowKvkName(row) {
-    const kvkObj = asObject(row.kvk);
-    return decodeEntities(cleanText(kvkObj?.kvk_name || row['kvk.kvk_name'])) || '';
+    return decodeEntities(cleanText(findKvkName(row))) || '';
 }
 
 /**

@@ -12,6 +12,35 @@ function extractRows(raw) {
 }
 
 /**
+ * Per-row edit-page enrichment is fine for a single-KVK pull (tens of rows) but
+ * a superadmin all-KVK pull is hundreds/thousands of rows × multiple slow PHP
+ * fetches each — that overruns the serverless wall-clock and the whole fetch
+ * fails ("Failed to fetch"). Cap enrichment by a wall-clock budget: if it wins
+ * the race we use the enriched rows; if it overruns we fall back to the raw
+ * list rows. The specs already degrade gracefully on a missing edit page
+ * (inline list fields + a warning), so callers still get usable data instead of
+ * a hard failure. Budget is env-tunable (MIGRATION_ENRICH_BUDGET_MS).
+ */
+const ENRICH_BUDGET_MS = Number(process.env.MIGRATION_ENRICH_BUDGET_MS) || 45000;
+
+async function enrichWithinBudget(rawRows, enrichFn, headers) {
+    let timer;
+    const budget = new Promise(resolve => {
+        timer = setTimeout(() => resolve({ rows: rawRows, truncated: true }), ENRICH_BUDGET_MS);
+    });
+    // Resolve (never reject) so a late failure after the budget fires can't
+    // surface as an unhandled rejection; an enrich error degrades to the raw
+    // list rows (specs fall back to inline fields) instead of failing the fetch.
+    const work = Promise.resolve()
+        .then(() => enrichFn(rawRows, headers))
+        .then(rows => ({ rows, truncated: false }))
+        .catch(() => ({ rows: rawRows, truncated: true }));
+    const out = await Promise.race([work, budget]);
+    clearTimeout(timer);
+    return out;
+}
+
+/**
  * Replay a pasted curl command server-side (browser can't — cross-origin +
  * the old site's session cookie). Returns the parsed JSON body.
  */
@@ -34,32 +63,52 @@ async function fetchFromCurl(curl) {
         );
     }
     let rows = extractRows(json);
+    let enrichTruncated = false;
 
     // oft-data list JSON lacks technology options — enrich from each edit page.
     if (req.url.includes('oft-data') && rows.length) {
         const { enrichOftRows } = require('./modules/oft.js');
-        rows = await enrichOftRows(rows, req.headers);
+        const out = await enrichWithinBudget(rows, enrichOftRows, req.headers);
+        rows = out.rows;
+        enrichTruncated = enrichTruncated || out.truncated;
         if (Array.isArray(json.data)) json.data = rows;
     }
 
     // fld-data list JSON lacks full details — enrich from each edit page.
     if (req.url.includes('fld-data') && rows.length) {
         const { enrichFldRows } = require('./modules/fld.js');
-        rows = await enrichFldRows(rows, req.headers);
+        const out = await enrichWithinBudget(rows, enrichFldRows, req.headers);
+        rows = out.rows;
+        enrichTruncated = enrichTruncated || out.truncated;
         if (Array.isArray(json.data)) json.data = rows;
     }
 
-    // cfld technical parameter list lacks detail fields — enrich from each edit page.
+    // cfld technical parameter list: enrich from each edit page ONLY when the
+    // list JSON is the thin variant. The current `/project/cfld` response already
+    // embeds every detail field inline (existing_yield, total_produce, …) — for
+    // those, per-row edit-page fetches are redundant and (over hundreds of rows
+    // on a superadmin pull) blow the serverless time limit → "Failed to fetch".
     if (req.url.includes('/project/cfld') && !req.url.includes('cfld-extension') && !req.url.includes('cfld-budget') && rows.length) {
-        const { enrichCfldRows } = require('./modules/cfldTechnicalParameter.js');
-        rows = await enrichCfldRows(rows, req.headers);
-        if (Array.isArray(json.data)) json.data = rows;
+        const sample = rows[0] || {};
+        const hasInlineDetail =
+            sample.existing_yield !== undefined ||
+            sample.total_produce !== undefined ||
+            sample.variety_name !== undefined;
+        if (!hasInlineDetail) {
+            const { enrichCfldRows } = require('./modules/cfldTechnicalParameter.js');
+            const out = await enrichWithinBudget(rows, enrichCfldRows, req.headers);
+            rows = out.rows;
+            enrichTruncated = enrichTruncated || out.truncated;
+            if (Array.isArray(json.data)) json.data = rows;
+        }
     }
 
     // cfld extension activity list lacks demographic fields — enrich from each edit page.
     if (req.url.includes('cfld-extension-activity') && rows.length) {
         const { enrichCfldExtRows } = require('./modules/cfldExtensionActivity.js');
-        rows = await enrichCfldExtRows(rows, req.headers);
+        const out = await enrichWithinBudget(rows, enrichCfldExtRows, req.headers);
+        rows = out.rows;
+        enrichTruncated = enrichTruncated || out.truncated;
         if (Array.isArray(json.data)) json.data = rows;
     }
 
@@ -70,7 +119,7 @@ async function fetchFromCurl(curl) {
         if (Array.isArray(json.data)) json.data = rows;
     }
 
-    return { raw: json, rowCount: rows.length };
+    return { raw: json, rowCount: rows.length, enrichTruncated };
 }
 
 /**
