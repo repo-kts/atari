@@ -202,7 +202,7 @@ async function enrichOftRows(rows, headers) {
         referer: 'https://atariams.org/view-oft',
     };
     
-    const concurrency = 20;
+    const concurrency = 10;
     const enriched = new Array(rows.length);
     
     for (let i = 0; i < rows.length; i += concurrency) {
@@ -219,7 +219,7 @@ async function enrichOftRows(rows, headers) {
             
             // 1. Fetch edit-oft page
             try {
-                const res = await fetch(oftEditPath(id), { headers: fetchHeaders });
+                const res = await fetch(oftEditPath(id), { headers: fetchHeaders, signal: AbortSignal.timeout(8000) });
                 const html = await res.text();
                 if (res.ok && html.includes('technology_treatments')) {
                     const fullTitle = parseTitleFromHtml(html);
@@ -238,7 +238,7 @@ async function enrichOftRows(rows, headers) {
             const status = normalizeOftStatus(getRawStatusText(row));
             if (status === 'COMPLETED') {
                 try {
-                    const resResult = await fetch(oftResultEditPath(id), { headers: fetchHeaders });
+                    const resResult = await fetch(oftResultEditPath(id), { headers: fetchHeaders, signal: AbortSignal.timeout(8000) });
                     const htmlResult = await resResult.text();
                     if (resResult.ok && htmlResult.includes('final_recommendation')) {
                         enrichedRow._resultHtml = htmlResult;
