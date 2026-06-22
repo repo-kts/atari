@@ -25,6 +25,10 @@ export interface MasterOption {
 export interface FetchResult {
     raw: unknown
     rowCount: number
+    // True when per-row edit-page enrichment hit its wall-clock budget and was
+    // cut short — affected rows fall back to inline list fields (some detail
+    // columns may be incomplete). Re-run those KVKs via the per-KVK tool.
+    enrichTruncated?: boolean
 }
 
 export type IssueSeverity = 'error' | 'warn'
