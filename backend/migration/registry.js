@@ -12,6 +12,8 @@ const specs = [
     require('./modules/equipment.js'),
     require('./modules/equipmentDetails.js'),
     require('./modules/fld.js'),
+    require('./modules/fldExtension.js'),
+    require('./modules/fldTechnicalFeedback.js'),
     require('./modules/cfldTechnicalParameter.js'),
     require('./modules/cfldExtensionActivity.js'),
     require('./modules/cfldBudgetUtilization.js'),
