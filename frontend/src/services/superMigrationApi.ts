@@ -22,8 +22,10 @@ export const superMigrationApi = {
     fetchCurl: (curl: string) =>
         apiClient.post<FetchResult>('/super-migration/fetch', { curl }),
 
-    transform: (module: string, raw: unknown) =>
-        apiClient.post<TransformResult>('/super-migration/transform', { module, raw }),
+    // `curl` is forwarded so the backend can enrich OFT rows from their edit
+    // pages at transform-time (over the selected-KVK rows only).
+    transform: (module: string, raw: unknown, curl?: string) =>
+        apiClient.post<TransformResult>('/super-migration/transform', { module, raw, curl }),
 
     seed: (module: string, records: unknown[]) =>
         apiClient.post<SeedResult>('/super-migration/seed', { module, records }),

@@ -202,7 +202,7 @@ async function enrichOftRows(rows, headers) {
         referer: 'https://atariams.org/view-oft',
     };
     
-    const concurrency = 5;
+    const concurrency = 20;
     const enriched = new Array(rows.length);
     
     for (let i = 0; i < rows.length; i += concurrency) {
