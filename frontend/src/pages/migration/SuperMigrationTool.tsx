@@ -12,11 +12,117 @@ import {
 import { RecordsViewer } from './components/RecordsViewer'
 import { MigrationReport } from './components/MigrationReport'
 import { SearchableSelect } from './components/SearchableSelect'
+import { KvkSelectDropdown, type KvkOption } from './components/KvkSelectDropdown'
 import type { FkEditing } from './views/tableUtils'
 import type { RowSelection } from './views/TableView'
 
 type Busy = '' | 'fetch' | 'transform' | 'seed'
 type Row = Record<string, unknown>
+
+// A superadmin pull is hundreds/thousands of rows, and both transform (per-row
+// DB lookups) and seed (per-row insert) run serially server-side — one giant
+// request blows the 60s serverless wall (Vercel maxDuration) and the client
+// sees "NetworkError". Instead we slice the rows into batches and call the
+// backend once per batch, accumulating results in order. Each batch stays well
+// under the limit. ~200 rows/batch balances round-trips against per-call cost.
+const BATCH_SIZE = 200
+
+// Mirror backend engine.extractRows: pull the row array out of a raw response
+// (DataTables `data`, nested `data.data`, or a bare array) so we can batch it.
+// Backend transform accepts a bare array (extractRows handles it), so each
+// batch is sent as a plain slice.
+function extractRows(raw: unknown): Row[] {
+    if (Array.isArray(raw)) return raw as Row[]
+    const r = raw as { data?: unknown } | null
+    if (r && Array.isArray(r.data)) return r.data as Row[]
+    if (r && r.data && Array.isArray((r.data as { data?: unknown }).data)) {
+        return (r.data as { data: Row[] }).data
+    }
+    return []
+}
+
+// Mirror backend superEngine.rowKvkName so we can group/filter the raw rows by
+// KVK BEFORE transform (the backend resolves each row's KVK from its own
+// `kvk_name`, which may sit nested or under a flat dotted key). Keeping the same
+// extraction rules means the names we filter on match the names the backend
+// resolves, so a selected subset transforms exactly the rows we expect.
+function asRowObject(value: unknown): Record<string, unknown> | null {
+    if (value == null) return null
+    if (typeof value === 'object') return value as Record<string, unknown>
+    if (typeof value === 'string') {
+        try {
+            return JSON.parse(value)
+        } catch {
+            return null
+        }
+    }
+    return null
+}
+
+function findKvkName(obj: unknown, depth = 0): string {
+    const o = asRowObject(obj)
+    if (!o || depth > 2) return ''
+    if (typeof o.kvk_name === 'string' && o.kvk_name.trim()) return o.kvk_name
+    for (const key of Object.keys(o)) {
+        const v = o[key]
+        if (key.endsWith('.kvk_name') && typeof v === 'string' && v.trim()) return v
+        const child = asRowObject(v)
+        if (child) {
+            const found = findKvkName(child, depth + 1)
+            if (found) return found
+        }
+    }
+    return ''
+}
+
+function decodeEntities(value: string): string {
+    return value
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#0?39;/g, "'")
+        .trim()
+}
+
+// Empty string = no resolvable KVK name on the row (backend reports these as
+// errors); we keep them as a distinct, selectable group.
+function rowKvkName(row: Row): string {
+    const found = findKvkName(row)
+    const cleaned = found ? String(found).trim() : ''
+    if (!cleaned || cleaned.toLowerCase() === 'n/a') return ''
+    return decodeEntities(cleaned)
+}
+
+// KVKs pre-checked in the picker on each fetch. Old-site names vary in form
+// ("Krishi Vigyan Kendra, Dumka", "KVK DHANBAD", "KVK Manpur Gaya", "kvkpatna"),
+// so match on a stripped core (drop the "KVK"/"Krishi Vigyan Kendra" prefix and
+// all punctuation) rather than the literal string.
+const DEFAULT_KVKS = [
+    'KVK Begusarai',
+    'KVK Chatra',
+    'KVK Darbhanga',
+    'KVK Dhanbad',
+    'KVK Dumka',
+    'KVK Gumla',
+    'KVK Manpur, Gaya',
+    'KVK Nalanda',
+    'KVK Nawada',
+    'KVK Pakur',
+    'KVK Patna',
+    'KVK Sahibganj',
+]
+
+function kvkCore(name: string): string {
+    const n = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    return n.replace(/^krishi vigyan kendra\s*/, '').replace(/^kvk\s*/, '').trim()
+}
+
+const DEFAULT_KVK_CORES = new Set(DEFAULT_KVKS.map(kvkCore))
 
 /**
  * Super-migration workbench. Same flow as MigrationTool but WITHOUT a KVK
@@ -31,6 +137,9 @@ export function SuperMigrationTool() {
 
     const [raw, setRaw] = useState<unknown>(undefined)
     const [rowCount, setRowCount] = useState<number | null>(null)
+    // Pre-transform KVK filter: distinct old-site KVK names the user wants to
+    // migrate. Empty set = none; defaults to all after each fetch.
+    const [selectedRawKvks, setSelectedRawKvks] = useState<Set<string>>(new Set())
     const [enrichTruncated, setEnrichTruncated] = useState(false)
     const [splitPercent, setSplitPercent] = useState<number>(50)
     const [verticalSplit, setVerticalSplit] = useState<number>(65)
@@ -98,11 +207,40 @@ export function SuperMigrationTool() {
 
     const [busy, setBusy] = useState<Busy>('')
     const [error, setError] = useState('')
+    // Batch progress for the chunked transform/seed (null when idle).
+    const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
 
     const activeModule = useMemo(
         () => modules.find(m => m.key === moduleKey) || null,
         [modules, moduleKey],
     )
+
+    // Distinct KVKs in the raw pull (name → row count) — drives the pre-transform
+    // picker. Recomputed whenever a new curl is fetched.
+    const rawKvkGroups = useMemo<KvkOption[]>(() => {
+        const m = new Map<string, number>()
+        extractRows(raw).forEach(r => {
+            const name = rowKvkName(r)
+            m.set(name, (m.get(name) ?? 0) + 1)
+        })
+        // Priority (default) KVKs float to the top, then the rest alphabetical.
+        return [...m.entries()]
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => {
+                const pa = DEFAULT_KVK_CORES.has(kvkCore(a.name)) ? 0 : 1
+                const pb = DEFAULT_KVK_CORES.has(kvkCore(b.name)) ? 0 : 1
+                return pa - pb || a.name.localeCompare(b.name)
+            })
+    }, [raw])
+
+    // On each fresh pull, pre-check the default KVKs (matched by stripped core).
+    // Fall back to selecting all if the pull contains none of them, so an
+    // unrelated dataset isn't left with an empty (un-transformable) selection.
+    useEffect(() => {
+        const matched = rawKvkGroups.filter(g => DEFAULT_KVK_CORES.has(kvkCore(g.name)))
+        const chosen = matched.length > 0 ? matched : rawKvkGroups
+        setSelectedRawKvks(new Set(chosen.map(g => g.name)))
+    }, [rawKvkGroups])
 
     useEffect(() => {
         superMigrationApi
@@ -164,6 +302,7 @@ export function SuperMigrationTool() {
             setError(e instanceof Error ? e.message : String(e))
         } finally {
             setBusy('')
+            setProgress(null)
         }
     }
 
@@ -183,13 +322,52 @@ export function SuperMigrationTool() {
         run('transform', async () => {
             setSeedResult(null)
             setRowActions([])
-            const out = await superMigrationApi.transform(moduleKey, raw)
-            setTransformed(out)
-            const recs = out.records as Array<Row | null>
-            setRecords(recs)
+            // Only transform rows whose KVK the user picked — a 900+ row
+            // superadmin pull can be migrated a few KVKs at a time, keeping each
+            // run small and fast. Filtering here means the unselected rows are
+            // never sent or processed at all.
+            const allRows = extractRows(raw).filter(r =>
+                selectedRawKvks.has(rowKvkName(r)),
+            )
+
+            // Accumulate batch results in original row order. Report row indices
+            // are batch-local, so shift them by the batch offset to stay aligned
+            // with the flat `records` array the UI keys everything off.
+            const records: Array<Row | null> = []
+            const reportRows: TransformResult['report']['rows'] = []
+            let errorCount = 0
+            let warnCount = 0
+
+            setProgress({ done: 0, total: allRows.length })
+            for (let off = 0; off < allRows.length; off += BATCH_SIZE) {
+                const slice = allRows.slice(off, off + BATCH_SIZE)
+                const out = await superMigrationApi.transform(moduleKey, slice)
+                ;(out.records as Array<Row | null>).forEach(r => records.push(r))
+                out.report.rows.forEach(rr =>
+                    reportRows.push({ ...rr, index: rr.index + off }),
+                )
+                errorCount += out.report.errorCount
+                warnCount += out.report.warnCount
+                setProgress({ done: Math.min(off + slice.length, allRows.length), total: allRows.length })
+            }
+            setProgress(null)
+
+            const merged: TransformResult = {
+                records,
+                report: {
+                    total: allRows.length,
+                    mapped: records.filter(Boolean).length,
+                    errorCount,
+                    warnCount,
+                    seedable: errorCount === 0,
+                    rows: reportRows,
+                },
+            }
+            setTransformed(merged)
+            setRecords(records)
             // Default: every KVK present is selected, no rows excluded.
             const ids = new Set<number>()
-            recs.forEach(r => {
+            records.forEach(r => {
                 const id = r?.kvkId
                 if (typeof id === 'number') ids.add(id)
             })
@@ -203,9 +381,32 @@ export function SuperMigrationTool() {
             // Push only selected rows; unselected become null → skipped server-side.
             // Index positions are preserved so returned actions align with the table.
             const filtered = records.map((r, i) => (selectedRowIndices.has(i) ? r : null))
-            const out = await superMigrationApi.seed(moduleKey, filtered)
-            setSeedResult(out)
-            setRowActions(out.actions ?? [])
+
+            // Batch the insert the same way as transform so a large push can't
+            // overrun the serverless wall. Accumulate counts, and concat the
+            // per-row actions in order; failed indices are batch-local, so shift
+            // them by the batch offset to point at the real table row.
+            const merged: SeedResult = {
+                created: 0,
+                updated: 0,
+                skipped: 0,
+                failed: [],
+                actions: [],
+            }
+            setProgress({ done: 0, total: filtered.length })
+            for (let off = 0; off < filtered.length; off += BATCH_SIZE) {
+                const slice = filtered.slice(off, off + BATCH_SIZE)
+                const out = await superMigrationApi.seed(moduleKey, slice)
+                merged.created += out.created
+                merged.updated += out.updated
+                merged.skipped += out.skipped
+                out.failed.forEach(f => merged.failed.push({ ...f, index: f.index + off }))
+                ;(out.actions ?? []).forEach(a => merged.actions.push(a))
+                setProgress({ done: Math.min(off + slice.length, filtered.length), total: filtered.length })
+            }
+            setProgress(null)
+            setSeedResult(merged)
+            setRowActions(merged.actions)
         })
 
     const onEditCell = (rowIndex: number, field: string, value: number | null) => {
@@ -374,7 +575,7 @@ export function SuperMigrationTool() {
         ? { foreignKeys: activeModule.foreignKeys, fkOptions, onEditCell, onEditField, onFillUnmatched }
         : undefined
 
-    const canTransform = raw !== undefined && moduleKey !== ''
+    const canTransform = raw !== undefined && moduleKey !== '' && selectedRawKvks.size > 0
     // Selective push: enabled as long as at least one row is selected (clean rows
     // can ship even while others still carry errors).
     const canSeed = selectedRowIndices.size > 0
@@ -412,7 +613,11 @@ export function SuperMigrationTool() {
                         onClick={onTransform}
                         disabled={!canTransform || busy !== ''}
                     >
-                        {busy === 'transform' ? 'Transforming…' : 'Transform'}
+                        {busy === 'transform'
+                            ? progress
+                                ? `Transforming ${progress.done}/${progress.total}…`
+                                : 'Transforming…'
+                            : 'Transform'}
                     </Button>
                     <Button
                         onClick={onSeed}
@@ -420,11 +625,30 @@ export function SuperMigrationTool() {
                         className="bg-green-600 hover:bg-green-700"
                     >
                         {busy === 'seed'
-                            ? 'Pushing…'
+                            ? progress
+                                ? `Pushing ${progress.done}/${progress.total}…`
+                                : 'Pushing…'
                             : `Push to DB${transformed ? ` (${selectedRowIndices.size})` : ''}`}
                     </Button>
                 </div>
             </div>
+
+            {/* Pre-transform KVK filter — restrict the transform to a subset of
+                KVKs so a large superadmin pull can be migrated in batches. */}
+            {rawKvkGroups.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                    <KvkSelectDropdown
+                        options={rawKvkGroups}
+                        selected={selectedRawKvks}
+                        onChange={setSelectedRawKvks}
+                    />
+                    {selectedRawKvks.size === 0 && (
+                        <span className="text-xs text-amber-700">
+                            Select at least one KVK to transform.
+                        </span>
+                    )}
+                </div>
+            )}
 
             {error && (
                 <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
