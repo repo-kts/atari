@@ -5,6 +5,7 @@ const { listModules } = require('./registry.js');
 const { listMasterOptions } = require('./masterCatalog.js');
 const engine = require('./engine.js');
 const superEngine = require('./superEngine.js');
+const { parseCurl } = require('./curlParser.js');
 
 // Super-migration: paste a SUPERADMIN curl (kvk_id empty → all KVKs), pick a
 // module; the target KVK is resolved per-row from the curl. No KVK picker.
@@ -29,7 +30,12 @@ router.post('/fetch', async (req, res) => {
     try {
         const { curl } = req.body;
         if (!curl) return res.status(400).json({ error: 'curl is required' });
-        const out = await engine.fetchFromCurl(curl);
+        // Defer OFT/FLD edit-page enrichment to transform-time — it then runs
+        // over only the rows for the user's selected KVKs instead of every KVK.
+        const out = await engine.fetchFromCurl(curl, {
+            deferOftEnrich: true,
+            deferFldEnrich: true,
+        });
         res.json(out);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -39,11 +45,14 @@ router.post('/fetch', async (req, res) => {
 // Map raw rows -> our schema, resolving each row's KVK from the row itself.
 router.post('/transform', async (req, res) => {
     try {
-        const { module, raw } = req.body;
+        const { module, raw, curl } = req.body;
         if (!module || raw === undefined) {
             return res.status(400).json({ error: 'module and raw are required' });
         }
-        const out = await superEngine.superTransform(module, raw);
+        // Headers (old-site session cookie) let OFT enrich each row's edit page
+        // here, over just this batch's selected-KVK rows.
+        const headers = curl ? parseCurl(curl).headers : undefined;
+        const out = await superEngine.superTransform(module, raw, headers);
         res.json(out);
     } catch (err) {
         res.status(400).json({ error: err.message });
