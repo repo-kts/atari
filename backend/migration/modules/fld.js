@@ -75,6 +75,7 @@ async function fetchStaffMap(headers) {
                 'x-requested-with': 'XMLHttpRequest',
                 referer: 'https://atariams.org/view-staff',
             },
+            signal: AbortSignal.timeout(15000),
         });
         if (!res.ok) {
             console.error(`[fetchStaffMap] HTTP ${res.status}`);
@@ -111,7 +112,7 @@ async function enrichFldRows(rows, headers) {
     // Pre-fetch staff map so numeric staff_id on list rows can be resolved without edit HTML
     const staffMap = await fetchStaffMap(headers);
 
-    const concurrency = 20;
+    const concurrency = 10;
     const enriched = new Array(rows.length);
     
     for (let i = 0; i < rows.length; i += concurrency) {
@@ -134,7 +135,7 @@ async function enrichFldRows(rows, headers) {
             
             // 1. Fetch edit-fld page
             try {
-                const res = await fetch(fldEditPath(id), { headers: fetchHeaders });
+                const res = await fetch(fldEditPath(id), { headers: fetchHeaders, signal: AbortSignal.timeout(8000) });
                 const html = await res.text();
                 if (res.ok && (html.includes('sector_id') || html.includes('start_date') || html.includes('technology_demonstrated'))) {
                     enrichedRow._editHtml = html;
@@ -149,7 +150,7 @@ async function enrichFldRows(rows, headers) {
             const status = normalizeFldStatus(getRawStatusText(row));
             if (status === 'COMPLETED') {
                 try {
-                    const resResult = await fetch(fldResultEditPath(id), { headers: fetchHeaders });
+                    const resResult = await fetch(fldResultEditPath(id), { headers: fetchHeaders, signal: AbortSignal.timeout(8000) });
                     const htmlResult = await resResult.text();
                     if (resResult.ok && htmlResult.includes('demo_yield')) {
                         enrichedRow._resultHtml = htmlResult;
