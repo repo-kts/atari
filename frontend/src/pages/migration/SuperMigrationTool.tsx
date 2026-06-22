@@ -94,6 +94,36 @@ function rowKvkName(row: Row): string {
     return decodeEntities(cleaned)
 }
 
+// KVKs pre-checked in the picker on each fetch. Old-site names vary in form
+// ("Krishi Vigyan Kendra, Dumka", "KVK DHANBAD", "KVK Manpur Gaya", "kvkpatna"),
+// so match on a stripped core (drop the "KVK"/"Krishi Vigyan Kendra" prefix and
+// all punctuation) rather than the literal string.
+const DEFAULT_KVKS = [
+    'KVK Begusarai',
+    'KVK Chatra',
+    'KVK Darbhanga',
+    'KVK Dhanbad',
+    'KVK Dumka',
+    'KVK Gumla',
+    'KVK Manpur, Gaya',
+    'KVK Nalanda',
+    'KVK Nawada',
+    'KVK Pakur',
+    'KVK Patna',
+    'KVK Sahibganj',
+]
+
+function kvkCore(name: string): string {
+    const n = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    return n.replace(/^krishi vigyan kendra\s*/, '').replace(/^kvk\s*/, '').trim()
+}
+
+const DEFAULT_KVK_CORES = new Set(DEFAULT_KVKS.map(kvkCore))
+
 /**
  * Super-migration workbench. Same flow as MigrationTool but WITHOUT a KVK
  * picker: paste a superadmin curl (kvk_id empty → all KVKs) -> pick module ->
@@ -193,14 +223,23 @@ export function SuperMigrationTool() {
             const name = rowKvkName(r)
             m.set(name, (m.get(name) ?? 0) + 1)
         })
+        // Priority (default) KVKs float to the top, then the rest alphabetical.
         return [...m.entries()]
             .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => a.name.localeCompare(b.name))
+            .sort((a, b) => {
+                const pa = DEFAULT_KVK_CORES.has(kvkCore(a.name)) ? 0 : 1
+                const pb = DEFAULT_KVK_CORES.has(kvkCore(b.name)) ? 0 : 1
+                return pa - pb || a.name.localeCompare(b.name)
+            })
     }, [raw])
 
-    // Default to every KVK selected each time a fresh pull arrives.
+    // On each fresh pull, pre-check the default KVKs (matched by stripped core).
+    // Fall back to selecting all if the pull contains none of them, so an
+    // unrelated dataset isn't left with an empty (un-transformable) selection.
     useEffect(() => {
-        setSelectedRawKvks(new Set(rawKvkGroups.map(g => g.name)))
+        const matched = rawKvkGroups.filter(g => DEFAULT_KVK_CORES.has(kvkCore(g.name)))
+        const chosen = matched.length > 0 ? matched : rawKvkGroups
+        setSelectedRawKvks(new Set(chosen.map(g => g.name)))
     }, [rawKvkGroups])
 
     useEffect(() => {
