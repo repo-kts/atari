@@ -21,7 +21,7 @@ function extractRows(raw) {
  * (inline list fields + a warning), so callers still get usable data instead of
  * a hard failure. Budget is env-tunable (MIGRATION_ENRICH_BUDGET_MS).
  */
-const ENRICH_BUDGET_MS = Number(process.env.MIGRATION_ENRICH_BUDGET_MS) || 45000;
+const ENRICH_BUDGET_MS = Number(process.env.MIGRATION_ENRICH_BUDGET_MS) || 280000;
 
 async function enrichWithinBudget(rawRows, enrichFn, headers) {
     let timer;
