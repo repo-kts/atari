@@ -427,6 +427,33 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         }
     }, [entityType, setFormData])
 
+    // FLD edit: the stored category / sub-category can be stale (masters were
+    // re-seeded and ids shifted), so the dependent Sub Category / Crop dropdowns
+    // can't match them and render empty. The crop (leaf) is reliable — derive the
+    // correct sub-category and category from it so both dropdowns prefill, and the
+    // corrected chain is saved on update.
+    useEffect(() => {
+        if (entityType !== ENTITY_TYPES.ACHIEVEMENT_FLD) return
+        if (formData.cropId == null || formData.cropId === '') return
+        const crop = (fldCrops as any[]).find(
+            (c) => Number(c.cropId ?? c.fldCropId) === Number(formData.cropId),
+        )
+        if (!crop || crop.subCategoryId == null) return
+        const sub = (fldSubcategories as any[]).find(
+            (s) => Number(s.subCategoryId) === Number(crop.subCategoryId),
+        )
+        setFormData((prev: any) => {
+            const updates: any = {}
+            if (Number(prev.subCategoryId) !== Number(crop.subCategoryId)) {
+                updates.subCategoryId = crop.subCategoryId
+            }
+            if (sub?.categoryId != null && Number(prev.categoryId) !== Number(sub.categoryId)) {
+                updates.categoryId = sub.categoryId
+            }
+            return Object.keys(updates).length ? { ...prev, ...updates } : prev
+        })
+    }, [entityType, formData.cropId, fldCrops, fldSubcategories, setFormData])
+
     useEffect(() => {
         if (entityType !== ENTITY_TYPES.ACHIEVEMENT_OFT) return
         if (Array.isArray(formData.technologyOptions)) return
