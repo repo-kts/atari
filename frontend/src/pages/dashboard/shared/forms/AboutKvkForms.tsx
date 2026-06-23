@@ -247,9 +247,16 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             formData._filterEquipmentMasterId != null
         )
             return
-        const eq = (equipments as any[]).find(
+        // Prefer the record's own nested equipment (loaded with the detail on edit) —
+        // the equipments dropdown list is filtered/paginated and may omit this row or
+        // its type/master ids. Fall back to the list lookup for newly-picked items.
+        const eqFromList = (equipments as any[]).find(
             (e) => Number(e.equipmentId) === Number(formData.equipmentId),
         )
+        const nested = formData.equipment
+        const eq = (nested && (nested.equipmentTypeId != null || nested.equipmentMasterId != null))
+            ? nested
+            : eqFromList
         if (!eq) return
         if (eq.equipmentTypeId == null && eq.equipmentMasterId == null) return
         setFormData((prev: any) => ({

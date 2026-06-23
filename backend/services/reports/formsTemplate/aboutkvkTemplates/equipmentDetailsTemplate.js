@@ -6,7 +6,7 @@
  * totalCost, sourceOfFunding }.
  * Bound to reportTemplateService (`this`).
  */
-function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection) {
+function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection, reportContext = {}) {
     const records = Array.isArray(data) ? data : (data ? [data] : [])
     if (records.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection)
@@ -15,12 +15,31 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection)
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'
     const dash = (v) => (v === null || v === undefined || v === '' ? '-' : v)
 
+    const moduleLabel = reportContext.isStandalone
+        ? (section.exportTitle || section.title)
+        : `${section.id} ${this._escapeHtml(section.title)}`
+    const kvkNames = Array.from(new Set(
+        records
+            .map(r => this._pickValue(r, ['KVK', 'kvk.kvkName']))
+            .filter(v => v && v !== '-')
+            .map(v => String(v))
+    ))
+    const kvkLabel = kvkNames.length === 1
+        ? kvkNames[0]
+        : (kvkNames.length === 0 ? '-' : `${kvkNames.length} KVKs`)
+    const header = reportContext.isStandalone
+        ? `<div class="module-report-header">
+        <h1 class="module-report-title">${this._escapeHtml(moduleLabel)}</h1>
+        <div class="module-report-sub"><strong>KVK:</strong> ${this._escapeHtml(kvkLabel)}</div>
+    </div>`
+        : `<h1 class="section-title">${moduleLabel}</h1>`
+
     const rows = records.map((row, index) => {
         const kvk = this._pickValue(row, ['KVK', 'kvk.kvkName']) || '-'
-        const name = this._pickValue(row, ['Equipment Name', 'equipmentName']) || '-'
+        const name = this._pickValue(row, ['Equipment Name', 'equipmentName', 'equipmentMaster.name']) || '-'
         const year = dash(this._pickValue(row, ['Year of Purchase', 'yearOfPurchase']))
         const cost = dash(this._pickValue(row, ['Cost (Rs.)', 'totalCost']))
-        const funding = this._pickValue(row, ['Source of Funding', 'sourceOfFunding']) || '-'
+        const funding = this._pickValue(row, ['Source of Funding', 'sourceOfFunding', 'assetFundingSource.name']) || '-'
         return `
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
                 <td class="s-no">${index + 1}</td>
@@ -34,7 +53,7 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection)
 
     return `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+    ${header}
     <table class="data-table">
         <thead>
             <tr>

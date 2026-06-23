@@ -243,6 +243,74 @@ async function resolveDetailEntityId(entityName, parsedId) {
     return parsedId;
 }
 
+// Legacy KvkEquipment rows can have null equipmentTypeId/equipmentMasterId (the
+// curated parents). The raw model name lives on companyBrandModel and maps back
+// to its parent EquipmentMaster + EquipmentType via EquipmentModelMaster. Recover
+// those ids/names so the Equipment Details edit form's Type / Model (Model/Brand)
+// dropdowns prefill even when the equipment row never stored the FKs.
+const EQUIPMENT_MASTER_SELECT = {
+    equipmentMasterId: true,
+    name: true,
+    equipmentTypeId: true,
+    equipmentType: { select: { equipmentTypeId: true, name: true } },
+};
+
+async function recoverEquipmentParents(entityName, rows) {
+    if (entityName !== 'kvk-equipment-details' && entityName !== 'kvk-equipments') return;
+    const list = Array.isArray(rows) ? rows : (rows ? [rows] : []);
+    const getEq = (r) => (entityName === 'kvk-equipments' ? r : r?.equipment);
+    const rawName = (eq) => String(eq.companyBrandModel || eq.equipmentName || '').trim();
+    const targets = list
+        .map(getEq)
+        .filter((eq) => eq && eq.equipmentMasterId == null && rawName(eq));
+    if (targets.length === 0) return;
+
+    const names = [...new Set(targets.map(rawName))];
+
+    // 1) exact match on the migration reverse-lookup table.
+    const exact = await prisma.equipmentModelMaster.findMany({
+        where: { name: { in: names } },
+        select: { name: true, equipmentMaster: { select: EQUIPMENT_MASTER_SELECT } },
+    });
+    const byName = new Map();
+    for (const m of exact) {
+        if (m.equipmentMaster && !byName.has(m.name)) byName.set(m.name, m.equipmentMaster);
+    }
+
+    // 2) prefix fallback: some raw names carry extra suffixes ("… with accessories
+    //    including installation") not present in the table. Match the longest model
+    //    name that the raw name starts with.
+    const unmatched = names.filter((n) => !byName.has(n));
+    if (unmatched.length > 0) {
+        const allModels = await prisma.equipmentModelMaster.findMany({
+            select: { name: true, equipmentMaster: { select: EQUIPMENT_MASTER_SELECT } },
+        });
+        const cleaned = allModels
+            .filter((m) => m.equipmentMaster && m.name)
+            .map((m) => ({ lower: m.name.trim().toLowerCase(), master: m.equipmentMaster }))
+            .sort((a, b) => b.lower.length - a.lower.length);
+        for (const n of unmatched) {
+            const lower = n.toLowerCase();
+            const hit = cleaned.find((m) => lower.startsWith(m.lower) || m.lower.startsWith(lower));
+            if (hit) byName.set(n, hit.master);
+        }
+    }
+
+    for (const eq of targets) {
+        const master = byName.get(rawName(eq));
+        if (!master) continue;
+        eq.equipmentMasterId = master.equipmentMasterId;
+        eq.equipmentTypeId = master.equipmentTypeId;
+        eq.equipmentMaster = { equipmentMasterId: master.equipmentMasterId, name: master.name };
+        if (master.equipmentType) {
+            eq.equipmentType = {
+                equipmentTypeId: master.equipmentType.equipmentTypeId,
+                name: master.equipmentType.name,
+            };
+        }
+    }
+}
+
 async function findAll(entityName, options = {}, user = null) {
     const config = getEntityConfig(entityName);
     const model = prisma[config.model];
@@ -408,6 +476,8 @@ async function findAll(entityName, options = {}, user = null) {
 
     }
 
+    await recoverEquipmentParents(entityName, data);
+
     return { data, total };
 }
 
@@ -429,10 +499,12 @@ async function findById(entityName, id) {
         return null;
     }
 
-    return await prisma[config.model].findUnique({
+    const record = await prisma[config.model].findUnique({
         where: { [config.idField]: resolvedId },
         include: config.includes,
     });
+    await recoverEquipmentParents(entityName, record);
+    return record;
 }
 
 /**

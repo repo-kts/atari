@@ -11,6 +11,7 @@ export const ENTITY_TYPE_EXPORT_TEMPLATE_MAP: Partial<
     [ENTITY_TYPES.KVK_EMPLOYEES]: 'about-kvk-employees-full',
     [ENTITY_TYPES.KVK_VEHICLES]: 'about-kvk-vehicles',
     [ENTITY_TYPES.KVK_VEHICLE_DETAILS]: 'about-kvk-vehicle-details',
+    [ENTITY_TYPES.KVK_EQUIPMENTS]: 'about-kvk-equipment-details-table',
     [ENTITY_TYPES.KVK_EQUIPMENT_DETAILS]: 'about-kvk-equipment-records',
     [ENTITY_TYPES.ACHIEVEMENT_OFT]: 'oft-combined',
     [ENTITY_TYPES.ACHIEVEMENT_FLD]: 'fld-page-report',

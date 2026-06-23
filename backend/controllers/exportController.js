@@ -99,6 +99,69 @@ const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'OTHER', itemLabel: 'Any other (specify)', unitFallback: 'N/A', valueKey: 'any_other_count', prefix: 'any_other_count_' },
 ];
 
+// Frontend posts staff rows with the job type as a relation (jobTypeMaster.name)
+// or an "Other" free-text (jobTypeOther) — but the report config / template read a
+// flat `jobType`. Flatten it here so PDF, Excel and Word all show the same value.
+function enrichEmployeesExport(rawData) {
+    const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    return rows.map((row) => ({
+        ...row,
+        jobType: row?.jobType
+            || row?.jobTypeMaster?.name
+            || row?.jobTypeOther
+            || '',
+    }));
+}
+
+// Frontend posts vehicle-status rows with the static vehicle fields nested under
+// `vehicle`, status under `vehicleStatus`, funding under `assetFundingSource` —
+// but the report config / template read flat keys. Flatten so PDF, Excel and Word
+// all show the same values. Existing flat values (comprehensive shape) win.
+function enrichVehicleDetailsExport(rawData) {
+    const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const pick = (flat, nested) => (flat !== undefined && flat !== null && flat !== '' ? flat : (nested ?? ''));
+    return rows.map((row) => ({
+        ...row,
+        vehicleName: pick(row?.vehicleName, row?.vehicle?.vehicleName),
+        registrationNo: pick(row?.registrationNo, row?.vehicle?.registrationNo),
+        yearOfPurchase: pick(row?.yearOfPurchase, row?.vehicle?.yearOfPurchase),
+        totalCost: pick(row?.totalCost, row?.vehicle?.totalCost),
+        presentStatus: pick(row?.presentStatus, row?.vehicleStatus?.statusLabel),
+        sourceOfFunding: pick(row?.sourceOfFunding, row?.assetFundingSource?.name),
+    }));
+}
+
+const pickVal = (...vals) => {
+    for (const v of vals) if (v !== undefined && v !== null && v !== '') return v;
+    return '';
+};
+
+// Equipment Status (1.9): frontend posts the static fields nested under `equipment`,
+// status under `equipmentStatus`, funding under `assetFundingSource`. Flatten so
+// PDF, Excel and Word all show the same values.
+function enrichEquipmentRecordsExport(rawData) {
+    const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    return rows.map((row) => ({
+        ...row,
+        equipmentName: pickVal(row?.equipmentName, row?.equipment?.equipmentName, row?.equipment?.equipmentMaster?.name),
+        yearOfPurchase: pickVal(row?.yearOfPurchase, row?.equipment?.yearOfPurchase),
+        totalCost: pickVal(row?.totalCost, row?.equipment?.totalCost),
+        sourceOfFunding: pickVal(row?.sourceOfFunding, row?.assetFundingSource?.name, row?.equipment?.assetFundingSource?.name),
+        presentStatus: pickVal(row?.presentStatus, row?.equipmentStatus?.statusLabel),
+    }));
+}
+
+// Equipment Details (1.8): static equipment rows. Only funding is nested
+// (assetFundingSource.name) — flatten it; name/year/cost are already flat.
+function enrichEquipmentDetailsExport(rawData) {
+    const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    return rows.map((row) => ({
+        ...row,
+        equipmentName: pickVal(row?.equipmentName, row?.equipmentMaster?.name),
+        sourceOfFunding: pickVal(row?.sourceOfFunding, row?.assetFundingSource?.name),
+    }));
+}
+
 const exportData = async (req, res) => {
     try {
         const {
@@ -120,6 +183,18 @@ const exportData = async (req, res) => {
         let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}`;
 
         let effectiveRawData = rawData;
+        if (templateKey === 'about-kvk-employees-full' && rawData) {
+            effectiveRawData = enrichEmployeesExport(rawData);
+        }
+        if (templateKey === 'about-kvk-vehicle-details' && rawData) {
+            effectiveRawData = enrichVehicleDetailsExport(rawData);
+        }
+        if (templateKey === 'about-kvk-equipment-records' && rawData) {
+            effectiveRawData = enrichEquipmentRecordsExport(rawData);
+        }
+        if (templateKey === 'about-kvk-equipment-details-table' && rawData) {
+            effectiveRawData = enrichEquipmentDetailsExport(rawData);
+        }
         if (templateKey === 'nf-soil-data-information' && rawData) {
             effectiveRawData = await prepareNfSoilExportPayload(rawData);
         }
