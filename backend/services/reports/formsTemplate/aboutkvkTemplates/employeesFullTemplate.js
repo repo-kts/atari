@@ -1,4 +1,14 @@
-function renderEmployeesFullSection(section, data, sectionId, isFirstSection) {
+// Scale the table font down as the column count grows so wide tables fit the
+// A4 page width instead of cropping. Mirrors fitFont() in the FLD templates.
+function fitFont(colCount) {
+    if (colCount <= 8) return 7.5
+    if (colCount <= 12) return 6.5
+    if (colCount <= 16) return 5.5
+    if (colCount <= 22) return 4.6
+    return 4
+}
+
+function renderEmployeesFullSection(section, data, sectionId, isFirstSection, reportContext = {}) {
     if (!data || (Array.isArray(data) && data.length === 0)) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection)
     }
@@ -6,10 +16,41 @@ function renderEmployeesFullSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : [data]
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'
 
+    // 12 data columns → scale font to fit page.
+    const fs = fitFont(12)
+
+    // Module name. Module-wise export (standalone) uses the friendly name with no
+    // section number ("Employee Details"); the comprehensive report keeps the
+    // numbered title ("1.4 All KVK staff Details") for TOC consistency.
+    const moduleLabel = reportContext.isStandalone
+        ? (section.exportTitle || section.title)
+        : `${section.id} ${this._escapeHtml(section.title)}`
+
+    // KVK this report belongs to. KVK download → single KVK; admin grouped
+    // download → many, so summarise the count.
+    const kvkNames = Array.from(new Set(
+        records
+            .map(r => this._pickValue(r, ['KVK', 'kvk.kvkName']))
+            .filter(v => v && v !== '-')
+            .map(v => String(v))
+    ))
+    const kvkLabel = kvkNames.length === 1
+        ? kvkNames[0]
+        : (kvkNames.length === 0 ? '-' : `${kvkNames.length} KVKs`)
+
+    // Standalone gets a single clean header block (one underline); comprehensive
+    // report keeps its existing numbered section title.
+    const header = reportContext.isStandalone
+        ? `<div class="module-report-header">
+        <h1 class="module-report-title">${this._escapeHtml(moduleLabel)}</h1>
+        <div class="module-report-sub"><strong>KVK:</strong> ${this._escapeHtml(kvkLabel)}</div>
+    </div>`
+        : `<h1 class="section-title">${moduleLabel}</h1>`
+
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
-    <table class="data-table">
+    ${header}
+    <table class="data-table report-fit" style="font-size:${fs}pt;">
         <thead>
             <tr>
                 <th class="s-no">Sl. No.</th>
@@ -23,7 +64,7 @@ function renderEmployeesFullSection(section, data, sectionId, isFirstSection) {
                 <th>Category (SC/ST/ OBC/ General)</th>
                 <th>Job Type</th>
                 <th>Mobile</th>
-                <th>Email</th>
+                <th class="emp-email">Email</th>
             </tr>
         </thead>
         <tbody>`
@@ -46,7 +87,10 @@ function renderEmployeesFullSection(section, data, sectionId, isFirstSection) {
             row,
             ['Category (SC/ST/ OBC/ General)', 'staffCategory.categoryName']
         ) || '-'
-        const jobType = this._pickValue(row, ['Job Type', 'jobType']) || '-'
+        const jobType = this._pickValue(
+            row,
+            ['Job Type', 'jobType', 'jobTypeMaster.name', 'jobTypeOther']
+        ) || '-'
         const mobile = this._pickValue(row, ['Mobile', 'mobile']) || '-'
         const email = this._pickValue(row, ['Email', 'email']) || '-'
 
@@ -63,7 +107,7 @@ function renderEmployeesFullSection(section, data, sectionId, isFirstSection) {
                 <td>${this._escapeHtml(String(category))}</td>
                 <td>${this._escapeHtml(String(jobType))}</td>
                 <td>${this._escapeHtml(String(mobile))}</td>
-                <td>${this._escapeHtml(String(email))}</td>
+                <td class="emp-email">${this._escapeHtml(String(email))}</td>
             </tr>`
     })
 
@@ -78,4 +122,3 @@ function renderEmployeesFullSection(section, data, sectionId, isFirstSection) {
 module.exports = {
     renderEmployeesFullSection,
 }
-

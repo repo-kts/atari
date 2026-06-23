@@ -80,6 +80,7 @@ const reportConfig = {
         {
             id: '1.4',
             title: 'All KVK staff Details',
+            exportTitle: 'Employee Details',
             description: 'All active employees/staff of the KVK',
             subsection: true,
             parentSectionId: '1',
@@ -149,6 +150,7 @@ const reportConfig = {
         {
             id: '1.7',
             title: 'Vehicle Status',
+            exportTitle: 'Vehicle Details',
             description: 'Vehicle reporting-year status (run, present status, repairing cost)',
             subsection: true,
             parentSectionId: '1',
@@ -174,6 +176,7 @@ const reportConfig = {
         {
             id: '1.8',
             title: 'Equipment Details',
+            exportTitle: 'Equipment Details',
             description: 'All equipments and their static details',
             subsection: true,
             parentSectionId: '1',
@@ -194,6 +197,7 @@ const reportConfig = {
         {
             id: '1.9',
             title: 'Equipment Status',
+            exportTitle: 'Equipment Status',
             description: 'Equipment reporting-year status (present status by year)',
             subsection: true,
             parentSectionId: '1',
