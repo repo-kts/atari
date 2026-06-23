@@ -74,14 +74,17 @@ const { renderProductionSupplyPageReportSection } = require('./formsTemplate/ach
 const { renderSoilWaterEquipmentPageReportSection } = require('./formsTemplate/achievementTemplates/soilWaterEquipmentPageReportTemplate.js');
 const { renderSoilWaterSamplesBPageReportSection } = require('./formsTemplate/achievementTemplates/soilWaterSamplesBPageReportTemplate.js');
 const { renderSoilWaterAnalysisDetailStateReportSection } = require('./formsTemplate/achievementTemplates/soilWaterAnalysisDetailStateReportTemplate.js');
+const { renderSoilWaterAnalysisDetailReportSection } = require('./formsTemplate/achievementTemplates/soilWaterAnalysisDetailReportTemplate.js');
 const { renderWorldSoilDayPageReportSection } = require('./formsTemplate/achievementTemplates/worldSoilDayPageReportTemplate.js');
 const { renderPublicationDetailsDetailedSection } = require('./formsTemplate/achievementTemplates/publicationDetailsDetailedTemplate.js');
 const { renderPublicationPageReportSection } = require('./formsTemplate/achievementTemplates/publicationPageReportTemplate.js');
 const { renderKvkAwardDetailedSection } = require('./formsTemplate/achievementTemplates/kvkAwardDetailedTemplate.js');
 const { renderKvkAwardSummarySection } = require('./formsTemplate/achievementTemplates/kvkAwardSummaryTemplate.js');
+const { renderKvkAwardDetailedGroupedSection } = require('./formsTemplate/achievementTemplates/kvkAwardDetailedGroupedTemplate.js');
 const { renderScientistAwardDetailedSection } = require('./formsTemplate/achievementTemplates/scientistAwardDetailedTemplate.js');
 const { renderScientistAwardSummarySection } = require('./formsTemplate/achievementTemplates/scientistAwardSummaryTemplate.js');
 const { renderFarmerAwardSummarySection } = require('./formsTemplate/achievementTemplates/farmerAwardSummaryTemplate.js');
+const { renderFarmerAwardDetailedGroupedSection } = require('./formsTemplate/achievementTemplates/farmerAwardDetailedGroupedTemplate.js');
 const { renderHrdProgrammesSection } = require('./formsTemplate/achievementTemplates/hrdProgrammesTemplate.js');
 const { renderDistrictLevelDataSection } = require('./formsTemplate/districtVillageTemplates/districtLevelDataTemplate.js');
 const { renderOperationalAreaDetailsSection } = require('./formsTemplate/districtVillageTemplates/operationalAreaDetailsTemplate.js');
@@ -210,14 +213,17 @@ class ReportTemplateService {
             'soil-water-equipment-page-report': renderSoilWaterEquipmentPageReportSection.bind(this),
             'soil-water-samples-b-page-report': renderSoilWaterSamplesBPageReportSection.bind(this),
             'soil-water-analysis-state-report': renderSoilWaterAnalysisDetailStateReportSection.bind(this),
+            'soil-water-analysis-detail-report': renderSoilWaterAnalysisDetailReportSection.bind(this),
             'world-soil-day-page-report': renderWorldSoilDayPageReportSection.bind(this),
             'publication-details-detailed': renderPublicationDetailsDetailedSection.bind(this),
             'publication-page-report': renderPublicationPageReportSection.bind(this),
             'kvk-award-detailed': renderKvkAwardDetailedSection.bind(this),
             'kvk-award-summary-report': renderKvkAwardSummarySection.bind(this),
+            'kvk-award-detailed-report': renderKvkAwardDetailedGroupedSection.bind(this),
             'scientist-award-detailed': renderScientistAwardDetailedSection.bind(this),
             'scientist-award-summary-report': renderScientistAwardSummarySection.bind(this),
             'farmer-award-summary-report': renderFarmerAwardSummarySection.bind(this),
+            'farmer-award-detailed-report': renderFarmerAwardDetailedGroupedSection.bind(this),
             'hrd-programmes-report': renderHrdProgrammesSection.bind(this),
             'district-level-data-report': renderDistrictLevelDataSection.bind(this),
             'operational-area-details-report': renderOperationalAreaDetailsSection.bind(this),

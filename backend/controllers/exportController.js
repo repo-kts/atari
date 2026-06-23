@@ -1,5 +1,7 @@
 const exportHelper = require('../utils/exportHelper.js');
 const reportTemplateService = require('../services/reports/reportTemplateService.js');
+const reportExcelService = require('../services/reports/reportExcelService.js');
+const reportWordService = require('../services/reports/reportWordService.js');
 const { getAllSections, getSectionByCustomTemplate } = require('../config/reportConfig.js');
 const { formatReportingYear } = require('../utils/reportingYearUtils.js');
 const { NF_DEMONSTRATION_PARAMETER_DEFS } = require('../repositories/reports/naturalFarmingReport/nfDemonstrationConstants.js');
@@ -34,7 +36,7 @@ const {
     generateExtensionActivityPageExcelBuffer,
     generateExtensionActivityPageWordBuffer,
 } = require('../utils/extensionActivityPageExport.js');
-const { resolveOtherExtensionPagePayload } = require('../repositories/reports/otherExtensionContentReport/otherExtensionContentReportRepository.js');
+const { resolveOtherExtensionDetailedPayload } = require('../repositories/reports/otherExtensionContentReport/otherExtensionContentReportRepository.js');
 const {
     generateOtherExtensionContentPageExcelBuffer,
     generateOtherExtensionContentPageWordBuffer,
@@ -44,22 +46,27 @@ const {
     generateTechnologyWeekCelebrationPageExcelBuffer,
     generateTechnologyWeekCelebrationPageWordBuffer,
 } = require('../utils/technologyWeekCelebrationPageExport.js');
-const { resolveCelebrationDaysPagePayload } = require('../repositories/reports/celebrationDaysReport/celebrationDaysReportRepository.js');
+const { resolveCelebrationDaysGroupedPayload } = require('../repositories/reports/celebrationDaysReport/celebrationDaysReportRepository.js');
 const {
     generateCelebrationDaysPageExcelBuffer,
     generateCelebrationDaysPageWordBuffer,
 } = require('../utils/celebrationDaysPageExport.js');
-const { resolveProductionSupplyPagePayload } = require('../repositories/reports/productionSupplyPageReport/productionSupplyPageReportRepository.js');
+const { resolveProductionSupplyGroupedPayload } = require('../repositories/reports/productionSupplyPageReport/productionSupplyPageReportRepository.js');
 const {
     generateProductionSupplyPageExcelBuffer,
     generateProductionSupplyPageWordBuffer,
 } = require('../utils/productionSupplyPageExport.js');
+const { resolveSoilWaterAnalysisDetailedPayload } = require('../repositories/reports/soilWaterAnalysisReport/soilWaterAnalysisReportRepository.js');
+const {
+    generateSoilWaterAnalysisPageExcelBuffer,
+    generateSoilWaterAnalysisPageWordBuffer,
+} = require('../utils/soilWaterAnalysisPageExport.js');
 const { resolveSoilWaterEquipmentPagePayload } = require('../repositories/reports/soilWaterEquipmentReport/soilWaterEquipmentReportRepository.js');
 const {
     generateSoilWaterEquipmentPageExcelBuffer,
     generateSoilWaterEquipmentPageWordBuffer,
 } = require('../utils/soilWaterEquipmentPageExport.js');
-const { resolveWorldSoilDayPagePayload } = require('../repositories/reports/worldSoilDayReport/worldSoilDayReportRepository.js');
+const { resolveWorldSoilDayGroupedPayload } = require('../repositories/reports/worldSoilDayReport/worldSoilDayReportRepository.js');
 const {
     generateWorldSoilDayPageExcelBuffer,
     generateWorldSoilDayPageWordBuffer,
@@ -70,10 +77,32 @@ const {
     generateTechnicalSummaryWordBuffer,
 } = require('../utils/technicalSummaryExport.js');
 const { buildPublicationDetailsTabularData } = require('../services/reports/formsTemplate/achievementTemplates/publicationDetailsDetailedTemplate.js');
+const {
+    generatePublicationDetailsExcelBuffer,
+    generatePublicationDetailsWordBuffer,
+} = require('../utils/publicationDetailsPageExport.js');
+const {
+    generateHrdProgrammesExcelBuffer,
+    generateHrdProgrammesWordBuffer,
+} = require('../utils/hrdProgrammesPageExport.js');
+const {
+    generateScientistAwardDetailedExcelBuffer,
+    generateScientistAwardDetailedWordBuffer,
+} = require('../utils/scientistAwardDetailedPageExport.js');
 const { buildKvkAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/kvkAwardSummaryTemplate.js');
+const { resolveKvkAwardDetailedPayload } = require('../repositories/reports/kvkAwardReportRepository.js');
+const {
+    generateKvkAwardPageExcelBuffer,
+    generateKvkAwardPageWordBuffer,
+} = require('../utils/kvkAwardPageExport.js');
 const { buildScientistAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/scientistAwardSummaryTemplate.js');
 const { buildScientistAwardDetailedTabularData } = require('../services/reports/formsTemplate/achievementTemplates/scientistAwardDetailedTemplate.js');
 const { buildFarmerAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/farmerAwardSummaryTemplate.js');
+const { resolveFarmerAwardDetailedPayload } = require('../repositories/reports/farmerAwardReportRepository.js');
+const {
+    generateFarmerAwardPageExcelBuffer,
+    generateFarmerAwardPageWordBuffer,
+} = require('../utils/farmerAwardPageExport.js');
 const { buildHrdProgrammesTabularData } = require('../services/reports/formsTemplate/achievementTemplates/hrdProgrammesTemplate.js');
 const { buildDistrictLevelDataTabularData } = require('../services/reports/formsTemplate/districtVillageTemplates/districtLevelDataTemplate.js');
 const { buildOperationalAreaDetailsTabularData } = require('../services/reports/formsTemplate/districtVillageTemplates/operationalAreaDetailsTemplate.js');
@@ -234,6 +263,9 @@ const exportData = async (req, res) => {
         if (templateKey === 'soil-water-analysis-state-report' && rawData) {
             effectiveRawData = rawData;
         }
+        if (templateKey === 'soil-water-analysis-detail-report' && rawData) {
+            effectiveRawData = rawData;
+        }
         if (templateKey === 'world-soil-day-page-report' && rawData) {
             effectiveRawData = rawData;
         }
@@ -243,6 +275,9 @@ const exportData = async (req, res) => {
         if (templateKey === 'kvk-award-summary-report' && rawData) {
             effectiveRawData = rawData;
         }
+        if (templateKey === 'kvk-award-detailed-report' && rawData) {
+            effectiveRawData = rawData;
+        }
         if (
             (templateKey === 'scientist-award-detailed' || templateKey === 'scientist-award-summary-report')
             && rawData
@@ -250,6 +285,9 @@ const exportData = async (req, res) => {
             effectiveRawData = rawData;
         }
         if (templateKey === 'farmer-award-summary-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'farmer-award-detailed-report' && rawData) {
             effectiveRawData = rawData;
         }
         if (templateKey === 'hrd-programmes-report' && rawData) {
@@ -294,13 +332,27 @@ const exportData = async (req, res) => {
                         ? await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport))
                         : generateHTML(title, headers, rows);
 
-                    buffer = await exportHelper.generatePDF(html);
+                    // Wide tables render landscape so the 29-column layout fits.
+                    const landscapeTemplates = new Set([
+                        'celebration-days-page-report',
+                        'technology-week-celebration-page-report',
+                        'production-supply-page-report',
+                        'soil-water-analysis-detail-report',
+                        'farmer-award-detailed-report',
+                    ]);
+                    buffer = await exportHelper.generatePDF(html, {
+                        landscape: landscapeTemplates.has(templateKey),
+                    });
                 }
                 contentType = 'application/pdf';
                 fileName += '.pdf';
                 break;
             case 'excel':
-                if (templateKey === 'fld-page-report') {
+                if (templateKey === 'oft-combined' && rawData) {
+                    // Build from the SAME HTML the PDF uses so Excel matches exactly.
+                    const oftHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportExcelService.generateStandaloneExcelFromHtml(title, oftHtml);
+                } else if (templateKey === 'fld-page-report') {
                     buffer = await generateFldPageExcelBuffer(
                         title,
                         resolveFldPageReportPayload(effectiveRawData),
@@ -310,30 +362,44 @@ const exportData = async (req, res) => {
                         title,
                         resolveTrainingsPageReportPayload(effectiveRawData),
                     );
-                } else if (templateKey === 'extension-activities-page-report') {
-                    buffer = await generateExtensionActivityPageExcelBuffer(
-                        title,
-                        resolveExtensionActivityPagePayload(effectiveRawData),
-                    );
+                } else if (templateKey === 'extension-activities-page-report' && rawData) {
+                    // Build from the SAME HTML the PDF uses so the grouped
+                    // Farmers/Officials/Total header matches exactly.
+                    const extHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportExcelService.generateStandaloneExcelFromHtml(title, extHtml);
                 } else if (templateKey === 'other-extension-content-page-report') {
                     buffer = await generateOtherExtensionContentPageExcelBuffer(
                         title,
-                        resolveOtherExtensionPagePayload(effectiveRawData),
+                        resolveOtherExtensionDetailedPayload(effectiveRawData),
                     );
-                } else if (templateKey === 'technology-week-celebration-page-report') {
-                    buffer = await generateTechnologyWeekCelebrationPageExcelBuffer(
-                        title,
-                        resolveTechnologyWeekPagePayload(effectiveRawData),
-                    );
+                } else if (templateKey === 'technology-week-celebration-page-report' && rawData) {
+                    // Generic HTML path → grouped header + KVK column (aggregated) match the PDF.
+                    const twHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportExcelService.generateStandaloneExcelFromHtml(title, twHtml);
                 } else if (templateKey === 'celebration-days-page-report') {
                     buffer = await generateCelebrationDaysPageExcelBuffer(
                         title,
-                        resolveCelebrationDaysPagePayload(effectiveRawData),
+                        resolveCelebrationDaysGroupedPayload(effectiveRawData),
                     );
                 } else if (templateKey === 'production-supply-page-report') {
                     buffer = await generateProductionSupplyPageExcelBuffer(
                         title,
-                        resolveProductionSupplyPagePayload(effectiveRawData),
+                        resolveProductionSupplyGroupedPayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'kvk-award-detailed-report') {
+                    buffer = await generateKvkAwardPageExcelBuffer(
+                        title,
+                        resolveKvkAwardDetailedPayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'farmer-award-detailed-report') {
+                    buffer = await generateFarmerAwardPageExcelBuffer(
+                        title,
+                        resolveFarmerAwardDetailedPayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'soil-water-analysis-detail-report') {
+                    buffer = await generateSoilWaterAnalysisPageExcelBuffer(
+                        title,
+                        resolveSoilWaterAnalysisDetailedPayload(effectiveRawData),
                     );
                 } else if (templateKey === 'soil-water-equipment-page-report') {
                     buffer = await generateSoilWaterEquipmentPageExcelBuffer(
@@ -343,8 +409,14 @@ const exportData = async (req, res) => {
                 } else if (templateKey === 'world-soil-day-page-report') {
                     buffer = await generateWorldSoilDayPageExcelBuffer(
                         title,
-                        resolveWorldSoilDayPagePayload(effectiveRawData, { isAggregatedReport: Boolean(isAggregatedReport) }),
+                        resolveWorldSoilDayGroupedPayload(effectiveRawData),
                     );
+                } else if (templateKey === 'publication-details-detailed') {
+                    buffer = await generatePublicationDetailsExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'hrd-programmes-report') {
+                    buffer = await generateHrdProgrammesExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'scientist-award-detailed') {
+                    buffer = await generateScientistAwardDetailedExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryExcelBuffer(effectiveRawData);
                 } else {
@@ -354,7 +426,10 @@ const exportData = async (req, res) => {
                 fileName += '.xlsx';
                 break;
             case 'word':
-                if (templateKey === 'fld-page-report') {
+                if (templateKey === 'oft-combined' && rawData) {
+                    const oftHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportWordService.generateStandaloneWordFromHtml(title, oftHtmlW);
+                } else if (templateKey === 'fld-page-report') {
                     buffer = await generateFldPageWordBuffer(
                         title,
                         resolveFldPageReportPayload(effectiveRawData),
@@ -364,30 +439,41 @@ const exportData = async (req, res) => {
                         title,
                         resolveTrainingsPageReportPayload(effectiveRawData),
                     );
-                } else if (templateKey === 'extension-activities-page-report') {
-                    buffer = await generateExtensionActivityPageWordBuffer(
-                        title,
-                        resolveExtensionActivityPagePayload(effectiveRawData),
-                    );
+                } else if (templateKey === 'extension-activities-page-report' && rawData) {
+                    const extHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportWordService.generateStandaloneWordFromHtml(title, extHtmlW);
                 } else if (templateKey === 'other-extension-content-page-report') {
                     buffer = await generateOtherExtensionContentPageWordBuffer(
                         title,
-                        resolveOtherExtensionPagePayload(effectiveRawData),
+                        resolveOtherExtensionDetailedPayload(effectiveRawData),
                     );
-                } else if (templateKey === 'technology-week-celebration-page-report') {
-                    buffer = await generateTechnologyWeekCelebrationPageWordBuffer(
-                        title,
-                        resolveTechnologyWeekPagePayload(effectiveRawData),
-                    );
+                } else if (templateKey === 'technology-week-celebration-page-report' && rawData) {
+                    const twHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportWordService.generateStandaloneWordFromHtml(title, twHtmlW);
                 } else if (templateKey === 'celebration-days-page-report') {
                     buffer = await generateCelebrationDaysPageWordBuffer(
                         title,
-                        resolveCelebrationDaysPagePayload(effectiveRawData),
+                        resolveCelebrationDaysGroupedPayload(effectiveRawData),
                     );
                 } else if (templateKey === 'production-supply-page-report') {
                     buffer = await generateProductionSupplyPageWordBuffer(
                         title,
-                        resolveProductionSupplyPagePayload(effectiveRawData),
+                        resolveProductionSupplyGroupedPayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'kvk-award-detailed-report') {
+                    buffer = await generateKvkAwardPageWordBuffer(
+                        title,
+                        resolveKvkAwardDetailedPayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'farmer-award-detailed-report') {
+                    buffer = await generateFarmerAwardPageWordBuffer(
+                        title,
+                        resolveFarmerAwardDetailedPayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'soil-water-analysis-detail-report') {
+                    buffer = await generateSoilWaterAnalysisPageWordBuffer(
+                        title,
+                        resolveSoilWaterAnalysisDetailedPayload(effectiveRawData),
                     );
                 } else if (templateKey === 'soil-water-equipment-page-report') {
                     buffer = await generateSoilWaterEquipmentPageWordBuffer(
@@ -397,8 +483,14 @@ const exportData = async (req, res) => {
                 } else if (templateKey === 'world-soil-day-page-report') {
                     buffer = await generateWorldSoilDayPageWordBuffer(
                         title,
-                        resolveWorldSoilDayPagePayload(effectiveRawData, { isAggregatedReport: Boolean(isAggregatedReport) }),
+                        resolveWorldSoilDayGroupedPayload(effectiveRawData),
                     );
+                } else if (templateKey === 'publication-details-detailed') {
+                    buffer = await generatePublicationDetailsWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'hrd-programmes-report') {
+                    buffer = await generateHrdProgrammesWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'scientist-award-detailed') {
+                    buffer = await generateScientistAwardDetailedWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryWordBuffer(effectiveRawData);
                 } else {
@@ -441,24 +533,27 @@ async function generateCustomTemplateHTML(templateKey, rawData, title, isAggrega
                                     : templateKey === 'celebration-days-page-report' ? 'celebration-days-page'
                                         : templateKey === 'production-supply-page-report' ? 'production-supply-page'
                                             : templateKey === 'soil-water-equipment-page-report' ? 'soil-water-equipment-page'
-                                            : templateKey === 'soil-water-samples-b-page-report' ? 'soil-water-samples-b-page'
-                                                : templateKey === 'soil-water-analysis-state-report' ? '2.10.3'
-                                                    : templateKey === 'world-soil-day-page-report' ? '2.10.2'
-                                                        : templateKey === 'publication-details-detailed' ? '2.55'
-                                                            : templateKey === 'scientist-award-detailed' ? '2.57'
-                                                                : templateKey === 'scientist-award-summary-report' ? '2.57'
-                                                                    : templateKey === 'farmer-award-summary-report' ? '2.58'
-                                                                        : templateKey === 'hrd-programmes-report' ? '2.59'
-                                                                            : templateKey === 'operational-area-details-report' ? '4.22'
-                                                                                : templateKey === 'district-level-data-report' ? '4.21.1'
-                                                                                : templateKey === 'village-adoption-programme-report' ? '4.23'
-                                                                                    : templateKey === 'priority-thrust-area-report' ? '4.24'
-                                                                                        : templateKey === 'financial-budget-details-report' ? '4.25'
-                                                                                            : templateKey === 'financial-project-budget-report' ? '4.26'
-                                                                                                : templateKey === 'financial-revolving-fund-report' ? '4.27'
-                                                                                                    : templateKey === 'financial-revenue-generation-report' ? '4.28'
-                                                                                                        : templateKey === 'financial-resource-generation-report' ? '4.29'
-                                                                                                            : templateKey === 'kvk-award-summary-report' ? '2.56' : '1.1'),
+                                                : templateKey === 'soil-water-samples-b-page-report' ? 'soil-water-samples-b-page'
+                                                    : templateKey === 'soil-water-analysis-detail-report' ? '2.14'
+                                                        : templateKey === 'soil-water-analysis-state-report' ? '2.10.3'
+                                                        : templateKey === 'world-soil-day-page-report' ? '2.10.2'
+                                                            : templateKey === 'publication-details-detailed' ? '2.55'
+                                                                : templateKey === 'scientist-award-detailed' ? '2.57'
+                                                                    : templateKey === 'scientist-award-summary-report' ? '2.57'
+                                                                        : templateKey === 'farmer-award-summary-report' ? '2.58'
+                                                                            : templateKey === 'farmer-award-detailed-report' ? '2.58'
+                                                                            : templateKey === 'hrd-programmes-report' ? '2.59'
+                                                                                : templateKey === 'operational-area-details-report' ? '4.22'
+                                                                                    : templateKey === 'district-level-data-report' ? '4.21.1'
+                                                                                        : templateKey === 'village-adoption-programme-report' ? '4.23'
+                                                                                            : templateKey === 'priority-thrust-area-report' ? '4.24'
+                                                                                                : templateKey === 'financial-budget-details-report' ? '4.25'
+                                                                                                    : templateKey === 'financial-project-budget-report' ? '4.26'
+                                                                                                        : templateKey === 'financial-revolving-fund-report' ? '4.27'
+                                                                                                            : templateKey === 'financial-revenue-generation-report' ? '4.28'
+                                                                                                                : templateKey === 'financial-resource-generation-report' ? '4.29'
+                                                                                                                    : templateKey === 'kvk-award-summary-report' ? '2.56'
+                                                                                                                        : templateKey === 'kvk-award-detailed-report' ? '2.56' : '1.1'),
             title: matchedSection?.title || title,
             customSectionLabel: matchedSection?.customSectionLabel,
             isAggregatedReport,
@@ -521,6 +616,9 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
         || templateKey === 'soil-water-equipment-page-report'
         || templateKey === 'soil-water-samples-b-page-report'
         || templateKey === 'soil-water-analysis-state-report'
+        || templateKey === 'soil-water-analysis-detail-report'
+        || templateKey === 'kvk-award-detailed-report'
+        || templateKey === 'farmer-award-detailed-report'
         || templateKey === 'world-soil-day-page-report') {
         return { headers: fallbackHeaders, rows: fallbackRows };
     }
@@ -1128,9 +1226,9 @@ function buildNariBioFortifiedTabularData(rawData, format, fallbackHeaders, fall
         'Area (ha)',
         // Part A – beneficiary counts
         'General M', 'General F', 'General T',
-        'OBC M',     'OBC F',     'OBC T',
-        'SC M',      'SC F',      'SC T',
-        'ST M',      'ST F',      'ST T',
+        'OBC M', 'OBC F', 'OBC T',
+        'SC M', 'SC F', 'SC T',
+        'ST M', 'ST F', 'ST T',
         'Grand Total M', 'Grand Total F', 'Grand Total T',
         // Part B – consumption pattern
         'Production/yield',
@@ -1140,41 +1238,41 @@ function buildNariBioFortifiedTabularData(rawData, format, fallbackHeaders, fall
     ];
 
     const rows = normalizedData.map((row, idx) => {
-        const generalM = Number(row.generalM ?? row.genMale  ?? 0);
+        const generalM = Number(row.generalM ?? row.genMale ?? 0);
         const generalF = Number(row.generalF ?? row.genFemale ?? 0);
-        const generalT = Number(row.generalT)  || (generalM + generalF);
-        const obcM     = Number(row.obcM  ?? row.obcMale   ?? 0);
-        const obcF     = Number(row.obcF  ?? row.obcFemale ?? 0);
-        const obcT     = Number(row.obcT)  || (obcM + obcF);
-        const scM      = Number(row.scM   ?? row.scMale    ?? 0);
-        const scF      = Number(row.scF   ?? row.scFemale  ?? 0);
-        const scT      = Number(row.scT)   || (scM + scF);
-        const stM      = Number(row.stM   ?? row.stMale    ?? 0);
-        const stF      = Number(row.stF   ?? row.stFemale  ?? 0);
-        const stT      = Number(row.stT)   || (stM + stF);
-        const grandM   = Number(row.grandM) || (generalM + obcM + scM + stM);
-        const grandF   = Number(row.grandF) || (generalF + obcF + scF + stF);
-        const grandT   = grandM + grandF;
+        const generalT = Number(row.generalT) || (generalM + generalF);
+        const obcM = Number(row.obcM ?? row.obcMale ?? 0);
+        const obcF = Number(row.obcF ?? row.obcFemale ?? 0);
+        const obcT = Number(row.obcT) || (obcM + obcF);
+        const scM = Number(row.scM ?? row.scMale ?? 0);
+        const scF = Number(row.scF ?? row.scFemale ?? 0);
+        const scT = Number(row.scT) || (scM + scF);
+        const stM = Number(row.stM ?? row.stMale ?? 0);
+        const stF = Number(row.stF ?? row.stFemale ?? 0);
+        const stT = Number(row.stT) || (stM + stF);
+        const grandM = Number(row.grandM) || (generalM + obcM + scM + stM);
+        const grandF = Number(row.grandF) || (generalF + obcF + scF + stF);
+        const grandT = grandM + grandF;
 
         return [
             idx + 1,
             formatExportValue(row.nameOfNutriSmartVillage || row.villageName || '-', format),
-            formatExportValue(row.seasonName    || '-', format),
-            formatExportValue(row.activityName  || '-', format),
+            formatExportValue(row.seasonName || '-', format),
+            formatExportValue(row.activityName || '-', format),
             formatExportValue(row.cropCategoryName || row.cropCategory || '-', format),
             formatExportValue(row.nameOfCrop || row.cropName || '-', format),
-            formatExportValue(row.variety    || '-', format),
-            formatExportValue(row.areaHa     ?? 0,   format),
+            formatExportValue(row.variety || '-', format),
+            formatExportValue(row.areaHa ?? 0, format),
             generalM, generalF, generalT,
-            obcM,     obcF,     obcT,
-            scM,      scF,      scT,
-            stM,      stF,      stT,
-            grandM,   grandF,   grandT,
+            obcM, obcF, obcT,
+            scM, scF, scT,
+            stM, stF, stT,
+            grandM, grandF, grandT,
             // Part B – not stored in DB yet → placeholder
-            formatExportValue(row.productionYield          || '-', format),
+            formatExportValue(row.productionYield || '-', format),
             formatExportValue(row.consumptionGmPerDayPerson || '-', format),
-            formatExportValue(row.formOfConsumption         || '-', format),
-            formatExportValue(row.daysOfConsumptionPerYear  || '-', format),
+            formatExportValue(row.formOfConsumption || '-', format),
+            formatExportValue(row.daysOfConsumptionPerYear || '-', format),
         ];
     });
 
@@ -1273,49 +1371,49 @@ function buildNariTrainingTabularData(rawData, format, fallbackHeaders, fallback
         'No of Days',
         'No of Courses',
         'General M', 'General F', 'General T',
-        'OBC M',     'OBC F',     'OBC T',
-        'SC M',      'SC F',      'SC T',
-        'ST M',      'ST F',      'ST T',
+        'OBC M', 'OBC F', 'OBC T',
+        'SC M', 'SC F', 'SC T',
+        'ST M', 'ST F', 'ST T',
         'Grand Total M', 'Grand Total F', 'Grand Total T',
     ];
 
     const rows = normalizedData.map((row, idx) => {
-        const generalM = Number(row.generalM ?? row.genMale   ?? 0);
+        const generalM = Number(row.generalM ?? row.genMale ?? 0);
         const generalF = Number(row.generalF ?? row.genFemale ?? 0);
         const generalT = Number(row.generalT) || (generalM + generalF);
-        const obcM     = Number(row.obcM  ?? row.obcMale   ?? 0);
-        const obcF     = Number(row.obcF  ?? row.obcFemale ?? 0);
-        const obcT     = Number(row.obcT) || (obcM + obcF);
-        const scM      = Number(row.scM   ?? row.scMale    ?? 0);
-        const scF      = Number(row.scF   ?? row.scFemale  ?? 0);
-        const scT      = Number(row.scT)  || (scM + scF);
-        const stM      = Number(row.stM   ?? row.stMale    ?? 0);
-        const stF      = Number(row.stF   ?? row.stFemale  ?? 0);
-        const stT      = Number(row.stT)  || (stM + stF);
-        const grandM   = Number(row.grandM) || (generalM + obcM + scM + stM);
-        const grandF   = Number(row.grandF) || (generalF + obcF + scF + stF);
-        const grandT   = grandM + grandF;
+        const obcM = Number(row.obcM ?? row.obcMale ?? 0);
+        const obcF = Number(row.obcF ?? row.obcFemale ?? 0);
+        const obcT = Number(row.obcT) || (obcM + obcF);
+        const scM = Number(row.scM ?? row.scMale ?? 0);
+        const scF = Number(row.scF ?? row.scFemale ?? 0);
+        const scT = Number(row.scT) || (scM + scF);
+        const stM = Number(row.stM ?? row.stMale ?? 0);
+        const stF = Number(row.stF ?? row.stFemale ?? 0);
+        const stT = Number(row.stT) || (stM + stF);
+        const grandM = Number(row.grandM) || (generalM + obcM + scM + stM);
+        const grandF = Number(row.grandF) || (generalF + obcF + scF + stF);
+        const grandT = grandM + grandF;
 
         const campusLabel = row.campusTypeLabel
-            || (row.campusType === 'ON_CAMPUS'  ? 'On Campus'
-              : row.campusType === 'OFF_CAMPUS' ? 'Off Campus'
-              : row.campusType || '-');
+            || (row.campusType === 'ON_CAMPUS' ? 'On Campus'
+                : row.campusType === 'OFF_CAMPUS' ? 'Off Campus'
+                    : row.campusType || '-');
 
         return [
             idx + 1,
             formatExportValue(row.nameOfNutriSmartVillage || row.villageName || '-', format),
-            formatExportValue(row.activityName   || '-', format),
+            formatExportValue(row.activityName || '-', format),
             formatExportValue(row.areaOfTraining || '-', format),
             formatExportValue(row.titleOfTraining || '-', format),
             formatExportValue(campusLabel, format),
             formatExportValue(row.venue || '-', format),
-            Number(row.noOfDays    ?? 0),
+            Number(row.noOfDays ?? 0),
             Number(row.noOfCourses ?? 0),
             generalM, generalF, generalT,
-            obcM,     obcF,     obcT,
-            scM,      scF,      scT,
-            stM,      stF,      stT,
-            grandM,   grandF,   grandT,
+            obcM, obcF, obcT,
+            scM, scF, scT,
+            stM, stF, stT,
+            grandM, grandF, grandT,
         ];
     });
 
@@ -1530,16 +1628,16 @@ function buildNicraTrainingTabularData(rawData, format, fallbackHeaders, fallbac
         'End Date',
         'Duration (days)',
         'Training Type',
-        'Gen M','Gen F','Gen T',
-        'OBC M','OBC F','OBC T',
-        'SC M','SC F','SC T',
-        'ST M','ST F','ST T',
-        'Total M','Total F','Total T',
+        'Gen M', 'Gen F', 'Gen T',
+        'OBC M', 'OBC F', 'OBC T',
+        'SC M', 'SC F', 'SC T',
+        'ST M', 'ST F', 'ST T',
+        'Total M', 'Total F', 'Total T',
     ];
     const rows = arr.map(r => [
         formatExportValue(r.titleOfTraining || '-', format),
-        formatExportValue(r.startDate ? new Date(r.startDate).toISOString().slice(0,10) : '-', format),
-        formatExportValue(r.endDate ? new Date(r.endDate).toISOString().slice(0,10) : '-', format),
+        formatExportValue(r.startDate ? new Date(r.startDate).toISOString().slice(0, 10) : '-', format),
+        formatExportValue(r.endDate ? new Date(r.endDate).toISOString().slice(0, 10) : '-', format),
         Number(r.durationDays ?? 0),
         formatExportValue(r.campusType || '-', format),
         Number(r.genM ?? 0), Number(r.genF ?? 0), Number(r.genT ?? 0),
@@ -1599,16 +1697,16 @@ function buildOtherProgrammesTabularData(rawData, format, fallbackHeaders, fallb
         'Date',
         'Venue',
         'Purpose',
-        'General M','General F','General T',
-        'OBC M','OBC F','OBC T',
-        'SC M','SC F','SC T',
-        'ST M','ST F','ST T',
-        'Grand M','Grand F','Grand T',
+        'General M', 'General F', 'General T',
+        'OBC M', 'OBC F', 'OBC T',
+        'SC M', 'SC F', 'SC T',
+        'ST M', 'ST F', 'ST T',
+        'Grand M', 'Grand F', 'Grand T',
     ];
     const rows = arr.map(r => [
         formatExportValue(r.kvkName || '-', format),
         formatExportValue(r.programmeName || '-', format),
-        formatExportValue(r.programmeDate ? new Date(r.programmeDate).toISOString().slice(0,10) : '-', format),
+        formatExportValue(r.programmeDate ? new Date(r.programmeDate).toISOString().slice(0, 10) : '-', format),
         formatExportValue(r.venue || '-', format),
         formatExportValue(r.purpose || '-', format),
         Number(r.genM ?? 0), Number(r.genF ?? 0), Number(r.genT ?? 0),
@@ -1689,12 +1787,12 @@ function buildNicraExtensionTabularData(rawData, format, fallbackHeaders, fallba
     const arr = rawArr.map(normalize);
     if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
     const headers = [
-        'State','KVK','Name of the activity','Number of Programmes',
-        'Gen M','Gen F','Gen T',
-        'OBC M','OBC F','OBC T',
-        'SC M','SC F','SC T',
-        'ST M','ST F','ST T',
-        'Total M','Total F','Total T',
+        'State', 'KVK', 'Name of the activity', 'Number of Programmes',
+        'Gen M', 'Gen F', 'Gen T',
+        'OBC M', 'OBC F', 'OBC T',
+        'SC M', 'SC F', 'SC T',
+        'ST M', 'ST F', 'ST T',
+        'Total M', 'Total F', 'Total T',
     ];
     const rows = arr.map(r => [
         formatExportValue(r.stateName || '-', format),
@@ -1733,12 +1831,12 @@ function buildNicraFarmImplementTabularData(rawData, format, fallbackHeaders, fa
     const arr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
     if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
     const headers = [
-        'State','KVK','Name of farm implement/equipment',
-        'Gen M','Gen F','Gen T',
-        'OBC M','OBC F','OBC T',
-        'SC M','SC F','SC T',
-        'ST M','ST F','ST T',
-        'Total M','Total F','Total T',
+        'State', 'KVK', 'Name of farm implement/equipment',
+        'Gen M', 'Gen F', 'Gen T',
+        'OBC M', 'OBC F', 'OBC T',
+        'SC M', 'SC F', 'SC T',
+        'ST M', 'ST F', 'ST T',
+        'Total M', 'Total F', 'Total T',
         'Area covered (ha)',
         'Used (hours)',
         'Revenue generated (Rs.)',
@@ -1765,19 +1863,19 @@ function buildNicraVcrmcTabularData(rawData, format, fallbackHeaders, fallbackRo
     const arr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
     if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
     const headers = [
-        'State','KVK','Village name','VCRMC Constitution date',
-        'Members Male','Members Female','Members Total',
-        'Meetings organized (no.)','Date of VCRMC meeting',
-        'Name of Secretary','Name of President','Major decision taken',
+        'State', 'KVK', 'Village name', 'VCRMC Constitution date',
+        'Members Male', 'Members Female', 'Members Total',
+        'Meetings organized (no.)', 'Date of VCRMC meeting',
+        'Name of Secretary', 'Name of President', 'Major decision taken',
     ];
     const rows = arr.map(r => [
         formatExportValue(r.stateName || '-', format),
         formatExportValue(r.kvkName || '-', format),
         formatExportValue(r.villageName || '-', format),
-        formatExportValue(r.vcrmcConstitutionDate ? new Date(r.vcrmcConstitutionDate).toISOString().slice(0,10) : '-', format),
+        formatExportValue(r.vcrmcConstitutionDate ? new Date(r.vcrmcConstitutionDate).toISOString().slice(0, 10) : '-', format),
         Number(r.membersMale ?? 0), Number(r.membersFemale ?? 0), Number(r.membersTotal ?? 0),
         Number(r.meetingsOrganized ?? 0),
-        formatExportValue(r.dateOfMeeting ? new Date(r.dateOfMeeting).toISOString().slice(0,10) : '-', format),
+        formatExportValue(r.dateOfMeeting ? new Date(r.dateOfMeeting).toISOString().slice(0, 10) : '-', format),
         formatExportValue(r.nameOfSecretary || '-', format),
         formatExportValue(r.nameOfPresident || '-', format),
         formatExportValue(r.majorDecisionTaken || '-', format),
@@ -1789,15 +1887,15 @@ function buildNicraSoilHealthTabularData(rawData, format, fallbackHeaders, fallb
     const arr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
     if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
     const headers = [
-        'State','KVK',
+        'State', 'KVK',
         'No. of soil samples collected',
         'No. of samples analysed',
         'SHC issued',
-        'Gen M','Gen F','Gen T',
-        'OBC M','OBC F','OBC T',
-        'SC M','SC F','SC T',
-        'ST M','ST F','ST T',
-        'Total M','Total F','Total T',
+        'Gen M', 'Gen F', 'Gen T',
+        'OBC M', 'OBC F', 'OBC T',
+        'SC M', 'SC F', 'SC T',
+        'ST M', 'ST F', 'ST T',
+        'Total M', 'Total F', 'Total T',
     ];
     const rows = arr.map(r => [
         formatExportValue(r.stateName || '-', format),
@@ -1818,8 +1916,8 @@ function buildNaturalFarmingPhysicalTabularData(rawData, format, fallbackHeaders
     const NF_OTHER_KEY = '__other_activities__';
     const resolved = resolveNFPhysicalGrouped(rawData);
     const activityGroups = resolved.activityGroups || {};
-    const activityOrder  = resolved.activityOrder || [];
-    const activityNames  = resolved.activityNames || [];
+    const activityOrder = resolved.activityOrder || [];
+    const activityNames = resolved.activityNames || [];
     const stateAggregates = Array.isArray(resolved.stateAggregates) ? resolved.stateAggregates : [];
     const rows = [];
 
@@ -2273,10 +2371,10 @@ function normalizeNFPhysicalRow(r) {
     const genF = Number(r.genF ?? r.genFemale ?? r.generalF ?? 0) || 0;
     const obcM = Number(r.obcM ?? r.obcMale ?? 0) || 0;
     const obcF = Number(r.obcF ?? r.obcFemale ?? 0) || 0;
-    const scM  = Number(r.scM ?? r.scMale ?? 0) || 0;
-    const scF  = Number(r.scF ?? r.scFemale ?? 0) || 0;
-    const stM  = Number(r.stM ?? r.stMale ?? 0) || 0;
-    const stF  = Number(r.stF ?? r.stFemale ?? 0) || 0;
+    const scM = Number(r.scM ?? r.scMale ?? 0) || 0;
+    const scF = Number(r.scF ?? r.scFemale ?? 0) || 0;
+    const stM = Number(r.stM ?? r.stMale ?? 0) || 0;
+    const stF = Number(r.stF ?? r.stFemale ?? 0) || 0;
     const totM = genM + obcM + scM + stM;
     const totF = genF + obcF + scF + stF;
     return {
@@ -2292,8 +2390,8 @@ function normalizeNFPhysicalRow(r) {
         kvkName: r.kvkName || (r.kvk && r.kvk.kvkName) || '',
         genM, genF, genT: genM + genF,
         obcM, obcF, obcT: obcM + obcF,
-        scM,  scF,  scT:  scM  + scF,
-        stM,  stF,  stT:  stM  + stF,
+        scM, scF, scT: scM + scF,
+        stM, stF, stT: stM + stF,
         totM, totF, totT: totM + totF,
     };
 }
@@ -2335,25 +2433,25 @@ function buildCsisaTabularData(rawData, format, fallbackHeaders, fallbackRows) {
 
     const rows = normalizedData.map((row, idx) => [
         idx + 1,
-        formatExportValue(row.seasonName       || '-', format),
-        Number(row.villagesCovered  ?? 0),
-        Number(row.blocksCovered    ?? 0),
+        formatExportValue(row.seasonName || '-', format),
+        Number(row.villagesCovered ?? 0),
+        Number(row.blocksCovered ?? 0),
         Number(row.districtsCovered ?? 0),
-        Number(row.respondents      ?? 0),
-        formatExportValue(row.trialName        || '-', format),
-        Number(row.areaCoveredHa   ?? 0),
-        formatExportValue(row.cropName         || '-', format),
+        Number(row.respondents ?? 0),
+        formatExportValue(row.trialName || '-', format),
+        Number(row.areaCoveredHa ?? 0),
+        formatExportValue(row.cropName || '-', format),
         formatExportValue(row.technologyOption || '-', format),
-        formatExportValue(row.varietyName      || '-', format),
-        Number(row.durationDays    ?? 0),
-        formatExportValue(row.sowingDate       || '-', format),
-        formatExportValue(row.harvestingDate   || '-', format),
-        Number(row.daysOfMaturity  ?? 0),
+        formatExportValue(row.varietyName || '-', format),
+        Number(row.durationDays ?? 0),
+        formatExportValue(row.sowingDate || '-', format),
+        formatExportValue(row.harvestingDate || '-', format),
+        Number(row.daysOfMaturity ?? 0),
         Number(row.grainYieldQPerHa ?? 0),
         Number(row.costOfCultivation ?? 0),
-        Number(row.grossReturn      ?? 0),
-        Number(row.netReturn        ?? 0),
-        Number(row.bcr              ?? 0),
+        Number(row.grossReturn ?? 0),
+        Number(row.netReturn ?? 0),
+        Number(row.bcr ?? 0),
     ]);
 
     return { headers, rows };
