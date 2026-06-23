@@ -95,6 +95,12 @@ function resolveDayName(r) {
     return String(raw || '').trim() || 'Not specified';
 }
 
+function resolveKvkName(r) {
+    if (r.kvk && r.kvk.kvkName) return String(r.kvk.kvkName).trim();
+    if (r.kvkName) return String(r.kvkName).trim();
+    return 'Unknown KVK';
+}
+
 function normalizePrismaRow(r) {
     const stateName = (r.kvk && r.kvk.state && r.kvk.state.stateName)
         ? String(r.kvk.state.stateName).trim()
@@ -104,6 +110,7 @@ function normalizePrismaRow(r) {
     return {
         celebrationId: r.celebrationId ?? r.id,
         kvkId: r.kvkId,
+        kvkName: resolveKvkName(r),
         stateName,
         dayName,
         eventDate: r.eventDate,
@@ -122,6 +129,7 @@ function normalizeFlexibleRow(r) {
     return {
         celebrationId: r.celebrationId ?? r.id,
         kvkId: r.kvkId,
+        kvkName: resolveKvkName(r),
         stateName: r.stateName ? String(r.stateName).trim() : 'Unknown',
         dayName,
         eventDate: r.eventDate,
@@ -387,6 +395,46 @@ function resolveCelebrationDaysPagePayload(data) {
     return buildPagePayloadFromRecords(records);
 }
 
+// KVK-wise grouped payload (no year sectioning). Each KVK gets its own block of
+// day-aggregated rows + a sub-total; admins (multi-KVK) see every KVK separately
+// while a single KVK user sees one block. Excel/Word render this identically.
+function buildKvkGroupedPagePayload(records) {
+    const norm = Array.isArray(records) ? records.map((r) => normalizeFlexibleRow(r)) : [];
+
+    const byKvk = new Map();
+    for (const r of norm) {
+        const k = r.kvkName || 'Unknown KVK';
+        if (!byKvk.has(k)) byKvk.set(k, []);
+        byKvk.get(k).push(r);
+    }
+
+    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => {
+        const list = byKvk.get(kvkName);
+        const byDay = new Map();
+        for (const r of list) {
+            const d = r.dayName || 'Not specified';
+            if (!byDay.has(d)) byDay.set(d, emptyAgg());
+            aggFromRow(byDay.get(d), r);
+        }
+        const rows = [...byDay.keys()].sort(sortStr)
+            .map((label) => pageRowFromAgg(label, byDay.get(label)));
+        const subtotal = sumPageRowsGrand(rows);
+        subtotal.label = `Sub-total — ${kvkName}`;
+        return { kvkName, rows, subtotal };
+    });
+
+    const allRows = groups.flatMap((g) => g.rows);
+    const grandTotal = sumPageRowsGrand(allRows);
+    grandTotal.label = 'Grand Total (all KVKs)';
+
+    return { groups, grandTotal, isMultiKvk: groups.length > 1 };
+}
+
+function resolveCelebrationDaysGroupedPayload(data) {
+    const records = Array.isArray(data) ? data : (data ? [data] : []);
+    return buildKvkGroupedPagePayload(records);
+}
+
 function resolveCelebrationDaysMatrixPayload(data) {
     if (!data) {
         return { yearLabel: '', stateColumns: [], matrixRows: [] };
@@ -405,8 +453,10 @@ module.exports = {
     fetchCelebrationRecords,
     fetchMasterDayNames,
     buildPagePayloadFromRecords,
+    buildKvkGroupedPagePayload,
     buildStateMatrixFromRecords,
     resolveCelebrationDaysPagePayload,
+    resolveCelebrationDaysGroupedPayload,
     resolveCelebrationDaysMatrixPayload,
     normalizePrismaRow,
     normalizeFlexibleRow,

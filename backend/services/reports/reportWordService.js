@@ -16,6 +16,8 @@ const {
     Bookmark,
     PageBreak,
     ImageRun,
+    TableLayoutType,
+    PageOrientation,
 } = require('docx');
 const reportTemplateService = require('./reportTemplateService.js');
 const { parseSectionHtml } = require('../../utils/htmlReportTableParser.js');
@@ -32,15 +34,28 @@ const { fetchImageBuffer } = require('../../utils/fetchImageBuffer.js');
  */
 
 const HEADER_SHADE = 'E8E8E8';
+const TOTAL_SHADE = 'D9EAD3'; // light green — Total / Sub Total / Grand Total rows
+
+function isTotalRow(row) {
+    const first = String((row[0] && row[0].text) || '').trim().toLowerCase();
+    return /^(sub\s*total|grand\s*total|total)\b/.test(first);
+}
 const CELL_BORDER = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
 const CELL_BORDERS = { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER };
+// Table-level borders (incl. inside grid lines) — cell-only borders don't render
+// reliably in all viewers, so set both.
+const TABLE_BORDERS = {
+    top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER,
+    insideHorizontal: CELL_BORDER, insideVertical: CELL_BORDER,
+};
 
 function bookmarkIdFor(sectionId) {
     return `sec_${String(sectionId).replace(/[^a-zA-Z0-9]/g, '_')}`;
 }
 
-function textCell(text, { colSpan = 1, vMerge = null, header = false } = {}) {
-    const run = new TextRun({ text: String(text ?? ''), bold: header, size: 16 });
+function textCell(text, { colSpan = 1, vMerge = null, header = false, total = false } = {}) {
+    const run = new TextRun({ text: String(text ?? ''), bold: header || total, size: 12 });
+    const shadeFill = header ? HEADER_SHADE : (total ? TOTAL_SHADE : null);
     return new TableCell({
         children: [new Paragraph({
             children: [run],
@@ -48,7 +63,7 @@ function textCell(text, { colSpan = 1, vMerge = null, header = false } = {}) {
         })],
         columnSpan: colSpan,
         ...(vMerge ? { verticalMerge: vMerge } : {}),
-        ...(header ? { shading: { type: ShadingType.CLEAR, fill: HEADER_SHADE } } : {}),
+        ...(shadeFill ? { shading: { type: ShadingType.CLEAR, fill: shadeFill } } : {}),
         borders: CELL_BORDERS,
     });
 }
@@ -58,7 +73,7 @@ function textCell(text, { colSpan = 1, vMerge = null, header = false } = {}) {
  * TableRows using columnSpan (horizontal) + verticalMerge RESTART/CONTINUE
  * (vertical) so merged cells render exactly like the PDF.
  */
-function buildDocxTable(table) {
+function buildDocxTable(table, totalWidthDxa = 9360) {
     const grid = []; // grid[r][c] = { kind: 'anchor'|'vcont'|'hcovered', cell }
     table.rows.forEach((row, r) => {
         grid[r] = grid[r] || [];
@@ -78,8 +93,10 @@ function buildDocxTable(table) {
     });
 
     const totalCols = grid.reduce((m, row) => Math.max(m, row.length), 0);
+    const totalRowFlags = table.rows.map(isTotalRow);
 
-    const tableRows = grid.map((row) => {
+    const tableRows = grid.map((row, rIdx) => {
+        const rowIsTotal = !!totalRowFlags[rIdx];
         const cells = [];
         let c = 0;
         while (c < totalCols) {
@@ -90,6 +107,7 @@ function buildDocxTable(table) {
                     colSpan: g.cell.colspan,
                     vMerge: g.cell.rowspan > 1 ? VerticalMerge.RESTART : null,
                     header: g.cell.header,
+                    total: rowIsTotal,
                 }));
                 c += g.cell.colspan;
             } else if (g.kind === 'vcont') {
@@ -97,6 +115,7 @@ function buildDocxTable(table) {
                     colSpan: g.cell.colspan,
                     vMerge: VerticalMerge.CONTINUE,
                     header: g.cell.header,
+                    total: rowIsTotal,
                 }));
                 c += g.cell.colspan;
             } else {
@@ -106,14 +125,23 @@ function buildDocxTable(table) {
         return new TableRow({ children: cells });
     });
 
+    // Fixed column widths so wide tables (many columns) don't collapse to
+    // char-per-line wrapping. First column wider (labels), rest share evenly.
+    const first = Math.min(2400, Math.max(1200, Math.round(totalWidthDxa * 0.12)));
+    const rest = Math.max(300, Math.floor((totalWidthDxa - first) / Math.max(1, totalCols - 1)));
+    const columnWidths = Array.from({ length: totalCols }, (_, i) => (i === 0 ? first : rest));
+
     return new Table({
         rows: tableRows,
         width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: TABLE_BORDERS,
+        columnWidths,
+        layout: TableLayoutType.FIXED,
     });
 }
 
 /** Build the document children for one section chunk. */
-async function buildSectionChildren(chunk, isFirst) {
+async function buildSectionChildren(chunk, isFirst, totalWidthDxa = 9360) {
     const { headings, tables, images = [] } = parseSectionHtml(chunk.html);
     const out = [];
     const title = `${chunk.featureNumber || chunk.sectionNumber} ${chunk.featureTitle || chunk.sectionTitle}`.trim();
@@ -134,7 +162,7 @@ async function buildSectionChildren(chunk, isFirst) {
         return out;
     }
     for (const table of tables) {
-        out.push(buildDocxTable(table));
+        out.push(buildDocxTable(table, totalWidthDxa));
         out.push(new Paragraph({ children: [] })); // spacer
     }
     // Embed images (e.g. OFT result photographs) with their captions (#241).
@@ -199,7 +227,50 @@ function buildFrontMatter(kvkInfo, numbering, renderedSectionIds) {
     return children;
 }
 
+/** Split custom-template HTML into its top-level section-page blocks. */
+function splitSectionPagesWord(html) {
+    const parts = [];
+    const re = /<div[^>]*class="[^"]*section-page[^"]*"[^>]*>[\s\S]*?(?=<div[^>]*class="[^"]*section-page[^"]*"|$)/gi;
+    let m;
+    while ((m = re.exec(html))) parts.push(m[0]);
+    return parts.length ? parts : [html];
+}
+
 class ReportWordService {
+    /**
+     * Generate a standalone (module-wise) Word document from the SAME HTML the
+     * PDF uses, so the Word layout matches the PDF exactly.
+     * @returns {Promise<Buffer>}
+     */
+    async generateStandaloneWordFromHtml(title, html, { generatedBy = 'System' } = {}) {
+        // Landscape — these page reports are wide (many columns). Usable width in
+        // A4 landscape ≈ 14400 dxa after ~1in margins; size columns to fill it so
+        // cells don't collapse to char-per-line wrapping.
+        const LANDSCAPE_WIDTH_DXA = 14400;
+        const parts = splitSectionPagesWord(html);
+        const body = [];
+        for (let i = 0; i < parts.length; i += 1) {
+            const { headings } = parseSectionHtml(parts[i]);
+            const sectionTitle = headings[0] || title || '';
+            body.push(...await buildSectionChildren(
+                { html: parts[i], sectionNumber: '', sectionTitle, sectionId: `s${i}` },
+                i === 0,
+                LANDSCAPE_WIDTH_DXA,
+            ));
+        }
+
+        const doc = new Document({
+            creator: generatedBy,
+            title: title || 'Report',
+            sections: [{
+                properties: { page: { size: { orientation: PageOrientation.LANDSCAPE } } },
+                children: body,
+            }],
+        });
+
+        return Packer.toBuffer(doc);
+    }
+
     /**
      * Generate the structured all-reports Word document (matches the PDF).
      * @returns {Promise<Buffer>}

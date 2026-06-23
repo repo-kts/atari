@@ -180,6 +180,64 @@ function resolveWorldSoilDayPagePayload(data, options = {}) {
     return buildPagePayloadFromRecords(records, isAgg);
 }
 
+// KVK-wise detail (no year sectioning, no state aggregation). Each KVK gets its
+// own detail block + sub-total; admins (multi-KVK) see every KVK separately,
+// a single KVK user sees one block. Same shape used by PDF / Excel / Word.
+function sumDetailRows(rows, label) {
+    const z = {
+        label,
+        activitiesConducted: 0,
+        soilHealthCards: 0,
+        farmersBenefitted: 0,
+        vipCount: 0,
+        participants: 0,
+        vipNames: '',
+    };
+    for (const r of rows) {
+        z.activitiesConducted += safeInt(r.activitiesConducted);
+        z.soilHealthCards += safeInt(r.soilHealthCards);
+        z.farmersBenefitted += safeInt(r.farmersBenefitted);
+        z.vipCount += safeInt(r.vipCount);
+        z.participants += safeInt(r.participants);
+    }
+    return z;
+}
+
+function buildKvkGroupedDetailPayload(records) {
+    const norm = Array.isArray(records) ? records.map((r) => ensureNormalizedRecord(r)) : [];
+
+    const byKvk = new Map();
+    for (const r of norm) {
+        const k = (r.kvkName && r.kvkName !== '—') ? r.kvkName : 'Unknown KVK';
+        if (!byKvk.has(k)) byKvk.set(k, []);
+        byKvk.get(k).push(r);
+    }
+
+    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => {
+        const list = [...byKvk.get(kvkName)].sort(
+            (a, b) => safeInt(b.worldSoilCelebrationId) - safeInt(a.worldSoilCelebrationId),
+        );
+        const rows = list.map((r, i) => ({
+            sl: i + 1,
+            activitiesConducted: r.activitiesConducted,
+            soilHealthCards: r.soilHealthCardDistributed,
+            farmersBenefitted: r.farmersBenefitted,
+            vipCount: r.vipCount,
+            vipNames: r.vipNames || '—',
+            participants: r.participants,
+        }));
+        return { kvkName, rows, subtotal: sumDetailRows(rows, `Sub-total — ${kvkName}`) };
+    });
+
+    const grandTotal = sumDetailRows(groups.flatMap((g) => g.rows), 'Grand Total (all KVKs)');
+    return { groups, grandTotal, isMultiKvk: groups.length > 1 };
+}
+
+function resolveWorldSoilDayGroupedPayload(data) {
+    const records = extractRecords(data);
+    return buildKvkGroupedDetailPayload(records);
+}
+
 async function fetchWorldSoilDayRecordsForReport(kvkId, filters = {}) {
     const user = kvkId != null ? { kvkId: String(kvkId) } : null;
     const list = await soilWaterRepository.findAllWorldSoilDay(user);
@@ -224,6 +282,8 @@ module.exports = {
     fetchWorldSoilDayRecordsForReport,
     buildPagePayloadFromRecords,
     buildStateSummaryFromRecords,
+    buildKvkGroupedDetailPayload,
     resolveWorldSoilDayPagePayload,
+    resolveWorldSoilDayGroupedPayload,
     normalizeRow,
 };

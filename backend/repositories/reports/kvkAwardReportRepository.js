@@ -50,6 +50,65 @@ async function getKvkAwardReportData(kvkId, filters = {}) {
     }));
 }
 
+function safeInt(v) {
+    if (v === null || v === undefined || v === '') return 0;
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function sortStr(a, b) {
+    return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
+}
+
+function detailRow(r) {
+    const awardRaw = r.awardName ?? r.award;
+    return {
+        award: (awardRaw != null && String(awardRaw).trim()) || '—',
+        amount: safeInt(r.amount),
+        achievement: (r.achievement != null && String(r.achievement).trim()) || '—',
+        conferringAuthority: (r.conferringAuthority != null && String(r.conferringAuthority).trim()) || '—',
+    };
+}
+
+/**
+ * Detailed, one-row-per-award payload grouped by KVK — mirrors Other Extension
+ * Activities. A KVK user sees a single group; admins/superadmin see one group
+ * per KVK. Sub-total = award count + amount; grand total only when multi-KVK.
+ */
+function buildKvkAwardDetailedPayload(data) {
+    const records = Array.isArray(data) ? data : data ? [data] : [];
+
+    const byKvk = new Map();
+    for (const r of records) {
+        const kvkName = (r.kvkName && String(r.kvkName).trim()) || 'Unknown KVK';
+        if (!byKvk.has(kvkName)) byKvk.set(kvkName, []);
+        byKvk.get(kvkName).push(r);
+    }
+
+    let grandCount = 0;
+    let grandAmount = 0;
+    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => {
+        const list = byKvk.get(kvkName);
+        const rows = list.map((r, i) => ({ sno: i + 1, ...detailRow(r) }));
+        const amount = rows.reduce((s, x) => s + x.amount, 0);
+        grandCount += rows.length;
+        grandAmount += amount;
+        return { kvkName, rows, subtotal: { count: rows.length, amount } };
+    });
+
+    return {
+        groups,
+        grandTotal: { count: grandCount, amount: grandAmount },
+        isMultiKvk: groups.length > 1,
+    };
+}
+
+function resolveKvkAwardDetailedPayload(data) {
+    return buildKvkAwardDetailedPayload(data);
+}
+
 module.exports = {
     getKvkAwardReportData,
+    buildKvkAwardDetailedPayload,
+    resolveKvkAwardDetailedPayload,
 };

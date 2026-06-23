@@ -5,4 +5,5 @@ module.exports = {
     fetchAnalysisRecordsForReport: repo.fetchAnalysisRecordsForReport,
     resolveSoilWaterSamplesBPayload: repo.resolveSoilWaterSamplesBPayload,
     resolveSoilWaterAnalysisStatePayload: repo.resolveSoilWaterAnalysisStatePayload,
+    resolveSoilWaterAnalysisDetailedPayload: repo.resolveSoilWaterAnalysisDetailedPayload,
 };

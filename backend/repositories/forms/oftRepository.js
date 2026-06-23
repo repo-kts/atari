@@ -12,7 +12,7 @@ const crypto = require('crypto');
 const RESULT_TX_OPTIONS = { maxWait: 15000, timeout: 30000 };
 
 const OFT_INCLUDE = {
-    kvk: { select: { kvkName: true } },
+    kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
     staff: { select: { staffName: true } },
     season: { select: { seasonName: true } },
     oftSubject: { select: { subjectName: true } },
@@ -493,6 +493,10 @@ function _mapOftResponse(r) {
         kvkOftId: r.kvkOftId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
+        stateName: r.kvk?.state?.stateName,
+        // Keep the nested kvk (with state) so report templates that read
+        // r.kvk.state.stateName resolve the same as the data-service path.
+        kvk: r.kvk ? { kvkName: r.kvk.kvkName, state: r.kvk.state } : undefined,
         expectedCompletionDate: r.expectedCompletionDate ? r.expectedCompletionDate.toISOString().split('T')[0] : '',
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
@@ -523,6 +527,7 @@ function _mapOftResponse(r) {
         numberOfTrialReplication: r.numberOfTrialReplication,
         replications: r.numberOfTrialReplication,
         oftStartDate: r.oftStartDate,
+        oftEndDate: r.oftEndDate,
         startYear: r.oftStartDate ? new Date(r.oftStartDate).getFullYear() : null,
         duration: r.oftStartDate ? r.oftStartDate.toISOString().split('T')[0] : '',
         criticalInput: r.criticalInput,

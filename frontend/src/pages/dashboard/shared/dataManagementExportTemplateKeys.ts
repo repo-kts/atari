@@ -75,14 +75,14 @@ export const ENTITY_TYPE_EXPORT_TEMPLATE_MAP: Partial<
     [ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS]: 'celebration-days-page-report',
     [ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY]:
         'production-supply-page-report',
-    [ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS]: 'soil-water-samples-b-page-report',
+    [ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS]: 'soil-water-analysis-detail-report',
     [ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT]:
         'soil-water-equipment-page-report',
     [ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY]: 'world-soil-day-page-report',
     [ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS]: 'publication-details-detailed',
-    [ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK]: 'kvk-award-summary-report',
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK]: 'kvk-award-detailed-report',
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST]: 'scientist-award-detailed',
-    [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: 'farmer-award-summary-report',
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: 'farmer-award-detailed-report',
     [ENTITY_TYPES.ACHIEVEMENT_HRD]: 'hrd-programmes-report',
     [ENTITY_TYPES.PERFORMANCE_OPERATIONAL_AREA]: 'operational-area-details-report',
     [ENTITY_TYPES.PERFORMANCE_DISTRICT_LEVEL]: 'district-level-data-report',

@@ -35,7 +35,8 @@ const { reportConfig } = require('../config/reportConfig.js');
  * @param {string} html 
  * @returns {Promise<Buffer>}
  */
-async function generatePDF(html) {
+async function generatePDF(html, options = {}) {
+    const isLandscape = Boolean(options.landscape);
     let browser;
     
     try {
@@ -122,6 +123,7 @@ async function generatePDF(html) {
 
         const pdfBuffer = await page.pdf({
             format: 'A4',
+            landscape: isLandscape,
             printBackground: true,
             preferCSSPageSize: false,
             displayHeaderFooter: true,

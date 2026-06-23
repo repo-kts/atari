@@ -15,6 +15,14 @@ const { fetchImageBuffer } = require('../../utils/fetchImageBuffer.js');
  */
 
 const HEADER_FILL = 'FFE8E8E8';
+const TOTAL_FILL = 'FFD9EAD3';      // light green — Total / Sub Total / Grand Total rows
+const SEPARATOR_FILL = 'FF1F6E43';  // dark green band between tables (e.g. OFT cards)
+
+// Total / Sub Total / Grand Total rows get emphasised so they stand out.
+function isTotalRow(row) {
+    const first = String((row[0] && row[0].text) || '').trim().toLowerCase();
+    return /^(sub\s*total|grand\s*total|total)\b/.test(first);
+}
 const CHAPTER_TAB_COLORS = [
     'FF1F6E43', 'FF2E7D32', 'FF00695C', 'FF5D4037',
     'FF455A64', 'FF6A1B9A', 'FFAD1457', 'FFEF6C00',
@@ -73,6 +81,7 @@ function writeTable(ws, table, startRow, widthTracker) {
     let rowIdx = startRow;
 
     for (const row of table.rows) {
+        const totalRow = isTotalRow(row);
         let col = 1;
         for (const cell of row) {
             while (occupied.has(`${rowIdx},${col}`)) col += 1;
@@ -84,6 +93,9 @@ function writeTable(ws, table, startRow, widthTracker) {
             if (cell.header) {
                 top.font = { bold: true };
                 top.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER_FILL } };
+            } else if (totalRow) {
+                top.font = { bold: true };
+                top.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TOTAL_FILL } };
             }
 
             const lastRow = rowIdx + cell.rowspan - 1;
@@ -138,10 +150,23 @@ async function writeSection(ws, chunk) {
         return;
     }
 
-    for (const table of tables) {
+    tables.forEach((table, tIdx) => {
+        // Coloured band between tables so stacked blocks (e.g. OFT cards) are
+        // clearly separated and not mistaken for one continuous table.
+        if (tIdx > 0) {
+            const span = table.rows.reduce(
+                (m, r) => Math.max(m, r.reduce((a, c) => a + c.colspan, 0)),
+                1,
+            );
+            for (let c = 1; c <= span; c += 1) {
+                ws.getCell(rowIdx, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SEPARATOR_FILL } };
+            }
+            ws.getRow(rowIdx).height = 6;
+            rowIdx += 1;
+        }
         rowIdx = writeTable(ws, table, rowIdx, widthTracker);
         rowIdx += 1; // blank row between tables
-    }
+    });
 
     for (const [colStr, width] of Object.entries(widthTracker)) {
         ws.getColumn(Number(colStr)).width = width;
@@ -227,7 +252,47 @@ function writeIndexSheet(ws, kvkInfo, numbering, sheetBySectionId) {
     }
 }
 
+/** Split a custom-template HTML string into its top-level section-page blocks so
+ *  each becomes its own (colour-coded) worksheet — mirrors the PDF's pages. */
+function splitSectionPages(html) {
+    const parts = [];
+    const re = /<div[^>]*class="[^"]*section-page[^"]*"[^>]*>[\s\S]*?(?=<div[^>]*class="[^"]*section-page[^"]*"|$)/gi;
+    let m;
+    while ((m = re.exec(html))) parts.push(m[0]);
+    return parts.length ? parts : [html];
+}
+
 class ReportExcelService {
+    /**
+     * Generate a standalone (module-wise) Excel workbook from the SAME HTML the
+     * PDF uses, so the Excel layout matches the PDF exactly. One colour-coded tab
+     * per section-page block.
+     * @returns {Promise<Buffer>}
+     */
+    async generateStandaloneExcelFromHtml(title, html, { generatedBy = 'System' } = {}) {
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = generatedBy;
+        workbook.created = new Date(0);
+
+        const parts = splitSectionPages(html);
+        const used = new Set();
+        let i = 0;
+        for (const partHtml of parts) {
+            const { headings } = parseSectionHtml(partHtml);
+            const tabBase = headings[0] || title || `Sheet ${i + 1}`;
+            const tabName = sanitizeTabName(tabBase, used);
+            const ws = workbook.addWorksheet(tabName, {
+                properties: { tabColor: { argb: CHAPTER_TAB_COLORS[i % CHAPTER_TAB_COLORS.length] } },
+                pageSetup: { fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
+            });
+            await writeSection(ws, { html: partHtml, sectionNumber: '', sectionTitle: tabBase });
+            i += 1;
+        }
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        return Buffer.from(buffer);
+    }
+
     /**
      * Generate the structured all-reports Excel workbook.
      * @returns {Promise<Buffer>}

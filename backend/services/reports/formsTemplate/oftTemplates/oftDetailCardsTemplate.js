@@ -122,8 +122,11 @@ function _renderCard(record, cardNumber, base = '2.2') {
     const esc = (v) => this._escapeHtml(v != null && v !== '' ? String(v) : '-');
     const resultReport = record.resultReport || {};
 
-    const disciplineName = (record.discipline && record.discipline.disciplineName) || '-';
-    const thematicAreaName = (record.oftThematicArea && record.oftThematicArea.thematicAreaName) || '-';
+    // Records arrive either raw (Prisma) or flattened (_mapOftResponse) — read both.
+    const disciplineName = (record.discipline && record.discipline.disciplineName)
+        || record.disciplineName || '-';
+    const thematicAreaName = (record.oftThematicArea && record.oftThematicArea.thematicAreaName)
+        || record.thematicAreaName || '-';
     const title = record.title || '-';
 
     // Card header — bold section number, bullet sub-lines
@@ -139,8 +142,12 @@ function _renderCard(record, cardNumber, base = '2.2') {
             &bull; <strong>Problem definition/Name of OFT:</strong> ${esc(title)}
         </p>`;
 
-    // Technology field — HTML with bold labels
-    const techHtml = _formatTechnologiesHtml(record.technologies, this._escapeHtml.bind(this));
+    // Technology field — HTML with bold labels. Raw shape uses `technologies`,
+    // the flattened export shape uses `technologyOptions`.
+    const techHtml = _formatTechnologiesHtml(
+        record.technologies || record.technologyOptions,
+        this._escapeHtml.bind(this)
+    );
 
     // 16-field table: 3 columns — narrow #, bold label, value. NO header row.
     const fields = [
