@@ -80,7 +80,7 @@ function thematicTableHead() {
     </thead>`;
 }
 
-function renderThematicTable(rows, grandTotal, yearLabel, caption) {
+function renderThematicTable(rows, grandTotal, caption) {
     const body = (rows || []).map((r) => `
       <tr>
         <td class="l">${esc(r.thematicAreaName)}</td>
@@ -93,45 +93,44 @@ function renderThematicTable(rows, grandTotal, yearLabel, caption) {
         ${participantCells(gt)}
       </tr>`;
     return `
-  <div class="tp-sub">${esc(caption)}${yearLabel ? ` for ${esc(yearLabel)}` : ''}</div>
+  ${caption ? `<div class="tp-sub">${esc(caption)}</div>` : ''}
   <table class="tp-tbl">
     ${thematicTableHead()}
     <tbody>${body}${grandRow}</tbody>
   </table>`;
 }
 
-function renderCampusBlock(block, yearLabel) {
+function renderCampusBlock(block) {
     if (!block || !block.rowCount) {
         return `<p class="tp-sub">No trainings recorded.</p>`;
     }
-    return renderThematicTable(block.thematicRows, block.grandTotal, yearLabel, block.label);
+    // Caption omitted — the campus label is already printed by the caller.
+    return renderThematicTable(block.thematicRows, block.grandTotal, '');
 }
 
 function renderSectionA(payload) {
-    const y = payload.yearLabel || '';
     let html = `<div class="tp-sec">A. Consolidated summary (On and Off Campus combined)</div>`;
     for (const block of payload.sectionA || []) {
         html += `
   <div class="tp-type">${esc(block.index)}. ${esc(block.trainingTypeName)}</div>`;
-        html += renderThematicTable(block.thematicRows, block.grandTotal, y,
+        html += renderThematicTable(block.thematicRows, block.grandTotal,
             `Thematic area wise summary (all venues)`);
     }
     return html;
 }
 
 function renderSectionB(payload) {
-    const y = payload.yearLabel || '';
     let html = `<div class="tp-sec">B. Training-wise details by campus (On Campus, then Off Campus)</div>`;
     for (const block of payload.sectionB || []) {
         html += `
   <div class="tp-type">${esc(block.index)}. ${esc(block.trainingTypeName)}</div>`;
         html += `<div class="tp-sub">${esc(block.onCampus.label)}</div>`;
-        html += renderCampusBlock(block.onCampus, y);
+        html += renderCampusBlock(block.onCampus);
         html += `<div class="tp-sub">${esc(block.offCampus.label)}</div>`;
-        html += renderCampusBlock(block.offCampus, y);
+        html += renderCampusBlock(block.offCampus);
         if (block.unspecifiedCampus) {
             html += `<div class="tp-sub">${esc(block.unspecifiedCampus.label)}</div>`;
-            html += renderCampusBlock(block.unspecifiedCampus, y);
+            html += renderCampusBlock(block.unspecifiedCampus);
         }
     }
     return html;

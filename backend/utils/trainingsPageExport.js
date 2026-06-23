@@ -10,7 +10,40 @@ const {
     AlignmentType,
     HeadingLevel,
     PageOrientation,
+    TextRun,
+    BorderStyle,
+    ShadingType,
 } = require('docx');
+
+// ── Shared styling (borders + background colours) ───────────────────
+const XL_THIN = { style: 'thin', color: { argb: 'FF000000' } };
+const XL_BORDER = { top: XL_THIN, left: XL_THIN, bottom: XL_THIN, right: XL_THIN };
+const XL_HEADER_FILL = 'FFE8E8E8';   // grey column headers
+const XL_TOTAL_FILL = 'FFD9EAD3';    // light green sub totals
+const XL_TYPE_FILL = 'FFFCE5CD';     // light orange training-type band
+const XL_CAMPUS_FILL = 'FFFFF2CC';   // light yellow campus band
+
+function styleRow(row, colCount, { fill, bold } = {}) {
+    for (let c = 1; c <= colCount; c += 1) {
+        const cell = row.getCell(c);
+        cell.border = XL_BORDER;
+        if (bold) cell.font = { ...(cell.font || {}), bold: true };
+        if (fill) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } };
+        cell.alignment = { vertical: 'middle', wrapText: true, ...(cell.alignment || {}) };
+    }
+}
+
+const WD_BORDER = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
+const WD_BORDERS = { top: WD_BORDER, bottom: WD_BORDER, left: WD_BORDER, right: WD_BORDER };
+// Table-level borders incl. inside grid lines — cell-only borders don't reliably
+// render in all Word/LibreOffice viewers, so set both.
+const WD_TABLE_BORDERS = {
+    top: WD_BORDER, bottom: WD_BORDER, left: WD_BORDER, right: WD_BORDER,
+    insideHorizontal: WD_BORDER, insideVertical: WD_BORDER,
+};
+const WD_HEADER_SHADE = 'E8E8E8';
+const WD_TOTAL_SHADE = 'D9EAD3';
+const WD_FONT = 14; // half-points → 7pt, small for the wide tables
 
 const MAIN_TITLE = '3.4 ACHIEVEMENTS ON TRAINING / CAPACITY BUILDING PROGRAMMES';
 const SUBTITLE = '(Mandated KVK trainings / sponsored training / FLD training programmes)';
@@ -111,9 +144,11 @@ const DETAIL_HEADERS = [
     'Grand T',
 ];
 
-function cellText(t) {
+function cellText(t, { bold = false, fill = null } = {}) {
     return new TableCell({
-        children: [new Paragraph({ text: String(t ?? '') })],
+        children: [new Paragraph({ children: [new TextRun({ text: String(t ?? ''), bold, size: WD_FONT })] })],
+        borders: WD_BORDERS,
+        ...(fill ? { shading: { type: ShadingType.CLEAR, fill } } : {}),
     });
 }
 
@@ -136,49 +171,37 @@ async function generateTrainingsPageExcelBuffer(reportTitle, payload) {
     t2.alignment = { horizontal: 'center' };
     ws.addRow([]);
 
-    const y = payload.yearLabel || '';
+    const THEME_COLS = THEME_HEADERS.length;
+    const DETAIL_COLS = DETAIL_HEADERS.length;
 
-    const subA = ws.addRow([`A. Consolidated summary (On and Off Campus combined) — year ${y}`]);
+    const subTotalRow = (g) => [
+        'Sub Total', g.courses, g.generalM, g.generalF, g.genT,
+        g.obcM, g.obcF, g.obcT, g.scM, g.scF, g.scT,
+        g.stM, g.stF, g.stT, g.grandM, g.grandF, g.grandT,
+    ];
+
+    const subA = ws.addRow(['A. Consolidated summary (On and Off Campus combined)']);
     subA.getCell(1).font = { bold: true, size: 12 };
 
     for (const block of payload.sectionA || []) {
-        const hRow = ws.addRow([`${block.index}. ${block.trainingTypeName}`]);
-        hRow.getCell(1).font = { bold: true };
-        ws.addRow(THEME_HEADERS).eachCell((c) => {
-            c.font = { bold: true };
-        });
+        const typeRow = ws.addRow([`${block.index}. ${block.trainingTypeName}`]);
+        ws.mergeCells(typeRow.number, 1, typeRow.number, THEME_COLS);
+        styleRow(typeRow, THEME_COLS, { fill: XL_TYPE_FILL, bold: true });
+        styleRow(ws.addRow(THEME_HEADERS), THEME_COLS, { fill: XL_HEADER_FILL, bold: true });
         for (const row of block.thematicRows || []) {
-            ws.addRow(rowFromParticipantRow(row));
+            styleRow(ws.addRow(rowFromParticipantRow(row)), THEME_COLS);
         }
-        const gt = block.grandTotal || {};
-        ws.addRow([
-            'Sub Total',
-            gt.courses,
-            gt.generalM,
-            gt.generalF,
-            gt.genT,
-            gt.obcM,
-            gt.obcF,
-            gt.obcT,
-            gt.scM,
-            gt.scF,
-            gt.scT,
-            gt.stM,
-            gt.stF,
-            gt.stT,
-            gt.grandM,
-            gt.grandF,
-            gt.grandT,
-        ]);
+        styleRow(ws.addRow(subTotalRow(block.grandTotal || {})), THEME_COLS, { fill: XL_TOTAL_FILL, bold: true });
         ws.addRow([]);
     }
 
-    const subB = ws.addRow([`B. Training-wise details by campus (On Campus, then Off Campus) — year ${y}`]);
+    const subB = ws.addRow(['B. Training-wise details by campus (On Campus, then Off Campus)']);
     subB.getCell(1).font = { bold: true, size: 12 };
 
     for (const block of payload.sectionB || []) {
-        const hRow = ws.addRow([`${block.index}. ${block.trainingTypeName}`]);
-        hRow.getCell(1).font = { bold: true };
+        const typeRow = ws.addRow([`${block.index}. ${block.trainingTypeName}`]);
+        ws.mergeCells(typeRow.number, 1, typeRow.number, THEME_COLS);
+        styleRow(typeRow, THEME_COLS, { fill: XL_TYPE_FILL, bold: true });
 
         const campusBlocks = [
             block.onCampus,
@@ -187,48 +210,27 @@ async function generateTrainingsPageExcelBuffer(reportTitle, payload) {
         ].filter(Boolean);
 
         for (const cb of campusBlocks) {
-            ws.addRow([cb.label]).getCell(1).font = { bold: true };
+            const campusRow = ws.addRow([cb.label]);
+            ws.mergeCells(campusRow.number, 1, campusRow.number, THEME_COLS);
+            styleRow(campusRow, THEME_COLS, { fill: XL_CAMPUS_FILL, bold: true });
             if (!cb.rowCount) {
                 ws.addRow(['No trainings recorded']);
                 continue;
             }
-            ws.addRow(THEME_HEADERS).eachCell((c) => {
-                c.font = { bold: true };
-            });
+            styleRow(ws.addRow(THEME_HEADERS), THEME_COLS, { fill: XL_HEADER_FILL, bold: true });
             for (const row of cb.thematicRows || []) {
-                ws.addRow(rowFromParticipantRow(row));
+                styleRow(ws.addRow(rowFromParticipantRow(row)), THEME_COLS);
             }
-            const g = cb.grandTotal || {};
-            ws.addRow([
-                'Sub Total',
-                g.courses,
-                g.generalM,
-                g.generalF,
-                g.genT,
-                g.obcM,
-                g.obcF,
-                g.obcT,
-                g.scM,
-                g.scF,
-                g.scT,
-                g.stM,
-                g.stF,
-                g.stT,
-                g.grandM,
-                g.grandF,
-                g.grandT,
-            ]);
+            styleRow(ws.addRow(subTotalRow(cb.grandTotal || {})), THEME_COLS, { fill: XL_TOTAL_FILL, bold: true });
             ws.addRow([]);
         }
     }
 
-    const subC = ws.addRow([`C. Report with training details — year ${y}`]);
+    const subC = ws.addRow(['C. Report with training details']);
     subC.getCell(1).font = { bold: true, size: 12 };
-    ws.addRow(DETAIL_HEADERS).eachCell((c) => {
-        c.font = { bold: true };
-    });
+    styleRow(ws.addRow(DETAIL_HEADERS), DETAIL_COLS, { fill: XL_HEADER_FILL, bold: true });
     for (const row of payload.sectionC || []) {
-        ws.addRow(rowFromDetail(row));
+        styleRow(ws.addRow(rowFromDetail(row)), DETAIL_COLS);
     }
 
     ws.columns.forEach((col) => {
@@ -240,7 +242,9 @@ async function generateTrainingsPageExcelBuffer(reportTitle, payload) {
 
 function addThematicTableDocx(children, label, rows, grandTotal) {
     children.push(new Paragraph({ text: label, heading: HeadingLevel.HEADING_3 }));
-    const hdr = new TableRow({ children: THEME_HEADERS.map((h) => cellText(h)) });
+    const hdr = new TableRow({
+        children: THEME_HEADERS.map((h) => cellText(h, { bold: true, fill: WD_HEADER_SHADE })),
+    });
     const tableRows = [hdr];
     for (const row of rows || []) {
         tableRows.push(
@@ -250,32 +254,34 @@ function addThematicTableDocx(children, label, rows, grandTotal) {
         );
     }
     const gt = grandTotal || {};
+    const total = { bold: true, fill: WD_TOTAL_SHADE };
     tableRows.push(
         new TableRow({
             children: [
-                cellText('Sub Total'),
-                cellText(gt.courses),
-                cellText(gt.generalM),
-                cellText(gt.generalF),
-                cellText(gt.genT),
-                cellText(gt.obcM),
-                cellText(gt.obcF),
-                cellText(gt.obcT),
-                cellText(gt.scM),
-                cellText(gt.scF),
-                cellText(gt.scT),
-                cellText(gt.stM),
-                cellText(gt.stF),
-                cellText(gt.stT),
-                cellText(gt.grandM),
-                cellText(gt.grandF),
-                cellText(gt.grandT),
+                cellText('Sub Total', total),
+                cellText(gt.courses, total),
+                cellText(gt.generalM, total),
+                cellText(gt.generalF, total),
+                cellText(gt.genT, total),
+                cellText(gt.obcM, total),
+                cellText(gt.obcF, total),
+                cellText(gt.obcT, total),
+                cellText(gt.scM, total),
+                cellText(gt.scF, total),
+                cellText(gt.scT, total),
+                cellText(gt.stM, total),
+                cellText(gt.stF, total),
+                cellText(gt.stT, total),
+                cellText(gt.grandM, total),
+                cellText(gt.grandF, total),
+                cellText(gt.grandT, total),
             ],
         }),
     );
     children.push(
         new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: WD_TABLE_BORDERS,
             rows: tableRows,
         }),
         new Paragraph({ text: '' }),
@@ -283,7 +289,6 @@ function addThematicTableDocx(children, label, rows, grandTotal) {
 }
 
 async function generateTrainingsPageWordBuffer(reportTitle, payload) {
-    const y = payload.yearLabel || '';
     const children = [
         new Paragraph({
             text: reportTitle || MAIN_TITLE,
@@ -293,7 +298,7 @@ async function generateTrainingsPageWordBuffer(reportTitle, payload) {
         new Paragraph({ text: SUBTITLE, alignment: AlignmentType.CENTER }),
         new Paragraph({ text: '' }),
         new Paragraph({
-            text: `A. Consolidated summary (On and Off Campus combined) — year ${y}`,
+            text: 'A. Consolidated summary (On and Off Campus combined)',
             heading: HeadingLevel.HEADING_2,
         }),
     ];
@@ -312,7 +317,7 @@ async function generateTrainingsPageWordBuffer(reportTitle, payload) {
 
     children.push(
         new Paragraph({
-            text: `B. Training-wise details by campus — year ${y}`,
+            text: 'B. Training-wise details by campus',
             heading: HeadingLevel.HEADING_2,
         }),
     );
@@ -337,11 +342,13 @@ async function generateTrainingsPageWordBuffer(reportTitle, payload) {
 
     children.push(
         new Paragraph({
-            text: `C. Report with training details — year ${y}`,
+            text: 'C. Report with training details',
             heading: HeadingLevel.HEADING_2,
         }),
     );
-    const cHdr = new TableRow({ children: DETAIL_HEADERS.map((h) => cellText(h)) });
+    const cHdr = new TableRow({
+        children: DETAIL_HEADERS.map((h) => cellText(h, { bold: true, fill: WD_HEADER_SHADE })),
+    });
     const cRows = [cHdr];
     for (const row of payload.sectionC || []) {
         cRows.push(
@@ -353,6 +360,7 @@ async function generateTrainingsPageWordBuffer(reportTitle, payload) {
     children.push(
         new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: WD_TABLE_BORDERS,
             rows: cRows,
         }),
     );
