@@ -216,6 +216,68 @@ function resolveSoilWaterAnalysisStatePayload(data, options = {}) {
     };
 }
 
+/**
+ * Detailed, one-row-per-record payload grouped by KVK — mirrors the Other
+ * Extension Activities pattern. A KVK user sees a single group (its own data);
+ * admins/superadmin see one group per KVK. Every captured form field is shown
+ * (analysis, samples-through, samples, villages, amount, caste/gender split of
+ * farmers benefitted, period). No reporting-year column.
+ */
+const FARMER_KEYS = ['generalM', 'generalF', 'obcM', 'obcF', 'scM', 'scF', 'stM', 'stF'];
+const SUM_KEYS = ['samples', 'villages', 'amount', ...FARMER_KEYS, 'farmers'];
+
+function emptyTotals() {
+    return SUM_KEYS.reduce((acc, k) => { acc[k] = 0; return acc; }, {});
+}
+
+function detailRowFromRecord(r) {
+    const f = FARMER_KEYS.reduce((acc, k) => { acc[k] = safeInt(r[k]); return acc; }, {});
+    return {
+        analysis: (r.analysisName && String(r.analysisName).trim()) || '—',
+        through: (r.samplesAnalysedThrough && String(r.samplesAnalysedThrough).trim()) || '—',
+        samples: safeInt(r.samplesAnalysed),
+        villages: safeInt(r.villagesNumber),
+        amount: safeInt(r.amountRealized),
+        ...f,
+        farmers: FARMER_KEYS.reduce((s, k) => s + f[k], 0),
+        startDate: r.startDate ? String(r.startDate).slice(0, 10) : '',
+        endDate: r.endDate ? String(r.endDate).slice(0, 10) : '',
+    };
+}
+
+function addInto(totals, row) {
+    for (const k of SUM_KEYS) totals[k] += safeInt(row[k]);
+}
+
+function buildSoilWaterAnalysisDetailedPayload(data) {
+    const records = extractRecords(data);
+
+    const byKvk = new Map();
+    for (const r of records) {
+        const kvkName = (r.kvkName && String(r.kvkName).trim()) || 'Unknown KVK';
+        if (!byKvk.has(kvkName)) byKvk.set(kvkName, []);
+        byKvk.get(kvkName).push(r);
+    }
+
+    const grandTotal = emptyTotals();
+    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => {
+        const subtotal = emptyTotals();
+        const rows = byKvk.get(kvkName).map((r, i) => {
+            const row = detailRowFromRecord(r);
+            addInto(subtotal, row);
+            addInto(grandTotal, row);
+            return { sno: i + 1, ...row };
+        });
+        return { kvkName, rows, subtotal };
+    });
+
+    return { groups, grandTotal, isMultiKvk: groups.length > 1, FARMER_KEYS, SUM_KEYS };
+}
+
+function resolveSoilWaterAnalysisDetailedPayload(data) {
+    return buildSoilWaterAnalysisDetailedPayload(data);
+}
+
 async function fetchAnalysisRecordsForReport(kvkId, filters = {}) {
     const user = kvkId != null ? { kvkId: String(kvkId) } : null;
     const list = await soilWaterRepository.findAllAnalysis(user);
@@ -256,6 +318,9 @@ async function fetchAnalysisRecordsForReport(kvkId, filters = {}) {
             samplesAnalysedThrough: r.samplesAnalysedThrough || '',
             samplesAnalysed: safeInt(r.samplesAnalysed),
             villagesNumber: safeInt(r.villagesNumber),
+            amountRealized: safeInt(r.amountRealized),
+            startDate: r.startDate || null,
+            endDate: r.endDate || null,
             reportingYear: r.reportingYear,
             generalM: r.generalM,
             generalF: r.generalF,
@@ -279,6 +344,8 @@ module.exports = {
     fetchAnalysisRecordsForReport,
     resolveSoilWaterSamplesBPayload,
     resolveSoilWaterAnalysisStatePayload,
+    buildSoilWaterAnalysisDetailedPayload,
+    resolveSoilWaterAnalysisDetailedPayload,
     extractRecords,
     classifyAnalysisCategory,
     ANALYSIS_CATEGORIES,
