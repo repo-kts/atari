@@ -21,7 +21,7 @@ function renderExtensionActivityPageReportSection(section, data, sectionId, isFi
         rows,
         payload.grandTotal,
         'Extension / outreach summary',
-        y,
+        '', // year intentionally omitted — keep the caption simple
     );
 
     return `
