@@ -189,6 +189,59 @@ function buildPagePayloadFromRecords(records) {
     return { yearLabel, rows, grandTotal };
 }
 
+function sortStr(a, b) {
+    return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
+}
+
+// Builds product rows + a totals row for one record list (one KVK, or all).
+function buildBlock(list, totalLabel) {
+    const rows = list.map((r) => pageRowFromRecord(r));
+    const z = emptyTotals();
+    const units = new Set();
+    rows.forEach((row, i) => {
+        addToTotals(z, row);
+        units.add((list[i].unit && String(list[i].unit).trim()) || '');
+    });
+    const unitList = [...units].filter(Boolean);
+    const qSum = Number.isInteger(z.quantitySum) ? z.quantitySum : Number(z.quantitySum.toFixed(3));
+    const quantityLabel = unitList.length === 1
+        ? `${qSum} ${unitList[0]}`
+        : (rows.length ? `${qSum} (mixed units)` : '—');
+    const total = grandRowFromTotals(z, quantityLabel);
+    total.productName = totalLabel;
+    return { rows, total };
+}
+
+// KVK-wise grouped payload (no year). Each KVK gets a product block + sub-total;
+// admins (multi-KVK) also get a grand total. Same shape for PDF / Excel / Word.
+function buildKvkGroupedPagePayload(records) {
+    const list = Array.isArray(records) ? records : [];
+
+    const byKvk = new Map();
+    for (const r of list) {
+        const k = (r.kvkName && String(r.kvkName).trim()) || 'Unknown KVK';
+        if (!byKvk.has(k)) byKvk.set(k, []);
+        byKvk.get(k).push(r);
+    }
+
+    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => {
+        const block = buildBlock(byKvk.get(kvkName), `Sub-total — ${kvkName}`);
+        return { kvkName, rows: block.rows, subtotal: block.total };
+    });
+
+    const grand = buildBlock(list, 'Grand Total (all KVKs)').total;
+    return { groups, grandTotal: grand, isMultiKvk: groups.length > 1 };
+}
+
+function resolveProductionSupplyGroupedPayload(data) {
+    let records = [];
+    if (Array.isArray(data)) records = data;
+    else if (data && Array.isArray(data.records)) records = data.records;
+    else if (data && data.data && Array.isArray(data.data.records)) records = data.data.records;
+    else if (data) records = [data];
+    return buildKvkGroupedPagePayload(records);
+}
+
 function mapPrismaRowToReportRow(r) {
     if (!r) return null;
     const reportingYear = formatReportingYear(r.reportingYear);
@@ -267,7 +320,9 @@ function resolveProductionSupplyPagePayload(data) {
 
 module.exports = {
     buildPagePayloadFromRecords,
+    buildKvkGroupedPagePayload,
     resolveProductionSupplyPagePayload,
+    resolveProductionSupplyGroupedPayload,
     getProductionSupplyReportData,
     fetchProductionSupplyRecordsForReport,
     pageRowFromRecord,
