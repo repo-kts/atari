@@ -1,6 +1,6 @@
 const ExcelJS = require('exceljs');
 const reportTemplateService = require('./reportTemplateService.js');
-const { parseSectionHtml } = require('../../utils/htmlReportTableParser.js');
+const { parseSectionHtml, parseOrderedBlocks } = require('../../utils/htmlReportTableParser.js');
 const { fetchImageBuffer } = require('../../utils/fetchImageBuffer.js');
 
 /**
@@ -288,6 +288,82 @@ class ReportExcelService {
             await writeSection(ws, { html: partHtml, sectionNumber: '', sectionTitle: tabBase });
             i += 1;
         }
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        return Buffer.from(buffer);
+    }
+
+    /**
+     * CFLD Excel from the SAME HTML the PDF uses, but interleaving headings with
+     * their tables (in document order) and splitting into one TAB per top-level
+     * group heading (State: … for Technical Parameters, KVK: … for Budget). The
+     * generic standalone export lumps all headings at the top; this keeps the
+     * state/KVK label next to its tables and gives admins a tab per state/KVK.
+     * @returns {Promise<Buffer>}
+     */
+    async generateCfldExcelFromHtml(title, html, { generatedBy = 'System' } = {}) {
+        const blocks = parseOrderedBlocks(html);
+        const isTabHeading = (b) => b.type === 'heading' && b.level === 2 && /^(State|KVK)\s*:/i.test(b.text);
+        const hasTabs = blocks.some(isTabHeading);
+
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = generatedBy;
+        workbook.created = new Date(0);
+        const used = new Set();
+
+        let ws = null;
+        let rowIdx = 1;
+        let widthTracker = {};
+        let tabIdx = 0;
+        let started = false;
+
+        const applyWidths = () => {
+            if (!ws) return;
+            for (const [colStr, width] of Object.entries(widthTracker)) {
+                ws.getColumn(Number(colStr)).width = width;
+            }
+        };
+        const startSheet = (name) => {
+            applyWidths();
+            const tabName = sanitizeTabName(name || `Sheet ${tabIdx + 1}`, used);
+            ws = workbook.addWorksheet(tabName, {
+                properties: { tabColor: { argb: CHAPTER_TAB_COLORS[tabIdx % CHAPTER_TAB_COLORS.length] } },
+                pageSetup: { fitToPage: true, fitToWidth: 1, fitToHeight: 0, orientation: 'landscape' },
+            });
+            tabIdx += 1;
+            rowIdx = 1;
+            widthTracker = {};
+            started = true;
+        };
+        const writeHeadingRow = (text, { size = null, color = null } = {}) => {
+            const c = ws.getCell(rowIdx, 1);
+            c.value = text;
+            c.font = { bold: true, ...(size ? { size } : {}), ...(color ? { color: { argb: color } } : {}) };
+            rowIdx += 2;
+        };
+
+        for (const block of blocks) {
+            if (hasTabs && isTabHeading(block)) {
+                const label = block.text.replace(/^(State|KVK)\s*:\s*/i, '').trim();
+                startSheet(label || block.text);
+                writeHeadingRow(block.text, { size: 13, color: 'FF1F6E43' });
+                continue;
+            }
+            // In tab mode, ignore the leading section title (h1) before the first tab.
+            if (hasTabs && !started) continue;
+            if (!started) startSheet(title || 'Report');
+
+            if (block.type === 'heading') {
+                if (block.level === 1) writeHeadingRow(block.text, { size: 13, color: 'FF1F6E43' });
+                else if (block.level === 2) writeHeadingRow(block.text, { size: 12, color: 'FF1F6E43' });
+                else writeHeadingRow(block.text);
+            } else {
+                rowIdx = writeTable(ws, block.table, rowIdx, widthTracker);
+                rowIdx += 1;
+            }
+        }
+        applyWidths();
+        if (ws) ws.views = [{ state: 'frozen', ySplit: 0 }];
 
         const buffer = await workbook.xlsx.writeBuffer();
         return Buffer.from(buffer);

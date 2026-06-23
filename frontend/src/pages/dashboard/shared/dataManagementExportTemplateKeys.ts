@@ -29,6 +29,7 @@ export const ENTITY_TYPE_EXPORT_TEMPLATE_MAP: Partial<
     [ENTITY_TYPES.PROJECT_NARI_EXTENSION]: 'nari-extension',
     [ENTITY_TYPES.PROJECT_ARYA_CURRENT]: 'arya-current',
     [ENTITY_TYPES.PROJECT_ARYA_EVALUATION]: 'arya-prev-year',
+    [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: 'nicra-details',
     [ENTITY_TYPES.PROJECT_NICRA_BASIC]: 'nicra-basic',
     [ENTITY_TYPES.PROJECT_SEED_HUB]: 'seed-hub',
     [ENTITY_TYPES.PROJECT_OTHER]: 'other-programmes',
