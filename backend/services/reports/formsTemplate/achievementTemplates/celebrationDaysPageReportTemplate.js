@@ -1,4 +1,4 @@
-const { resolveCelebrationDaysPagePayload } = require('../../../../repositories/reports/celebrationDaysReport/celebrationDaysReportRepository.js');
+const { resolveCelebrationDaysGroupedPayload } = require('../../../../repositories/reports/celebrationDaysReport/celebrationDaysReportRepository.js');
 
 function esc(t) {
     if (t === null || t === undefined) return '';
@@ -15,12 +15,16 @@ function fmtInt(v) {
 
 function tableCss() {
     return `
-  .cd-page-wrap { width:100%; font-size:4.8pt; line-height:1.12; }
-  .cd-page-sec { font-size:8pt; font-weight:bold; margin:0 0 6px 0; }
-  .cd-page-tbl { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:10px; page-break-inside:avoid; }
-  .cd-page-tbl th, .cd-page-tbl td { border:0.35pt solid #000; padding:1px 2px; vertical-align:middle; text-align:center; }
+  @page { size: A4 landscape; }
+  .cd-page-wrap { width:100%; font-size:5.6pt; line-height:1.15; }
+  .cd-page-sec { font-size:9pt; font-weight:bold; margin:0 0 6px 0; }
+  .cd-group { margin-bottom:8px; page-break-inside:avoid; break-inside:avoid; }
+  .cd-kvk-hd { font-size:8pt; font-weight:bold; background:#dce6f1; padding:3px 5px; border:0.35pt solid #000; border-bottom:0; margin:8px 0 0 0; page-break-after:avoid; break-after:avoid; }
+  .cd-page-tbl { width:100%; border-collapse:collapse; table-layout:fixed; }
+  .cd-page-tbl th, .cd-page-tbl td { border:0.35pt solid #000; padding:1px 2px; vertical-align:middle; text-align:center; word-wrap:break-word; overflow-wrap:anywhere; }
   .cd-page-tbl thead th { background:#e8e8e8; font-weight:bold; }
   .cd-page-tbl .l { text-align:left; }
+  .cd-page-tbl .sub { font-weight:bold; background:#f1f5f9; }
   .cd-page-tbl .grand { font-weight:bold; background:#f5f5f5; }
 `;
 }
@@ -40,40 +44,8 @@ function cellsDataRow(r) {
     return parts.map((c) => `<td>${fmtInt(c)}</td>`).join('');
 }
 
-function renderCelebrationDaysPageReportSection(section, data, sectionId, isFirstSection) {
-    const payload = resolveCelebrationDaysPagePayload(data);
-    const rows = payload.rows || [];
-    const y = payload.yearLabel || '';
-
-    if (rows.length === 0) {
-        return `
-<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
-  <p class="no-data">No celebration days data for export.</p>
-</div>`;
-    }
-
-    const body = rows.map((r) => `
-      <tr>
-        <td class="l">${esc(r.label)}</td>
-        <td>${fmtInt(r.numActivities)}</td>
-        ${cellsDataRow(r)}
-      </tr>`).join('');
-
-    const gt = payload.grandTotal || {};
-    const grandRow = `
-      <tr class="grand">
-        <td class="l">${esc(gt.label || 'Total')}</td>
-        <td>${fmtInt(gt.numActivities)}</td>
-        ${cellsDataRow(gt)}
-      </tr>`;
-
+function headHtml() {
     return `
-<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <style>${tableCss()}</style>
-  <div class="cd-page-wrap">
-    <div class="cd-page-sec">D. Celebration of important days in KVKs${y ? ` — year ${esc(y)}` : ''}</div>
-    <table class="cd-page-tbl">
       <thead>
         <tr>
           <th rowspan="3" class="l">Celebration of Important Days</th>
@@ -105,9 +77,59 @@ function renderCelebrationDaysPageReportSection(section, data, sectionId, isFirs
           <th>M</th><th>F</th><th>T</th>
           <th>M</th><th>F</th><th>T</th>
         </tr>
-      </thead>
-      <tbody>${body}${grandRow}</tbody>
-    </table>
+      </thead>`;
+}
+
+function dataRow(r, cls) {
+    return `
+      <tr${cls ? ` class="${cls}"` : ''}>
+        <td class="l">${esc(r.label)}</td>
+        <td>${fmtInt(r.numActivities)}</td>
+        ${cellsDataRow(r)}
+      </tr>`;
+}
+
+function renderGroup(g, showKvkHeader) {
+    const body = g.rows.map((r) => dataRow(r)).join('');
+    const sub = dataRow(g.subtotal, 'sub');
+    const kvkHd = showKvkHeader ? `<div class="cd-kvk-hd">${esc(g.kvkName)}</div>` : '';
+    return `
+    <div class="cd-group">${kvkHd}
+      <table class="cd-page-tbl">${headHtml()}
+        <tbody>${body}${sub}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderCelebrationDaysPageReportSection(section, data, sectionId, isFirstSection) {
+    const payload = resolveCelebrationDaysGroupedPayload(data);
+    const groups = payload.groups || [];
+
+    if (groups.length === 0) {
+        return `
+<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
+  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
+  <p class="no-data">No celebration days data for export.</p>
+</div>`;
+    }
+
+    const showKvkHeader = payload.isMultiKvk;
+    const groupsHtml = groups.map((g) => renderGroup(g, showKvkHeader)).join('');
+
+    const grandHtml = payload.isMultiKvk
+        ? `
+    <table class="cd-page-tbl">${headHtml()}
+      <tbody>${dataRow(payload.grandTotal, 'grand')}</tbody>
+    </table>`
+        : '';
+
+    return `
+<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
+  <style>${tableCss()}</style>
+  <div class="cd-page-wrap">
+    <div class="cd-page-sec">D. Celebration of important days in KVKs</div>
+    ${groupsHtml}
+    ${grandHtml}
   </div>
 </div>`;
 }
