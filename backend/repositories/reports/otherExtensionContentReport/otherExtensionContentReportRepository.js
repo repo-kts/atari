@@ -171,6 +171,75 @@ function resolveOtherExtensionPagePayload(data) {
     return buildPagePayloadFromRecords(records);
 }
 
+// Detailed, one-row-per-record payload (no year-wise sectioning). Grouped by
+// KVK so admins see each KVK's rows separately while a KVK user sees a single
+// group. Every captured detail is shown — nature, count, start/end date, year.
+function normalizeDetailRow(r) {
+    const kvkName = (r.kvkName && String(r.kvkName).trim())
+        || (r.kvk && r.kvk.kvkName && String(r.kvk.kvkName).trim())
+        || 'Unknown KVK';
+    const nature = String(
+        r.natureOfExtensionActivity
+        ?? r.extensionActivityType
+        ?? r.natureName
+        ?? (r.otherExtensionActivity && r.otherExtensionActivity.otherExtensionName)
+        ?? '',
+    ).trim() || 'Not specified';
+    const num = safeInt(
+        r.noOfActivities ?? r.numberOfActivities ?? r.activityCount ?? 0,
+    );
+    const smsName = String(
+        r.staffName
+        ?? r.smsName
+        ?? (r.staff && r.staff.staffName)
+        ?? '',
+    ).trim();
+    return {
+        kvkName,
+        nature,
+        smsName,
+        num,
+        startDate: r.startDate ? String(r.startDate).slice(0, 10) : '',
+        endDate: r.endDate ? String(r.endDate).slice(0, 10) : '',
+        reportingYear: r.reportingYear ? String(r.reportingYear) : '',
+    };
+}
+
+function buildDetailedPayloadFromRecords(records) {
+    const norm = Array.isArray(records) ? records.map(normalizeDetailRow) : [];
+
+    const byKvk = new Map();
+    for (const r of norm) {
+        if (!byKvk.has(r.kvkName)) byKvk.set(r.kvkName, []);
+        byKvk.get(r.kvkName).push(r);
+    }
+
+    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => {
+        const list = byKvk.get(kvkName);
+        const rows = list.map((r, i) => ({
+            sno: i + 1,
+            nature: r.nature,
+            smsName: r.smsName,
+            num: r.num,
+            startDate: r.startDate,
+            endDate: r.endDate,
+            reportingYear: r.reportingYear,
+        }));
+        const subtotal = rows.reduce((s, x) => s + safeInt(x.num), 0);
+        return { kvkName, rows, subtotal };
+    });
+
+    const grandTotal = groups.reduce((s, g) => s + safeInt(g.subtotal), 0);
+    const isMultiKvk = groups.length > 1;
+
+    return { groups, grandTotal, isMultiKvk, totalRecords: norm.length };
+}
+
+function resolveOtherExtensionDetailedPayload(data) {
+    const records = Array.isArray(data) ? data : (data ? [data] : []);
+    return buildDetailedPayloadFromRecords(records);
+}
+
 function resolveOtherExtensionMatrixPayload(data) {
     if (!data) {
         return { yearLabel: '', stateColumns: [], matrixRows: [] };
@@ -186,6 +255,8 @@ module.exports = {
     fetchOtherExtensionActivities,
     buildPagePayloadFromRecords,
     buildMatrixPayloadFromRecords,
+    buildDetailedPayloadFromRecords,
+    resolveOtherExtensionDetailedPayload,
     resolveOtherExtensionPagePayload,
     resolveOtherExtensionMatrixPayload,
     normalizePrismaRow,

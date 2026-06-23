@@ -12,29 +12,25 @@ const {
     PageOrientation,
 } = require('docx');
 
-const SECTION_B = 'B. Other Extension/content mobilization activities';
+const SECTION = 'Awards / Recognition received by the KVK';
 
 // docx half-point sizing: 12 = 6pt.
 const FONT_HP = 12;
 
-const HEADERS = [
-    'S.No',
-    'Nature of Extension Activity',
-    'Name of SMS/KVK Head',
-    'No. of activities',
-    'Start Date',
-    'End Date',
-    'Year',
-];
+const HEADERS = ['Sl. No.', 'Name of the Award', 'Amount', 'Achievement', 'Conferring Authority'];
 
-// Distinct tab colours cycled per KVK group so admins can tell them apart.
 const TAB_COLORS = [
     'FF4F81BD', 'FF9BBB59', 'FFC0504D', 'FF8064A2',
     'FF4BACC6', 'FFF79646', 'FF2C4D75', 'FF77933C',
 ];
 
+function allBorders() {
+    const s = { style: 'thin', color: { argb: 'FF000000' } };
+    return { top: s, left: s, bottom: s, right: s };
+}
+
 function safeSheetName(name, used) {
-    let base = String(name || 'KVK').replace(/[\\/?*[\]:]/g, ' ').trim().slice(0, 28) || 'KVK';
+    const base = String(name || 'KVK').replace(/[\\/?*[\]:]/g, ' ').trim().slice(0, 28) || 'KVK';
     let candidate = base;
     let i = 2;
     while (used.has(candidate.toLowerCase())) {
@@ -44,16 +40,17 @@ function safeSheetName(name, used) {
     return candidate;
 }
 
-function writeGroupSheet(ws, payloadGroup) {
-    const titleRow = ws.addRow([SECTION_B]);
+// ---- Excel ----
+
+function writeGroupSheet(ws, g) {
+    const titleRow = ws.addRow([SECTION]);
     ws.mergeCells(titleRow.number, 1, titleRow.number, HEADERS.length);
     titleRow.getCell(1).font = { bold: true, size: 12 };
     titleRow.getCell(1).alignment = { horizontal: 'center' };
 
-    const kvkRow = ws.addRow([payloadGroup.kvkName]);
+    const kvkRow = ws.addRow([g.kvkName]);
     ws.mergeCells(kvkRow.number, 1, kvkRow.number, HEADERS.length);
     kvkRow.getCell(1).font = { bold: true, size: 11 };
-    kvkRow.getCell(1).alignment = { horizontal: 'left' };
 
     ws.addRow([]);
 
@@ -61,81 +58,70 @@ function writeGroupSheet(ws, payloadGroup) {
     hdr.eachCell((c) => {
         c.font = { bold: true };
         c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8E8E8' } };
-        c.alignment = { horizontal: 'center', vertical: 'middle' };
+        c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         c.border = allBorders();
     });
 
-    for (const r of payloadGroup.rows) {
-        const row = ws.addRow([
-            r.sno,
-            r.nature,
-            r.smsName || '—',
-            r.num,
-            r.startDate || '—',
-            r.endDate || '—',
-            r.reportingYear || '—',
-        ]);
-        row.eachCell((c) => { c.border = allBorders(); });
+    for (const r of g.rows) {
+        const row = ws.addRow([r.sno, r.award, r.amount, r.achievement, r.conferringAuthority]);
+        row.eachCell((c) => { c.border = allBorders(); c.alignment = { vertical: 'top', wrapText: true }; });
     }
 
-    const sub = ws.addRow(['', `Sub-total — ${payloadGroup.kvkName}`, '', payloadGroup.subtotal, '', '', '']);
+    const sub = ws.addRow([
+        `Sub-total — ${g.kvkName} (${g.subtotal.count} award${g.subtotal.count === 1 ? '' : 's'})`,
+        '', g.subtotal.amount, '', '',
+    ]);
+    ws.mergeCells(sub.number, 1, sub.number, 2);
     sub.eachCell((c) => {
         c.font = { bold: true };
         c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
         c.border = allBorders();
     });
 
-    ws.getColumn(1).width = 6;
+    ws.getColumn(1).width = 7;
     ws.getColumn(2).width = 34;
-    ws.getColumn(3).width = 26;
-    ws.getColumn(4).width = 16;
-    ws.getColumn(5).width = 14;
-    ws.getColumn(6).width = 14;
-    ws.getColumn(7).width = 10;
+    ws.getColumn(3).width = 12;
+    ws.getColumn(4).width = 38;
+    ws.getColumn(5).width = 38;
 }
 
-function allBorders() {
-    const s = { style: 'thin', color: { argb: 'FF000000' } };
-    return { top: s, left: s, bottom: s, right: s };
-}
-
-async function generateOtherExtensionContentPageExcelBuffer(reportTitle, payload) {
+async function generateKvkAwardPageExcelBuffer(reportTitle, payload) {
     const wb = new ExcelJS.Workbook();
     const groups = (payload && payload.groups) || [];
 
     if (groups.length === 0) {
-        const ws = wb.addWorksheet('Other extension');
-        ws.addRow([SECTION_B]).getCell(1).font = { bold: true, size: 12 };
-        ws.addRow(['No other extension activity data for export.']);
+        const ws = wb.addWorksheet('KVK awards');
+        ws.addRow([SECTION]).getCell(1).font = { bold: true, size: 12 };
+        ws.addRow(['No KVK award data for export.']);
         return await wb.xlsx.writeBuffer();
     }
 
     const usedNames = new Set();
 
-    // Admin / multi-KVK → one coloured tab per KVK + a summary tab so category
-    // (here, per-KVK) groups don't clutter a single sheet.
     if (payload.isMultiKvk) {
         const summary = wb.addWorksheet('Summary');
-        summary.addRow([SECTION_B]).getCell(1).font = { bold: true, size: 12 };
-        summary.mergeCells(1, 1, 1, 2);
+        summary.addRow([SECTION]).getCell(1).font = { bold: true, size: 12 };
+        summary.mergeCells(1, 1, 1, 3);
         summary.addRow([]);
-        const sh = summary.addRow(['KVK', 'No. of activities']);
+        const sh = summary.addRow(['KVK', 'No. of awards', 'Total amount']);
         sh.eachCell((c) => {
             c.font = { bold: true };
             c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8E8E8' } };
             c.border = allBorders();
         });
         for (const g of groups) {
-            summary.addRow([g.kvkName, g.subtotal]).eachCell((c) => { c.border = allBorders(); });
+            summary.addRow([g.kvkName, g.subtotal.count, g.subtotal.amount])
+                .eachCell((c) => { c.border = allBorders(); });
         }
-        const gt = summary.addRow(['Grand Total', payload.grandTotal]);
+        const gt = summary.addRow(['Grand Total', payload.grandTotal.count, payload.grandTotal.amount]);
         gt.eachCell((c) => {
             c.font = { bold: true };
             c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } };
             c.border = allBorders();
         });
-        summary.getColumn(1).width = 40;
-        summary.getColumn(2).width = 18;
+        summary.getColumn(1).width = 38;
+        summary.getColumn(2).width = 16;
+        summary.getColumn(3).width = 16;
         usedNames.add('summary');
     }
 
@@ -181,20 +167,18 @@ function buildGroupTable(g) {
     const bodyRows = g.rows.map((r) => new TableRow({
         children: [
             cell(r.sno, { alignment: AlignmentType.CENTER }),
-            cell(r.nature),
-            cell(r.smsName || '—'),
-            cell(r.num, { alignment: AlignmentType.CENTER }),
-            cell(r.startDate || '—', { alignment: AlignmentType.CENTER }),
-            cell(r.endDate || '—', { alignment: AlignmentType.CENTER }),
-            cell(r.reportingYear || '—', { alignment: AlignmentType.CENTER }),
+            cell(r.award),
+            cell(r.amount, { alignment: AlignmentType.CENTER }),
+            cell(r.achievement),
+            cell(r.conferringAuthority),
         ],
     }));
 
     const subRow = new TableRow({
         children: [
-            cell(`Sub-total — ${g.kvkName}`, { bold: true, fill: 'F1F5F9', colSpan: 3 }),
-            cell(g.subtotal, { bold: true, fill: 'F1F5F9', alignment: AlignmentType.CENTER }),
-            cell('', { fill: 'F1F5F9', colSpan: 3 }),
+            cell(`Sub-total — ${g.kvkName} (${g.subtotal.count} award${g.subtotal.count === 1 ? '' : 's'})`, { bold: true, fill: 'F1F5F9', colSpan: 2 }),
+            cell(g.subtotal.amount, { bold: true, fill: 'F1F5F9', alignment: AlignmentType.CENTER }),
+            cell('', { fill: 'F1F5F9', colSpan: 2 }),
         ],
     });
 
@@ -204,19 +188,19 @@ function buildGroupTable(g) {
     });
 }
 
-async function generateOtherExtensionContentPageWordBuffer(reportTitle, payload) {
+async function generateKvkAwardPageWordBuffer(reportTitle, payload) {
     const groups = (payload && payload.groups) || [];
 
     const children = [
         new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: SECTION_B, bold: true, size: 16 })],
+            children: [new TextRun({ text: SECTION, bold: true, size: 16 })],
         }),
         new Paragraph({ text: '' }),
     ];
 
     if (groups.length === 0) {
-        children.push(para('No other extension activity data for export.'));
+        children.push(para('No KVK award data for export.'));
     } else {
         groups.forEach((g) => {
             if (payload.isMultiKvk) {
@@ -234,23 +218,21 @@ async function generateOtherExtensionContentPageWordBuffer(reportTitle, payload)
         if (payload.isMultiKvk) {
             children.push(
                 new Paragraph({
-                    children: [new TextRun({ text: `Grand Total (all KVKs): ${payload.grandTotal}`, bold: true, size: FONT_HP })],
+                    children: [new TextRun({
+                        text: `Grand Total (all KVKs): ${payload.grandTotal.count} awards, amount ${payload.grandTotal.amount}`,
+                        bold: true,
+                        size: FONT_HP,
+                    })],
                 }),
             );
         }
     }
 
     const doc = new Document({
-        styles: {
-            default: {
-                document: { run: { size: FONT_HP } },
-            },
-        },
+        styles: { default: { document: { run: { size: FONT_HP } } } },
         sections: [
             {
-                properties: {
-                    page: { size: { orientation: PageOrientation.PORTRAIT } },
-                },
+                properties: { page: { size: { orientation: PageOrientation.PORTRAIT } } },
                 children,
             },
         ],
@@ -260,6 +242,6 @@ async function generateOtherExtensionContentPageWordBuffer(reportTitle, payload)
 }
 
 module.exports = {
-    generateOtherExtensionContentPageExcelBuffer,
-    generateOtherExtensionContentPageWordBuffer,
+    generateKvkAwardPageExcelBuffer,
+    generateKvkAwardPageWordBuffer,
 };

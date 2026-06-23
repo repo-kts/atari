@@ -87,6 +87,7 @@ function normalizePrismaRow(r) {
     const base = {
         techWeekId: r.techWeekId ?? r.id,
         kvkId: r.kvkId,
+        kvkName: (r.kvk && r.kvk.kvkName) ? String(r.kvk.kvkName).trim() : (r.kvkName || ''),
         stateName,
         startDate: r.startDate,
         typeOfActivities: String(r.typeOfActivities || r.activityType || r.type_of_activities || '').trim(),
@@ -108,6 +109,7 @@ function normalizeFlexibleRow(r) {
     const base = {
         techWeekId: r.techWeekId ?? r.id,
         kvkId: r.kvkId,
+        kvkName: (r.kvk && r.kvk.kvkName) ? String(r.kvk.kvkName).trim() : (r.kvkName || ''),
         stateName: r.stateName ? String(r.stateName).trim() : 'Unknown',
         startDate: r.startDate,
         typeOfActivities: String(typeRaw || '').trim() || '—',
@@ -121,6 +123,7 @@ function buildPagePayloadFromRecords(records) {
     const norm = Array.isArray(records) ? records.map((r) => normalizeFlexibleRow(r)) : [];
     const yearLabel = inferYearLabel(norm);
     const rows = norm.map((r) => ({
+        kvkName: r.kvkName || '',
         typeOfActivities: r.typeOfActivities,
         numberOfActivities: r.numberOfActivities,
         relatedTechnology: r.relatedTechnology,

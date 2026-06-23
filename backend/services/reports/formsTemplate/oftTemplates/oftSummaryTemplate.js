@@ -37,10 +37,40 @@ function classifySubject(subjectName) {
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
+// Records reach this template in two shapes: the raw Prisma shape (data-service
+// path) and the flattened `_mapOftResponse` shape (module-wise export posts this).
+// These readers accept both so thematic/state/farmer values resolve either way.
+function readState(r) {
+    return r.kvk?.state?.stateName || r.stateName || null;
+}
+
+function readThematicArea(r) {
+    return r.oftThematicArea?.thematicAreaName || r.thematicAreaName || 'Other';
+}
+
+const FARMER_FIELD_MAP = {
+    genM: ['farmersGeneralM', 'gen_m'],
+    genF: ['farmersGeneralF', 'gen_f'],
+    obcM: ['farmersObcM', 'obc_m'],
+    obcF: ['farmersObcF', 'obc_f'],
+    scM: ['farmersScM', 'sc_m'],
+    scF: ['farmersScF', 'sc_f'],
+    stM: ['farmersStM', 'st_m'],
+    stF: ['farmersStF', 'st_f'],
+};
+
+function readFarmer(r, key) {
+    for (const f of FARMER_FIELD_MAP[key]) {
+        const v = r[f];
+        if (v !== undefined && v !== null && v !== '') return Number(v) || 0;
+    }
+    return 0;
+}
+
 function getUniqueStates(records) {
     const set = new Set();
     for (const r of records) {
-        const name = r.kvk?.state?.stateName;
+        const name = readState(r);
         if (name) set.add(name);
     }
     return Array.from(set).sort();
@@ -69,8 +99,8 @@ function buildAggregation(records, isMultiState) {
 
     for (const r of records) {
         const subjectId = r.oftSubjectId || 0;
-        const thematicArea = r.oftThematicArea?.thematicAreaName || 'Other';
-        const stateKey = isMultiState ? (r.kvk?.state?.stateName || 'Unknown') : '__all__';
+        const thematicArea = readThematicArea(r);
+        const stateKey = isMultiState ? (readState(r) || 'Unknown') : '__all__';
 
         if (!agg.has(subjectId)) agg.set(subjectId, new Map());
         const thematicMap = agg.get(subjectId);
@@ -392,19 +422,12 @@ const FARMER_KEYS = ['genM', 'genF', 'obcM', 'obcF', 'scM', 'scF', 'stM', 'stF']
 function renderStateWiseBlock(section, records) {
     const byState = new Map();
     for (const r of records) {
-        const stateName = r.kvk?.state?.stateName || r.kvk?.kvkName || 'Unknown';
+        const stateName = readState(r) || r.kvk?.kvkName || r.kvkName || 'Unknown';
         if (!byState.has(stateName)) {
             byState.set(stateName, { genM: 0, genF: 0, obcM: 0, obcF: 0, scM: 0, scF: 0, stM: 0, stF: 0 });
         }
         const b = byState.get(stateName);
-        b.genM += Number(r.farmersGeneralM) || 0;
-        b.genF += Number(r.farmersGeneralF) || 0;
-        b.obcM += Number(r.farmersObcM) || 0;
-        b.obcF += Number(r.farmersObcF) || 0;
-        b.scM += Number(r.farmersScM) || 0;
-        b.scF += Number(r.farmersScF) || 0;
-        b.stM += Number(r.farmersStM) || 0;
-        b.stF += Number(r.farmersStF) || 0;
+        for (const k of FARMER_KEYS) b[k] += readFarmer(r, k);
     }
 
     const sumRow = (b) => FARMER_KEYS.reduce((acc, k) => acc + b[k], 0);

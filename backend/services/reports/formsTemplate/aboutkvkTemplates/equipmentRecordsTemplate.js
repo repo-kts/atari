@@ -1,10 +1,29 @@
-function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection) {
+function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection, reportContext = {}) {
     if (!data || (Array.isArray(data) && data.length === 0)) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }
 
     const records = Array.isArray(data) ? data : [data];
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+
+    const moduleLabel = reportContext.isStandalone
+        ? (section.exportTitle || section.title)
+        : `${section.id} ${this._escapeHtml(section.title)}`;
+    const kvkNames = Array.from(new Set(
+        records
+            .map(r => this._pickValue(r, ['KVK', 'kvk.kvkName', 'kvkName']))
+            .filter(v => v && v !== '-')
+            .map(v => String(v))
+    ));
+    const kvkLabel = kvkNames.length === 1
+        ? kvkNames[0]
+        : (kvkNames.length === 0 ? '-' : `${kvkNames.length} KVKs`);
+    const header = reportContext.isStandalone
+        ? `<div class="module-report-header">
+        <h1 class="module-report-title">${this._escapeHtml(moduleLabel)}</h1>
+        <div class="module-report-sub"><strong>KVK:</strong> ${this._escapeHtml(kvkLabel)}</div>
+    </div>`
+        : `<h1 class="section-title">${moduleLabel}</h1>`;
 
     const normalizeDisplay = (value, { isYear = false } = {}) => {
         if (value === null || value === undefined || value === '') return '-';
@@ -34,7 +53,7 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection)
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+    ${header}
     <table class="data-table">
         <thead>
             <tr>
@@ -53,11 +72,11 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection)
     records.forEach((row, index) => {
         const year = normalizeDisplay(this._pickValue(row, ['Year', 'reportingYear']), { isYear: true });
         const kvk = normalizeDisplay(this._pickValue(row, ['KVK', 'kvk.kvkName', 'kvkName']));
-        const equipmentName = normalizeDisplay(this._pickValue(row, ['Equipment Name', 'equipmentName']));
-        const yearOfPurchase = normalizeDisplay(this._pickValue(row, ['Year of purchase', 'yearOfPurchase']));
-        const cost = normalizeDisplay(this._pickValue(row, ['Cost (Rs.)', 'totalCost']));
-        const sourceOfFund = normalizeDisplay(this._pickValue(row, ['Source of fund', 'sourceOfFunding']));
-        const presentStatus = normalizeDisplay(this._pickValue(row, ['Present status', 'presentStatus']));
+        const equipmentName = normalizeDisplay(this._pickValue(row, ['Equipment Name', 'equipmentName', 'equipment.equipmentName', 'equipment.equipmentMaster.name']));
+        const yearOfPurchase = normalizeDisplay(this._pickValue(row, ['Year of purchase', 'yearOfPurchase', 'equipment.yearOfPurchase']));
+        const cost = normalizeDisplay(this._pickValue(row, ['Cost (Rs.)', 'totalCost', 'equipment.totalCost']));
+        const sourceOfFund = normalizeDisplay(this._pickValue(row, ['Source of fund', 'sourceOfFunding', 'assetFundingSource.name', 'equipment.assetFundingSource.name']));
+        const presentStatus = normalizeDisplay(this._pickValue(row, ['Present status', 'presentStatus', 'equipmentStatus.statusLabel']));
 
         html += `
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
