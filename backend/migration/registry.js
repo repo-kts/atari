@@ -22,6 +22,7 @@ const specs = [
     require('./modules/otherExtensionActivity.js'),
     require('./modules/technologyWeek.js'),
     require('./modules/celebrationDay.js'),
+    require('./modules/worldSoilDay.js'),
     require('./modules/productionSupply.js'),
     require('./modules/soilWaterAnalysis.js'),
     require('./modules/publication.js'),
