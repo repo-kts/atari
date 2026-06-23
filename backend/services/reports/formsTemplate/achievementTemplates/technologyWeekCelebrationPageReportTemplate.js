@@ -35,10 +35,15 @@ function cells15(r) {
     ];
 }
 
-function renderTechnologyWeekCelebrationPageReportSection(section, data, sectionId, isFirstSection) {
+function renderTechnologyWeekCelebrationPageReportSection(section, data, sectionId, isFirstSection, reportContext = {}) {
     const payload = resolveTechnologyWeekPagePayload(data);
     const rows = payload.rows || [];
-    const y = payload.yearLabel || '';
+
+    // Superadmin / aggregated export: show a KVK column (each KVK's data).
+    const distinctKvks = new Set(rows.map((r) => r.kvkName).filter(Boolean));
+    const showKvk = Boolean(reportContext.isAggregatedReport) || distinctKvks.size > 1;
+    const kvkTh = showKvk ? '<th rowspan="3" class="l">KVK</th>' : '';
+    const kvkTd = (r) => (showKvk ? `<td class="l">${esc(r.kvkName || '')}</td>` : '');
 
     if (rows.length === 0) {
         return `
@@ -50,6 +55,7 @@ function renderTechnologyWeekCelebrationPageReportSection(section, data, section
 
     const body = rows.map((r) => `
       <tr>
+        ${kvkTd(r)}
         <td class="l">${esc(r.typeOfActivities)}</td>
         <td>${fmtInt(r.numberOfActivities)}</td>
         ${cells15(r).map((c) => `<td>${c}</td>`).join('')}
@@ -59,6 +65,7 @@ function renderTechnologyWeekCelebrationPageReportSection(section, data, section
     const gt = payload.grandTotal || {};
     const grandRow = `
       <tr class="grand">
+        ${showKvk ? '<td class="l"></td>' : ''}
         <td class="l">${esc(gt.typeOfActivities || 'Total')}</td>
         <td>${fmtInt(gt.numberOfActivities)}</td>
         ${cells15(gt).map((c) => `<td>${c}</td>`).join('')}
@@ -69,10 +76,11 @@ function renderTechnologyWeekCelebrationPageReportSection(section, data, section
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="tw-page-wrap">
-    <div class="tw-page-sec">Technology week celebration${y ? ` — year ${esc(y)}` : ''}</div>
+    <div class="tw-page-sec">Technology week celebration</div>
     <table class="tw-page-tbl">
       <thead>
         <tr>
+          ${kvkTh}
           <th rowspan="3" class="l">Type of activities</th>
           <th rowspan="3">No. of activities</th>
           <th colspan="15">Number of participants</th>
