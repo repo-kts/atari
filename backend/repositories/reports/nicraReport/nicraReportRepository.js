@@ -166,8 +166,12 @@ async function getNicraInterventionData(kvkId, filters = {}) {
         stateName: r.kvk?.state?.stateName || '',
         kvkName: r.kvk?.kvkName || '',
         bankType: r.seedBankFodderBank?.name || '',
+        crop: r.crop || '',
+        variety: r.variety || '',
         cropWithVariety: r.variety ? `${r.crop || ''} ${r.variety}`.trim() : (r.crop || ''),
         quantityQ: Number(r.quantityQ || 0),
+        startDate: r.startDate || null,
+        endDate: r.endDate || null,
     }));
 }
 
@@ -302,26 +306,26 @@ async function getNicraVcrmcData(kvkId, filters = {}) {
     const where = {};
     if (kvkId) where.kvkId = kvkId;
     if (filters.startDate || filters.endDate || filters.year) {
-        where.vcrmcConstitutionDate = {};
+        where.constitutionDate = {};
         if (filters.year && !filters.startDate && !filters.endDate) {
             const y = Number(filters.year);
             if (Number.isFinite(y)) {
-                where.vcrmcConstitutionDate.gte = new Date(Date.UTC(y, 0, 1, 0, 0, 0, 0));
-                where.vcrmcConstitutionDate.lte = new Date(Date.UTC(y, 11, 31, 23, 59, 59, 999));
+                where.constitutionDate.gte = new Date(Date.UTC(y, 0, 1, 0, 0, 0, 0));
+                where.constitutionDate.lte = new Date(Date.UTC(y, 11, 31, 23, 59, 59, 999));
             }
         } else {
             if (filters.startDate) {
                 const from = new Date(filters.startDate);
                 if (!isNaN(from)) {
                     from.setHours(0, 0, 0, 0);
-                    where.vcrmcConstitutionDate.gte = from;
+                    where.constitutionDate.gte = from;
                 }
             }
             if (filters.endDate) {
                 const to = new Date(filters.endDate);
                 if (!isNaN(to)) {
                     to.setHours(23, 59, 59, 999);
-                    where.vcrmcConstitutionDate.lte = to;
+                    where.constitutionDate.lte = to;
                 }
             }
         }
@@ -330,19 +334,19 @@ async function getNicraVcrmcData(kvkId, filters = {}) {
     const rows = await prisma.nicraVcrmc.findMany({
         where,
         include: { kvk: { select: { kvkName: true, state: { select: { stateName: true } } } } },
-        orderBy: [{ vcrmcConstitutionDate: 'asc' }, { nicraVcrmcId: 'asc' }],
+        orderBy: [{ constitutionDate: 'asc' }, { nicraVcrmcId: 'asc' }],
     });
 
     return rows.map(r => ({
         stateName: r.kvk?.state?.stateName || '',
         kvkName: r.kvk?.kvkName || '',
         villageName: r.villageName || '',
-        vcrmcConstitutionDate: r.vcrmcConstitutionDate,
-        membersMale: Number(r.membersMale || 0),
-        membersFemale: Number(r.membersFemale || 0),
-        membersTotal: Number((r.membersMale || 0) + (r.membersFemale || 0)),
+        constitutionDate: r.constitutionDate,
+        maleMembers: Number(r.maleMembers || 0),
+        femaleMembers: Number(r.femaleMembers || 0),
+        membersTotal: Number((r.maleMembers || 0) + (r.femaleMembers || 0)),
         meetingsOrganized: Number(r.meetingsOrganized || 0),
-        dateOfMeeting: r.dateOfMeeting,
+        meetingDate: r.meetingDate,
         nameOfSecretary: r.nameOfSecretary || '',
         nameOfPresident: r.nameOfPresident || '',
         majorDecisionTaken: r.majorDecisionTaken || '',

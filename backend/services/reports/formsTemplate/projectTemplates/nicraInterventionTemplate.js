@@ -1,18 +1,23 @@
 'use strict';
 
 /**
- * NICRA Intervention PDF template  (Section 2.24.1 / module key: 'nicra-intervention')
+ * NICRA Other Interventions  (Section 2.37 / module key: 'nicra-intervention')
  *
- * Layout:
- *   S.No. | State | KVK | Seed bank (Crop with variety | Quantity in (q)) |
- *                         Fodder bank (Fodder crop with variety | Quantity in (q))
+ * Detailed, KVK-wise layout (so admins/superadmin can tell which KVK a row
+ * belongs to). One heading + table per KVK, mirroring the "Other Extension
+ * Activities" report. Columns are the actual form fields:
  *
- * Data modes:
- *   1. All-report  – data is already an array of intervention pair objects from
- *      getNicraInterventionData() → { kvkName, stateName, seedCropVariety,
- *      seedQuantityQ, fodderCropVariety, fodderQuantityQ }
- *   2. Module export – data is a flat array of raw NicraIntervention form records
- *      (from the forms repo). We split by seedBankFodderBank type and zip.
+ *   S.No. | Bank Type | Crop | Variety | Quantity (q) | Start Date | End Date
+ *
+ * Data modes (all normalised by buildNicraInterventionGroups):
+ *   1. All-report  – getNicraInterventionData() rows:
+ *      { kvkName, stateName, bankType, crop, variety, quantityQ, startDate, endDate }
+ *   2. Module export – raw form records posted by the data-management page:
+ *      { kvk:{kvkName}, seedBankFodderBank:<name>, crop, variety, quantityQ,
+ *        startDate, endDate }
+ *
+ * The same group structure feeds the PDF (this file), Excel and Word
+ * (nicraInterventionPageExport.js) so all three match exactly.
  */
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
@@ -28,161 +33,152 @@ function num(v) {
     return Number.isFinite(n) ? n : 0;
 }
 
-const STYLE = `
-<style>
-  .nicra-int-table {
-    width: 100%; table-layout: fixed; border-collapse: collapse;
-    font-size: 8pt; line-height: 1.3;
-  }
-  .nicra-int-table th, .nicra-int-table td {
-    border: 0.5px solid #000; padding: 3px 4px;
-    text-align: center; vertical-align: middle; word-break: break-word;
-  }
-  .nicra-int-table th { font-weight: bold; background: #f0f0f0; }
-  .nicra-int-table td.L { text-align: left; }
-  .nicra-int-title { font-size: 10pt; font-weight: bold; margin: 6px 0 4px; }
-  .nicra-int-no-data { color: #777; font-style: italic; font-size: 9pt; padding: 4px 0; }
-</style>`;
+// DD-MM-YYYY from a Date or 'YYYY-MM-DD'(T...) string. '-' when empty.
+function fmtDate(v) {
+    if (!v) return '-';
+    const d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d)) return String(v);
+    const dd = String(d.getUTCDate()).padStart(2, '0');
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    return `${dd}-${mm}-${d.getUTCFullYear()}`;
+}
 
-/* ── build paired rows from intervention records ───────────────────────────── */
+/* ── group builder (shared with Excel/Word) ────────────────────────────────── */
 
-/**
- * Normalise a record into a common shape regardless of source:
- *   - all-report repo  → { bankType, cropWithVariety, quantityQ, kvkName, stateName }
- *   - module export    → { seedBankFodderBank (string|{name}), crop, variety, quantityQ }
- */
 function normalizeRow(r) {
     let bank = r.bankType;
     if (!bank) {
         const sb = r.seedBankFodderBank;
         bank = typeof sb === 'string' ? sb : sb?.name || '';
     }
-    let cropVariety = r.cropWithVariety;
-    if (cropVariety == null) {
-        cropVariety = r.variety
-            ? `${r.crop || ''} ${r.variety}`.trim()
-            : r.crop || '';
-    }
     return {
-        kvkName: r.kvkName || '',
-        stateName: r.stateName || '',
-        bank: bank || '',
-        cropVariety: cropVariety || '',
-        qty: r.quantityQ != null ? num(r.quantityQ) : null,
+        kvkName: r.kvkName || r.kvk?.kvkName || '',
+        stateName: r.stateName || r.kvk?.state?.stateName || '',
+        bankType: bank || '',
+        crop: r.crop || '',
+        variety: r.variety || '',
+        quantityQ: r.quantityQ != null ? num(r.quantityQ) : 0,
+        startDate: r.startDate || null,
+        endDate: r.endDate || null,
     };
 }
 
-function buildPairs(records) {
-    // Group per KVK so seed/fodder entries pair within the same KVK row.
-    const groups = new Map();
+/**
+ * → { groups: [{ kvkName, rows:[...], subtotal }], isMultiKvk, grandTotal }
+ */
+function buildNicraInterventionGroups(rawData) {
+    const records = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const map = new Map();
+
     for (const raw of records) {
         const r = normalizeRow(raw);
-        const key = `${r.stateName}::${r.kvkName}`;
-        if (!groups.has(key)) {
-            groups.set(key, { stateName: r.stateName, kvkName: r.kvkName, seed: [], fodder: [] });
-        }
-        const g = groups.get(key);
-        if (/fodder/i.test(r.bank)) g.fodder.push(r);
-        else g.seed.push(r); // seed bank, or unknown → seed column
+        const key = r.kvkName || '—';
+        if (!map.has(key)) map.set(key, { kvkName: r.kvkName || '—', rows: [], subtotal: 0 });
+        const g = map.get(key);
+        g.rows.push(r);
+        g.subtotal += r.quantityQ;
     }
 
-    const pairs = [];
-    for (const g of groups.values()) {
-        const len = Math.max(g.seed.length, g.fodder.length);
-        for (let i = 0; i < len; i++) {
-            const s = g.seed[i];
-            const f = g.fodder[i];
-            if (!s && !f) continue;
-            pairs.push({
-                kvkName: g.kvkName,
-                stateName: g.stateName,
-                seedCropVariety: s ? s.cropVariety : '',
-                seedQuantityQ: s ? s.qty : null,
-                fodderCropVariety: f ? f.cropVariety : '',
-                fodderQuantityQ: f ? f.qty : null,
-            });
-        }
-    }
-    return pairs;
+    const groups = Array.from(map.values());
+    const grandTotal = groups.reduce((s, g) => s + g.subtotal, 0);
+    return { groups, isMultiKvk: groups.length > 1, grandTotal };
 }
 
-/* ── table HTML ───────────────────────────────────────────────────────────── */
+/* ── PDF rendering ──────────────────────────────────────────────────────────── */
 
-function buildTableHTML(pairs) {
-    if (!pairs || pairs.length === 0) {
-        return `<p class="nicra-int-no-data">No intervention data available.</p>`;
-    }
+const STYLE = `
+<style>
+  .nicra-int-table {
+    width: 100%; table-layout: fixed; border-collapse: collapse;
+    font-size: 7pt; line-height: 1.25; margin-bottom: 10px;
+  }
+  .nicra-int-table th, .nicra-int-table td {
+    border: 0.5px solid #000; padding: 2px 3px;
+    text-align: center; vertical-align: middle; word-break: break-word;
+  }
+  .nicra-int-table th { font-weight: bold; background: #f0f0f0; }
+  .nicra-int-table td.L { text-align: left; }
+  .nicra-int-table tr.sub td { font-weight: bold; background: #f1f5f9; }
+  .nicra-int-kvk { font-size: 9pt; font-weight: bold; margin: 8px 0 3px; background:#dce6f1; padding:3px 5px; }
+  .nicra-int-grand { font-size: 8pt; font-weight: bold; margin: 6px 0; }
+  .nicra-int-no-data { color: #777; font-style: italic; font-size: 9pt; padding: 4px 0; }
+</style>`;
 
-    const rows = pairs.map((r, idx) => `
+const COLGROUP = `
+    <colgroup>
+        <col style="width:5%">
+        <col style="width:14%">
+        <col style="width:20%">
+        <col style="width:20%">
+        <col style="width:11%">
+        <col style="width:15%">
+        <col style="width:15%">
+    </colgroup>`;
+
+const THEAD = `
+    <thead>
+        <tr>
+            <th>S.No.</th>
+            <th>Bank Type</th>
+            <th>Crop</th>
+            <th>Variety</th>
+            <th>Quantity (q)</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+        </tr>
+    </thead>`;
+
+function buildGroupHTML(g) {
+    const rows = g.rows.map((r, idx) => `
         <tr>
             <td>${idx + 1}</td>
-            <td class="L">${esc(r.stateName || '-')}</td>
-            <td class="L">${esc(r.kvkName || '-')}</td>
-            <td class="L">${esc(r.seedCropVariety || '-')}</td>
-            <td>${r.seedQuantityQ != null ? num(r.seedQuantityQ) : '-'}</td>
-            <td class="L">${esc(r.fodderCropVariety || '-')}</td>
-            <td>${r.fodderQuantityQ != null ? num(r.fodderQuantityQ) : '-'}</td>
+            <td class="L">${esc(r.bankType || '-')}</td>
+            <td class="L">${esc(r.crop || '-')}</td>
+            <td class="L">${esc(r.variety || '-')}</td>
+            <td>${num(r.quantityQ)}</td>
+            <td>${fmtDate(r.startDate)}</td>
+            <td>${fmtDate(r.endDate)}</td>
         </tr>`).join('');
 
     return `
+        <div class="nicra-int-kvk">${esc(g.kvkName)}</div>
         <table class="nicra-int-table">
-            <colgroup>
-                <col style="width:5%">
-                <col style="width:12%">
-                <col style="width:18%">
-                <col style="width:25%">
-                <col style="width:10%">
-                <col style="width:22%">
-                <col style="width:8%">
-            </colgroup>
-            <thead>
-                <tr>
-                    <th rowspan="2">S.No.</th>
-                    <th rowspan="2">State</th>
-                    <th rowspan="2">KVK</th>
-                    <th colspan="2">Seed bank</th>
-                    <th colspan="2">Fodder bank</th>
+            ${COLGROUP}
+            ${THEAD}
+            <tbody>
+                ${rows}
+                <tr class="sub">
+                    <td colspan="4">Sub-total — ${esc(g.kvkName)}</td>
+                    <td>${num(g.subtotal)}</td>
+                    <td colspan="2"></td>
                 </tr>
-                <tr>
-                    <th>Crop with variety</th>
-                    <th>Quantity in (q)</th>
-                    <th>Fodder crop with variety</th>
-                    <th>Quantity in (q)</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
+            </tbody>
         </table>`;
 }
 
-/* ── main renderer ────────────────────────────────────────────────────────── */
-
-/**
- * Correct signature: (section, data, sectionId, isFirstSection, reportContext)
- */
 function renderNicraInterventionSection(section, data, sectionId, isFirstSection, reportContext = {}) {
     const pageClass = isFirstSection
         ? 'section-page section-page-first'
         : 'section-page section-page-continued';
 
-    let pairs;
+    const { groups, isMultiKvk, grandTotal } = buildNicraInterventionGroups(data);
 
-    if (!Array.isArray(data)) {
-        pairs = [];
-    } else if (data.length > 0 && data[0]?.seedCropVariety !== undefined) {
-        // Already paired (some callers pre-pair the rows).
-        pairs = data;
-    } else {
-        // Flat intervention rows (all-report repo or module export) → pair them.
-        pairs = buildPairs(data);
-    }
+    const body = groups.length === 0
+        ? `<p class="nicra-int-no-data">No intervention data available.</p>`
+        : groups.map(buildGroupHTML).join('')
+          + (isMultiKvk ? `<p class="nicra-int-grand">Grand Total (all KVKs): ${num(grandTotal)} q</p>` : '');
 
     return `
 <div id="${sectionId}" class="${pageClass}">
 ${STYLE}
   <h1 class="section-title">${esc(section.id)} ${esc(section.title)}</h1>
-  <p class="nicra-int-title">Seed Bank &amp; Fodder Bank Intervention Details</p>
-  ${buildTableHTML(pairs)}
+  <p class="nicra-int-grand">Seed Bank &amp; Fodder Bank Intervention Details</p>
+  ${body}
 </div>`;
 }
 
-module.exports = { renderNicraInterventionSection };
+module.exports = {
+    renderNicraInterventionSection,
+    buildNicraInterventionGroups,
+    fmtDate,
+};

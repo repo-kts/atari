@@ -973,8 +973,8 @@ const reportConfig = {
              format: 'custom',
              customTemplate: 'nicra-vcrmc',
              filters: {
-                 dateFields: ['vcrmcConstitutionDate', 'dateOfMeeting'],
-                 yearFields: ['vcrmcConstitutionDate'],
+                 dateFields: ['constitutionDate', 'meetingDate'],
+                 yearFields: ['constitutionDate'],
              },
              fields: [],
          },
