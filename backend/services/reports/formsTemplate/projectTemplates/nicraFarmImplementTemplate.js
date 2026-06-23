@@ -1,68 +1,59 @@
 function esc(t){if(t===null||t===undefined)return'';const m={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};return String(t).replace(/[&<>"']/g,c=>m[c]);}
 function n(v){const x=Number(v);return Number.isFinite(x)?x:0;}
 
-function pickFirst(...values){
-  for (const value of values) {
-    if (value !== null && value !== undefined && value !== '') return value;
-  }
-  return '';
-}
-
-function resolveStateName(row){
-  return pickFirst(
-    row?.stateName,
-    row?.state,
-    row?.kvk?.stateName,
-    row?.kvk?.state?.stateName,
-    row?.kvks?.stateName,
-    row?.kvks?.state?.stateName
-  );
+function sortStr(a, b) {
+    return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
 }
 
 function resolveKvkName(row){
-  return pickFirst(
-    row?.kvkName,
-    row?.kvk?.kvkName,
-    row?.kvks?.kvkName
-  );
+    return (row && (row.kvkName || (row.kvk && row.kvk.kvkName)) && String(row.kvkName || row.kvk.kvkName).trim()) || 'Unknown KVK';
 }
 
-function renderNicraFarmImplementSection(section, data, sectionId, isFirstSection){
-  const rows = Array.isArray(data)?data:(data?[data]:[]);
-  if(rows.length===0){ return this._generateEmptySection(section,null,sectionId,isFirstSection); }
-  const body = rows.map((r,idx)=>`
-    <tr>
-      <td>${idx+1}</td>
-      <td class="l">${esc(resolveStateName(r))}</td>
-      <td class="l">${esc(resolveKvkName(r))}</td>
-      <td class="l">${esc(r.nameOfFarmImplement || '')}</td>
-      <td>${n(r.genM)}</td><td>${n(r.genF)}</td><td>${n(r.genT)}</td>
-      <td>${n(r.obcM)}</td><td>${n(r.obcF)}</td><td>${n(r.obcT)}</td>
-      <td>${n(r.scM)}</td><td>${n(r.scF)}</td><td>${n(r.scT)}</td>
-      <td>${n(r.stM)}</td><td>${n(r.stF)}</td><td>${n(r.stT)}</td>
-      <td>${n(r.totM)}</td><td>${n(r.totF)}</td><td>${n(r.totT)}</td>
-      <td>${n(r.areaCovered)}</td>
-      <td>${n(r.farmImplementUsedHours)}</td>
-      <td>${n(r.revenueGeneratedRs)}</td>
-      <td>${n(r.expenditureIncurredRepairingRs)}</td>
-    </tr>
-  `).join('');
+function resolveStateName(row){
+    return (row && (row.stateName || (row.kvk && row.kvk.state && row.kvk.state.stateName)) && String(row.stateName || row.kvk.state.stateName).trim()) || '';
+}
 
-  return `
-<div id="${sectionId}" class="${isFirstSection?'section-page section-page-first':'section-page section-page-continued'}">
-  <style>
-    .nicra-fi { width:100%; table-layout:fixed; border-collapse:collapse; font-size:6.2pt; line-height:1.15; }
-    .nicra-fi th,.nicra-fi td { border:0.2px solid #000; padding:2px 3px; text-align:center; vertical-align:middle; word-break:break-word; }
-    .nicra-fi thead th { background:#fff; font-weight:bold; }
-    .nicra-fi .l { text-align:left; }
-  </style>
-  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
-  <table class="nicra-fi">
+function displayRow(r){
+    return {
+        nameOfFarmImplement: r.nameOfFarmImplement || r.nameOfFarmImplementEquipment || '',
+        genM: n(r.genM), genF: n(r.genF), genT: n(r.genT),
+        obcM: n(r.obcM), obcF: n(r.obcF), obcT: n(r.obcT),
+        scM: n(r.scM), scF: n(r.scF), scT: n(r.scT),
+        stM: n(r.stM), stF: n(r.stF), stT: n(r.stT),
+        totM: n(r.totM), totF: n(r.totF), totT: n(r.totT),
+        areaCovered: n(r.areaCovered),
+        farmImplementUsedHours: n(r.farmImplementUsedHours),
+        revenueGeneratedRs: n(r.revenueGeneratedRs),
+        expenditureIncurredRepairingRs: n(r.expenditureIncurredRepairingRs),
+    };
+}
+
+/**
+ * Groups NICRA farm-implement (Custom Hiring) rows by KVK so admins see each KVK
+ * as its own block (KVK name as a header band) and a KVK user sees a single block.
+ * @returns {{ groups: {kvkName: string, stateName: string, rows: object[]}[], isMultiKvk: boolean }}
+ */
+function buildNicraFarmImplementGroups(rawData){
+    const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const byKvk = new Map();
+    for (const r of rows) {
+        const k = resolveKvkName(r);
+        if (!byKvk.has(k)) byKvk.set(k, { stateName: resolveStateName(r), rows: [] });
+        byKvk.get(k).rows.push(r);
+    }
+    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => ({
+        kvkName,
+        stateName: byKvk.get(kvkName).stateName,
+        rows: byKvk.get(kvkName).rows.map((r, i) => ({ sl: i + 1, ...displayRow(r) })),
+    }));
+    return { groups, isMultiKvk: groups.length > 1 };
+}
+
+function headHtml(){
+    return `
     <thead>
       <tr>
         <th rowspan="2">S.No.</th>
-        <th rowspan="2">State</th>
-        <th rowspan="2">KVK</th>
         <th rowspan="2">Name of farm implement/equipment</th>
         <th colspan="3">General</th>
         <th colspan="3">OBC</th>
@@ -81,12 +72,54 @@ function renderNicraFarmImplementSection(section, data, sectionId, isFirstSectio
         <th>M</th><th>F</th><th>T</th>
         <th>M</th><th>F</th><th>T</th>
       </tr>
-    </thead>
-    <tbody>
-      ${body}
-    </tbody>
-  </table>
+    </thead>`;
+}
+
+function renderNicraFarmImplementSection(section, data, sectionId, isFirstSection){
+    const { groups } = buildNicraFarmImplementGroups(data);
+    if(groups.length===0){ return this._generateEmptySection(section,null,sectionId,isFirstSection); }
+
+    const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+
+    const groupsHtml = groups.map((g) => {
+        const body = g.rows.map((r) => `
+      <tr>
+        <td>${r.sl}</td>
+        <td class="l">${esc(r.nameOfFarmImplement)}</td>
+        <td>${r.genM}</td><td>${r.genF}</td><td>${r.genT}</td>
+        <td>${r.obcM}</td><td>${r.obcF}</td><td>${r.obcT}</td>
+        <td>${r.scM}</td><td>${r.scF}</td><td>${r.scT}</td>
+        <td>${r.stM}</td><td>${r.stF}</td><td>${r.stT}</td>
+        <td>${r.totM}</td><td>${r.totF}</td><td>${r.totT}</td>
+        <td>${r.areaCovered}</td>
+        <td>${r.farmImplementUsedHours}</td>
+        <td>${r.revenueGeneratedRs}</td>
+        <td>${r.expenditureIncurredRepairingRs}</td>
+      </tr>`).join('');
+
+        const band = g.stateName ? `${esc(g.kvkName)} — ${esc(g.stateName)}` : esc(g.kvkName);
+        return `
+  <div class="nicra-fi-group">
+    <div class="nicra-fi-kvk-hd">${band}</div>
+    <table class="nicra-fi">${headHtml()}
+      <tbody>${body}</tbody>
+    </table>
+  </div>`;
+    }).join('');
+
+    return `
+<div id="${sectionId}" class="${pageClass}">
+  <style>
+    .nicra-fi-group { page-break-inside:avoid; break-inside:avoid; margin-bottom:8px; }
+    .nicra-fi-kvk-hd { font-size:8pt; font-weight:bold; background:#dce6f1; padding:3px 5px; border:0.2px solid #000; border-bottom:0; page-break-after:avoid; break-after:avoid; }
+    .nicra-fi { width:100%; table-layout:fixed; border-collapse:collapse; font-size:6.2pt; line-height:1.15; }
+    .nicra-fi th,.nicra-fi td { border:0.2px solid #000; padding:2px 3px; text-align:center; vertical-align:middle; word-break:break-word; }
+    .nicra-fi thead th { background:#e8e8e8; font-weight:bold; }
+    .nicra-fi .l { text-align:left; }
+  </style>
+  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+  ${groupsHtml}
 </div>`;
 }
 
-module.exports = { renderNicraFarmImplementSection };
+module.exports = { renderNicraFarmImplementSection, buildNicraFarmImplementGroups };

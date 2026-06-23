@@ -2,34 +2,52 @@ function esc(t) { if (t === null || t === undefined) return ''; const m = { '&':
 function n(v) { const x = Number(v); return Number.isFinite(x) ? x : 0; }
 function d(dt) { if (!dt) return ''; const s = new Date(dt); return isNaN(s) ? '' : s.toISOString().slice(0, 10); }
 
-function renderNicraTrainingSection(section, data, sectionId, isFirstSection) {
-    const rows = Array.isArray(data) ? data : (data ? [data] : []);
-    if (rows.length === 0) { return this._generateEmptySection(section, null, sectionId, isFirstSection); }
-    const body = rows.map((r, idx) => `
-    <tr>
-      <td>${idx + 1}</td>
-      <td class="l">${esc(r.titleOfTraining || '')}</td>
-      <td>${esc(d(r.startDate))} to ${esc(d(r.endDate))}</td>
-      <td>${n(r.durationDays)}</td>
-      <td>${esc(r.campusType === 'ON_CAMPUS' ? 'On-campus' : (r.campusType === 'OFF_CAMPUS' ? 'Off-campus' : (r.campusType || '')))}</td>
-      <td>${n(r.genM)}</td><td>${n(r.genF)}</td><td>${n(r.genT)}</td>
-      <td>${n(r.obcM)}</td><td>${n(r.obcF)}</td><td>${n(r.obcT)}</td>
-      <td>${n(r.scM)}</td><td>${n(r.scF)}</td><td>${n(r.scT)}</td>
-      <td>${n(r.stM)}</td><td>${n(r.stF)}</td><td>${n(r.stT)}</td>
-      <td>${n(r.totM)}</td><td>${n(r.totF)}</td><td>${n(r.totT)}</td>
-    </tr>
-  `).join('');
+function sortStr(a, b) {
+    return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
+}
 
+function campusLabel(v) {
+    if (v === 'ON_CAMPUS') return 'On-campus';
+    if (v === 'OFF_CAMPUS') return 'Off-campus';
+    return v || '';
+}
+
+function displayRow(r) {
+    return {
+        title: r.titleOfTraining || r.trainingTitle || '',
+        period: `${d(r.startDate)} to ${d(r.endDate)}`,
+        duration: n(r.durationDays),
+        type: campusLabel(r.campusType),
+        genM: n(r.genM), genF: n(r.genF), genT: n(r.genT),
+        obcM: n(r.obcM), obcF: n(r.obcF), obcT: n(r.obcT),
+        scM: n(r.scM), scF: n(r.scF), scT: n(r.scT),
+        stM: n(r.stM), stF: n(r.stF), stT: n(r.stT),
+        totM: n(r.totM), totF: n(r.totF), totT: n(r.totT),
+    };
+}
+
+/**
+ * Groups NICRA training rows by KVK so admins see each KVK as its own block and
+ * a KVK user sees a single block — the KVK name shows as a header band.
+ * @returns {{ groups: {kvkName: string, rows: object[]}[], isMultiKvk: boolean }}
+ */
+function buildNicraTrainingGroups(rawData) {
+    const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const byKvk = new Map();
+    for (const r of rows) {
+        const k = (r && (r.kvkName || (r.kvk && r.kvk.kvkName)) && String(r.kvkName || r.kvk.kvkName).trim()) || 'Unknown KVK';
+        if (!byKvk.has(k)) byKvk.set(k, []);
+        byKvk.get(k).push(r);
+    }
+    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => ({
+        kvkName,
+        rows: byKvk.get(kvkName).map((r, i) => ({ sl: i + 1, ...displayRow(r) })),
+    }));
+    return { groups, isMultiKvk: groups.length > 1 };
+}
+
+function headHtml() {
     return `
-<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <style>
-    .nicra-train { width:100%; table-layout:fixed; border-collapse:collapse; font-size:6.2pt; line-height:1.15; }
-    .nicra-train th,.nicra-train td { border:0.2px solid #000; padding:2px 3px; text-align:center; vertical-align:middle; word-break:break-word; }
-    .nicra-train thead th { background:#fff; font-weight:bold; }
-    .nicra-train .l { text-align:left; }
-  </style>
-  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
-  <table class="nicra-train">
     <thead>
       <tr>
         <th rowspan="2">S.No.</th>
@@ -50,12 +68,52 @@ function renderNicraTrainingSection(section, data, sectionId, isFirstSection) {
         <th>M</th><th>F</th><th>T</th>
         <th>M</th><th>F</th><th>T</th>
       </tr>
-    </thead>
-    <tbody>
-      ${body}
-    </tbody>
-  </table>
+    </thead>`;
+}
+
+function renderNicraTrainingSection(section, data, sectionId, isFirstSection) {
+    const { groups } = buildNicraTrainingGroups(data);
+    if (groups.length === 0) { return this._generateEmptySection(section, null, sectionId, isFirstSection); }
+
+    const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+
+    const groupsHtml = groups.map((g) => {
+        const body = g.rows.map((r) => `
+      <tr>
+        <td>${r.sl}</td>
+        <td class="l">${esc(r.title)}</td>
+        <td>${esc(r.period)}</td>
+        <td>${r.duration}</td>
+        <td>${esc(r.type)}</td>
+        <td>${r.genM}</td><td>${r.genF}</td><td>${r.genT}</td>
+        <td>${r.obcM}</td><td>${r.obcF}</td><td>${r.obcT}</td>
+        <td>${r.scM}</td><td>${r.scF}</td><td>${r.scT}</td>
+        <td>${r.stM}</td><td>${r.stF}</td><td>${r.stT}</td>
+        <td>${r.totM}</td><td>${r.totF}</td><td>${r.totT}</td>
+      </tr>`).join('');
+
+        return `
+  <div class="nicra-train-group">
+    <div class="nicra-train-kvk-hd">${esc(g.kvkName)}</div>
+    <table class="nicra-train">${headHtml()}
+      <tbody>${body}</tbody>
+    </table>
+  </div>`;
+    }).join('');
+
+    return `
+<div id="${sectionId}" class="${pageClass}">
+  <style>
+    .nicra-train-group { page-break-inside:avoid; break-inside:avoid; margin-bottom:8px; }
+    .nicra-train-kvk-hd { font-size:8pt; font-weight:bold; background:#dce6f1; padding:3px 5px; border:0.2px solid #000; border-bottom:0; page-break-after:avoid; break-after:avoid; }
+    .nicra-train { width:100%; table-layout:fixed; border-collapse:collapse; font-size:6.2pt; line-height:1.15; }
+    .nicra-train th,.nicra-train td { border:0.2px solid #000; padding:2px 3px; text-align:center; vertical-align:middle; word-break:break-word; }
+    .nicra-train thead th { background:#e8e8e8; font-weight:bold; }
+    .nicra-train .l { text-align:left; }
+  </style>
+  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+  ${groupsHtml}
 </div>`;
 }
 
-module.exports = { renderNicraTrainingSection };
+module.exports = { renderNicraTrainingSection, buildNicraTrainingGroups };

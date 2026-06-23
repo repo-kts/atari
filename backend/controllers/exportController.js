@@ -89,6 +89,30 @@ const {
     generateScientistAwardDetailedExcelBuffer,
     generateScientistAwardDetailedWordBuffer,
 } = require('../utils/scientistAwardDetailedPageExport.js');
+const {
+    generateCfldExtensionActivityExcelBuffer,
+    generateCfldExtensionActivityWordBuffer,
+} = require('../utils/cfldExtensionActivityPageExport.js');
+const {
+    generateNicraBasicExcelBuffer,
+    generateNicraBasicWordBuffer,
+} = require('../utils/nicraBasicPageExport.js');
+const {
+    generateNicraTrainingExcelBuffer,
+    generateNicraTrainingWordBuffer,
+} = require('../utils/nicraTrainingPageExport.js');
+const {
+    generateNicraInterventionExcelBuffer,
+    generateNicraInterventionWordBuffer,
+} = require('../utils/nicraInterventionPageExport.js');
+const {
+    generateNicraVcrmcExcelBuffer,
+    generateNicraVcrmcWordBuffer,
+} = require('../utils/nicraVcrmcPageExport.js');
+const {
+    generateNicraFarmImplementExcelBuffer,
+    generateNicraFarmImplementWordBuffer,
+} = require('../utils/nicraFarmImplementPageExport.js');
 const { buildKvkAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/kvkAwardSummaryTemplate.js');
 const { resolveKvkAwardDetailedPayload } = require('../repositories/reports/kvkAwardReportRepository.js');
 const {
@@ -339,6 +363,12 @@ const exportData = async (req, res) => {
                         'production-supply-page-report',
                         'soil-water-analysis-detail-report',
                         'farmer-award-detailed-report',
+                        'cfld-extension-activity',
+                        'nicra-details',
+                        'nicra-training',
+                        'nicra-extension',
+                        'nicra-farm-implement',
+                        'nicra-vcrmc',
                     ]);
                     buffer = await exportHelper.generatePDF(html, {
                         landscape: landscapeTemplates.has(templateKey),
@@ -352,6 +382,12 @@ const exportData = async (req, res) => {
                     // Build from the SAME HTML the PDF uses so Excel matches exactly.
                     const oftHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportExcelService.generateStandaloneExcelFromHtml(title, oftHtml);
+                } else if ((templateKey === 'cfld-combined' || templateKey === 'cfld-budget-utilization' || templateKey === 'nicra-details' || templateKey === 'nicra-extension') && rawData) {
+                    // Build from the SAME HTML the PDF uses, but interleave headings
+                    // with their tables and split one tab per State (Technical) / KVK
+                    // (Budget / NICRA details) so the layout matches the PDF exactly.
+                    const cfldHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportExcelService.generateCfldExcelFromHtml(title, cfldHtml);
                 } else if (templateKey === 'fld-page-report') {
                     buffer = await generateFldPageExcelBuffer(
                         title,
@@ -417,6 +453,18 @@ const exportData = async (req, res) => {
                     buffer = await generateHrdProgrammesExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'scientist-award-detailed') {
                     buffer = await generateScientistAwardDetailedExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'cfld-extension-activity') {
+                    buffer = await generateCfldExtensionActivityExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-basic') {
+                    buffer = await generateNicraBasicExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-training') {
+                    buffer = await generateNicraTrainingExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-intervention') {
+                    buffer = await generateNicraInterventionExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-farm-implement') {
+                    buffer = await generateNicraFarmImplementExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-vcrmc') {
+                    buffer = await generateNicraVcrmcExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryExcelBuffer(effectiveRawData);
                 } else {
@@ -429,6 +477,9 @@ const exportData = async (req, res) => {
                 if (templateKey === 'oft-combined' && rawData) {
                     const oftHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportWordService.generateStandaloneWordFromHtml(title, oftHtmlW);
+                } else if ((templateKey === 'cfld-combined' || templateKey === 'cfld-budget-utilization' || templateKey === 'nicra-details' || templateKey === 'nicra-extension') && rawData) {
+                    const cfldHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportWordService.generateCfldWordFromHtml(title, cfldHtmlW);
                 } else if (templateKey === 'fld-page-report') {
                     buffer = await generateFldPageWordBuffer(
                         title,
@@ -491,6 +542,18 @@ const exportData = async (req, res) => {
                     buffer = await generateHrdProgrammesWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'scientist-award-detailed') {
                     buffer = await generateScientistAwardDetailedWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'cfld-extension-activity') {
+                    buffer = await generateCfldExtensionActivityWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-basic') {
+                    buffer = await generateNicraBasicWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-training') {
+                    buffer = await generateNicraTrainingWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-intervention') {
+                    buffer = await generateNicraInterventionWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-farm-implement') {
+                    buffer = await generateNicraFarmImplementWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-vcrmc') {
+                    buffer = await generateNicraVcrmcWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryWordBuffer(effectiveRawData);
                 } else {

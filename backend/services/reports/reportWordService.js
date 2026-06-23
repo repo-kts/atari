@@ -20,7 +20,7 @@ const {
     PageOrientation,
 } = require('docx');
 const reportTemplateService = require('./reportTemplateService.js');
-const { parseSectionHtml } = require('../../utils/htmlReportTableParser.js');
+const { parseSectionHtml, parseOrderedBlocks } = require('../../utils/htmlReportTableParser.js');
 const { fetchImageBuffer } = require('../../utils/fetchImageBuffer.js');
 
 /**
@@ -265,6 +265,61 @@ class ReportWordService {
             sections: [{
                 properties: { page: { size: { orientation: PageOrientation.LANDSCAPE } } },
                 children: body,
+            }],
+        });
+
+        return Packer.toBuffer(doc);
+    }
+
+    /**
+     * CFLD Word from the SAME HTML the PDF uses, interleaving headings with their
+     * tables in document order so each State/KVK label appears immediately before
+     * its tables (the generic export lumps all headings at the top).
+     * @returns {Promise<Buffer>}
+     */
+    async generateCfldWordFromHtml(title, html, { generatedBy = 'System' } = {}) {
+        const LANDSCAPE_WIDTH_DXA = 14400;
+        const blocks = parseOrderedBlocks(html);
+        const body = [];
+
+        // Group labels (section title / State: … / KVK: …) render as bold SHADED
+        // paragraphs sitting right above their table — like the CFLD extension
+        // activity layout. Deliberately NOT Word heading styles, so they don't
+        // pile up in the navigation/outline pane as a "summary list" of KVKs.
+        for (const block of blocks) {
+            if (block.type === 'table') {
+                body.push(buildDocxTable(block.table, LANDSCAPE_WIDTH_DXA));
+                body.push(new Paragraph({ children: [] }));
+                continue;
+            }
+            if (block.level === 1) {
+                body.push(new Paragraph({
+                    spacing: { before: 80, after: 120 },
+                    children: [new TextRun({ text: block.text, bold: true, size: 26, color: '1F6E43' })],
+                }));
+            } else if (block.level === 2) {
+                // State: … / KVK: … group label — shaded block, attached to its table.
+                body.push(new Paragraph({
+                    spacing: { before: 160, after: 0 },
+                    shading: { type: ShadingType.CLEAR, fill: 'DCE6F1' },
+                    keepNext: true,
+                    children: [new TextRun({ text: block.text, bold: true, size: 20 })],
+                }));
+            } else {
+                body.push(new Paragraph({
+                    spacing: { before: 60, after: 20 },
+                    keepNext: true,
+                    children: [new TextRun({ text: block.text, bold: true })],
+                }));
+            }
+        }
+
+        const doc = new Document({
+            creator: generatedBy,
+            title: title || 'Report',
+            sections: [{
+                properties: { page: { size: { orientation: PageOrientation.LANDSCAPE } } },
+                children: body.length ? body : [new Paragraph({ children: [new TextRun({ text: 'No data available.', italics: true })] })],
             }],
         });
 

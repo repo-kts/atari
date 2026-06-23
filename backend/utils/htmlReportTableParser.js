@@ -131,4 +131,27 @@ function parseSectionHtml(html) {
     return { headings, tables, images };
 }
 
-module.exports = { parseSectionHtml, stripTags, decodeEntities };
+/**
+ * Walk h1/h2/h3 headings and <table>s in DOCUMENT ORDER, so a writer can
+ * interleave headings with their tables (instead of headings-then-tables).
+ * Used by the CFLD exports where state/KVK headings must appear before each
+ * table block. Returns: [{ type:'heading', level:1|2|3, text } | { type:'table', table }]
+ */
+function parseOrderedBlocks(html) {
+    const clean = String(html || '').replace(/<style[\s\S]*?<\/style>/gi, '');
+    const blocks = [];
+    const re = /<(h1|h2|h3)\b[^>]*>([\s\S]*?)<\/\1>|<table\b[^>]*>([\s\S]*?)<\/table>/gi;
+    let m;
+    while ((m = re.exec(clean))) {
+        if (m[1]) {
+            const text = stripTags(m[2]);
+            if (text) blocks.push({ type: 'heading', level: Number(m[1].slice(1)), text });
+        } else {
+            const table = parseTable(m[3]);
+            if (table) blocks.push({ type: 'table', table });
+        }
+    }
+    return blocks;
+}
+
+module.exports = { parseSectionHtml, parseOrderedBlocks, stripTags, decodeEntities };

@@ -52,6 +52,7 @@ const { renderNicraExtensionSection } = require('./formsTemplate/projectTemplate
 const { renderNicraFarmImplementSection } = require('./formsTemplate/projectTemplates/nicraFarmImplementTemplate.js');
 const { renderNicraVcrmcSection } = require('./formsTemplate/projectTemplates/nicraVcrmcTemplate.js');
 const { renderNicraSoilHealthSection } = require('./formsTemplate/projectTemplates/nicraSoilHealthTemplate.js');
+const { renderNicraDetailsReportSection } = require('./formsTemplate/projectTemplates/nicraDetailsReportTemplate.js');
 const { renderNaturalFarmingPhysicalSection } = require('./formsTemplate/projectTemplates/naturalFarmingPhysicalTemplate.js');
 const { renderNfDemonstrationInformationSection } = require('./formsTemplate/projectTemplates/nfDemonstrationInformationTemplate.js');
 const { renderNfFarmersPracticingInformationSection } = require('./formsTemplate/projectTemplates/nfFarmersPracticingInformationTemplate.js');
@@ -179,6 +180,7 @@ class ReportTemplateService {
             'nari-value-addition': renderNariValueAdditionSection.bind(this),
             'arya-current': renderAryaCurrentSection.bind(this),
             'arya-prev-year': renderAryaPrevYearSection.bind(this),
+            'nicra-details': renderNicraDetailsReportSection.bind(this),
             'nicra-basic': renderNicraBasicSection.bind(this),
             'nicra-training': renderNicraTrainingSection.bind(this),
             'nicra-intervention': renderNicraInterventionSection.bind(this),

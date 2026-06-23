@@ -251,7 +251,10 @@ function renderPerceptionTable(ctx, records) {
     return renderCfldTable(headers, rows);
 }
 
-function renderKvkLayout(ctx, records) {
+// The four parameter tables (Technical / Economic / Socio / Perception) with
+// their numbered sub-headings. Shared by the KVK layout and each KVK block of
+// the super-admin (state → KVK) layout, so all three formats stay identical.
+function renderFourTables(ctx, records) {
     const sorted = [...records].sort((a, b) => {
         const s = seasonOrder(a.seasonName) - seasonOrder(b.seasonName);
         if (s !== 0) return s;
@@ -259,8 +262,6 @@ function renderKvkLayout(ctx, records) {
     });
 
     return `
-        <h2 class="about-kvk-heading">PERFORMANCE OF THE DEMONSTRATION UNDER CFLD ON PULSE AND OILSEED CROPS (CFLD)</h2>
-        <p style="margin-bottom:12px;"><strong>(During Kharif, Rabi and Summer)</strong></p>
         <h3 class="about-kvk-subheading">1. Technical Parameters:</h3>
         ${renderTechnicalTable(ctx, sorted)}
         <h3 class="about-kvk-subheading">2. Economic parameters:</h3>
@@ -269,6 +270,14 @@ function renderKvkLayout(ctx, records) {
         ${renderSocioTable(ctx, sorted)}
         <h3 class="about-kvk-subheading">4. Pulses/Oilseed Farmers' perception of the intervention demonstrated</h3>
         ${renderPerceptionTable(ctx, sorted)}
+    `;
+}
+
+function renderKvkLayout(ctx, records) {
+    return `
+        <h2 class="about-kvk-heading">PERFORMANCE OF THE DEMONSTRATION UNDER CFLD ON PULSE AND OILSEED CROPS (CFLD)</h2>
+        <p style="margin-bottom:12px;"><strong>(During Kharif, Rabi and Summer)</strong></p>
+        ${renderFourTables(ctx, records)}
     `;
 }
 
@@ -452,16 +461,27 @@ function renderSeasonWiseTable(ctx, records) {
 
 /**
  * Super-admin / aggregated layout: the SAME four tables as the KVK side, grouped
- * by state (one "State: X" block per state).
+ * by state and then KVK-wise inside each state (State: X → KVK: Y blocks).
  */
 function renderSuperAdminLayout(ctx, records) {
     const byState = groupBy(records, r => r.stateName || 'Unknown');
     return Array.from(byState.entries())
         .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([state, stateRecords]) => `
-            <h2 class="about-kvk-heading" style="margin-top:14px;">State: ${ctx._escapeHtml(state)}</h2>
-            ${renderKvkLayout(ctx, stateRecords)}
-        `)
+        .map(([state, stateRecords]) => {
+            const byKvk = groupBy(stateRecords, r => r.kvkName || 'Unknown KVK');
+            const kvkBlocks = Array.from(byKvk.entries())
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([kvk, kvkRecords]) => `
+                    <h3 class="about-kvk-subheading" style="margin-top:10px;">KVK: ${ctx._escapeHtml(kvk)}</h3>
+                    ${renderFourTables(ctx, kvkRecords)}
+                `)
+                .join('');
+            return `
+                <h2 class="about-kvk-heading" style="margin-top:14px;">State: ${ctx._escapeHtml(state)}</h2>
+                <p style="margin-bottom:12px;"><strong>PERFORMANCE OF THE DEMONSTRATION UNDER CFLD ON PULSE AND OILSEED CROPS (During Kharif, Rabi and Summer)</strong></p>
+                ${kvkBlocks}
+            `;
+        })
         .join('');
 }
 
