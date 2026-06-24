@@ -186,6 +186,61 @@ function resolveBudgetTemplatePayload(data) {
     return buildBudgetPayloadFromRecords([d]);
 }
 
+function sortStr(a, b) {
+    return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
+}
+
+function computeBudgetTotals(rows) {
+    return (rows || []).reduce((t, r) => ({
+        numberOfActivities: t.numberOfActivities + (Number(r.numberOfActivities) || 0),
+        budgetSanction: t.budgetSanction + (Number(r.budgetSanction) || 0),
+        budgetExpenditure: t.budgetExpenditure + (Number(r.budgetExpenditure) || 0),
+        totalBudgetExpenditure: t.totalBudgetExpenditure + (Number(r.totalBudgetExpenditure) || 0),
+    }), { numberOfActivities: 0, budgetSanction: 0, budgetExpenditure: 0, totalBudgetExpenditure: 0 });
+}
+
+/**
+ * Detailed KVK-wise payload: one group per KVK, each with one row per activity
+ * (+ a Total row) so the PDF/Excel/DOCX show which KVK every figure belongs to.
+ * Falls back to a single unlabelled group when given an already-aggregated
+ * { rows } payload (the all-reports flow), so that path keeps working.
+ * Returns { groups: [{ kvkName, rows, totals }], isMultiKvk, grandTotals, totalRecords }.
+ */
+function resolveBudgetGroupedPayload(data) {
+    // Already-aggregated payload(s) with no KVK context → one unlabelled group.
+    if (isBudgetPayload(data) || (Array.isArray(data) && data.length > 0 && data.every(isBudgetPayload))) {
+        const merged = resolveBudgetTemplatePayload(data);
+        const rows = merged.rows || [];
+        return {
+            groups: rows.length ? [{ kvkName: null, rows, totals: computeBudgetTotals(rows) }] : [],
+            isMultiKvk: false,
+            grandTotals: computeBudgetTotals(rows),
+            totalRecords: rows.length,
+        };
+    }
+
+    const list = Array.isArray(data) ? data : (data ? [data] : []);
+    const byKvk = new Map();
+    for (const raw of list) {
+        const kvk = (raw.kvkName || raw.kvk?.kvkName || '').trim() || 'Unknown KVK';
+        if (!byKvk.has(kvk)) byKvk.set(kvk, []);
+        byKvk.get(kvk).push(raw);
+    }
+
+    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => {
+        const { rows } = buildBudgetPayloadFromRecords(byKvk.get(kvkName));
+        return { kvkName, rows, totals: computeBudgetTotals(rows) };
+    }).filter((g) => g.rows.length > 0);
+
+    const allRows = groups.flatMap((g) => g.rows);
+    return {
+        groups,
+        isMultiKvk: groups.length > 1,
+        grandTotals: computeBudgetTotals(allRows),
+        totalRecords: allRows.length,
+    };
+}
+
 async function getNaturalFarmingBudgetExpenditureData(kvkId, filters = {}) {
     const where = {};
     if (kvkId) {
@@ -217,5 +272,7 @@ module.exports = {
     getNaturalFarmingBudgetExpenditureData,
     buildBudgetPayloadFromRecords,
     resolveBudgetTemplatePayload,
+    resolveBudgetGroupedPayload,
+    computeBudgetTotals,
     mergeBudgetPayloads,
 };

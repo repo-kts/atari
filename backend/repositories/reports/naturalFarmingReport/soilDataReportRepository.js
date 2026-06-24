@@ -188,6 +188,7 @@ function normalizeSoilExportRow(r) {
     const rawPid = r.soilParameterId ?? r.soil_parameter_id ?? r.naturalFarmingSoilParameterId;
     return {
         soilDataInformationId: r.soilDataInformationId ?? r.id,
+        kvkName: r.kvkName ?? r.kvk?.kvkName ?? '',
         soilParameterId: parseSoilParameterId(rawPid),
         seasonName: r.seasonName ?? (typeof r.season === 'string' ? r.season : r.season?.seasonName) ?? '',
         crop: r.crop ?? '',
@@ -268,10 +269,45 @@ async function getNaturalFarmingSoilData(kvkId, filters = {}) {
 }
 
 /**
+ * Group flat soil records by KVK, then build parameter tables inside each KVK.
+ * Returns { kvkGroups: [{ kvkName, tables, unassignedRows }], isMultiKvk }.
+ * Used by the module-wise export so the PDF/Excel/Word are KVK-wise
+ * (one Excel tab per KVK). Falls back to a single unnamed group when the
+ * incoming data is already a pre-grouped payload (no per-row KVK available).
+ */
+function resolveSoilTemplatePayloadByKvk(data) {
+    let d = data;
+    if (d && typeof d === 'object' && !Array.isArray(d) && d.data) {
+        d = d.data;
+    }
+    // Flat array of records → group by kvkName.
+    if (Array.isArray(d) && !d.some(isGroupedSoilPayload)) {
+        const byKvk = new Map();
+        for (const raw of d) {
+            const r = normalizeSoilExportRow(raw);
+            if (!r) continue;
+            const kvk = r.kvkName || 'Unknown KVK';
+            if (!byKvk.has(kvk)) byKvk.set(kvk, []);
+            byKvk.get(kvk).push(r);
+        }
+        const kvkGroups = Array.from(byKvk.keys())
+            .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+            .map((kvkName) => {
+                const { tables, unassignedRows } = inferSoilTablesFromRecords(byKvk.get(kvkName));
+                return { kvkName, tables, unassignedRows };
+            });
+        return { kvkGroups, isMultiKvk: kvkGroups.length > 1 };
+    }
+    // Already grouped (no per-row KVK) → one group, no KVK label.
+    const flat = resolveSoilTemplatePayload(d);
+    return { kvkGroups: [{ kvkName: '', tables: flat.tables, unassignedRows: flat.unassignedRows }], isMultiKvk: false };
+}
+
+/**
  * Same shape normalization as the PDF template (unwrap section wrapper, merge aggregated payloads).
  */
 async function prepareNfSoilExportPayload(rawData) {
-    return resolveSoilTemplatePayload(rawData);
+    return resolveSoilTemplatePayloadByKvk(rawData);
 }
 
 module.exports = {
@@ -282,5 +318,6 @@ module.exports = {
     inferSoilTablesFromRecords,
     mergeSoilGroupedPayloads,
     resolveSoilTemplatePayload,
+    resolveSoilTemplatePayloadByKvk,
     groupUnassignedSoilRowsByParameterName,
 };

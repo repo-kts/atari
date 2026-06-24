@@ -21,6 +21,7 @@ function tableCss() {
   .nf-soil-wrap { width:100%; font-size:6.5pt; line-height:1.15; }
   .nf-soil-page-title { text-align:center; font-size:9pt; font-weight:bold; margin:0 0 10px 0; }
   .nf-soil-sub { font-size:7.5pt; font-weight:bold; margin:10px 0 4px 0; text-align:left; }
+  .nf-soil-kvk-hd { font-size:8pt; font-weight:bold; background:#dce6f1; padding:3px 5px; border:0.35pt solid #000; margin:12px 0 2px 0; page-break-after:avoid; break-after:avoid; }
   .nf-soil-tbl { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:14px; page-break-inside:avoid; }
   .nf-soil-tbl th, .nf-soil-tbl td { border:0.35pt solid #000; padding:2px 3px; vertical-align:middle; text-align:center; word-break:break-word; }
   .nf-soil-tbl thead th { background:#e8e8e8; font-weight:bold; }
@@ -86,7 +87,54 @@ function resolvePayload(data) {
     return resolveSoilTemplatePayload(data);
 }
 
+function isKvkGroupedPayload(d) {
+    return Boolean(d && typeof d === 'object' && !Array.isArray(d) && Array.isArray(d.kvkGroups));
+}
+
+/** Render the parameter tables (+ unassigned) for one set of soil rows. */
+function renderTablesBlock(tables, unassigned) {
+    const blocks = (tables || []).map((t) => renderOneSoilTable(t.subtitle, t.rows)).join('');
+    const unassignedBlock = (unassigned && unassigned.length > 0)
+        ? groupUnassignedSoilRowsByParameterName(unassigned)
+            .map(({ subtitle, rows }) => renderOneSoilTable(subtitle, rows))
+            .join('')
+        : '';
+    return blocks + unassignedBlock;
+}
+
 function renderNfSoilDataInformationSection(section, data, sectionId, isFirstSection) {
+    // exportController's generateCustomTemplateHTML wraps a non-array payload
+    // into [payload]; unwrap so the KVK-grouped object is detected.
+    let kvkData = data;
+    if (Array.isArray(kvkData) && kvkData.length === 1 && isKvkGroupedPayload(kvkData[0])) {
+        kvkData = kvkData[0];
+    }
+    // Module-wise export → KVK-grouped payload: one block (and Excel tab) per KVK.
+    if (isKvkGroupedPayload(kvkData)) {
+        const groups = kvkData.kvkGroups || [];
+        const hasAny = groups.some((g) => (g.tables && g.tables.length) || (g.unassignedRows && g.unassignedRows.length));
+        if (!hasAny) {
+            return `
+<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
+  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+  <p class="no-data">No data available for this section.</p>
+</div>`;
+        }
+        const groupsHtml = groups.map((g) => {
+            const head = g.kvkName ? `<h2 class="nf-soil-kvk-hd">KVK: ${esc(g.kvkName)}</h2>` : '';
+            return `${head}${renderTablesBlock(g.tables, g.unassignedRows)}`;
+        }).join('');
+        return `
+<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
+  <style>${tableCss()}</style>
+  <div class="nf-soil-wrap">
+    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+    <div class="nf-soil-page-title">${esc(PAGE_TITLE)}</div>
+    ${groupsHtml}
+  </div>
+</div>`;
+    }
+
     const payload = resolvePayload(data);
     const tables = payload.tables || [];
     const unassigned = payload.unassignedRows;

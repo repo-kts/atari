@@ -1,5 +1,5 @@
 const { NF_DEMONSTRATION_PARAMETER_DEFS } = require('../../../../repositories/reports/naturalFarmingReport/nfDemonstrationConstants.js');
-const { normalizeDemonstrationExportRow } = require('../../../../repositories/reports/naturalFarmingReport/demonstrationInfoReportRepository.js');
+const { buildDemonstrationGroupedPayload } = require('../../../../repositories/reports/naturalFarmingReport/demonstrationInfoReportRepository.js');
 
 function esc(t) {
   if (t === null || t === undefined) return '';
@@ -13,12 +13,6 @@ function fmtNum(v) {
   if (!Number.isFinite(n)) return esc(String(v));
   if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
   return String(Number(n.toFixed(4)));
-}
-
-function toRows(data) {
-  if (Array.isArray(data)) return data;
-  if (data && Array.isArray(data.records)) return data.records;
-  return data ? [data] : [];
 }
 
 /** A, B, … Z, then (27), (28), … for large lists */
@@ -43,6 +37,8 @@ function tableCss() {
   .nf-demo-main .l { text-align:left; }
   .nf-demo-block { margin-bottom:16px; page-break-inside:avoid; }
   .nf-demo-fb td { text-align:left; font-size:6.5pt; }
+  .nf-demo-state-hd { font-size:9pt; font-weight:bold; background:#c6d9f1; padding:4px 6px; border:0.5pt solid #000; margin:12px 0 0 0; }
+  .nf-demo-kvk-hd { font-size:8pt; font-weight:bold; background:#dce6f1; padding:3px 6px; border:0.35pt solid #000; margin:8px 0 6px 0; }
 `;
 }
 
@@ -159,13 +155,16 @@ function renderOneDemonstration(rec, idx, total) {
 }
 
 /**
- * Natural Farming — Demonstration Information (multi-record: one block per demonstration)
+ * Natural Farming — Demonstration Information.
+ * Grouped State-wise, then KVK-wise within each State; demonstration blocks
+ * rendered under their KVK. The KVK is always labelled (including KVK-side
+ * single-KVK exports) so it's clear which KVK the data belongs to.
  */
 function renderNfDemonstrationInformationSection(section, data, sectionId, isFirstSection) {
-  const raw = toRows(data);
-  const records = raw.map(normalizeDemonstrationExportRow).filter(Boolean);
+  const payload = buildDemonstrationGroupedPayload(data);
+  const states = payload.states || [];
 
-  if (records.length === 0) {
+  if (payload.totalRecords === 0) {
     return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
@@ -173,14 +172,27 @@ function renderNfDemonstrationInformationSection(section, data, sectionId, isFir
 </div>`;
   }
 
-  const blocks = records.map((rec, i) => renderOneDemonstration(rec, i, records.length)).join('');
+  const body = states.map((st) => {
+    const kvkBlocks = st.kvks.map((kv) => {
+      const blocks = kv.records
+        .map((rec, i) => renderOneDemonstration(rec, i, kv.records.length))
+        .join('');
+      return `
+    <div class="nf-demo-kvk-hd">KVK: ${esc(kv.kvkName)}</div>
+    ${blocks}`;
+    }).join('');
+
+    return `
+  <div class="nf-demo-state-hd">State: ${esc(st.stateName)}</div>
+  ${kvkBlocks}`;
+  }).join('');
 
   return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="nf-demo-wrap">
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
-    ${blocks}
+    ${body}
   </div>
 </div>`;
 }
