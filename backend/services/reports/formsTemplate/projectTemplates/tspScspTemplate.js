@@ -162,8 +162,6 @@ function renderTspBlock(tsp) {
     if (!tsp || !tsp.activities || tsp.activities.length === 0) {
         return '<p class="no-data">No TSP data available.</p>';
     }
-    const year = esc(tsp.reportingYear || '');
-    const yearLabel = year ? ` during ${year}` : '';
 
     let html = '';
     html += `<p class="sub-h">a. Achievements of physical output under TSP</p>`;
@@ -174,10 +172,10 @@ function renderTspBlock(tsp) {
         ? `<p class="single-val">Fund received under TSP (Rs. In lakh): <strong>${esc(tsp.fundsReceived)}</strong></p>`
         : `<p class="no-data">No fund data available.</p>`;
 
-    html += `<p class="sub-h">c. Achievements of physical outcome under TSP${yearLabel}</p>`;
-    html += renderOutcomes(tsp.outcomes, year);
+    html += `<p class="sub-h">c. Achievements of physical outcome under TSP</p>`;
+    html += renderOutcomes(tsp.outcomes);
 
-    html += `<p class="sub-h">d. Location and Beneficiary Details${yearLabel}</p>`;
+    html += `<p class="sub-h">d. Location and Beneficiary Details</p>`;
     html += renderLocation(tsp.locationDetails);
 
     return html;
@@ -280,4 +278,95 @@ function renderTspScspSection(section, data, sectionId, isFirstSection) {
         </div>`;
 }
 
-module.exports = { renderTspScspSection };
+/* ── module-export: KVK-wise grouped (TSP-only / SCSP-only) ────────────────────
+ *
+ * The combined renderer above clutters one big table across all KVKs for the
+ * superadmin. These build one structured block PER KVK so each KVK is its own
+ * section. Date/year qualifiers are dropped — kept simple per requirement.
+ */
+
+const KVK_BAND_STYLE = `
+<style>
+    .tsp-kvk-band { font-size: 10px; font-weight: bold; background: #dce6f1; padding: 4px 6px; margin: 12px 0 6px 0; }
+</style>`;
+
+function buildKvkGroups(data, type) {
+    const records = Array.isArray(data) ? data : (data ? [data] : []);
+    const byKvk = new Map();
+    for (const r of records) {
+        if ((r.type || '').toUpperCase() !== type) continue;
+        const k = r.kvkName || '—';
+        if (!byKvk.has(k)) byKvk.set(k, []);
+        byKvk.get(k).push(r);
+    }
+    const groups = [];
+    for (const [kvkName, recs] of byKvk.entries()) {
+        const structured = buildStructuredFromRecords(recs, type);
+        if (structured) groups.push({ kvkName, data: structured });
+    }
+    return { groups, isMultiKvk: groups.length > 1 };
+}
+
+const buildTspKvkGroups = (data) => buildKvkGroups(data, 'TSP');
+const buildScspKvkGroups = (data) => buildKvkGroups(data, 'SCSP');
+
+// TSP block (a–d) without any date/year qualifier.
+function renderTspBlockSimple(tsp) {
+    let html = '';
+    html += `<p class="sub-h">a. Achievements of physical output under TSP</p>`;
+    html += renderActivities(tsp.activities, 'TSP');
+    html += `<p class="sub-h">b. Fund received under TSP</p>`;
+    html += tsp.fundsReceived != null
+        ? `<p class="single-val">Fund received under TSP (Rs. In lakh): <strong>${esc(tsp.fundsReceived)}</strong></p>`
+        : `<p class="no-data">No fund data available.</p>`;
+    html += `<p class="sub-h">c. Achievements of physical outcome under TSP</p>`;
+    html += renderOutcomes(tsp.outcomes);
+    html += `<p class="sub-h">d. Location and Beneficiary Details</p>`;
+    html += renderLocation(tsp.locationDetails);
+    return html;
+}
+
+function renderScspBlockSimple(scsp) {
+    let html = '';
+    html += `<p class="sub-h">a. Achievements of physical output under SCSP</p>`;
+    html += renderActivities(scsp.activities, 'SCSP');
+    return html;
+}
+
+function renderTspActivitiesSection(section, data) {
+    const { groups } = buildTspKvkGroups(data);
+    const body = groups.length === 0
+        ? '<p class="no-data">No TSP data available.</p>'
+        : groups.map(g => `
+            <div class="tsp-kvk-band">${esc(g.kvkName)}</div>
+            ${renderTspBlockSimple(g.data)}`).join('');
+
+    return `${STYLES}${KVK_BAND_STYLE}
+        <div class="tsp-scsp-wrap">
+            <h3>2.23.1 – Details of Tribal Sub Plan (TSP)</h3>
+            ${body}
+        </div>`;
+}
+
+function renderScspActivitiesSection(section, data) {
+    const { groups } = buildScspKvkGroups(data);
+    const body = groups.length === 0
+        ? '<p class="no-data">No SCSP data available.</p>'
+        : groups.map(g => `
+            <div class="tsp-kvk-band">${esc(g.kvkName)}</div>
+            ${renderScspBlockSimple(g.data)}`).join('');
+
+    return `${STYLES}${KVK_BAND_STYLE}
+        <div class="tsp-scsp-wrap">
+            <h3>2.23.2 – Details of Scheduled Caste Sub Plan (SCSP)</h3>
+            ${body}
+        </div>`;
+}
+
+module.exports = {
+    renderTspScspSection,
+    renderTspActivitiesSection,
+    renderScspActivitiesSection,
+    buildTspKvkGroups,
+    buildScspKvkGroups,
+};

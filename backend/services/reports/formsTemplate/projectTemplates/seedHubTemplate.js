@@ -13,7 +13,7 @@ function renderSeedHubSection(section, data, sectionId, isFirstSection) {
     const body = rows.map(r => `
         <tr>
             <td class="l">${esc(r.kvkName || '-')}</td>
-            <td>${esc(r.season || '')}</td>
+            <td>${esc(r.seasonName || r.season || '')}</td>
             <td class="l">${esc(r.cropName || '')}</td>
             <td class="l">${esc(r.varietyName || '')}</td>
             <td>${num(r.areaCoveredHa)}</td>

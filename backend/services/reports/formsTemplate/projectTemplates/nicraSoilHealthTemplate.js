@@ -1,5 +1,9 @@
 function esc(t){if(t===null||t===undefined)return'';const m={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};return String(t).replace(/[&<>"']/g,c=>m[c]);}
 function n(v){const x=Number(v);return Number.isFinite(x)?x:0;}
+// Picks the first present value across the possible field aliases. The form
+// posts category counts as generalM/genMale (report repo maps to genM); the
+// module export sends the raw record straight from the form, so resolve all.
+function pick(...vals){for(const v of vals){if(v!==null&&v!==undefined&&v!=='') {const x=Number(v);if(Number.isFinite(x))return x;}}return 0;}
 
 function sortStr(a, b) {
     return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
@@ -14,15 +18,20 @@ function resolveStateName(row){
 }
 
 function displayRow(r){
+    const genM = pick(r.genM, r.generalM, r.genMale), genF = pick(r.genF, r.generalF, r.genFemale);
+    const obcM = pick(r.obcM, r.obcMale), obcF = pick(r.obcF, r.obcFemale);
+    const scM = pick(r.scM, r.scMale), scF = pick(r.scF, r.scFemale);
+    const stM = pick(r.stM, r.stMale), stF = pick(r.stF, r.stFemale);
+    const totM = genM + obcM + scM + stM, totF = genF + obcF + scF + stF;
     return {
         noOfSoilSamplesCollected: n(r.noOfSoilSamplesCollected),
         noOfSamplesAnalysed: n(r.noOfSamplesAnalysed),
         shcIssued: n(r.shcIssued),
-        genM: n(r.genM), genF: n(r.genF), genT: n(r.genT),
-        obcM: n(r.obcM), obcF: n(r.obcF), obcT: n(r.obcT),
-        scM: n(r.scM), scF: n(r.scF), scT: n(r.scT),
-        stM: n(r.stM), stF: n(r.stF), stT: n(r.stT),
-        totM: n(r.totM), totF: n(r.totF), totT: n(r.totT),
+        genM, genF, genT: genM + genF,
+        obcM, obcF, obcT: obcM + obcF,
+        scM, scF, scT: scM + scF,
+        stM, stF, stT: stM + stF,
+        totM, totF, totT: totM + totF,
     };
 }
 
@@ -91,7 +100,7 @@ function renderNicraSoilHealthSection(section, data, sectionId, isFirstSection){
         <td>${r.totM}</td><td>${r.totF}</td><td>${r.totT}</td>
       </tr>`).join('');
 
-        const band = g.stateName ? `${esc(g.kvkName)} — ${esc(g.stateName)}` : esc(g.kvkName);
+        const band = esc(g.kvkName);
         return `
   <div class="nicra-shc-group">
     <div class="nicra-shc-kvk-hd">${band}</div>

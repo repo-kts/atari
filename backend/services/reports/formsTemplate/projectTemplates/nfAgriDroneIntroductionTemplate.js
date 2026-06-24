@@ -11,15 +11,14 @@ function esc(t) {
 function tableCss() {
     return `
   .ad-intro-wrap { width:100%; font-size:7pt; line-height:1.25; }
-  .ad-intro-caption { text-align:center; font-size:9pt; font-weight:bold; margin:0 0 8px 0; }
-  .ad-intro-tbl { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:12px; page-break-inside:avoid; }
+  .ad-intro-caption { text-align:center; font-size:9pt; font-weight:bold; margin:0 0 8px 0; page-break-after:avoid; break-after:avoid; }
+  .ad-intro-tbl { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:12px; page-break-inside:auto; break-inside:auto; }
   .ad-intro-tbl th, .ad-intro-tbl td { border:0.35pt solid #000; padding:3px 4px; vertical-align:top; word-break:break-word; }
   .ad-intro-tbl thead th { background:#e8e8e8; font-weight:bold; text-align:center; }
   .ad-intro-tbl td:nth-child(1) { width:8%; text-align:center; }
   .ad-intro-tbl td:nth-child(2) { width:42%; text-align:left; }
   .ad-intro-tbl td:nth-child(3) { width:50%; text-align:left; }
   .ad-intro-spacer td { border:none; height:10px; padding:4px 0; }
-  .ad-intro-kvk td { background:#d9d9d9; font-weight:bold; text-align:left; }
 `;
 }
 
@@ -30,7 +29,7 @@ function renderIntroTable(rows) {
                 return '<tr class="ad-intro-spacer"><td colspan="3"></td></tr>';
             }
             if (r._header) {
-                return `<tr class="ad-intro-kvk"><td colspan="3">${esc(r.label)}</td></tr>`;
+                return '';
             }
             return `
       <tr>

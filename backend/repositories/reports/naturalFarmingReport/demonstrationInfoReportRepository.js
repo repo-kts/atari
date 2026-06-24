@@ -237,9 +237,46 @@ function normalizeDemonstrationExportRow(r) {
     };
 }
 
+function sortStr(a, b) {
+    return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
+}
+
+/**
+ * Group demonstration records State-wise, then KVK-wise within each State.
+ * Shared by the PDF/DOCX template and the Excel builder so all three match.
+ * Returns { states: [{ stateName, kvks: [{ kvkName, records }] }], isMultiKvk, totalRecords }.
+ */
+function buildDemonstrationGroupedPayload(records) {
+    const flat = Array.isArray(records) ? records : (records ? [records] : []);
+    const norm = flat.map(normalizeDemonstrationExportRow).filter(Boolean);
+
+    const byState = new Map();
+    for (const r of norm) {
+        const st = (r.stateName && String(r.stateName).trim()) || 'Unknown State';
+        if (!byState.has(st)) byState.set(st, new Map());
+        const kvkMap = byState.get(st);
+        const kv = (r.kvkName && String(r.kvkName).trim()) || r.kvkFarmerLabel || 'Unknown KVK';
+        if (!kvkMap.has(kv)) kvkMap.set(kv, []);
+        kvkMap.get(kv).push(r);
+    }
+
+    const states = [...byState.keys()].sort(sortStr).map((stateName) => {
+        const kvkMap = byState.get(stateName);
+        const kvks = [...kvkMap.keys()].sort(sortStr).map((kvkName) => ({
+            kvkName,
+            records: kvkMap.get(kvkName),
+        }));
+        return { stateName, kvks };
+    });
+
+    const kvkCount = states.reduce((s, st) => s + st.kvks.length, 0);
+    return { states, isMultiKvk: kvkCount > 1, totalRecords: norm.length };
+}
+
 module.exports = {
     getNaturalFarmingDemonstrationData,
     mapDemonstrationRecord,
     applyDemonstrationFilters,
     normalizeDemonstrationExportRow,
+    buildDemonstrationGroupedPayload,
 };
