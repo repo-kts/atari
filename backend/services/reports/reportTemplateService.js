@@ -32,7 +32,11 @@ const { renderAryaCurrentSection } = require('./formsTemplate/projectTemplates/a
 const { renderAryaPrevYearSection } = require('./formsTemplate/projectTemplates/aryaPrevYearTemplate.js');
 const { renderTspSection } = require('./formsTemplate/projectTemplates/tspTemplate.js');
 const { renderScspSection } = require('./formsTemplate/projectTemplates/scspTemplate.js');
-const { renderTspScspSection } = require('./formsTemplate/projectTemplates/tspScspTemplate.js');
+const {
+    renderTspScspSection,
+    renderTspActivitiesSection,
+    renderScspActivitiesSection,
+} = require('./formsTemplate/projectTemplates/tspScspTemplate.js');
 const { renderSeedHubSection } = require('./formsTemplate/projectTemplates/seedHubTemplate.js');
 const { renderOtherProgrammesSection } = require('./formsTemplate/projectTemplates/otherProgrammesTemplate.js');
 const { renderNicraTrainingSection } = require('./formsTemplate/projectTemplates/nicraTrainingTemplate.js');
@@ -52,7 +56,12 @@ const { renderNicraExtensionSection } = require('./formsTemplate/projectTemplate
 const { renderNicraFarmImplementSection } = require('./formsTemplate/projectTemplates/nicraFarmImplementTemplate.js');
 const { renderNicraVcrmcSection } = require('./formsTemplate/projectTemplates/nicraVcrmcTemplate.js');
 const { renderNicraSoilHealthSection } = require('./formsTemplate/projectTemplates/nicraSoilHealthTemplate.js');
+const { renderNicraPiCopiSection } = require('./formsTemplate/projectTemplates/nicraPiCopiTemplate.js');
+const { renderNfGeographicalSection } = require('./formsTemplate/projectTemplates/nfGeographicalTemplate.js');
+const { renderNfBeneficiariesSection } = require('./formsTemplate/projectTemplates/nfBeneficiariesTemplate.js');
 const { renderNicraDetailsReportSection } = require('./formsTemplate/projectTemplates/nicraDetailsReportTemplate.js');
+const { renderNicraConvergenceReportSection } = require('./formsTemplate/projectTemplates/nicraConvergenceReportTemplate.js');
+const { renderNicraDignitariesReportSection } = require('./formsTemplate/projectTemplates/nicraDignitariesReportTemplate.js');
 const { renderNaturalFarmingPhysicalSection } = require('./formsTemplate/projectTemplates/naturalFarmingPhysicalTemplate.js');
 const { renderNfDemonstrationInformationSection } = require('./formsTemplate/projectTemplates/nfDemonstrationInformationTemplate.js');
 const { renderNfFarmersPracticingInformationSection } = require('./formsTemplate/projectTemplates/nfFarmersPracticingInformationTemplate.js');
@@ -117,6 +126,23 @@ const { renderSacMeetingSection } = require('./formsTemplate/meetingsTemplates/s
 const { renderOtherMeetingSection } = require('./formsTemplate/meetingsTemplates/otherMeetingTemplate.js');
 const { renderAgriDroneIntroductionSection } = require('./formsTemplate/projectTemplates/nfAgriDroneIntroductionTemplate.js');
 const { renderAgriDroneDemonstrationDetailsSection } = require('./formsTemplate/projectTemplates/nfAgriDroneDemonstrationDetailsTemplate.js');
+
+const STANDALONE_KVK_GROUP_TEMPLATES = new Set([
+    'nari-value-addition',
+    'nari-training',
+    'nari-extension',
+    'agri-drone-introduction',
+    'agri-drone-demonstration-details',
+    'fpo-cbbo-details',
+    'fpo-management-details',
+    'drmr-details',
+    'drmr-activity',
+    'cra-details-state-wise',
+    'cra-extension-activity',
+    'csisa',
+    'seed-hub',
+    'other-programmes',
+]);
 const fs = require('fs');
 const path = require('path');
 
@@ -181,6 +207,8 @@ class ReportTemplateService {
             'arya-current': renderAryaCurrentSection.bind(this),
             'arya-prev-year': renderAryaPrevYearSection.bind(this),
             'nicra-details': renderNicraDetailsReportSection.bind(this),
+            'nicra-convergence': renderNicraConvergenceReportSection.bind(this),
+            'nicra-dignitaries': renderNicraDignitariesReportSection.bind(this),
             'nicra-basic': renderNicraBasicSection.bind(this),
             'nicra-training': renderNicraTrainingSection.bind(this),
             'nicra-intervention': renderNicraInterventionSection.bind(this),
@@ -188,8 +216,11 @@ class ReportTemplateService {
             'nicra-farm-implement': renderNicraFarmImplementSection.bind(this),
             'nicra-vcrmc': renderNicraVcrmcSection.bind(this),
             'nicra-soil-health': renderNicraSoilHealthSection.bind(this),
-            'tsp': renderTspSection.bind(this),
-            'scsp': renderScspSection.bind(this),
+            'nicra-pi-copi': renderNicraPiCopiSection.bind(this),
+            'natural-farming-geo': renderNfGeographicalSection.bind(this),
+            'natural-farming-beneficiaries': renderNfBeneficiariesSection.bind(this),
+            'tsp': renderTspActivitiesSection.bind(this),
+            'scsp': renderScspActivitiesSection.bind(this),
             'tsp-scsp': renderTspScspSection.bind(this),
             'seed-hub': renderSeedHubSection.bind(this),
             'other-programmes': renderOtherProgrammesSection.bind(this),
@@ -605,6 +636,48 @@ class ReportTemplateService {
     /**
      * Generate custom section using dedicated template keys
      */
+    _getStandaloneKvkName(row) {
+        const candidates = [
+            row?.kvkName,
+            row?.kvk?.kvkName,
+            row?.data?.kvkName,
+            row?.data?.kvk?.kvkName,
+            row?.kvk?.name,
+            row?.institution?.kvkName,
+        ];
+        const name = candidates.find((value) => value !== null && value !== undefined && String(value).trim());
+        return name ? String(name).trim() : 'KVK not specified';
+    }
+
+    _renderStandaloneKvkHeading(kvkName) {
+        return `<h2 class="module-kvk-heading" style="font-size:8.5pt;font-weight:bold;background:#dce6f1;padding:3px 6px;margin:6px 0 5px;page-break-after:avoid;break-after:avoid;">KVK: ${this._escapeHtml(kvkName)}</h2>`;
+    }
+
+    _injectStandaloneKvkHeading(html, kvkName) {
+        const heading = this._renderStandaloneKvkHeading(kvkName);
+        const output = String(html || '');
+        if (/<h1 class="section-title">[\s\S]*?<\/h1>/.test(output)) {
+            return output.replace(/(<h1 class="section-title">[\s\S]*?<\/h1>)/, `$1\n${heading}`);
+        }
+        return `${heading}\n${output}`;
+    }
+
+    _stripStandaloneSectionShell(html) {
+        return String(html || '')
+            .replace(/^\s*<div\b[^>]*class="[^"]*section-page[^"]*"[^>]*>\s*/i, '')
+            .replace(/<h1 class="section-title">[\s\S]*?<\/h1>\s*/i, '')
+            .replace(/\s*<\/div>\s*$/i, '')
+            .trim();
+    }
+
+    _appendStandaloneKvkBlocks(firstHtml, blockHtml) {
+        const output = String(firstHtml || '');
+        if (/<\/div>\s*$/.test(output)) {
+            return output.replace(/\s*<\/div>\s*$/i, `\n${blockHtml}\n</div>`);
+        }
+        return `${output}\n${blockHtml}`;
+    }
+
     _generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext = {}) {
         const customTemplateKey = sectionConfig?.customTemplate;
         if (!customTemplateKey) {
@@ -619,6 +692,35 @@ class ReportTemplateService {
                 sectionId,
                 isFirstSection
             );
+        }
+
+        if (reportContext?.isStandalone && STANDALONE_KVK_GROUP_TEMPLATES.has(customTemplateKey)) {
+            const rows = Array.isArray(data) ? data : (data ? [data] : []);
+            const byKvk = new Map();
+            rows.forEach((row) => {
+                const kvkName = this._getStandaloneKvkName(row);
+                if (!byKvk.has(kvkName)) byKvk.set(kvkName, []);
+                byKvk.get(kvkName).push(row);
+            });
+
+            if (byKvk.size > 1) {
+                const entries = Array.from(byKvk);
+                const [firstKvkName, firstKvkRows] = entries[0];
+                let firstChunk = customTemplateHandler(section, firstKvkRows, `${sectionId}-kvk-1`, isFirstSection, reportContext);
+                firstChunk = this._injectStandaloneKvkHeading(firstChunk, firstKvkName);
+                const extraBlocks = entries.slice(1).map(([kvkName, kvkRows], index) => {
+                    const chunk = customTemplateHandler(section, kvkRows, `${sectionId}-kvk-${index + 2}`, false, reportContext);
+                    const content = this._stripStandaloneSectionShell(chunk);
+                    return `<div class="module-kvk-block" style="page-break-inside:auto;break-inside:auto;margin-top:5px;">${this._renderStandaloneKvkHeading(kvkName)}\n${content}</div>`;
+                }).join('\n');
+                return this._appendStandaloneKvkBlocks(firstChunk, extraBlocks);
+            }
+
+            if (byKvk.size === 1) {
+                const [[kvkName, kvkRows]] = Array.from(byKvk);
+                const chunk = customTemplateHandler(section, kvkRows, sectionId, isFirstSection, reportContext);
+                return this._injectStandaloneKvkHeading(chunk, kvkName);
+            }
         }
 
         // Handler may return a string or a Promise (async handlers like oft-combined)
