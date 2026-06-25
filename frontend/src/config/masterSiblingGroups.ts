@@ -22,6 +22,16 @@ export const MASTER_SIBLING_GROUPS = {
         ENTITY_PATHS.KVK_MASTER,
     ],
 
+    // Backup Basic Masters (mounted at /all-master-1; not in sidebar)
+    BASIC_MASTERS_1: [
+        '/all-master-1/zones',
+        '/all-master-1/states',
+        '/all-master-1/districts',
+        '/all-master-1/organizations',
+        '/all-master-1/universities',
+        '/all-master-1/kvks',
+    ],
+
     // OFT Masters
     OFT_MASTERS: [
         ENTITY_PATHS.OFT_SUBJECT,

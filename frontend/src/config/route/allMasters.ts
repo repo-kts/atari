@@ -43,7 +43,12 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
-        fields: FIELD_GROUPS.ORGANIZATION_MASTER,
+        // Table shows only the unique institute name (one row per distinct name);
+        // Zone/State/District are intentionally dropped. The add/edit form is
+        // entityType-driven, so it still collects every field. Full-column copy
+        // lives at /all-master-1/organizations (see allMasters1Routes).
+        fields: [FIELD_NAMES.ORG_NAME],
+        uniqueByField: FIELD_NAMES.ORG_NAME,
         moduleCode: 'all_masters_organization_master',
     },
     {
@@ -54,7 +59,10 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
-        fields: FIELD_GROUPS.UNIVERSITY_MASTER,
+        // Table shows only the unique host name; the Institute column is dropped
+        // here (kept in the form/backend and in the /all-master-1 copy).
+        fields: [FIELD_NAMES.UNIVERSITY_NAME],
+        uniqueByField: FIELD_NAMES.UNIVERSITY_NAME,
         moduleCode: 'all_masters_university_master',
     },
     {
@@ -794,5 +802,84 @@ export const allMastersRoutes: RouteConfig[] = [
         siblings: MASTER_SIBLING_GROUPS.PROJECT_BUDGET_MASTERS,
         fields: FIELD_GROUPS.FUNDING_AGENCY_MASTER,
         moduleCode: 'all_masters_funding_agency_master',
+    },
+]
+
+/**
+ * Backup copy of the Basic Masters set, mounted at /all-master-1.
+ *
+ * This is a frozen snapshot of the ORIGINAL Basic Masters behaviour (full
+ * columns, no dedupe) kept so the pre-change Institute/Host tables stay
+ * reachable. It is intentionally NOT linked in the sidebar — only reachable by
+ * typing the URL. Entity-type/data resolution normalizes /all-master-1 back to
+ * /all-master (see getEntityTypeFromPathMap), so it reads the same data.
+ */
+export const allMasters1Routes: RouteConfig[] = [
+    {
+        path: '/all-master-1/zones',
+        title: 'Zone Master',
+        category: 'All Masters',
+        subcategory: 'Basic Masters',
+        parent: '/all-master-1',
+        subcategoryPath: '/all-master-1/basic',
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
+        fields: FIELD_GROUPS.ZONE_MASTER,
+        moduleCode: 'all_masters_zone_master',
+    },
+    {
+        path: '/all-master-1/states',
+        title: 'State Master',
+        category: 'All Masters',
+        subcategory: 'Basic Masters',
+        parent: '/all-master-1',
+        subcategoryPath: '/all-master-1/basic',
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
+        fields: FIELD_GROUPS.STATE_MASTER,
+        moduleCode: 'all_masters_states_master',
+    },
+    {
+        path: '/all-master-1/districts',
+        title: 'District Master',
+        category: 'All Masters',
+        subcategory: 'Basic Masters',
+        parent: '/all-master-1',
+        subcategoryPath: '/all-master-1/basic',
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
+        fields: FIELD_GROUPS.DISTRICT_MASTER,
+        moduleCode: 'all_masters_districts_master',
+    },
+    {
+        path: '/all-master-1/organizations',
+        title: 'Institute Master',
+        category: 'All Masters',
+        subcategory: 'Basic Masters',
+        parent: '/all-master-1',
+        subcategoryPath: '/all-master-1/basic',
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
+        fields: FIELD_GROUPS.ORGANIZATION_MASTER,
+        moduleCode: 'all_masters_organization_master',
+    },
+    {
+        path: '/all-master-1/universities',
+        title: 'Host Master',
+        category: 'All Masters',
+        subcategory: 'Basic Masters',
+        parent: '/all-master-1',
+        subcategoryPath: '/all-master-1/basic',
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
+        fields: FIELD_GROUPS.UNIVERSITY_MASTER,
+        moduleCode: 'all_masters_university_master',
+    },
+    {
+        path: '/all-master-1/kvks',
+        title: 'KVK Master',
+        category: 'All Masters',
+        subcategory: 'Basic Masters',
+        parent: '/all-master-1',
+        subcategoryPath: '/all-master-1/basic',
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
+        fields: FIELD_GROUPS.VIEW_KVKS,
+        moduleCode: 'all_masters_kvks',
+        canCreate: ['super_admin'],
     },
 ]

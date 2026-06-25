@@ -87,14 +87,6 @@ export const SuperAdminDashboard: React.FC = () => {
     const kpiCards = data
         ? [
               {
-                  label: 'Institute',
-                  value: data.kpis.organizationCount,
-                  to: ENTITY_PATHS.ORGANIZATIONS,
-                  icon: <FileText className="w-6 h-6" />,
-                  bgColor: 'bg-[#E8F5E9]',
-                  iconColor: 'text-[#487749]',
-              },
-              {
                   label: 'KVK',
                   value: data.kpis.kvkCount,
                   to: ENTITY_PATHS.KVK_MASTER,
@@ -160,61 +152,76 @@ export const SuperAdminDashboard: React.FC = () => {
 
     return (
         <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] px-2 py-1.5">
-                <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-[#487749] uppercase tracking-wide whitespace-nowrap">
-                        Year
-                    </span>
-                    <select
-                        value={selectedYear}
-                        onChange={e => setSelectedYear(e.target.value)}
-                        disabled={isPending && !data}
-                        className="h-8 min-w-[88px] px-2 text-xs font-medium border border-[#E0E0E0] rounded-md bg-white text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#487749]/30"
-                    >
-                        <option value="all">All</option>
-                        {yearOptions.map(y => (
-                            <option key={y} value={String(y)}>
-                                {y}
-                            </option>
-                        ))}
-                    </select>
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0">
+                    <h1 className="text-2xl font-bold text-[#487749]">
+                        Dashboard
+                    </h1>
+                    <p className="text-sm text-[#757575] mt-1 font-medium">
+                        Central overview of system activities and performance
+                        metrics
+                    </p>
                 </div>
-                {canPickKvk && (
-                    <div className="flex items-center gap-1.5">
+
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] px-2 py-1.5 md:shrink-0">
+                    <div className="flex flex-1 items-center gap-1.5 sm:flex-none">
                         <span className="text-[10px] font-bold text-[#487749] uppercase tracking-wide whitespace-nowrap">
-                            KVK
+                            Year
                         </span>
                         <select
-                            value={selectedKvk}
-                            onChange={e => setSelectedKvk(e.target.value)}
+                            value={selectedYear}
+                            onChange={e => setSelectedYear(e.target.value)}
                             disabled={isPending && !data}
-                            className="h-8 min-w-[120px] max-w-[200px] px-2 text-xs font-medium border border-[#E0E0E0] rounded-md bg-white text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#487749]/30"
+                            className="h-8 w-full min-w-[88px] px-2 text-xs font-medium border border-[#E0E0E0] rounded-md bg-white text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#487749]/30 sm:w-auto"
                         >
                             <option value="all">All</option>
-                            {(data?.kvkOptions ?? []).map(k => (
-                                <option key={k.kvkId} value={String(k.kvkId)}>
-                                    {k.kvkName}
+                            {yearOptions.map(y => (
+                                <option key={y} value={String(y)}>
+                                    {y}
                                 </option>
                             ))}
                         </select>
                     </div>
-                )}
-                <button
-                    type="button"
-                    onClick={() => {
-                        setSelectedYear('all')
-                        setSelectedKvk('all')
-                    }}
-                    className="text-[11px] font-semibold text-[#757575] hover:text-[#487749] ml-auto"
-                >
-                    Reset
-                </button>
-                {isFetching && (
-                    <Loader2
-                        className="w-4 h-4 text-[#487749] animate-spin shrink-0"
-                        aria-label="Updating"
-                    />
-                )}
+                    {canPickKvk && (
+                        <div className="flex flex-1 items-center gap-1.5 sm:flex-none">
+                            <span className="text-[10px] font-bold text-[#487749] uppercase tracking-wide whitespace-nowrap">
+                                KVK
+                            </span>
+                            <select
+                                value={selectedKvk}
+                                onChange={e => setSelectedKvk(e.target.value)}
+                                disabled={isPending && !data}
+                                className="h-8 w-full min-w-[120px] px-2 text-xs font-medium border border-[#E0E0E0] rounded-md bg-white text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#487749]/30 sm:w-auto sm:max-w-[200px]"
+                            >
+                                <option value="all">All</option>
+                                {(data?.kvkOptions ?? []).map(k => (
+                                    <option
+                                        key={k.kvkId}
+                                        value={String(k.kvkId)}
+                                    >
+                                        {k.kvkName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSelectedYear('all')
+                            setSelectedKvk('all')
+                        }}
+                        className="text-[11px] font-semibold text-[#757575] hover:text-[#487749]"
+                    >
+                        Reset
+                    </button>
+                    {isFetching && (
+                        <Loader2
+                            className="w-4 h-4 text-[#487749] animate-spin shrink-0"
+                            aria-label="Updating"
+                        />
+                    )}
+                </div>
             </div>
 
             {isPending && !data && <DashboardKpiSkeleton count={7} />}
@@ -222,7 +229,7 @@ export const SuperAdminDashboard: React.FC = () => {
             {showData && (
                 <>
                     <div
-                        className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2 transition-opacity ${isFetching ? 'opacity-70' : ''}`}
+                        className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 transition-opacity ${isFetching ? 'opacity-70' : ''}`}
                     >
                         {kpiCards.map(card => (
                             <Link

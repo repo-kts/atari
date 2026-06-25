@@ -1,16 +1,18 @@
 import React from 'react'
 import {
     Building2,
+    Users,
+    Map,
     Truck,
     Wrench,
-    FileText,
-    LandPlot,
 } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 
+// Groups mirror the all-reports "About KVK" taxonomy
+// (src/config/reportIndexTaxonomy.ts → REPORT_INDEX_TAXONOMY.about).
 const sections: FeatureSection[] = [
     {
-        title: 'View KVKs',
+        title: 'Basic Information',
         icon: <Building2 className="w-5 h-5" />,
         items: [
             { label: 'View KVKs', path: '/forms/about-kvk/view-kvks' },
@@ -18,16 +20,16 @@ const sections: FeatureSection[] = [
         ],
     },
     {
-        title: 'Basic Information',
-        icon: <FileText className="w-5 h-5" />,
+        title: 'Employee Information',
+        icon: <Users className="w-5 h-5" />,
         items: [
             { label: 'Employee Details', path: '/forms/about-kvk/employee-details' },
-            { label: 'Staff Transferred', path: '/forms/about-kvk/staff-transferred' },
+            { label: 'Details of Staff Transferred', path: '/forms/about-kvk/staff-transferred' },
         ],
     },
     {
-        title: 'Infrastructure & Land Details',
-        icon: <LandPlot className="w-5 h-5" />,
+        title: 'Land & Infrastructure Information',
+        icon: <Map className="w-5 h-5" />,
         items: [
             { label: 'Infrastructure Details', path: '/forms/about-kvk/infrastructure' },
             { label: 'Land Details', path: '/forms/about-kvk/land-details' },
@@ -35,18 +37,18 @@ const sections: FeatureSection[] = [
         ],
     },
     {
-        title: 'Vehicles',
+        title: 'Vehicles Information',
         icon: <Truck className="w-5 h-5" />,
         items: [
-            { label: 'View Vehicles', path: '/forms/about-kvk/vehicles' },
+            { label: 'Vehicles', path: '/forms/about-kvk/vehicles' },
             { label: 'Vehicle Details', path: '/forms/about-kvk/vehicle-details' },
         ],
     },
     {
-        title: 'Equipments',
+        title: 'Equipments Information',
         icon: <Wrench className="w-5 h-5" />,
         items: [
-            { label: 'View Equipments', path: '/forms/about-kvk/equipments' },
+            { label: 'Equipments', path: '/forms/about-kvk/equipments' },
             { label: 'Equipment Details', path: '/forms/about-kvk/equipment-details' },
         ],
     },

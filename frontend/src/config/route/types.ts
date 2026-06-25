@@ -8,6 +8,9 @@ import { UserRole } from '../../types/auth'
 export interface RouteConfig {
     path: string
     title: string
+    // Optional shorter label shown in the breadcrumb trail when `title` is long.
+    // Falls back to `title` when omitted.
+    breadcrumbLabel?: string
     description?: string
     category: string
     subcategory?: string
@@ -18,6 +21,9 @@ export interface RouteConfig {
     siblings?: readonly string[] | string[]
     // Optional field configuration for generic master views
     fields?: readonly string[] | string[]
+    // Optional: dedupe the table to one row per distinct value of this field
+    // (table display only; form/backend unaffected). Used by Institute/Host masters.
+    uniqueByField?: string
     // Authorization: which roles can create new items (undefined = all roles can create)
     canCreate?: UserRole[] | 'none'
     // Optional module code for Role Permission-based access control

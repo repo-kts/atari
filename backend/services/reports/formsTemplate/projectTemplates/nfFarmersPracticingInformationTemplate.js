@@ -63,10 +63,11 @@ function renderFarmersTableCaption() {
 
 function renderParameterTable(rec) {
     const rowspan = NF_DEMONSTRATION_PARAMETER_DEFS.length;
+    const farmer = esc(rec.farmerName || '—');
+    const address = esc(rec.address || '—');
+    const contact = esc(rec.contactNumber || '—');
     const act = esc(rec.activityName || '—');
     const crop = esc(rec.crop || '—');
-    const varie = esc(rec.variety || '—');
-    const season = esc(rec.seasonName || '—');
     const tech = esc(rec.naturalFarmingTechnology || '—');
     const area = rec.areaInHa != null ? fmtNum(rec.areaInHa) : '—';
     const practice = esc(rec.farmerPracticeDetails || '—');
@@ -76,10 +77,11 @@ function renderParameterTable(rec) {
 
     const firstBody = `
     <tr>
+      <td rowspan="${rowspan}" class="l">${farmer}</td>
+      <td rowspan="${rowspan}" class="l">${address}</td>
+      <td rowspan="${rowspan}">${contact}</td>
       <td rowspan="${rowspan}" class="l">${act}</td>
       <td rowspan="${rowspan}" class="l">${crop}</td>
-      <td rowspan="${rowspan}" class="l">${varie}</td>
-      <td rowspan="${rowspan}">${season}</td>
       <td rowspan="${rowspan}" class="l">${tech}</td>
       <td rowspan="${rowspan}">${area}</td>
       <td rowspan="${rowspan}" class="l">${practice}</td>
@@ -101,13 +103,14 @@ function renderParameterTable(rec) {
   <table class="nf-fp-main">
     <thead>
       <tr>
+        <th>Name of Farmer</th>
+        <th>Address</th>
+        <th>Contact Number</th>
         <th>Name of Activity</th>
         <th>Crop</th>
-        <th>Variety</th>
-        <th>Season (Kharif / Rabi / Summer)</th>
         <th>Name of Natural Farming components/Technology demonstrated</th>
         <th>Area (ha) in Natural farming practice</th>
-        <th>Detail of farmer practice</th>
+        <th>Practicing Year Of Natural Farming</th>
         <th>Name of parameter</th>
         <th>Without NF practice</th>
         <th>With NF practice</th>
@@ -118,7 +121,7 @@ function renderParameterTable(rec) {
       ${restBody}
       <tr class="nf-fp-fb">
         <td class="l"><strong>Farmer Feedback</strong></td>
-        <td colspan="9" class="l">${fb}</td>
+        <td colspan="10" class="l">${fb}</td>
       </tr>
     </tbody>
   </table>`;

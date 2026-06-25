@@ -10,7 +10,7 @@ model VipVisitor {
   vipVisitorId Int @id @default(autoincrement()) @map("vip_visitor_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   dateOfVisit     DateTime      @map("date_of_visit")
   dignitaryTypeId Int

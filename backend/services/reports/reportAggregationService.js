@@ -596,13 +596,32 @@ class ReportAggregationService {
         return kvks.map(k => ({ id: k.kvkId, name: k.kvkName }));
     }
 
+    /**
+     * Collapse org rows to one option per distinct org name ("type").
+     * Orgs (ICAR, NGO, SAU, CAU) are stored once per district, so the same
+     * name repeats across the table. The kept row is the representative whose
+     * id expands back to every org of that name in scope→KVK resolution
+     * (see _orgNamesForIds / getKvkIdsForScope).
+     */
+    _dedupeOrgsByName(orgs) {
+        const seen = new Set();
+        const options = [];
+        for (const o of orgs) {
+            const name = o.orgName || 'Unknown';
+            if (seen.has(name)) continue;
+            seen.add(name);
+            options.push({ id: o.orgId, name });
+        }
+        return options;
+    }
+
     async _getOrgsByDistrict(districtId) {
         const orgs = await prisma.orgMaster.findMany({
             where: { districtId },
             select: { orgId: true, orgName: true },
             orderBy: { orgName: 'asc' },
         });
-        return orgs.map(o => ({ id: o.orgId, name: o.orgName || 'Unknown' }));
+        return this._dedupeOrgsByName(orgs);
     }
 
     async _getOrgsByState(stateId) {
@@ -616,7 +635,7 @@ class ReportAggregationService {
             select: { orgId: true, orgName: true },
             orderBy: { orgName: 'asc' },
         });
-        return orgs.map(o => ({ id: o.orgId, name: o.orgName || 'Unknown' }));
+        return this._dedupeOrgsByName(orgs);
     }
 
     async _getOrgsByZone(zoneId) {
@@ -635,7 +654,7 @@ class ReportAggregationService {
             select: { orgId: true, orgName: true },
             orderBy: { orgName: 'asc' },
         });
-        return orgs.map(o => ({ id: o.orgId, name: o.orgName || 'Unknown' }));
+        return this._dedupeOrgsByName(orgs);
     }
 
     async _getDistrictsByState(stateId) {
@@ -694,7 +713,7 @@ class ReportAggregationService {
             select: { orgId: true, orgName: true },
             orderBy: { orgName: 'asc' },
         });
-        return orgs.map(o => ({ id: o.orgId, name: o.orgName || 'Unknown' }));
+        return this._dedupeOrgsByName(orgs);
     }
 
     async _getAllKvks() {
@@ -742,15 +761,7 @@ class ReportAggregationService {
                     select: { orgId: true, orgName: true },
                     orderBy: { orgName: 'asc' },
                 });
-                const seen = new Set();
-                const options = [];
-                for (const o of orgs) {
-                    const name = o.orgName || 'Unknown';
-                    if (seen.has(name)) continue;
-                    seen.add(name);
-                    options.push({ id: o.orgId, name }); // id = representative org of this name
-                }
-                return options;
+                return this._dedupeOrgsByName(orgs);
             }
 
             case 'orgs': {

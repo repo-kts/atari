@@ -1,0 +1,4 @@
+interface:
+  display_name: "Module Report Generation"
+  short_description: "Keep module PDF, Excel, and Word exports aligned."
+  default_prompt: "Update a module-wise report so PDF, Excel, and Word share the same grouped format."

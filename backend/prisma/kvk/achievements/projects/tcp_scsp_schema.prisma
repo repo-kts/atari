@@ -26,7 +26,7 @@ model TspScsp {
   tspScspId Int @id @default(autoincrement()) @map("tsp_scsp_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear DateTime? @map("reporting_year")
 

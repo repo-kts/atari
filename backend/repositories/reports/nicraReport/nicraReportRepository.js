@@ -8,6 +8,111 @@ function _yearRange(year) {
     return { start, end };
 }
 
+function _applyDateRange(where, fieldName, filters = {}) {
+    if (!(filters.startDate || filters.endDate || filters.year || filters.reportingYearFrom || filters.reportingYearTo)) return;
+    where[fieldName] = {};
+    if (filters.year && !filters.startDate && !filters.endDate && !filters.reportingYearFrom && !filters.reportingYearTo) {
+        const yr = _yearRange(filters.year);
+        if (yr) {
+            where[fieldName].gte = yr.start;
+            where[fieldName].lte = yr.end;
+        }
+        return;
+    }
+    if (filters.startDate || filters.reportingYearFrom) {
+        const from = new Date(filters.startDate || filters.reportingYearFrom);
+        if (!isNaN(from)) {
+            from.setHours(0, 0, 0, 0);
+            where[fieldName].gte = from;
+        }
+    }
+    if (filters.endDate || filters.reportingYearTo) {
+        const to = new Date(filters.endDate || filters.reportingYearTo);
+        if (!isNaN(to)) {
+            to.setHours(23, 59, 59, 999);
+            where[fieldName].lte = to;
+        }
+    }
+}
+
+async function getNicraDetailsData(kvkId, filters = {}) {
+    const where = {};
+    if (kvkId) where.kvkId = kvkId;
+    _applyDateRange(where, 'reportingYear', filters);
+
+    return prisma.nicraDetails.findMany({
+        where,
+        include: {
+            kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
+            category: true,
+            subCategory: true,
+            season: true,
+        },
+        orderBy: [{ reportingYear: 'asc' }, { nicraDetailsId: 'asc' }],
+    });
+}
+
+async function getNicraRevenueGeneratedData(kvkId, filters = {}) {
+    const where = {};
+    if (kvkId) where.kvkId = kvkId;
+    _applyDateRange(where, 'reportingYear', filters);
+
+    const rows = await prisma.nicraRevenueGenerated.findMany({
+        where,
+        include: { kvk: { select: { kvkName: true, state: { select: { stateName: true } } } } },
+        orderBy: [{ reportingYear: 'asc' }, { nicraRevenueGeneratedId: 'asc' }],
+    });
+
+    return rows.map(r => ({
+        ...r,
+        stateName: r.kvk?.state?.stateName || '',
+        kvkName: r.kvk?.kvkName || '',
+        revenueGeneratedRs: Number(r.revenue || 0),
+    }));
+}
+
+async function getNicraConvergenceData(kvkId, filters = {}) {
+    const where = {};
+    if (kvkId) where.kvkId = kvkId;
+    _applyDateRange(where, 'startDate', filters);
+
+    return prisma.nicraConvergenceProgramme.findMany({
+        where,
+        include: { kvk: { select: { kvkName: true, state: { select: { stateName: true } } } } },
+        orderBy: [{ startDate: 'asc' }, { nicraConvergenceProgrammeId: 'asc' }],
+    });
+}
+
+async function getNicraDignitariesData(kvkId, filters = {}) {
+    const where = {};
+    if (kvkId) where.kvkId = kvkId;
+    _applyDateRange(where, 'dateOfVisit', filters);
+
+    return prisma.nicraDignitariesVisited.findMany({
+        where,
+        include: {
+            kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
+            dignitaryType: true,
+        },
+        orderBy: [{ dateOfVisit: 'asc' }, { nicraDignitariesVisitedId: 'asc' }],
+    });
+}
+
+async function getNicraPiCopiData(kvkId, filters = {}) {
+    const where = {};
+    if (kvkId) where.kvkId = kvkId;
+    _applyDateRange(where, 'startDate', filters);
+
+    return prisma.nicraPiCopi.findMany({
+        where,
+        include: {
+            kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
+            piType: true,
+        },
+        orderBy: [{ startDate: 'asc' }, { nicraPiCopiId: 'asc' }],
+    });
+}
+
 async function getNicraBasicData(kvkId, filters = {}) {
     const where = {};
     if (kvkId) where.kvkId = kvkId;
@@ -411,4 +516,17 @@ async function getNicraSoilHealthData(kvkId, filters = {}) {
     });
 }
 
-module.exports = { getNicraBasicData, getNicraTrainingData, getNicraInterventionData, getNicraExtensionActivityData, getNicraFarmImplementData, getNicraVcrmcData, getNicraSoilHealthData };
+module.exports = {
+    getNicraBasicData,
+    getNicraTrainingData,
+    getNicraInterventionData,
+    getNicraExtensionActivityData,
+    getNicraFarmImplementData,
+    getNicraVcrmcData,
+    getNicraSoilHealthData,
+    getNicraDetailsData,
+    getNicraRevenueGeneratedData,
+    getNicraConvergenceData,
+    getNicraDignitariesData,
+    getNicraPiCopiData,
+};

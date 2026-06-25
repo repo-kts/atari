@@ -35,6 +35,17 @@ function fmt(value) {
     return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '');
 }
 
+function buildNariBioFortifiedKvkGroups(data) {
+    const rows = Array.isArray(data) ? data : (data ? [data] : []);
+    const byKvk = new Map();
+    rows.forEach((row) => {
+        const kvkName = row.kvkName || 'KVK not specified';
+        if (!byKvk.has(kvkName)) byKvk.set(kvkName, []);
+        byKvk.get(kvkName).push(row);
+    });
+    return Array.from(byKvk, ([kvkName, rows]) => ({ kvkName, rows }));
+}
+
 /* ── shared inline styles ─────────────────────────────────────────────────── */
 
 const TABLE_STYLES = `
@@ -80,6 +91,13 @@ const TABLE_STYLES = `
       color: #555;
       padding: 8px;
       font-size: 7.5pt;
+  }
+  .nbf-kvk-heading {
+      font-size: 8.5pt;
+      font-weight: bold;
+      background: #dce6f1;
+      padding: 3px 6px;
+      margin: 8px 0 5px;
   }
 </style>`;
 
@@ -209,9 +227,9 @@ function buildTable2(rows, escFn) {
 /* ── main section renderer (bound to ReportTemplateService via .bind(this)) ── */
 
 function renderNariBioFortifiedSection(section, data, sectionId, isFirstSection) {
-    const rows = Array.isArray(data) ? data : (data ? [data] : []);
+    const groups = buildNariBioFortifiedKvkGroups(data);
 
-    if (rows.length === 0) {
+    if (groups.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }
 
@@ -220,16 +238,25 @@ function renderNariBioFortifiedSection(section, data, sectionId, isFirstSection)
         : 'section-page section-page-continued';
 
     const escFn = (v) => this._escapeHtml(v);
+    const groupedBody = groups.map(group => `
+        <h2 class="nbf-kvk-heading">KVK: ${escFn(group.kvkName)}</h2>
+        ${buildTable1(group.rows, escFn)}
+        ${buildTable2(group.rows, escFn)}
+    `).join('');
 
     return `
 <div id="${sectionId}" class="${pageClass}">
     ${TABLE_STYLES}
     <h1 class="section-title">${section.id} ${escFn(section.title)}</h1>
     <div class="nbf-section">
-        ${buildTable1(rows, escFn)}
-        ${buildTable2(rows, escFn)}
+        ${groupedBody}
     </div>
 </div>`;
 }
 
-module.exports = { renderNariBioFortifiedSection };
+module.exports = {
+    renderNariBioFortifiedSection,
+    buildNariBioFortifiedKvkGroups,
+    fmt,
+    num,
+};

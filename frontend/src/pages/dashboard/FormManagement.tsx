@@ -5,7 +5,6 @@ import {
     Trophy,
     BarChart3,
     FolderTree,
-    Sparkles,
     Calendar,
 } from 'lucide-react'
 import { SidebarLayout } from '../../components/common/SidebarLayout'
@@ -15,7 +14,6 @@ const AboutKVKTab = lazy(() => import('./forms/AboutKVKTab').then(m => ({ defaul
 const AchievementsTab = lazy(() => import('./forms/AchievementsTab').then(m => ({ default: m.AchievementsTab })))
 const PerformanceTab = lazy(() => import('./forms/PerformanceTab').then(m => ({ default: m.PerformanceTab })))
 const MiscellaneousTab = lazy(() => import('./forms/MiscellaneousTab').then(m => ({ default: m.MiscellaneousTab })))
-const SwachhtaBharatAbhiyaanTab = lazy(() => import('./forms/SwachhtaBharatAbhiyaanTab').then(m => ({ default: m.SwachhtaBharatAbhiyaanTab })))
 const MeetingsTab = lazy(() => import('./forms/MeetingsTab').then(m => ({ default: m.MeetingsTab })))
 
 interface Tab {
@@ -56,13 +54,6 @@ const tabs: Tab[] = [
         component: <MiscellaneousTab />,
     },
     {
-        id: 'swachhta-bharat-abhiyaan',
-        label: 'Swachhta Bharat Abhiyaan',
-        path: '/forms/swachhta-bharat-abhiyaan',
-        icon: <Sparkles className="w-4 h-4" />,
-        component: <SwachhtaBharatAbhiyaanTab />,
-    },
-    {
         id: 'meetings',
         label: 'Meetings',
         path: '/forms/meetings',
@@ -90,6 +81,9 @@ export const FormManagement: React.FC = () => {
     // Determine active tab based on current route
     const getActiveTab = (): string => {
         const currentPath = location.pathname
+        if (currentPath.startsWith('/forms/swachhta-bharat-abhiyaan')) {
+            return 'achievements'
+        }
         // Find tab whose path is a prefix of the current location
         // We sort by path length descending to match the most specific path first
         const matchedTab = [...tabs]
@@ -113,4 +107,3 @@ export const FormManagement: React.FC = () => {
         </SidebarLayout>
     )
 }
-

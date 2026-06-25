@@ -24,7 +24,7 @@ const sections: FeatureSection[] = [
         icon: <Leaf className="w-5 h-5" />,
         items: [
             { label: 'Technical Parameter', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.TECHNICAL_PARAMETER },
-            { label: 'Extension Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.EXTENSION_ACTIVITY },
+            { label: 'Extension Activity (CFLD)', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.EXTENSION_ACTIVITY },
             { label: 'Budget Utilization', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.BUDGET_UTILIZATION },
         ],
     },
@@ -35,7 +35,7 @@ const sections: FeatureSection[] = [
             { label: 'Basic Information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASIC_INFORMATION },
             { label: 'Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.DETAILS },
             { label: 'Training', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.TRAINING },
-            { label: 'Extension Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.EXTENSION_ACTIVITY },
+            { label: 'Extension Activity (NICRA)', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.EXTENSION_ACTIVITY },
         ],
     },
     {
@@ -44,12 +44,12 @@ const sections: FeatureSection[] = [
         items: [
             { label: 'Intervention', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.INTERVENTION },
             { label: 'Revenue Generated', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.REVENUE_GENERATED },
-            { label: 'Custom Hiring', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CUSTOM_HIRING },
-            { label: 'VCRMC', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.VCRMC },
-            { label: 'Soil Health Card', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.SOIL_HEALTH_CARD },
-            { label: 'Convergence Programme', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CONVERGENCE_PROGRAMME },
-            { label: 'Dignitaries Visited', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.DIGNITARIES_VISITED },
-            { label: 'PI/Co-PI List', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.PI_COPI_LIST },
+            { label: 'Custom Hiring of Farm-Implement', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CUSTOM_HIRING },
+            { label: 'Village wise VCRMC', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.VCRMC },
+            { label: 'Soil Health Card prepared and distributed', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.SOIL_HEALTH_CARD },
+            { label: 'Convergence Programe', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CONVERGENCE_PROGRAMME },
+            { label: 'Dignitaries visited NICRA Villages', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.DIGNITARIES_VISITED },
+            { label: 'Name of PI & Co-PI List', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.PI_COPI_LIST },
         ],
     },
     {
@@ -64,12 +64,12 @@ const sections: FeatureSection[] = [
         title: 'Natural Farming',
         icon: <Sprout className="w-5 h-5" />,
         items: [
-            { label: 'Geographical Information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.GEOGRAPHICAL_INFORMATION },
-            { label: 'Physical Information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.PHYSICAL_INFORMATION },
+            { label: 'Geographical information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.GEOGRAPHICAL_INFORMATION },
+            { label: 'Physical information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.PHYSICAL_INFORMATION },
             { label: 'Demonstration Information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.DEMONSTRATION_INFORMATION },
-            { label: 'Farmers Practicing', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.FARMERS_PRACTICING },
-            { label: 'Beneficiaries', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.BENEFICIARIES },
-            { label: 'Soil Data', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.SOIL_DATA },
+            { label: 'Farmer Already Practicing Natural Farming', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.FARMERS_PRACTICING },
+            { label: 'Details of Beneficiaries', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.BENEFICIARIES },
+            { label: 'Soil Data information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.SOIL_DATA },
             { label: 'Budget Expenditure', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.BUDGET_EXPENDITURE },
         ],
     },
@@ -85,11 +85,11 @@ const sections: FeatureSection[] = [
         title: 'NARI',
         icon: <Utensils className="w-5 h-5" />,
         items: [
-            { label: 'Nutrition Garden', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.NUTRI_SMART },
-            { label: 'Bio-fortified Crops', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.BIO_FORTIFIED },
-            { label: 'Value Addition', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.VALUE_ADDITION },
-            { label: 'Training Program', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.TRAINING_PROGRAMM },
-            { label: 'Extension Activities', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.EXTENSION_ACTIVITIES },
+            { label: 'Details of established Nutrition Garden in Nutri-Smart village', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.NUTRI_SMART },
+            { label: 'Details of Bio-fortified crops used in Nutri-Smart village', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.BIO_FORTIFIED },
+            { label: 'Details of Value addition in Nutri-Smart village', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.VALUE_ADDITION },
+            { label: 'Training programmes in Nutri-Smart village', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.TRAINING_PROGRAMM },
+            { label: 'Extension activities under NARI Project', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.EXTENSION_ACTIVITIES },
         ],
     },
     {
@@ -97,7 +97,7 @@ const sections: FeatureSection[] = [
         icon: <Plane className="w-5 h-5" />,
         items: [
             { label: 'Introduction', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.AGRI_DRONE },
-            { label: 'Demonstration', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DEMONSTRATION_DETAILS },
+            { label: 'Demonstration Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DEMONSTRATION_DETAILS },
         ],
     },
     {
@@ -121,15 +121,14 @@ const sections: FeatureSection[] = [
         icon: <Sun className="w-5 h-5" />,
         items: [
             { label: 'CRA Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.DETAILS },
-            { label: 'Extension Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.EXTENSION_ACTIVITY },
+            { label: 'Extension Activity (CRA)', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.EXTENSION_ACTIVITY },
         ],
     },
-    // Below: project tiles not listed in the spec — appended at the end so existing data remains accessible.
     {
         title: 'CSISA',
         icon: <Building2 className="w-5 h-5" />,
         items: [
-            { label: 'CSISA', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CSISA },
+            { label: 'Details of Cereal Systems Initiative for South Asia (CSISA)', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CSISA },
         ],
     },
     {
@@ -143,7 +142,7 @@ const sections: FeatureSection[] = [
         title: 'Other Programmes',
         icon: <MoreHorizontal className="w-5 h-5" />,
         items: [
-            { label: 'Other Programmes', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.OTHER_PROGRAM },
+            { label: 'Any other programme organized by KVK, not covered above', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.OTHER_PROGRAM },
         ],
     },
 ]

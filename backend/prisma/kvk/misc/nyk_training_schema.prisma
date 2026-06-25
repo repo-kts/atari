@@ -2,7 +2,7 @@ model NykTraining {
   nykTrainingId Int @id @default(autoincrement()) @map("nyk_training_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   title     String   @map("training_title")
   startDate DateTime @map("start_date")

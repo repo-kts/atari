@@ -41,6 +41,24 @@ const {
     generateOtherExtensionContentPageExcelBuffer,
     generateOtherExtensionContentPageWordBuffer,
 } = require('../utils/otherExtensionContentPageExport.js');
+const {
+    generateNariNutritionGardenExcelBuffer,
+    generateNariNutritionGardenWordBuffer,
+} = require('../utils/nariNutritionGardenPageExport.js');
+const {
+    generateNariBioFortifiedExcelBuffer,
+    generateNariBioFortifiedWordBuffer,
+} = require('../utils/nariBioFortifiedPageExport.js');
+const { resolveNicraDignitariesDetailedPayload } = require('../repositories/reports/nicraDignitariesReport/nicraDignitariesReportRepository.js');
+const {
+    generateNicraDignitariesExcelBuffer,
+    generateNicraDignitariesWordBuffer,
+} = require('../utils/nicraDignitariesPageExport.js');
+const { generateNfDemonstrationExcelBuffer } = require('../utils/nfDemonstrationExport.js');
+const {
+    generateNfBudgetExpenditureExcelBuffer,
+    generateNfBudgetExpenditureWordBuffer,
+} = require('../utils/nfBudgetExpenditureExport.js');
 const { resolveTechnologyWeekPagePayload } = require('../repositories/reports/technologyWeekCelebrationReport/technologyWeekCelebrationReportRepository.js');
 const {
     generateTechnologyWeekCelebrationPageExcelBuffer,
@@ -113,6 +131,32 @@ const {
     generateNicraFarmImplementExcelBuffer,
     generateNicraFarmImplementWordBuffer,
 } = require('../utils/nicraFarmImplementPageExport.js');
+const {
+    generateNicraSoilHealthExcelBuffer,
+    generateNicraSoilHealthWordBuffer,
+} = require('../utils/nicraSoilHealthPageExport.js');
+const {
+    generateNicraPiCopiExcelBuffer,
+    generateNicraPiCopiWordBuffer,
+} = require('../utils/nicraPiCopiPageExport.js');
+const {
+    generateNfGeographicalExcelBuffer,
+    generateNfGeographicalWordBuffer,
+} = require('../utils/nfGeographicalPageExport.js');
+const {
+    generateNfFarmersPracticingExcelBuffer,
+    generateNfFarmersPracticingWordBuffer,
+} = require('../utils/nfFarmersPracticingPageExport.js');
+const {
+    generateNfBeneficiariesExcelBuffer,
+    generateNfBeneficiariesWordBuffer,
+} = require('../utils/nfBeneficiariesPageExport.js');
+const {
+    generateTspExcelBuffer,
+    generateTspWordBuffer,
+    generateScspExcelBuffer,
+    generateScspWordBuffer,
+} = require('../utils/tspScspPageExport.js');
 const { buildKvkAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/kvkAwardSummaryTemplate.js');
 const { resolveKvkAwardDetailedPayload } = require('../repositories/reports/kvkAwardReportRepository.js');
 const {
@@ -137,6 +181,23 @@ const { buildProjectBudgetTabularData } = require('../services/reports/formsTemp
 const { buildRevolvingFundTabularData } = require('../services/reports/formsTemplate/financialPerformanceTemplates/revolvingFundTemplate.js');
 const { buildRevenueGenerationTabularData } = require('../services/reports/formsTemplate/financialPerformanceTemplates/revenueGenerationTemplate.js');
 const { buildResourceGenerationTabularData } = require('../services/reports/formsTemplate/financialPerformanceTemplates/resourceGenerationTemplate.js');
+
+const KVK_GROUPED_HTML_EXPORT_TEMPLATES = new Set([
+    'nari-value-addition',
+    'nari-training',
+    'nari-extension',
+    'agri-drone-introduction',
+    'agri-drone-demonstration-details',
+    'fpo-cbbo-details',
+    'fpo-management-details',
+    'drmr-details',
+    'drmr-activity',
+    'cra-details-state-wise',
+    'cra-extension-activity',
+    'csisa',
+    'seed-hub',
+    'other-programmes',
+]);
 
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
@@ -252,7 +313,9 @@ const exportData = async (req, res) => {
             effectiveRawData = await prepareNfSoilExportPayload(rawData);
         }
         if (templateKey === 'nf-budget-expenditure-information' && rawData) {
-            effectiveRawData = resolveBudgetTemplatePayload(rawData);
+            // Keep the raw records so the template/Excel can group KVK-wise
+            // (pre-aggregating here would drop the KVK context).
+            effectiveRawData = rawData;
         }
         if (templateKey === 'agri-drone-introduction' && rawData) {
             effectiveRawData = await enrichAgriDroneIntroductionExport(rawData);
@@ -369,6 +432,18 @@ const exportData = async (req, res) => {
                         'nicra-extension',
                         'nicra-farm-implement',
                         'nicra-vcrmc',
+                        'nicra-soil-health',
+                        'natural-farming-geo',
+                        'nf-farmers-practicing-information',
+                        'natural-farming-beneficiaries',
+                        'arya-current',
+                        'arya-prev-year',
+                        'nari-nutrition-garden',
+                        'nari-bio-fortified',
+                        ...KVK_GROUPED_HTML_EXPORT_TEMPLATES,
+                        'tsp',
+                        'scsp',
+                        'tsp-scsp',
                     ]);
                     buffer = await exportHelper.generatePDF(html, {
                         landscape: landscapeTemplates.has(templateKey),
@@ -382,7 +457,7 @@ const exportData = async (req, res) => {
                     // Build from the SAME HTML the PDF uses so Excel matches exactly.
                     const oftHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportExcelService.generateStandaloneExcelFromHtml(title, oftHtml);
-                } else if ((templateKey === 'cfld-combined' || templateKey === 'cfld-budget-utilization' || templateKey === 'nicra-details' || templateKey === 'nicra-extension') && rawData) {
+                } else if ((templateKey === 'cfld-combined' || templateKey === 'cfld-budget-utilization' || templateKey === 'nicra-details' || templateKey === 'nicra-extension' || templateKey === 'nicra-convergence' || templateKey === 'arya-current' || templateKey === 'arya-prev-year' || templateKey === 'natural-farming-physical' || templateKey === 'nf-soil-data-information') && rawData) {
                     // Build from the SAME HTML the PDF uses, but interleave headings
                     // with their tables and split one tab per State (Technical) / KVK
                     // (Budget / NICRA details) so the layout matches the PDF exactly.
@@ -403,11 +478,29 @@ const exportData = async (req, res) => {
                     // Farmers/Officials/Total header matches exactly.
                     const extHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportExcelService.generateStandaloneExcelFromHtml(title, extHtml);
+                } else if (KVK_GROUPED_HTML_EXPORT_TEMPLATES.has(templateKey) && rawData) {
+                    const groupedHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportExcelService.generateCfldExcelFromHtml(title, groupedHtml);
                 } else if (templateKey === 'other-extension-content-page-report') {
                     buffer = await generateOtherExtensionContentPageExcelBuffer(
                         title,
                         resolveOtherExtensionDetailedPayload(effectiveRawData),
                     );
+                } else if (templateKey === 'nari-nutrition-garden') {
+                    buffer = await generateNariNutritionGardenExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nari-bio-fortified') {
+                    buffer = await generateNariBioFortifiedExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-dignitaries') {
+                    buffer = await generateNicraDignitariesExcelBuffer(
+                        title,
+                        resolveNicraDignitariesDetailedPayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'nf-demonstration-information') {
+                    // One tab per KVK, tabs ordered & coloured State-wise.
+                    buffer = await generateNfDemonstrationExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nf-budget-expenditure-information') {
+                    // One coloured tab per KVK + Summary; same table layout as the PDF.
+                    buffer = await generateNfBudgetExpenditureExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technology-week-celebration-page-report' && rawData) {
                     // Generic HTML path → grouped header + KVK column (aggregated) match the PDF.
                     const twHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
@@ -465,6 +558,20 @@ const exportData = async (req, res) => {
                     buffer = await generateNicraFarmImplementExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'nicra-vcrmc') {
                     buffer = await generateNicraVcrmcExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-soil-health') {
+                    buffer = await generateNicraSoilHealthExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-pi-copi') {
+                    buffer = await generateNicraPiCopiExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'natural-farming-geo') {
+                    buffer = await generateNfGeographicalExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nf-farmers-practicing-information') {
+                    buffer = await generateNfFarmersPracticingExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'natural-farming-beneficiaries') {
+                    buffer = await generateNfBeneficiariesExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'tsp') {
+                    buffer = await generateTspExcelBuffer(title, effectiveRawData);
+                } else if (templateKey === 'scsp') {
+                    buffer = await generateScspExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryExcelBuffer(effectiveRawData);
                 } else if (
@@ -495,7 +602,7 @@ const exportData = async (req, res) => {
                 if (templateKey === 'oft-combined' && rawData) {
                     const oftHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportWordService.generateStandaloneWordFromHtml(title, oftHtmlW);
-                } else if ((templateKey === 'cfld-combined' || templateKey === 'cfld-budget-utilization' || templateKey === 'nicra-details' || templateKey === 'nicra-extension') && rawData) {
+                } else if ((templateKey === 'cfld-combined' || templateKey === 'cfld-budget-utilization' || templateKey === 'nicra-details' || templateKey === 'nicra-extension' || templateKey === 'nicra-convergence' || templateKey === 'arya-current' || templateKey === 'arya-prev-year' || templateKey === 'natural-farming-physical' || templateKey === 'nf-soil-data-information') && rawData) {
                     const cfldHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportWordService.generateCfldWordFromHtml(title, cfldHtmlW);
                 } else if (templateKey === 'fld-page-report') {
@@ -511,11 +618,32 @@ const exportData = async (req, res) => {
                 } else if (templateKey === 'extension-activities-page-report' && rawData) {
                     const extHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportWordService.generateStandaloneWordFromHtml(title, extHtmlW);
+                } else if (KVK_GROUPED_HTML_EXPORT_TEMPLATES.has(templateKey) && rawData) {
+                    const groupedHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportWordService.generateCfldWordFromHtml(title, groupedHtmlW);
                 } else if (templateKey === 'other-extension-content-page-report') {
                     buffer = await generateOtherExtensionContentPageWordBuffer(
                         title,
                         resolveOtherExtensionDetailedPayload(effectiveRawData),
                     );
+                } else if (templateKey === 'nari-nutrition-garden') {
+                    buffer = await generateNariNutritionGardenWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nari-bio-fortified') {
+                    buffer = await generateNariBioFortifiedWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-dignitaries') {
+                    buffer = await generateNicraDignitariesWordBuffer(
+                        title,
+                        resolveNicraDignitariesDetailedPayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'nf-demonstration-information' && rawData) {
+                    // Build from the SAME HTML the PDF uses so the State→KVK grouped
+                    // blocks match the PDF exactly.
+                    const nfHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportWordService.generateStandaloneWordFromHtml(title, nfHtmlW);
+                } else if (templateKey === 'nf-budget-expenditure-information') {
+                    // Dedicated KVK-wise builder (the generic HTML→Word path lumps
+                    // all KVK headers at the top instead of one per table).
+                    buffer = await generateNfBudgetExpenditureWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technology-week-celebration-page-report' && rawData) {
                     const twHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportWordService.generateStandaloneWordFromHtml(title, twHtmlW);
@@ -572,6 +700,20 @@ const exportData = async (req, res) => {
                     buffer = await generateNicraFarmImplementWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'nicra-vcrmc') {
                     buffer = await generateNicraVcrmcWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-soil-health') {
+                    buffer = await generateNicraSoilHealthWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nicra-pi-copi') {
+                    buffer = await generateNicraPiCopiWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'natural-farming-geo') {
+                    buffer = await generateNfGeographicalWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'nf-farmers-practicing-information') {
+                    buffer = await generateNfFarmersPracticingWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'natural-farming-beneficiaries') {
+                    buffer = await generateNfBeneficiariesWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'tsp') {
+                    buffer = await generateTspWordBuffer(title, effectiveRawData);
+                } else if (templateKey === 'scsp') {
+                    buffer = await generateScspWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryWordBuffer(effectiveRawData);
                 } else if (

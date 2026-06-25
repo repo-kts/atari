@@ -17,12 +17,11 @@ function num(n) {
 function tableCss() {
     return `
   .ad-demo-wrap { width:100%; font-size:5.5pt; line-height:1.15; }
-  .ad-demo-caption { text-align:center; font-size:8pt; font-weight:bold; margin:0 0 6px 0; }
-  .ad-demo-tbl { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:12px; page-break-inside:auto; }
+  .ad-demo-caption { text-align:center; font-size:8pt; font-weight:bold; margin:0 0 6px 0; page-break-after:avoid; break-after:avoid; }
+  .ad-demo-tbl { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:12px; page-break-inside:auto; break-inside:auto; }
   .ad-demo-tbl th, .ad-demo-tbl td { border:0.35pt solid #000; padding:2px 2px; vertical-align:middle; text-align:center; word-break:break-word; }
   .ad-demo-tbl thead th { background:#e8e8e8; font-weight:bold; }
   .ad-demo-tbl td.l { text-align:left; }
-  .ad-demo-tbl tr.ad-demo-kvk td { background:#d9d9d9; font-weight:bold; text-align:left; }
   .ad-demo-tbl tr.ad-demo-spacer td { border:none; height:8px; }
 `;
 }
@@ -33,7 +32,7 @@ function renderBody(rows) {
             return '<tr class="ad-demo-spacer"><td colspan="22"></td></tr>';
         }
         if (r._header) {
-            return `<tr class="ad-demo-kvk"><td colspan="22">${esc(r.label)}</td></tr>`;
+            return '';
         }
         return `
       <tr>

@@ -1,4 +1,4 @@
-const { resolveBudgetTemplatePayload } = require('../../../../repositories/reports/naturalFarmingReport/budgetExpenditureReportRepository.js');
+const { resolveBudgetGroupedPayload } = require('../../../../repositories/reports/naturalFarmingReport/budgetExpenditureReportRepository.js');
 
 const TABLE_CAPTION = 'Budget Expenditure (Rs. in Rs)';
 
@@ -31,10 +31,13 @@ function tableCss() {
   .nf-budget-tbl th, .nf-budget-tbl td { border:0.35pt solid #000; padding:3px 4px; vertical-align:middle; text-align:center; word-break:break-word; }
   .nf-budget-tbl thead th { background:#e8e8e8; font-weight:bold; }
   .nf-budget-tbl td:first-child { text-align:left; font-weight:600; }
+  .nf-budget-tbl tr.total td { font-weight:bold; background:#f1f5f9; }
+  .nf-budget-tbl tr.total td:first-child { text-align:right; }
+  .nf-budget-kvk-hd { font-size:8pt; font-weight:bold; background:#dce6f1; padding:3px 6px; border:0.35pt solid #000; margin:10px 0 6px 0; }
 `;
 }
 
-function renderBudgetTable(rows) {
+function renderBudgetTable(rows, totals) {
     const body = (rows && rows.length > 0)
         ? rows.map((r) => `
       <tr>
@@ -44,7 +47,16 @@ function renderBudgetTable(rows) {
         <td>${fmtMoney(r.budgetExpenditure)}</td>
         <td>${fmtMoney(r.totalBudgetExpenditure)}</td>
       </tr>`).join('')
-        : `<tr><td colspan="5">${esc('No data')}</td></tr>`;
+        : (totals ? '' : `<tr><td colspan="5">${esc('No data')}</td></tr>`);
+
+    const totalRow = totals ? `
+      <tr class="total">
+        <td>Total</td>
+        <td>${fmtInt(totals.numberOfActivities)}</td>
+        <td>${fmtMoney(totals.budgetSanction)}</td>
+        <td>${fmtMoney(totals.budgetExpenditure)}</td>
+        <td>${fmtMoney(totals.totalBudgetExpenditure)}</td>
+      </tr>` : '';
 
     return `
   <table class="nf-budget-tbl">
@@ -57,15 +69,15 @@ function renderBudgetTable(rows) {
         <th>Total Budget Expenditure (Rs)</th>
       </tr>
     </thead>
-    <tbody>${body}</tbody>
+    <tbody>${body}${totalRow}</tbody>
   </table>`;
 }
 
 function renderNfBudgetExpenditureInformationSection(section, data, sectionId, isFirstSection) {
-    const payload = resolveBudgetTemplatePayload(data);
-    const rows = payload.rows || [];
+    const payload = resolveBudgetGroupedPayload(data);
+    const groups = payload.groups || [];
 
-    if (rows.length === 0) {
+    if (payload.totalRecords === 0) {
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
@@ -73,13 +85,23 @@ function renderNfBudgetExpenditureInformationSection(section, data, sectionId, i
 </div>`;
     }
 
+    const groupsHtml = groups.map((g) => {
+        const kvkHd = g.kvkName ? `<div class="nf-budget-kvk-hd">KVK: ${esc(g.kvkName)}</div>` : '';
+        return `${kvkHd}${renderBudgetTable(g.rows, g.totals)}`;
+    }).join('');
+
+    const grandHtml = payload.isMultiKvk ? `
+    <div class="nf-budget-kvk-hd">Grand Total (all KVKs)</div>
+    ${renderBudgetTable([], payload.grandTotals)}` : '';
+
     return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="nf-budget-wrap">
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
     <div class="nf-budget-caption">${esc(TABLE_CAPTION)}</div>
-    ${renderBudgetTable(rows)}
+    ${groupsHtml}
+    ${grandHtml}
   </div>
 </div>`;
 }

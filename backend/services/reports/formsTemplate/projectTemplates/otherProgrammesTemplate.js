@@ -9,7 +9,6 @@ function renderOtherProgrammesSection(section, data, sectionId, isFirstSection) 
   const body = rows.map((r, idx) => `
     <tr>
       <td>${idx + 1}</td>
-      <td class="l">${esc(r.kvkName || '-')}</td>
       <td class="l">${esc(r.programmeName || '')}</td>
       <td>${esc(d(r.programmeDate))}</td>
       <td class="l">${esc(r.venue || '')}</td>
@@ -35,7 +34,6 @@ function renderOtherProgrammesSection(section, data, sectionId, isFirstSection) 
     <thead>
       <tr>
         <th rowspan="2">Sl. No.</th>
-        <th rowspan="2">KVK</th>
         <th rowspan="2">Name of the programme</th>
         <th rowspan="2">Date of the programme</th>
         <th rowspan="2">Venue</th>
