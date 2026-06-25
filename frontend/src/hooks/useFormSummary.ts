@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { formSummaryApi } from '../services/formSummaryApi'
 import type { FormSummaryResponse } from '../types/formSummary'
 
-export function useFormSummary(kvkId?: number) {
+export function useFormSummary(kvkId?: number, year?: number) {
     return useQuery<FormSummaryResponse>({
-        queryKey: ['form-summary', kvkId ?? 'all'],
-        queryFn: () => formSummaryApi.getSummary(kvkId),
+        queryKey: ['form-summary', kvkId ?? 'all', year ?? 'all-years'],
+        queryFn: () => formSummaryApi.getSummary(kvkId, year),
         staleTime: 60_000,
     })
 }
