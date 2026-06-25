@@ -116,7 +116,7 @@ const REPORT_INDEX_TAXONOMY = {
                     { label: 'Technology Week', sectionId: '2.10' },
                     { label: 'Celebration Days', sectionId: '2.11' },
                     { label: 'World Soil Day', sectionId: '2.15' },
-                    { label: 'Poshan Maha', sectionId: '' },
+                    { label: 'Poshan Maaha', sectionId: '' },
                 ],
             },
             {
@@ -179,7 +179,7 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'NICRA',
                 features: [
                     { label: 'Basic Information', sectionId: '2.34' },
-                    { label: 'Details', sectionId: '' },
+                    { label: 'Details', sectionId: '2.41' },
                     { label: 'Training', sectionId: '2.35' },
                     { label: 'Extension Activity', sectionId: '2.36' },
                 ],
@@ -188,13 +188,13 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'NICRA Others',
                 features: [
                     { label: 'Intervention', sectionId: '2.37' },
-                    { label: 'Revenue Generated', sectionId: '' },
+                    { label: 'Revenue Generated', sectionId: '2.42' },
                     { label: 'Custom Hiring', sectionId: '2.38' },
                     { label: 'VCRMC', sectionId: '2.39' },
                     { label: 'Soil Health Card', sectionId: '2.40' },
-                    { label: 'Convergence Programme', sectionId: '' },
-                    { label: 'Dignitaries Visited', sectionId: '' },
-                    { label: 'PI/Co-PI List', sectionId: '' },
+                    { label: 'Convergence Programme', sectionId: '2.43' },
+                    { label: 'Dignitaries Visited', sectionId: '2.45' },
+                    { label: 'PI/Co-PI List', sectionId: '2.61' },
                 ],
             },
             {
@@ -207,11 +207,11 @@ const REPORT_INDEX_TAXONOMY = {
             {
                 label: 'Natural Farming',
                 features: [
-                    { label: 'Geographical Information', sectionId: '' },
+                    { label: 'Geographical Information', sectionId: '2.60' },
                     { label: 'Physical Information', sectionId: '2.44' },
                     { label: 'Demonstration Information', sectionId: '2.46' },
                     { label: 'Farmers Practicing', sectionId: '2.47' },
-                    { label: 'Beneficiaries', sectionId: '' },
+                    { label: 'Beneficiaries', sectionId: '2.48' },
                     { label: 'Soil Data', sectionId: '2.49' },
                     { label: 'Budget Expenditure', sectionId: '2.50' },
                 ],
@@ -277,6 +277,92 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'Other Programmes',
                 features: [
                     { label: 'Other Programmes', sectionId: '2.54' },
+                ],
+            },
+        ],
+    },
+    '4': {
+        title: 'Performance',
+        groups: [
+            {
+                label: 'Impact',
+                features: [
+                    { label: 'Impact of KVK activities', sectionId: '4.1' },
+                    { label: 'Entrepreneurship', sectionId: '4.2' },
+                    { label: 'Success Stories', sectionId: '4.3' },
+                ],
+            },
+            {
+                label: 'District and Village Performance',
+                features: [
+                    { label: 'District Level Data', sectionId: '4.4' },
+                    { label: 'Operational Area Details', sectionId: '4.5' },
+                    { label: 'Village Adoption Programme', sectionId: '4.6' },
+                    { label: 'Priority Thrust Area', sectionId: '4.7' },
+                ],
+            },
+            {
+                label: 'Infrastructure Performance',
+                features: [
+                    { label: 'Demonstration Units', sectionId: '4.8' },
+                    { label: 'Instructional Farm (crops)', sectionId: '4.9' },
+                    { label: 'Production Units', sectionId: '4.10' },
+                    { label: 'Instructional Farm (livestock)', sectionId: '4.11' },
+                    { label: 'Hostel Facilities', sectionId: '4.12' },
+                    { label: 'Rain Water Harvesting', sectionId: '4.14' },
+                ],
+            },
+            {
+                label: 'Financial Performance',
+                features: [
+                    { label: 'Budget Details', sectionId: '4.15' },
+                    { label: 'Project-wise Budget Details', sectionId: '4.16' },
+                    { label: 'Status of revolving fund', sectionId: '4.17' },
+                    { label: 'Revenue generation', sectionId: '4.18' },
+                    { label: 'Resource Generation', sectionId: '4.19' },
+                ],
+            },
+            {
+                label: 'Linkages',
+                features: [
+                    { label: 'Functional Linkage with Different Organizations', sectionId: '4.20' },
+                ],
+            },
+        ],
+    },
+    '5': {
+        title: 'Miscellaneous',
+        groups: [
+            {
+                label: 'Prevalent Diseases',
+                features: [
+                    { label: 'Prevalent diseases in Crops', sectionId: '5.1' },
+                    { label: 'Prevalent diseases in Livestock/Fishery', sectionId: '5.2' },
+                ],
+            },
+            {
+                label: 'Nehru Yuva Kendra',
+                features: [
+                    { label: 'Nehru Yuva Kendra (NYK) Training', sectionId: '5.3' },
+                ],
+            },
+            {
+                label: 'PPV & FRA Sensitization',
+                features: [
+                    { label: 'Training & Awareness Program', sectionId: '5.4' },
+                    { label: 'Details of Plant Varieties', sectionId: '5.5' },
+                ],
+            },
+            {
+                label: 'Digital Information',
+                features: [
+                    { label: 'RAWE/FET programme', sectionId: '5.7' },
+                    { label: 'List of VIP visitors', sectionId: '5.6' },
+                    { label: 'Details of Mobile App', sectionId: '6.1' },
+                    { label: 'Details of Web Portal', sectionId: '6.2' },
+                    { label: 'Details of Kisan Sarathi', sectionId: '6.3' },
+                    { label: 'Kisan Mobile Advisory Services/KMAS', sectionId: '6.4' },
+                    { label: 'Details of messages send through other channels', sectionId: '6.5' },
                 ],
             },
         ],

@@ -437,37 +437,28 @@ class ReportTemplateService {
      * Generate cover page HTML
      */
     _generateCoverPage(kvkInfo, filters, generatedBy) {
-        const reportPeriod = this._formatReportPeriod(filters);
-        const generatedDate = new Date().toLocaleString('en-IN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+        const list = kvkInfo?.kvkList?.length
+            ? kvkInfo.kvkList
+            : (kvkInfo?.kvkName ? [kvkInfo.kvkName] : []);
+        const count = kvkInfo?.kvkCount || list.length;
+        const cols = list.length > 90 ? 5 : list.length > 45 ? 4 : list.length > 18 ? 3 : 1;
+        const items = list.map(n => `<li>${this._escapeHtml(n)}</li>`).join('');
+        const body = `
+        <div class="cv-kvk-list">
+            <div class="cv-kvk-list-head">KVKs Included (${count})</div>
+            <ol class="cv-kvk-list-items" style="columns:${cols}">${items}</ol>
+        </div>`;
 
         return `
 <div class="page cover-page">
-    <div class="cover-content">
-        <h1 class="report-title">KVK Comprehensive Report</h1>
-        <div class="kvk-info-box">
-            <h2>${this._escapeHtml(kvkInfo.kvkName)}</h2>
-            <div class="kvk-details">
-                <p><strong>Address:</strong> ${this._escapeHtml(kvkInfo.address)}</p>
-                <p><strong>Email:</strong> ${this._escapeHtml(kvkInfo.email)}</p>
-                <p><strong>Mobile:</strong> ${this._escapeHtml(kvkInfo.mobile)}</p>
-                <p><strong>Zone:</strong> ${this._escapeHtml(kvkInfo.zone)}</p>
-                <p><strong>State:</strong> ${this._escapeHtml(kvkInfo.state)}</p>
-                <p><strong>District:</strong> ${this._escapeHtml(kvkInfo.district)}</p>
-                <p><strong>Organization:</strong> ${this._escapeHtml(kvkInfo.organization)}</p>
-                ${kvkInfo.university ? `<p><strong>University:</strong> ${this._escapeHtml(kvkInfo.university)}</p>` : ''}
-                <p><strong>Host Organization:</strong> ${this._escapeHtml(kvkInfo.hostOrg)}</p>
-                <p><strong>Year of Sanction:</strong> ${kvkInfo.yearOfSanction}</p>
-            </div>
+    <div class="cover-frame">
+        <div class="cover-top">
+            <div class="cv-icar">ICAR</div>
+            <div class="cv-org-line">Indian Council of Agricultural Research</div>
+            <div class="cv-atari">Agricultural Technology Application<br>Research Institute (ATARI)</div>
         </div>
-        <div class="report-meta">
-            <p><strong>Report Period:</strong> ${reportPeriod}</p>
-        </div>
+        <div class="cover-banner">ATARI AMS REPORT</div>
+        ${body}
     </div>
 </div>`;
     }
@@ -1242,45 +1233,114 @@ class ReportTemplateService {
         width: 100%;
     }
 
-    .report-title {
-        font-size: 14pt;
+    .cover-frame {
+        width: 100%;
+        margin: 0;
+        border: 1.5pt solid #487749;
+        padding: 8mm 10mm;
+        text-align: center;
+    }
+
+    .cover-top {
+        border-bottom: 1pt solid #cdddce;
+        padding-bottom: 5mm;
+        margin-bottom: 6mm;
+    }
+
+    .cv-icar {
+        font-size: 22pt;
         font-weight: bold;
-        color: #000000;
-        margin-bottom: 30px;
+        color: #2d6a2f;
+        letter-spacing: 4px;
+    }
+
+    .cv-org-line {
+        font-size: 7.5pt;
+        letter-spacing: 2px;
         text-transform: uppercase;
+        color: #555555;
+        margin-top: 2mm;
     }
 
-    .kvk-info-box {
-        background: #FFFFFF;
-        border: 0.2px solid #000000;
-        padding: 5mm;
-        margin: 6mm 0;
+    .cv-atari {
+        font-size: 11pt;
+        font-weight: bold;
+        color: #2d4a2f;
+        margin-top: 3mm;
+        line-height: 1.4;
+    }
+
+    .cover-banner {
+        font-size: 24pt;
+        font-weight: bold;
+        color: #2d6a2f;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 5mm 0 7mm 0;
+    }
+
+    .cover-fields {
         text-align: left;
+        margin: 0 auto 6mm auto;
+        max-width: 125mm;
     }
 
-    .kvk-info-box h2 {
-        font-size: 12pt;
-        color: #000000;
-        margin-bottom: 15px;
+    .cv-row {
+        display: flex;
+        align-items: baseline;
+        margin: 3.5mm 0;
+        font-size: 10pt;
+    }
+
+    .cv-label {
+        min-width: 42mm;
+        font-weight: bold;
+        color: #2d4a2f;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 9pt;
+    }
+
+    .cv-sep {
+        margin: 0 3mm;
+        color: #487749;
         font-weight: bold;
     }
 
-    .kvk-details p {
-        margin: 6px 0;
-        font-size: 8pt;
+    .cv-value {
         color: #000000;
+        flex: 1;
     }
 
-    .report-meta {
-        margin-top: 6mm;
-        padding-top: 3mm;
-        border-top: 0.2px solid #000000;
+    .cv-kvk-list {
+        text-align: left;
+        border: 1pt solid #cdddce;
+        padding: 4mm 5mm;
+        margin: 2mm 0 0 0;
     }
 
-    .report-meta p {
-        margin: 6px 0;
+    .cv-kvk-list-head {
+        font-weight: bold;
+        color: #2d4a2f;
+        text-transform: uppercase;
+        font-size: 9pt;
+        letter-spacing: 0.5px;
+        margin-bottom: 3mm;
+        border-bottom: 1pt solid #cdddce;
+        padding-bottom: 2mm;
+    }
+
+    .cv-kvk-list-items {
+        margin: 0;
+        padding-left: 6mm;
+        column-gap: 6mm;
+    }
+
+    .cv-kvk-list-items li {
         font-size: 8pt;
-        color: #000000;
+        margin: 0.4mm 0;
+        break-inside: avoid;
+        padding-right: 2mm;
     }
 
     .toc-page {

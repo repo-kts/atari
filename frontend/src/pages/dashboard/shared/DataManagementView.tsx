@@ -38,6 +38,7 @@ import {
     getEntityTypeFromPath,
     getFieldValue,
     resolveTableFields,
+    fuzzyDedupeByName,
 } from '@/utils/masterUtils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useDataSave } from '@/hooks/useDataSave'
@@ -407,6 +408,20 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // entities (once loaded), otherwise the hook's already-complete data.
     const baseItems = serverPagination && fullItems.length > 0 ? fullItems : items
 
+    // Optional table-only dedupe (e.g. Institute/Host masters show one row per
+    // distinct name). Keeps the first occurrence per normalized field value.
+    // Display only — the form/backend are untouched. The full dataset is loaded
+    // (fullItems) before this runs, so the dedupe covers every row.
+    const uniqueByField = routeConfig?.uniqueByField
+    const dedupedBaseItems = useMemo(() => {
+        if (!uniqueByField) return baseItems
+        // Fuzzy: collapse near-duplicate names (case/punctuation/suffix/typo) to
+        // one row, e.g. the many "Birsa Agricultural University, ..." variants.
+        return fuzzyDedupeByName(baseItems, (item: any) =>
+            valueToString(getFieldValue(item, uniqueByField))
+        )
+    }, [baseItems, uniqueByField])
+
     // Resolve fields using centralized utility function
     // This ensures fields are always available even when there's no data
     const fields = useMemo(
@@ -484,7 +499,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     ? rawToDate
                     : rawFromDate
                 : rawToDate
-        const yearFiltered = baseItems.filter((item: any) =>
+        const yearFiltered = dedupedBaseItems.filter((item: any) =>
             itemMatchesDateRangeFilter(item, fromDate, toDate, maxDate)
         )
 
@@ -497,7 +512,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 return value && String(value).toLowerCase().includes(query)
             })
         })
-    }, [baseItems, items, debouncedSearch, fields, reportingYearFrom, reportingYearTo, useServerPaging])
+    }, [dedupedBaseItems, items, debouncedSearch, fields, reportingYearFrom, reportingYearTo, useServerPaging])
 
     // Apply per-column filters (Excel-style: sort + text + multi-select) on top
     // of the search/year-filtered set. The column-filter dropdown's unique-value

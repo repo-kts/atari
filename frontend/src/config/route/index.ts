@@ -5,7 +5,7 @@
  * This file aggregates all route modules and provides utility functions for route management.
  */
 
-import { allMastersRoutes } from './allMasters'
+import { allMastersRoutes, allMasters1Routes } from './allMasters'
 import { aboutKvkRoutes, viewKvkRoutes } from './aboutKvk'
 import { projectsRoutes } from './projects'
 import { achievementsRoutes } from './achievements'
@@ -24,6 +24,7 @@ export type { RouteConfig } from './types'
 // Re-export individual route arrays for direct imports
 export {
     allMastersRoutes,
+    allMasters1Routes,
     aboutKvkRoutes,
     viewKvkRoutes,
     projectsRoutes,
@@ -40,6 +41,7 @@ export {
 // Combine all routes into a single array
 export const allRoutes: RouteConfig[] = [
     ...allMastersRoutes,
+    ...allMasters1Routes,
     ...projectsRoutes,
     ...aboutKvkRoutes,
     ...viewKvkRoutes,
@@ -124,16 +126,23 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
 
     if (!config) return breadcrumbs
 
+    // Leaf breadcrumb uses the shorter `breadcrumbLabel` when provided, else the full title.
+    const leafLabel = config.breadcrumbLabel ?? config.title
+
     // Build breadcrumb trail based on category
     if (config.category === 'All Masters') {
-        breadcrumbs.push({ label: 'All Masters', path: '/all-master' })
+        // Keep the backup tree (/all-master-1) self-contained in its breadcrumbs.
+        const masterRoot = path.startsWith('/all-master-1')
+            ? '/all-master-1'
+            : '/all-master'
+        breadcrumbs.push({ label: 'All Masters', path: masterRoot })
         if (config.subcategory) {
             breadcrumbs.push({
                 label: config.subcategory,
                 path: config.subcategoryPath || '',
             })
         }
-        breadcrumbs.push({ label: config.title, path: path })
+        breadcrumbs.push({ label: leafLabel, path: path })
     } else if (config.category === 'Projects') {
         breadcrumbs.push({ label: 'Form Management', path: '/forms' })
         breadcrumbs.push({ label: 'Achievements', path: '/forms/achievements' })
@@ -141,7 +150,7 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
         if (config.subcategory) {
             breadcrumbs.push({ label: config.subcategory, path: '/forms/achievements/projects' })
         }
-        breadcrumbs.push({ label: config.title, path: path })
+        breadcrumbs.push({ label: leafLabel, path: path })
     } else if (config.category === 'Form Management' && config.subcategory === 'About KVK') {
         breadcrumbs.push({ label: 'Form Management', path: '/forms' })
         breadcrumbs.push({ label: 'About KVK', path: '/forms/about-kvk' })
@@ -152,13 +161,13 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
                 breadcrumbs.push({ label: parentConfig.title, path: parentConfig.path })
             }
         }
-        breadcrumbs.push({ label: config.title, path: path })
+        breadcrumbs.push({ label: leafLabel, path: path })
     } else if (config.category === 'Form Management') {
         breadcrumbs.push({ label: 'Form Management', path: '/forms' })
         if (config.subcategory) {
             breadcrumbs.push({ label: config.subcategory, path: config.parent || '/forms' })
         }
-        breadcrumbs.push({ label: config.title, path: path })
+        breadcrumbs.push({ label: leafLabel, path: path })
     } else if (config.category === 'Admin') {
         breadcrumbs.push({ label: 'Dashboard', path: '/dashboard' })
         if (config.parent) {
@@ -167,7 +176,7 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
                 breadcrumbs.push({ label: parentConfig.title, path: parentConfig.path })
             }
         }
-        breadcrumbs.push({ label: config.title, path: path })
+        breadcrumbs.push({ label: leafLabel, path: path })
     } else if (config.category === 'Features') {
         breadcrumbs.push({ label: 'Dashboard', path: '/dashboard' })
         if (config.parent) {
@@ -176,7 +185,7 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
                 breadcrumbs.push({ label: parentConfig.title, path: parentConfig.path })
             }
         }
-        breadcrumbs.push({ label: config.title, path: path })
+        breadcrumbs.push({ label: leafLabel, path: path })
     }
 
     return breadcrumbs

@@ -1,4 +1,17 @@
-const { getNicraBasicData, getNicraTrainingData, getNicraInterventionData, getNicraExtensionActivityData, getNicraFarmImplementData, getNicraVcrmcData, getNicraSoilHealthData } = require('./nicraReportRepository.js');
+const {
+    getNicraBasicData,
+    getNicraTrainingData,
+    getNicraInterventionData,
+    getNicraExtensionActivityData,
+    getNicraFarmImplementData,
+    getNicraVcrmcData,
+    getNicraSoilHealthData,
+    getNicraDetailsData,
+    getNicraRevenueGeneratedData,
+    getNicraConvergenceData,
+    getNicraDignitariesData,
+    getNicraPiCopiData,
+} = require('./nicraReportRepository.js');
 
 module.exports = {
     getNicraBasicData,
@@ -8,4 +21,9 @@ module.exports = {
     getNicraFarmImplementData,
     getNicraVcrmcData,
     getNicraSoilHealthData,
+    getNicraDetailsData,
+    getNicraRevenueGeneratedData,
+    getNicraConvergenceData,
+    getNicraDignitariesData,
+    getNicraPiCopiData,
 };

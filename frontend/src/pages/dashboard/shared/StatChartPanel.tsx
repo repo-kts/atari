@@ -10,7 +10,13 @@ import {
     XAxis,
     YAxis,
 } from 'recharts'
-import { BarChart3, LineChart as LineIcon, ListChecks } from 'lucide-react'
+import {
+    BarChart3,
+    ChevronLeft,
+    ChevronRight,
+    LineChart as LineIcon,
+    ListChecks,
+} from 'lucide-react'
 import { Card, CardContent } from '../../../components/ui/Card'
 
 export type StatSegments = {
@@ -77,6 +83,10 @@ const SEG_KEYS: Array<keyof StatSegments> = [
 
 const COLOR_GRID = '#E0E0E0'
 const COLOR_AXIS = '#757575'
+
+// Cap each view to 10 rows at a time; the rest is reachable via paging so the
+// chart stays readable instead of cramming 60+ bars into one frame.
+const PAGE_SIZE = 10
 
 function pct(num: number, den: number) {
     if (den <= 0) return 0
@@ -241,11 +251,28 @@ export const StatChartPanel: React.FC<Props> = ({
     )
     const emptyCount = rows.length - activeCount
 
-    const visibleRows = useMemo(() => {
+    const sortedRows = useMemo(() => {
         const base = activeOnly ? rows.filter(rowHasEntries) : rows
         // Busiest KVKs first so the meaningful bars cluster at the left.
         return [...base].sort((a, b) => rowActivity(b) - rowActivity(a))
     }, [rows, activeOnly])
+
+    // Page the sorted list into batches of PAGE_SIZE (top 10 first).
+    const [page, setPage] = useState(0)
+    const pageCount = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE))
+    // Keep the page in range when the underlying list shrinks (filter toggle,
+    // refetch with fewer rows, etc.).
+    const safePage = Math.min(page, pageCount - 1)
+    if (safePage !== page) setPage(safePage)
+
+    const visibleRows = useMemo(
+        () =>
+            sortedRows.slice(
+                safePage * PAGE_SIZE,
+                safePage * PAGE_SIZE + PAGE_SIZE
+            ),
+        [sortedRows, safePage]
+    )
 
     const chartData = useMemo(
         () =>
@@ -298,7 +325,10 @@ export const StatChartPanel: React.FC<Props> = ({
                         </span>
                         <button
                             type="button"
-                            onClick={() => setActiveOnly(v => !v)}
+                            onClick={() => {
+                                setActiveOnly(v => !v)
+                                setPage(0)
+                            }}
                             className="shrink-0 rounded-md border border-[#E0E0E0] px-2 py-0.5 text-[10px] font-semibold text-[#487749] hover:bg-[#F5F5F5] transition-colors"
                         >
                             {activeOnly
@@ -730,6 +760,46 @@ export const StatChartPanel: React.FC<Props> = ({
                                 )}
                             </AreaChart>
                         </ResponsiveContainer>
+                    </div>
+                )}
+
+                {pageCount > 1 && (
+                    <div className="flex items-center justify-between gap-2 border-t border-[#E0E0E0] px-3 py-1.5">
+                        <span className="text-[10px] text-[#757575]">
+                            Showing{' '}
+                            <span className="font-bold text-[#212121]">
+                                {safePage * PAGE_SIZE + 1}–
+                                {safePage * PAGE_SIZE + visibleRows.length}
+                            </span>{' '}
+                            of {sortedRows.length}
+                        </span>
+                        <div className="flex items-center gap-1">
+                            <button
+                                type="button"
+                                onClick={() => setPage(p => Math.max(0, p - 1))}
+                                disabled={safePage === 0}
+                                className="flex items-center gap-0.5 rounded-md border border-[#E0E0E0] px-2 py-0.5 text-[10px] font-semibold text-[#487749] hover:bg-[#F5F5F5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                <ChevronLeft className="w-3 h-3" />
+                                Prev
+                            </button>
+                            <span className="text-[10px] font-semibold text-[#757575] tabular-nums">
+                                {safePage + 1}/{pageCount}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setPage(p =>
+                                        Math.min(pageCount - 1, p + 1)
+                                    )
+                                }
+                                disabled={safePage === pageCount - 1}
+                                className="flex items-center gap-0.5 rounded-md border border-[#E0E0E0] px-2 py-0.5 text-[10px] font-semibold text-[#487749] hover:bg-[#F5F5F5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                Next
+                                <ChevronRight className="w-3 h-3" />
+                            </button>
+                        </div>
                     </div>
                 )}
             </CardContent>

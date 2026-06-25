@@ -7,8 +7,8 @@ const sections: FeatureSection[] = [
         title: 'Meetings',
         icon: <Calendar className="w-5 h-5" />,
         items: [
-            { label: 'SAC Meetings', path: '/forms/meetings/sac' },
-            { label: 'Other meetings', path: '/forms/meetings/other' },
+            { label: 'Details of Scientific Advisory Committee(SAC) Meetings', path: '/forms/meetings/sac' },
+            { label: 'Details of other meeting related to ATARI', path: '/forms/meetings/other' },
         ],
     },
 ]

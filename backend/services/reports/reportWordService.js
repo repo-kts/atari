@@ -188,14 +188,52 @@ async function buildSectionChildren(chunk, isFirst, totalWidthDxa = 9360) {
     return out;
 }
 
-/** Cover + clickable Table of Contents. */
-function buildFrontMatter(kvkInfo, numbering, renderedSectionIds) {
-    const children = [
-        new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun({ text: 'KVK Comprehensive Report', bold: true })] }),
-    ];
-    if (kvkInfo?.kvkName) {
-        children.push(new Paragraph({ children: [new TextRun({ text: kvkInfo.kvkName, bold: true, size: 24 })] }));
+/** Reporting period label — mirrors reportTemplateService._formatReportPeriod. */
+function formatReportPeriodWord(filters = {}) {
+    if (filters.year) return `Year: ${filters.year}`;
+    if (filters.startDate && filters.endDate) {
+        const fmt = d => new Date(d).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+        return `${fmt(filters.startDate)} to ${fmt(filters.endDate)}`;
     }
+    return 'All Time';
+}
+
+/** Cover + clickable Table of Contents. */
+function buildFrontMatter(kvkInfo, numbering, renderedSectionIds, filters = {}) {
+    const isAggregated = kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined;
+    const reportType = isAggregated ? (kvkInfo?.reportType || 'All KVKs') : 'KVK';
+
+    const children = [
+        new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun({ text: 'ATARI AMS REPORT', bold: true })] }),
+        new Paragraph({ children: [new TextRun({ text: 'Indian Council of Agricultural Research', size: 18 })] }),
+        new Paragraph({ children: [new TextRun({ text: 'Agricultural Technology Application Research Institute (ATARI)', bold: true, size: 22 })] }),
+    ];
+
+    const field = (label, value) => new Paragraph({
+        children: [
+            new TextRun({ text: `${label}: `, bold: true }),
+            new TextRun({ text: String(value ?? '') }),
+        ],
+    });
+
+    children.push(field('Report Type', `${reportType} Report`));
+    children.push(field('Reporting Period', formatReportPeriodWord(filters)));
+    if (!isAggregated) {
+        children.push(field('KVK', kvkInfo?.kvkName || ''));
+    }
+    if (kvkInfo?.state) children.push(field('State', kvkInfo.state));
+    if (kvkInfo?.zone) children.push(field('Zone', kvkInfo.zone));
+    if (kvkInfo?.organization) children.push(field('Organization', kvkInfo.organization));
+
+    if (isAggregated) {
+        const list = kvkInfo?.kvkList || [];
+        const count = kvkInfo?.kvkCount || list.length;
+        children.push(new Paragraph({ children: [new TextRun({ text: `KVKs Included (${count})`, bold: true })] }));
+        for (const name of list) {
+            children.push(new Paragraph({ children: [new TextRun({ text: name })], indent: { left: 360 } }));
+        }
+    }
+
     children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: 'Table of Contents', bold: true })] }));
 
     const tocLine = (number, label, sectionId, { bold = false, indent = 0 } = {}) => {
@@ -342,7 +380,7 @@ class ReportWordService {
 
         const renderedSectionIds = new Set(chunks.map(c => String(c.sectionId)));
         const body = [
-            ...buildFrontMatter(kvkInfo, numbering, renderedSectionIds),
+            ...buildFrontMatter(kvkInfo, numbering, renderedSectionIds, _filters),
         ];
         for (let i = 0; i < chunks.length; i += 1) {
             body.push(...await buildSectionChildren(chunks[i], i === 0));

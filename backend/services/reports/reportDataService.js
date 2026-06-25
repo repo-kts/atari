@@ -192,6 +192,9 @@ class ReportDataService {
             case 'nicraBasic':
                 rawData = await nicraReportRepository.getNicraBasicData(effectiveKvkId, sectionFilters);
                 break;
+            case 'nicraDetails':
+                rawData = await nicraReportRepository.getNicraDetailsData(effectiveKvkId, sectionFilters);
+                break;
             case 'nicraTraining':
                 rawData = await nicraReportRepository.getNicraTrainingData(effectiveKvkId, sectionFilters);
                 break;
@@ -210,6 +213,21 @@ class ReportDataService {
             case 'nicraSoilHealth':
                 rawData = await nicraReportRepository.getNicraSoilHealthData(effectiveKvkId, sectionFilters);
                 break;
+            case 'nicraRevenueGenerated':
+                rawData = await nicraReportRepository.getNicraRevenueGeneratedData(effectiveKvkId, sectionFilters);
+                break;
+            case 'nicraConvergence':
+                rawData = await nicraReportRepository.getNicraConvergenceData(effectiveKvkId, sectionFilters);
+                break;
+            case 'nicraDignitaries':
+                rawData = await nicraReportRepository.getNicraDignitariesData(effectiveKvkId, sectionFilters);
+                break;
+            case 'nicraPiCopi':
+                rawData = await nicraReportRepository.getNicraPiCopiData(effectiveKvkId, sectionFilters);
+                break;
+            case 'naturalFarmingGeographical':
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingGeographicalData(effectiveKvkId, sectionFilters);
+                break;
             case 'naturalFarmingPhysical':
                 rawData = await naturalFarmingReportRepository.getNaturalFarmingPhysicalInfoData(effectiveKvkId, sectionFilters);
                 break;
@@ -218,6 +236,9 @@ class ReportDataService {
                 break;
             case 'naturalFarmingFarmersPracticing':
                 rawData = await naturalFarmingReportRepository.getNaturalFarmingFarmersPracticingData(effectiveKvkId, sectionFilters);
+                break;
+            case 'naturalFarmingBeneficiaries':
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingBeneficiariesData(effectiveKvkId, sectionFilters);
                 break;
             case 'naturalFarmingSoilData':
                 rawData = await naturalFarmingReportRepository.getNaturalFarmingSoilData(effectiveKvkId, sectionFilters);
@@ -471,15 +492,21 @@ class ReportDataService {
             || dataSource === 'aryaCurrent'
             || dataSource === 'aryaPrevYear'
             || dataSource === 'nicraBasic'
+            || dataSource === 'nicraDetails'
             || dataSource === 'nicraTraining'
             || dataSource === 'nicraIntervention'
             || dataSource === 'nicraExtensionActivity'
             || dataSource === 'nicraFarmImplement'
             || dataSource === 'nicraVcrmc'
             || dataSource === 'nicraSoilHealth'
+            || dataSource === 'nicraConvergence'
+            || dataSource === 'nicraDignitaries'
+            || dataSource === 'nicraPiCopi'
+            || dataSource === 'naturalFarmingGeographical'
             || dataSource === 'naturalFarmingPhysical'
             || dataSource === 'naturalFarmingDemonstration'
             || dataSource === 'naturalFarmingFarmersPracticing'
+            || dataSource === 'naturalFarmingBeneficiaries'
             || dataSource === 'naturalFarmingSoilData'
             || dataSource === 'naturalFarmingBudgetExpenditure'
             || dataSource === 'agriDroneIntroduction'

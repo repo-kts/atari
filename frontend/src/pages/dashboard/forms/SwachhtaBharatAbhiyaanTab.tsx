@@ -7,9 +7,9 @@ const sections: FeatureSection[] = [
         title: 'Swachhta Bharat Abhiyaan',
         icon: <Sparkles className="w-5 h-5" />,
         items: [
-            { label: 'Swachhta hi Sewa', path: '/forms/swachhta-bharat-abhiyaan/sewa' },
-            { label: 'Swachta Pakhwada', path: '/forms/swachhta-bharat-abhiyaan/pakhwada' },
-            { label: 'Budget expenditure', path: '/forms/swachhta-bharat-abhiyaan/budget' },
+            { label: 'Observation of Swachhta hi Sewa SBA', path: '/forms/swachhta-bharat-abhiyaan/sewa' },
+            { label: 'Observation of Swachta Pakhwada', path: '/forms/swachhta-bharat-abhiyaan/pakhwada' },
+            { label: 'Details of quarterly budget expenditure on Swachh activities including SAP', path: '/forms/swachhta-bharat-abhiyaan/budget' },
         ],
     },
 ]

@@ -5,7 +5,6 @@ import {
     Briefcase,
     BarChart3,
     Archive,
-    Globe,
     Users,
     Check,
     ChevronDown,
@@ -43,16 +42,21 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     const [isNarrow, setIsNarrow] = useState(false);
     const searchInputId = 'report-module-search';
 
-    // Swachh Bharat is grouped under Achievements (matching the report sheet), so
-    // it has no standalone tab here.
-    const categoryMapping = [
+    // Swachh Bharat is grouped under Achievements and Digital is grouped under
+    // Miscellaneous, matching Form Management navigation.
+    const categoryMapping: Array<{
+        id: string;
+        label: string;
+        parentId: string;
+        extraParentIds?: string[];
+        icon: React.ReactNode;
+    }> = [
         { id: 'about', label: 'About KVK', parentId: '1', icon: <Building2 className="w-4 h-4" /> },
         { id: 'achievements', label: 'Achievements', parentId: '2', icon: <ClipboardList className="w-4 h-4" /> },
         { id: 'projects', label: 'Projects', parentId: '3', icon: <Briefcase className="w-4 h-4" /> },
         { id: 'performance', label: 'Performance', parentId: '4', icon: <BarChart3 className="w-4 h-4" /> },
-        { id: 'misc', label: 'Miscellaneous', parentId: '5', icon: <Archive className="w-4 h-4" /> },
-        { id: 'digital', label: 'Digital', parentId: '6', icon: <Globe className="w-4 h-4" /> },
         { id: 'meetings', label: 'Meetings', parentId: '8', icon: <Users className="w-4 h-4" /> },
+        { id: 'misc', label: 'Miscellaneous', parentId: '5', extraParentIds: ['6'], icon: <Archive className="w-4 h-4" /> },
     ];
 
     const availableSectionIds = useMemo(
@@ -102,19 +106,20 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
         categoryMapping.forEach(cat => {
             const catSections = sections.filter(s => {
                 const sParentId = String(s.parentSectionId || '');
-                const cParentId = String(cat.parentId || '');
+                const parentIds = [cat.parentId, ...(cat.extraParentIds || [])].map(id => String(id || ''));
                 const sId = String(s.id || '');
 
                 // Direct children of category
-                const matchesParent = sParentId === cParentId;
+                const matchesParent = parentIds.includes(sParentId);
                 // Prefix match (fallback)
-                const matchesPrefix = sId.startsWith(cParentId + '.');
+                const matchesPrefix = parentIds.some(parentId => sId.startsWith(parentId + '.'));
 
                 return matchesParent || matchesPrefix;
             });
 
             // Find main sections (direct children of category)
-            const mainSections = catSections.filter(s => String(s.parentSectionId) === String(cat.parentId));
+            const parentIds = [cat.parentId, ...(cat.extraParentIds || [])].map(id => String(id || ''));
+            const mainSections = catSections.filter(s => parentIds.includes(String(s.parentSectionId)));
 
             // Find subsections (children of main sections)
             const subSections: Record<string, ReportSection[]> = {};
@@ -260,7 +265,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                             {groupsToShow.map(({ group, features }) => (
                                                 <div key={group.number}>
                                                     <div className="px-4 py-2 bg-[#F6FAF5] text-[11px] font-semibold text-[#2f5a30] border-b border-[#E0E0E0]">
-                                                        {group.number} {group.label}
+                                                        {group.label}
                                                     </div>
                                                     {features.map(feature => {
                                                         if (feature.disabled) {
@@ -272,7 +277,6 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                                                     className="pl-7 pr-4 py-3 flex items-center justify-between border-b border-[#F0F0F0] cursor-not-allowed opacity-60"
                                                                 >
                                                                     <span className="text-[13px] font-normal text-[#9E9E9E]">
-                                                                        <span className="mr-1.5">{feature.number}</span>
                                                                         {feature.label}
                                                                     </span>
                                                                     <span className="text-[#C1C1C1] text-xs flex-shrink-0">—</span>
@@ -287,7 +291,6 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                                                 className="pl-7 pr-4 py-3 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
                                                             >
                                                                 <span className={`text-[13px] font-normal text-[#424242] ${isSelected ? 'text-[#2f5a30] font-medium' : ''}`}>
-                                                                    <span className="text-[#9E9E9E] mr-1.5">{feature.number}</span>
                                                                     {feature.label}
                                                                 </span>
                                                                 <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1] group-hover:border-[#487749]'}`}>

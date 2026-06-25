@@ -14,7 +14,7 @@ const sections: FeatureSection[] = [
         icon: <TrendingUp className="w-5 h-5" />,
         items: [
             { label: 'Impact of KVK activities', path: '/forms/performance/impact/kvk-activities' },
-            { label: 'Entrepreneurship', path: '/forms/performance/impact/entrepreneurship' },
+            { label: 'Details of Entrepreneurship', path: '/forms/performance/impact/entrepreneurship' },
             { label: 'Success Stories', path: '/forms/performance/impact/success-stories' },
         ],
     },
@@ -32,12 +32,12 @@ const sections: FeatureSection[] = [
         title: 'Infrastructure Performance',
         icon: <Building2 className="w-5 h-5" />,
         items: [
-            { label: 'Demonstration Units', path: '/forms/performance/infrastructure/demonstration-units' },
-            { label: 'Instructional Farm (crops)', path: '/forms/performance/infrastructure/instructional-farm-crops' },
-            { label: 'Production Units', path: '/forms/performance/infrastructure/production-units' },
-            { label: 'Instructional Farm (livestock)', path: '/forms/performance/infrastructure/instructional-farm-livestock' },
-            { label: 'Hostel Facilities', path: '/forms/performance/infrastructure/hostel' },
-            { label: 'Rain Water Harvesting', path: '/forms/performance/infrastructure/rainwater-harvesting' },
+            { label: 'Performance of demonstration Units', path: '/forms/performance/infrastructure/demonstration-units' },
+            { label: 'Performance of Instructional Farm(crops)', path: '/forms/performance/infrastructure/instructional-farm-crops' },
+            { label: 'Performance of Production Units', path: '/forms/performance/infrastructure/production-units' },
+            { label: 'Performance of Instructional Farm(livestock)', path: '/forms/performance/infrastructure/instructional-farm-livestock' },
+            { label: 'Utilization of Hostel Facilities Accommodation', path: '/forms/performance/infrastructure/hostel' },
+            { label: 'Rain Water Harvesting structure and micro irrigation system', path: '/forms/performance/infrastructure/rainwater-harvesting' },
         ],
     },
     {
@@ -45,8 +45,8 @@ const sections: FeatureSection[] = [
         icon: <DollarSign className="w-5 h-5" />,
         items: [
             { label: 'Budget Details', path: '/forms/performance/financial/budget-details' },
-            { label: 'Project-wise Budget', path: '/forms/performance/financial/project-budget' },
-            { label: 'Revolving Fund Status', path: '/forms/performance/financial/revolving-fund' },
+            { label: 'Project-wise Budget Details', path: '/forms/performance/financial/project-budget' },
+            { label: 'Status of revolving fund', path: '/forms/performance/financial/revolving-fund' },
             { label: 'Revenue generation', path: '/forms/performance/financial/revenue-generation' },
             { label: 'Resource Generation', path: '/forms/performance/financial/resource-generation' },
         ],
@@ -55,7 +55,7 @@ const sections: FeatureSection[] = [
         title: 'Linkages',
         icon: <LinkIcon className="w-5 h-5" />,
         items: [
-            { label: 'Functional Linkage', path: '/forms/performance/linkages/functional-linkage' },
+            { label: 'Functional Linkage with Different Organizations', path: '/forms/performance/linkages/functional-linkage' },
         ],
     },
 ]

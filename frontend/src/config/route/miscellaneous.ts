@@ -27,6 +27,7 @@ export const miscellaneousRoutes: RouteConfig[] = [
     {
         path: ROUTE_PATHS.MISCELLANEOUS.DISEASES.LIVESTOCK,
         title: 'Prevalent diseases (Livestock/Fishery)',
+        breadcrumbLabel: 'Diseases (Livestock/Fishery)',
         description: 'Prevalent diseases in livestock and fishery',
         category: 'Form Management',
         subcategory: 'Miscellaneous',
