@@ -3,6 +3,14 @@
  * Columns: KVK | No. of farmers covered | No of advisories sent | Type of messages:
  *          Crop | Livestock | Weather | Marketing | Awareness | Other Enterprises | Any Other
  */
+function pickValue(...values) {
+    return values.find(value => value !== undefined && value !== null && value !== '');
+}
+
+function getKvkName(row) {
+    return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
+}
+
 function renderKmasSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -36,9 +44,11 @@ function renderKmasSection(section, data, sectionId, isFirstSection) {
     }
 
     records.forEach(row => {
-        const kvk = row.kvk?.kvkName || '-';
-        const covered = row.noOfFarmersCovered != null ? String(row.noOfFarmersCovered) : '0';
-        const sent = row.noOfAdvisoriesSent != null ? String(row.noOfAdvisoriesSent) : '0';
+        const kvk = getKvkName(row);
+        const coveredValue = pickValue(row.noOfFarmersCovered, row.numberOfFarmersCovered);
+        const sentValue = pickValue(row.noOfAdvisoriesSent, row.numberOfAdvisoriesSent);
+        const covered = coveredValue != null ? String(coveredValue) : '0';
+        const sent = sentValue != null ? String(sentValue) : '0';
         html += `
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>

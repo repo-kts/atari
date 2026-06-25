@@ -14,6 +14,14 @@ const CHANNELS = [
     { label: 'Advisories through social media/FB/Twitter/Instagram/Other', prefix: 'social' },
 ];
 
+function pickValue(...values) {
+    return values.find(value => value !== undefined && value !== null && value !== '');
+}
+
+function getKvkName(row) {
+    return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
+}
+
 function _channelValue(row, prefix, field) {
     const key = prefix + field.charAt(0).toUpperCase() + field.slice(1);
     return row[key];
@@ -58,7 +66,7 @@ function renderMsgDetailsSection(section, data, sectionId, isFirstSection) {
     </table>`;
     } else {
         records.forEach(row => {
-            const kvk = row.kvk?.kvkName || '-';
+            const kvk = getKvkName(row);
             html += `
     <table class="data-table" style="width:100%;margin-bottom:20px;">
         ${_renderTableHeader(this)}

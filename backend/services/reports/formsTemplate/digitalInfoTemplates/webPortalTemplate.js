@@ -2,6 +2,14 @@
  * KVK Web Portal Template
  * Columns: KVK | No. of visitors visited the portal | No. of farmers registered on the portal
  */
+function pickValue(...values) {
+    return values.find(value => value !== undefined && value !== null && value !== '');
+}
+
+function getKvkName(row) {
+    return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
+}
+
 function renderWebPortalSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -25,9 +33,11 @@ function renderWebPortalSection(section, data, sectionId, isFirstSection) {
     }
 
     records.forEach(row => {
-        const kvk = row.kvk?.kvkName || '-';
-        const visitors = row.noOfVisitors != null ? String(row.noOfVisitors) : '0';
-        const registered = row.noOfFarmersRegistered != null ? String(row.noOfFarmersRegistered) : '0';
+        const kvk = getKvkName(row);
+        const visitorsValue = pickValue(row.noOfVisitors, row.numberOfVisitors);
+        const registeredValue = pickValue(row.noOfFarmersRegistered, row.numberOfFarmersRegistered);
+        const visitors = visitorsValue != null ? String(visitorsValue) : '0';
+        const registered = registeredValue != null ? String(registeredValue) : '0';
         html += `
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>
