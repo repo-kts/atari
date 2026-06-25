@@ -33,6 +33,7 @@ import { SuperMigrationTool } from './pages/migration/SuperMigrationTool'
 import {
     projectsRoutes,
     allMastersRoutes,
+    allMasters1Routes,
     aboutKvkRoutes,
     achievementsRoutes,
     performanceIndicatorRoutes,
@@ -102,6 +103,32 @@ function AppRoutes() {
                     ))}
                     <Route
                         path="/all-master/*"
+                        element={
+                            <ProtectedRoute requiredRole={ADMIN_ROLES} deniedRoles={ALL_MASTER_BLOCKED_ROLES}>
+                                <AllMasters />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* /all-master-1 — frozen backup of Basic Masters (not in sidebar) */}
+                    {allMasters1Routes.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                <ProtectedRoute requiredModuleCode={route.moduleCode} deniedRoles={ALL_MASTER_BLOCKED_ROLES}>
+                                    <DataManagementView
+                                        key={route.path}
+                                        title={route.title}
+                                        description={route.description}
+                                        fields={route.fields}
+                                    />
+                                </ProtectedRoute>
+                            }
+                        />
+                    ))}
+                    <Route
+                        path="/all-master-1/*"
                         element={
                             <ProtectedRoute requiredRole={ADMIN_ROLES} deniedRoles={ALL_MASTER_BLOCKED_ROLES}>
                                 <AllMasters />

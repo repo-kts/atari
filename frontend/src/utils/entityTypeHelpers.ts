@@ -219,6 +219,9 @@ export const ENTITY_CATEGORIES = {
  * Get entity type from URL path using direct mapping
  */
 export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | null => {
+    // The /all-master-1 backup tree reuses the same entities/data as /all-master,
+    // so normalize the prefix before resolving the entity type.
+    path = path.replace('/all-master-1', '/all-master')
     const pathMap: Record<string, ExtendedEntityType> = {
         // Basic Masters
         '/all-master/zones': ENTITY_TYPES.ZONES,

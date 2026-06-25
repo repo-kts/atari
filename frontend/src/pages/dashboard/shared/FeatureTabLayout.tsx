@@ -72,12 +72,13 @@ export const FeatureTabLayout: React.FC<FeatureTabLayoutProps> = ({
                                 <Link
                                     key={itemIdx}
                                     to={item.path}
-                                    className="flex items-center justify-between p-3 rounded-lg hover:bg-[#ffffff] transition-all duration-200 group"
+                                    title={item.label}
+                                    className="flex items-center justify-between gap-2 p-3 rounded-lg hover:bg-[#ffffff] transition-all duration-200 group"
                                 >
-                                    <span className="text-sm text-[#212121] group-hover:text-[#487749] font-medium">
+                                    <span className="min-w-0 truncate text-sm text-[#212121] group-hover:text-[#487749] font-medium">
                                         {item.label}
                                     </span>
-                                    <ArrowRight className="w-4 h-4 text-[#757575] group-hover:text-[#487749] opacity-0 group-hover:opacity-100 transition-all duration-200" />
+                                    <ArrowRight className="w-4 h-4 shrink-0 text-[#757575] group-hover:text-[#487749] opacity-0 group-hover:opacity-100 transition-all duration-200" />
                                 </Link>
                             ))}
                         </div>

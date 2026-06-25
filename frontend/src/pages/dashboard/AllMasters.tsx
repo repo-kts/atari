@@ -82,20 +82,26 @@ export const AllMasters: React.FC = () => {
     const location = useLocation()
     const hasRedirectedRef = React.useRef(false)
 
-    // Redirect to first tab if on base /all-master route (guard to avoid maximum update depth)
+    // /all-master-1 is the frozen backup tree; it shares this component but keeps
+    // its own URL prefix. Normalize to /all-master for tab matching.
+    const basePath = location.pathname.startsWith('/all-master-1')
+        ? '/all-master-1'
+        : '/all-master'
+
+    // Redirect to first tab if on base route (guard to avoid maximum update depth)
     React.useEffect(() => {
-        if (location.pathname !== '/all-master') {
+        if (location.pathname !== basePath) {
             hasRedirectedRef.current = false
             return
         }
         if (hasRedirectedRef.current) return
         hasRedirectedRef.current = true
-        navigate(tabs[0].path, { replace: true })
-    }, [location.pathname, navigate])
+        navigate(`${basePath}/basic`, { replace: true })
+    }, [location.pathname, navigate, basePath])
 
     // Determine active tab based on current route
     const getActiveTab = (): string => {
-        const currentPath = location.pathname
+        const currentPath = location.pathname.replace('/all-master-1', '/all-master')
         // Check for exact matches first
         const exactMatch = tabs.find(tab => currentPath === tab.path)
         if (exactMatch) return exactMatch.id

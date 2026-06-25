@@ -73,12 +73,17 @@ const buildSubItems = (routes: { title: string; path: string; moduleCode?: strin
 }
 
 const SIDEBAR_SUBITEMS: Record<string, SubItem[]> = {
-    '/forms/about-kvk': buildSubItems([...aboutKvkRoutes, ...viewKvkRoutes]),
-    '/forms/achievements': buildSubItems(achievementsRoutes),
+    '/forms/about-kvk': buildSubItems([
+        ...aboutKvkRoutes,
+        ...viewKvkRoutes,
+        ...performanceIndicatorRoutes.filter(route => route.path === '/forms/performance/infrastructure/staff-quarters'),
+    ]),
+    '/forms/achievements': buildSubItems([...achievementsRoutes, ...swachhtaBharatAbhiyaanRoutes]),
     '/forms/achievements/projects': buildSubItems(projectsRoutes),
-    '/forms/performance': buildSubItems(performanceIndicatorRoutes),
+    '/forms/performance': buildSubItems(
+        performanceIndicatorRoutes.filter(route => route.path !== '/forms/performance/infrastructure/staff-quarters')
+    ),
     '/forms/meetings': buildSubItems(meetingsRoutes),
-    '/forms/swachhta-bharat-abhiyaan': buildSubItems(swachhtaBharatAbhiyaanRoutes),
     '/forms/miscellaneous': buildSubItems([...miscellaneousRoutes, ...digitalInformationRoutes]),
 }
 
@@ -196,7 +201,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Achievements',
                 path: '/forms/achievements',
                 icon: <ClipboardList className="w-4 h-4" />,
-                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
+                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure'],
             },
             {
                 label: 'Projects',
@@ -219,12 +224,6 @@ const superAdminMenuItems: MenuItem[] = [
                     'meetings_sac',
                     'meetings_other_atari',
                 ],
-            },
-            {
-                label: 'Swachhta Bharat Abhiyaan',
-                path: '/forms/swachhta-bharat-abhiyaan',
-                icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: ['swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure'],
             },
             {
                 label: 'Miscellaneous',
@@ -518,6 +517,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         // Digital Information forms live under the Miscellaneous group in the sidebar,
         // but their URLs sit on a separate /forms/digital-information tree.
         { pattern: /^\/forms\/digital-information/, parentPath: '/forms/miscellaneous' },
+        // Swachhta forms remain on their existing URL tree, but live under Achievements in navigation.
+        { pattern: /^\/forms\/swachhta-bharat-abhiyaan/, parentPath: '/forms/achievements' },
         // Staff Quarters lives under the performance URL tree but belongs to the About KVK group in the sidebar.
         { pattern: /^\/forms\/performance\/infrastructure\/staff-quarters/, parentPath: '/forms/about-kvk' },
         { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },

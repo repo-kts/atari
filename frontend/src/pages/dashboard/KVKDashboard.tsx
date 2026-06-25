@@ -141,46 +141,50 @@ export const KVKDashboard: React.FC = () => {
         <div className="space-y-3">
             <Card className="bg-gradient-to-r from-[#487749] to-[#5c9a5e] border-none overflow-hidden relative shadow-none">
                 <CardContent className="p-4 relative z-10 text-white">
-                    <div className="flex flex-col gap-1">
-                        <h2 className="text-lg font-bold">
-                            Welcome back, {user?.name}!
-                        </h2>
-                        <p className="text-white/85 text-sm font-medium max-w-xl">
-                            {data?.primaryKvkName
-                                ? `${data.primaryKvkName} — metrics respect the year filter below.`
-                                : 'Track progress for your station using the year filter below.'}
-                        </p>
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div className="flex flex-col gap-1 min-w-0">
+                            <h2 className="text-lg font-bold">
+                                Welcome back, {user?.name}!
+                            </h2>
+                            <p className="text-white/85 text-sm font-medium max-w-xl">
+                                {data?.primaryKvkName
+                                    ? `${data.primaryKvkName} — metrics respect the year filter.`
+                                    : 'Track progress for your station using the year filter.'}
+                            </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-white/30 bg-white/95 px-2 py-1.5 md:shrink-0">
+                            <div className="flex flex-1 items-center gap-1.5 sm:flex-none">
+                                <span className="text-[10px] font-bold text-[#487749] uppercase tracking-wide whitespace-nowrap">
+                                    Year
+                                </span>
+                                <select
+                                    value={selectedYear}
+                                    onChange={e =>
+                                        setSelectedYear(e.target.value)
+                                    }
+                                    disabled={isPending && !data}
+                                    className="h-8 w-full min-w-[88px] px-2 text-xs font-medium border border-[#E0E0E0] rounded-md bg-white text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#487749]/30 sm:w-auto"
+                                >
+                                    <option value="all">All</option>
+                                    {yearOptions.map(y => (
+                                        <option key={y} value={String(y)}>
+                                            {y}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            {isFetching && (
+                                <Loader2
+                                    className="w-4 h-4 text-[#487749] animate-spin shrink-0"
+                                    aria-label="Updating"
+                                />
+                            )}
+                        </div>
                     </div>
                 </CardContent>
                 <div className="absolute top-0 right-0 w-48 h-full bg-white/10 -skew-x-12 translate-x-24" />
             </Card>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] px-2 py-1.5">
-                <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-[#487749] uppercase tracking-wide whitespace-nowrap">
-                        Year
-                    </span>
-                    <select
-                        value={selectedYear}
-                        onChange={e => setSelectedYear(e.target.value)}
-                        disabled={isPending && !data}
-                        className="h-8 min-w-[88px] px-2 text-xs font-medium border border-[#E0E0E0] rounded-md bg-white text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#487749]/30"
-                    >
-                        <option value="all">All</option>
-                        {yearOptions.map(y => (
-                            <option key={y} value={String(y)}>
-                                {y}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                {isFetching && (
-                    <Loader2
-                        className="w-4 h-4 text-[#487749] animate-spin shrink-0"
-                        aria-label="Updating"
-                    />
-                )}
-            </div>
 
             {isPending && !data && <DashboardKpiSkeleton count={5} />}
 

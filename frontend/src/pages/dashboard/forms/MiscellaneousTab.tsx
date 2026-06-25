@@ -3,8 +3,6 @@ import {
     Bug,
     Users,
     Shield,
-    GraduationCap,
-    UserCircle,
     Smartphone,
 } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
@@ -14,15 +12,15 @@ const sections: FeatureSection[] = [
         title: 'Prevalent Diseases',
         icon: <Bug className="w-5 h-5" />,
         items: [
-            { label: 'Prevalent diseases (Crops)', path: '/forms/miscellaneous/diseases/crops' },
-            { label: 'Prevalent diseases (Livestock/Fishery)', path: '/forms/miscellaneous/diseases/livestock' },
+            { label: 'Prevalent diseases in Crops', path: '/forms/miscellaneous/diseases/crops' },
+            { label: 'Prevalent diseases in Livestock/Fishery', path: '/forms/miscellaneous/diseases/livestock' },
         ],
     },
     {
         title: 'Nehru Yuva Kendra',
         icon: <Users className="w-5 h-5" />,
         items: [
-            { label: 'Nehru Yuva Kendra', path: '/forms/miscellaneous/nehru-yuva-kendra' },
+            { label: 'Nehru Yuva Kendra (NYK) Training', path: '/forms/miscellaneous/nehru-yuva-kendra' },
         ],
     },
     {
@@ -34,28 +32,16 @@ const sections: FeatureSection[] = [
         ],
     },
     {
-        title: 'RAWE/FET Programme',
-        icon: <GraduationCap className="w-5 h-5" />,
-        items: [
-            { label: 'RAWE/FET programme', path: '/forms/miscellaneous/rawe-fet' },
-        ],
-    },
-    {
-        title: 'VIP Visitors',
-        icon: <UserCircle className="w-5 h-5" />,
-        items: [
-            { label: 'VIP visitors', path: '/forms/miscellaneous/vip-visitors' },
-        ],
-    },
-    {
         title: 'Digital Information',
         icon: <Smartphone className="w-5 h-5" />,
         items: [
-            { label: 'Mobile App', path: '/forms/digital-information/mobile-app', moduleCode: 'digital_mobile_app' },
-            { label: 'Web Portal', path: '/forms/digital-information/web-portal', moduleCode: 'digital_web_portal' },
-            { label: 'Kisan Sarathi', path: '/forms/digital-information/kisan-sarathi', moduleCode: 'digital_kisan_sarthi' },
-            { label: 'Kisan Mobile Advisory', path: '/forms/digital-information/kisan-mobile-advisory', moduleCode: 'digital_kisan_advisory' },
-            { label: 'Other channels', path: '/forms/digital-information/other-channels', moduleCode: 'digital_messages_other_channels' },
+            { label: 'RAWE/FET programme', path: '/forms/miscellaneous/rawe-fet' },
+            { label: 'List of VIP visitors', path: '/forms/miscellaneous/vip-visitors' },
+            { label: 'Details of Mobile App', path: '/forms/digital-information/mobile-app', moduleCode: 'digital_mobile_app' },
+            { label: 'Details of Web Portal', path: '/forms/digital-information/web-portal', moduleCode: 'digital_web_portal' },
+            { label: 'Details of Kisan Sarathi', path: '/forms/digital-information/kisan-sarathi', moduleCode: 'digital_kisan_sarthi' },
+            { label: 'Kisan Mobile Advisory Services/KMAS', path: '/forms/digital-information/kisan-mobile-advisory', moduleCode: 'digital_kisan_advisory' },
+            { label: 'Details of messages send through other channels', path: '/forms/digital-information/other-channels', moduleCode: 'digital_messages_other_channels' },
         ],
     },
 ]

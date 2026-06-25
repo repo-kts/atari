@@ -35,6 +35,7 @@ export const achievementsRoutes: RouteConfig[] = [
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.FLD.EXTENSION_TRAINING,
         title: 'Extension & Training activities under FLD',
+        breadcrumbLabel: 'Extension & Training (FLD)',
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
@@ -104,7 +105,7 @@ export const achievementsRoutes: RouteConfig[] = [
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.POSHAN_MAHA,
-        title: 'Poshan Maha',
+        title: 'Poshan Maaha',
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
@@ -115,6 +116,7 @@ export const achievementsRoutes: RouteConfig[] = [
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PRODUCTION_SUPPLY,
         title: 'Production and supply of Technological products',
+        breadcrumbLabel: 'Production and Supply',
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,

@@ -279,7 +279,7 @@ class ReportService {
      */
     async _buildAggregatedKvkInfo(scope, kvkIds) {
         const prisma = require('../../config/prisma.js');
-        
+
         // Get first KVK for basic structure
         const firstKvk = await prisma.kvk.findUnique({
             where: { kvkId: kvkIds[0] },
@@ -291,37 +291,42 @@ class ReportService {
             },
         });
 
-        if (!firstKvk) {
-            return {
-                kvkId: null,
-                kvkName: 'Aggregated Report',
-                address: '',
-                email: '',
-                mobile: '',
-                zone: scope.zoneIds ? 'Multiple Zones' : (firstKvk?.zone?.zoneName || ''),
-                state: scope.stateIds ? 'Multiple States' : (firstKvk?.state?.stateName || ''),
-                district: scope.districtIds ? 'Multiple Districts' : (firstKvk?.district?.districtName || ''),
-                organization: scope.orgIds ? 'Multiple Organizations' : (firstKvk?.org?.orgName || ''),
-                university: null,
-                hostOrg: '',
-                yearOfSanction: null,
-            };
-        }
+        // All KVKs covered by this report — listed on the cover page.
+        const kvks = await prisma.kvk.findMany({
+            where: { kvkId: { in: kvkIds } },
+            select: { kvkName: true },
+            orderBy: { kvkName: 'asc' },
+        });
+        const kvkList = kvks.map(k => k.kvkName).filter(Boolean);
+
+        const many = (ids, plural, single) =>
+            ids && ids.length > 1 ? plural : single;
 
         return {
             kvkId: null,
+            isAggregated: true,
+            reportType: this._resolveReportType(scope),
+            kvkCount: kvkIds.length,
+            kvkList,
             kvkName: `Aggregated Report (${kvkIds.length} KVKs)`,
-            address: '',
-            email: '',
-            mobile: '',
-            zone: scope.zoneIds ? 'Multiple Zones' : (firstKvk.zone?.zoneName || ''),
-            state: scope.stateIds ? 'Multiple States' : (firstKvk.state?.stateName || ''),
-            district: scope.districtIds ? 'Multiple Districts' : (firstKvk.district?.districtName || ''),
-            organization: scope.orgIds ? 'Multiple Organizations' : (firstKvk.org?.orgName || ''),
+            zone: many(scope.zoneIds, 'Multiple Zones', firstKvk?.zone?.zoneName || ''),
+            state: many(scope.stateIds, 'Multiple States', firstKvk?.state?.stateName || ''),
+            organization: many(scope.orgIds, 'Multiple Organizations', firstKvk?.org?.orgName || ''),
             university: null,
-            hostOrg: '',
-            yearOfSanction: null,
         };
+    }
+
+    /**
+     * Report type = the scope level the user selected, most specific first.
+     * Mirrors the Report Scope tabs (Zone / State / District / Org / KVK).
+     */
+    _resolveReportType(scope) {
+        if (scope.kvkIds && scope.kvkIds.length) return 'KVK';
+        if (scope.orgIds && scope.orgIds.length) return 'Org';
+        if (scope.districtIds && scope.districtIds.length) return 'District';
+        if (scope.stateIds && scope.stateIds.length) return 'State';
+        if (scope.zoneIds && scope.zoneIds.length) return 'Zone';
+        return 'All KVKs';
     }
 }
 
