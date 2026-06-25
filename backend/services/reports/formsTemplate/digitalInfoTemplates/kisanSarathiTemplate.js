@@ -2,6 +2,14 @@
  * Kisan Sarathi Template
  * Columns: Name of KVK | No. of farmers registered on KSP portal | Phone call addressed | Answered Call
  */
+function pickValue(...values) {
+    return values.find(value => value !== undefined && value !== null && value !== '');
+}
+
+function getKvkName(row) {
+    return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
+}
+
 function renderKisanSarathiSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -26,10 +34,12 @@ function renderKisanSarathiSection(section, data, sectionId, isFirstSection) {
     }
 
     records.forEach(row => {
-        const kvk = row.kvk?.kvkName || '-';
-        const registered = row.noOfFarmersRegisteredOnKspPortal != null ? String(row.noOfFarmersRegisteredOnKspPortal) : '0';
+        const kvk = getKvkName(row);
+        const registeredValue = pickValue(row.noOfFarmersRegisteredOnKspPortal, row.numberOfFarmersRegisteredOnKspPortal);
+        const registered = registeredValue != null ? String(registeredValue) : '0';
         const addressed = row.phoneCallAddressed != null ? String(row.phoneCallAddressed) : '0';
-        const answered = row.phoneCallAnswered != null ? String(row.phoneCallAnswered) : '0';
+        const answeredValue = pickValue(row.phoneCallAnswered, row.answeredCall);
+        const answered = answeredValue != null ? String(answeredValue) : '0';
         html += `
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>

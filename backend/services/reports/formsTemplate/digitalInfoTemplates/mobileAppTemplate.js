@@ -3,6 +3,14 @@
  * Columns: KVK | Number of Mobile Apps developed by KVK | Name of the Apps |
  *          Language of the Apps | Meant for crop/livestock/fishery/others | No. of times downloaded
  */
+function pickValue(...values) {
+    return values.find(value => value !== undefined && value !== null && value !== '');
+}
+
+function getKvkName(row) {
+    return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
+}
+
 function renderMobileAppSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -29,12 +37,14 @@ function renderMobileAppSection(section, data, sectionId, isFirstSection) {
     }
 
     records.forEach(row => {
-        const kvk = row.kvk?.kvkName || '-';
-        const count = row.numberOfAppsDeveloped != null ? String(row.numberOfAppsDeveloped) : '0';
+        const kvk = getKvkName(row);
+        const countValue = pickValue(row.numberOfAppsDeveloped, row.numberOfMobileAppsDevelopedByKvk);
+        const count = countValue != null ? String(countValue) : '0';
         const name = row.nameOfApp || '-';
         const language = row.languageOfApp || '-';
         const meantFor = row.meantFor || '-';
-        const downloads = row.numberOfTimesDownloaded != null ? String(row.numberOfTimesDownloaded) : '0';
+        const downloadsValue = pickValue(row.numberOfTimesDownloaded, row.noOfTimesDownloaded);
+        const downloads = downloadsValue != null ? String(downloadsValue) : '0';
         html += `
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>

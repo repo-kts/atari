@@ -60,6 +60,15 @@ export const ENTITY_TYPE_EXPORT_TEMPLATE_MAP: Partial<
     [ENTITY_TYPES.PROJECT_SCSP_ACTIVITY]: 'scsp',
     [ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY]: 'cfld-extension-activity',
     [ENTITY_TYPES.PROJECT_CFLD_BUDGET]: 'cfld-budget-utilization',
+    [ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS]: 'misc-prevalent-diseases-crops',
+    [ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK]:
+        'misc-prevalent-diseases-livestock',
+    [ENTITY_TYPES.MISC_NYK_TRAINING]: 'misc-nyk-training',
+    [ENTITY_TYPES.MISC_PPV_FRA_TRAINING]: 'misc-ppv-fra-training',
+    [ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES]:
+        'misc-ppv-fra-plant-varieties',
+    [ENTITY_TYPES.MISC_RAWE_FET]: 'misc-rawe-fet-fit',
+    [ENTITY_TYPES.MISC_VIP_VISITORS]: 'misc-vip-visitors',
     [ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE]: 'functional-linkage',
     [ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES]: 'success-story',
     [ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP]: 'entrepreneurship',
@@ -100,6 +109,16 @@ export const ENTITY_TYPE_EXPORT_TEMPLATE_MAP: Partial<
     [ENTITY_TYPES.PERFORMANCE_REVOLVING_FUND]: 'financial-revolving-fund-report',
     [ENTITY_TYPES.PERFORMANCE_REVENUE_GENERATION]: 'financial-revenue-generation-report',
     [ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION]: 'financial-resource-generation-report',
+    [ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP]: 'di-mobile-app',
+    [ENTITY_TYPES.MISC_DIGITAL_WEB_PORTAL]: 'di-web-portal',
+    [ENTITY_TYPES.MISC_DIGITAL_KISAN_SARATHI]: 'di-kisan-sarathi',
+    [ENTITY_TYPES.MISC_DIGITAL_KISAN_MOBILE_ADVISORY]: 'di-kmas',
+    [ENTITY_TYPES.MISC_DIGITAL_OTHER_CHANNELS]: 'di-msg-details',
+    [ENTITY_TYPES.MISC_SWACHHTA_SEWA]: 'swachhta-sewa',
+    [ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA]: 'swachhta-pakhwada',
+    [ENTITY_TYPES.MISC_SWACHHTA_BUDGET]: 'swachhta-budget',
+    [ENTITY_TYPES.MISC_MEETINGS_SAC]: 'meetings-sac',
+    [ENTITY_TYPES.MISC_MEETINGS_OTHER]: 'meetings-other',
 }
 
 export function getExportTemplateKey(

@@ -142,6 +142,39 @@ const STANDALONE_KVK_GROUP_TEMPLATES = new Set([
     'csisa',
     'seed-hub',
     'other-programmes',
+    'functional-linkage',
+    'success-story',
+    'entrepreneurship',
+    'kvk-impact-activity',
+    'demonstration-unit',
+    'instructional-farm-crop',
+    'production-unit',
+    'instructional-farm-livestock',
+    'hostel-utilization',
+    'staff-quarters',
+    'rainwater-harvesting',
+    'financial-budget-details-report',
+    'financial-project-budget-report',
+    'financial-revolving-fund-report',
+    'financial-revenue-generation-report',
+    'financial-resource-generation-report',
+    'misc-prevalent-diseases-crops',
+    'misc-prevalent-diseases-livestock',
+    'misc-nyk-training',
+    'misc-ppv-fra-plant-varieties',
+    'misc-ppv-fra-training',
+    'misc-vip-visitors',
+    'misc-rawe-fet-fit',
+    'di-kisan-sarathi',
+    'di-mobile-app',
+    'di-web-portal',
+    'di-kmas',
+    'di-msg-details',
+    'swachhta-sewa',
+    'swachhta-pakhwada',
+    'swachhta-budget',
+    'meetings-sac',
+    'meetings-other',
 ]);
 const fs = require('fs');
 const path = require('path');
@@ -656,7 +689,8 @@ class ReportTemplateService {
     _stripStandaloneSectionShell(html) {
         return String(html || '')
             .replace(/^\s*<div\b[^>]*class="[^"]*section-page[^"]*"[^>]*>\s*/i, '')
-            .replace(/<h1 class="section-title">[\s\S]*?<\/h1>\s*/i, '')
+            .replace(/<h1\b[^>]*class="[^"]*section-title[^"]*"[^>]*>[\s\S]*?<\/h1>\s*/i, '')
+            .replace(/<h2\b[^>]*class="[^"]*about-kvk-heading[^"]*"[^>]*>[\s\S]*?<\/h2>\s*/i, '')
             .replace(/\s*<\/div>\s*$/i, '')
             .trim();
     }

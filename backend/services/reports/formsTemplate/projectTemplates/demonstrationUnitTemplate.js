@@ -34,7 +34,7 @@ function renderDemonstrationUnitTable(ctx, records) {
         </tr>`).join('');
 
     return `
-    <table class="data-table" style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 9pt;">
+    <table class="data-table report-fit" style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 7pt;">
         <thead>${headers}</thead>
         <tbody>${rows}</tbody>
     </table>`;

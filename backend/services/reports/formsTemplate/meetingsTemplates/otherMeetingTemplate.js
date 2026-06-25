@@ -10,6 +10,14 @@ function _formatDate(v) {
     return d.toLocaleDateString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
 
+function pickValue(...values) {
+    return values.find(value => value !== undefined && value !== null && value !== '');
+}
+
+function getKvkName(row) {
+    return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
+}
+
 function renderOtherMeetingSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -38,7 +46,7 @@ function renderOtherMeetingSection(section, data, sectionId, isFirstSection) {
     }
 
     records.forEach(row => {
-        const kvk = row.kvk?.kvkName || '-';
+        const kvk = getKvkName(row);
         const date = _formatDate(row.meetingDate);
         const type = row.typeOfMeeting || '-';
         const agenda = row.agenda || '-';

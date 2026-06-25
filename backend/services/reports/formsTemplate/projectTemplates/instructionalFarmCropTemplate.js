@@ -4,6 +4,9 @@
  * Layout: multi-level header with "Details of Production" and "Amount(Rs.)" colspan groups
  * Columns: Season | Name Of the Crop | Area(ha) | Variety | Type of Produce | Qty. | Cost of Inputs | Gross Income | Remarks
  */
+function pickValue(...values) {
+    return values.find(value => value !== undefined && value !== null && value !== '');
+}
 
 function renderInstructionalFarmCropTable(ctx, records) {
     const headers = `
@@ -25,7 +28,7 @@ function renderInstructionalFarmCropTable(ctx, records) {
 
     const rows = records.map((record, index) => `
         <tr>
-            <td>${ctx._escapeHtml(record.seasonName)}</td>
+            <td>${ctx._escapeHtml(pickValue(record.seasonName, record.season?.seasonName, record.season) || '-')}</td>
             <td>${ctx._escapeHtml(record.cropName)}</td>
             <td style="text-align: center;">${record.area}</td>
             <td>${ctx._escapeHtml(record.variety)}</td>
