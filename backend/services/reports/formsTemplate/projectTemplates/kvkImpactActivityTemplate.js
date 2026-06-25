@@ -6,21 +6,18 @@
 function renderKvkImpactActivityTable(ctx, records) {
     const headers = `
         <tr>
-            <th rowspan="2" style="width: 40px;">Sr.No.</th>
-            <th rowspan="2">Name of State</th>
-            <th rowspan="2">Name of District</th>
-            <th rowspan="2">Name of specific area</th>
-            <th rowspan="2">Brief details of the area</th>
-            <th rowspan="2">No. of farmers benefitted</th>
-            <th rowspan="2">Horizontal spread(in area/no.)</th>
-            <th rowspan="2">% Adoption</th>
-            <th rowspan="2">Impact of the technology in subjective terms</th>
-            <th rowspan="2">Impact of the technology in objective terms</th>
-            <th colspan="2">Change in income (Rs./Unit)</th>
-        </tr>
-        <tr>
-            <th>Before</th>
-            <th>After</th>
+            <th style="width: 40px;">Sr.No.</th>
+            <th>Name of State</th>
+            <th>Name of District</th>
+            <th>Name of specific area</th>
+            <th>Brief details of the area</th>
+            <th>No. of farmers benefitted</th>
+            <th>Horizontal spread(in area/no.)</th>
+            <th>% Adoption</th>
+            <th>Impact of the technology in subjective terms</th>
+            <th>Impact of the technology in objective terms</th>
+            <th>Income Before</th>
+            <th>Income After</th>
         </tr>`;
 
     const rows = records.map((record, index) => `

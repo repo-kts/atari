@@ -159,12 +159,24 @@ async function generatePDF(html, options = {}) {
  * @param {any[][]} rows 
  * @returns {Promise<Buffer>}
  */
-async function generateExcel(title, headers, rows) {
+async function generateExcel(title, headers, rows, options = {}) {
+    // Some template-based exports already include their own serial column
+    // (e.g. "Sr.No.") in headers/rows. Pass includeSerialColumn:false so we
+    // don't prepend a second "S.No." column and end up with two serial columns.
+    const includeSerial = options.includeSerialColumn !== false;
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet(title);
+    // Excel worksheet (tab) names cannot contain * ? : \ / [ ] and are capped at
+    // 31 chars — titles like "RAWE/FET programme" would otherwise throw. Sanitize
+    // for the tab name only; the original title is still shown in the header cell.
+    const sheetName = (String(title || 'Sheet1')
+        .replace(/[*?:\\/[\]]/g, '-')
+        .trim()
+        .slice(0, 31)) || 'Sheet1';
+    const worksheet = workbook.addWorksheet(sheetName);
 
     // Style for the title
-    worksheet.mergeCells('A1', String.fromCharCode(64 + headers.length + 1) + '1');
+    const totalCols = headers.length + (includeSerial ? 1 : 0);
+    worksheet.mergeCells('A1', String.fromCharCode(64 + totalCols) + '1');
     const titleCell = worksheet.getCell('A1');
     titleCell.value = title;
     titleCell.font = { name: 'Arial', size: 16, bold: true, color: { argb: 'FF487749' } };
@@ -174,7 +186,7 @@ async function generateExcel(title, headers, rows) {
     worksheet.addRow([]);
 
     // Add headers
-    const headerRow = worksheet.addRow(['S.No.', ...headers]);
+    const headerRow = worksheet.addRow(includeSerial ? ['S.No.', ...headers] : [...headers]);
     headerRow.eachCell((cell) => {
         cell.fill = {
             type: 'pattern',
@@ -192,7 +204,7 @@ async function generateExcel(title, headers, rows) {
 
     // Add data rows
     rows.forEach((row, index) => {
-        const dataRow = worksheet.addRow([index + 1, ...row]);
+        const dataRow = worksheet.addRow(includeSerial ? [index + 1, ...row] : [...row]);
         dataRow.eachCell((cell) => {
             cell.border = {
                 top: { style: 'thin' },
@@ -234,7 +246,11 @@ async function generateExcel(title, headers, rows) {
  * @param {any[][]} rows 
  * @returns {Promise<Buffer>}
  */
-async function generateWord(title, headers, rows) {
+async function generateWord(title, headers, rows, options = {}) {
+    // See generateExcel: pass includeSerialColumn:false when headers/rows already
+    // carry their own serial column, to avoid a duplicate "S.No." column.
+    const includeSerial = options.includeSerialColumn !== false;
+    const headerCells = includeSerial ? ['S.No.', ...headers] : [...headers];
     const table = new Table({
         width: {
             size: 100,
@@ -243,14 +259,14 @@ async function generateWord(title, headers, rows) {
         rows: [
             // Header Row
             new TableRow({
-                children: ['S.No.', ...headers].map(header => new TableCell({
+                children: headerCells.map(header => new TableCell({
                     children: [new Paragraph({ text: header, bold: true })],
                     shading: { fill: "487749", color: "FFFFFF" }
                 })),
             }),
             // Data Rows
             ...rows.map((row, index) => new TableRow({
-                children: [index + 1, ...row].map(text => new TableCell({
+                children: (includeSerial ? [index + 1, ...row] : [...row]).map(text => new TableCell({
                     children: [new Paragraph({ text: String(text || '') })],
                 })),
             })),
