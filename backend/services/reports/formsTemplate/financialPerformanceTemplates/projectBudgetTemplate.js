@@ -57,8 +57,9 @@ function renderProjectBudgetSection(section, data, sectionId, isFirstSection) {
     const esc = (v) => this._escapeHtml(v ?? '');
 
     const body = rows
-        .map((row) => {
+        .map((row, index) => {
             return `<tr>
+                <td style="text-align:center;">${index + 1}</td>
                 <td>${esc(kvkNameOf(row) || '—')}</td>
                 <td>${esc(projectDisplayNameOf(row))}</td>
                 <td>${esc(row.accountNumber || '—')}</td>
@@ -83,6 +84,7 @@ function renderProjectBudgetSection(section, data, sectionId, isFirstSection) {
     <table class="data-table fin-proj-bud-table">
         <thead>
             <tr>
+                <th style="width:4%;">S.No.</th>
                 <th style="width:12%;">Name of KVK</th>
                 <th style="width:14%;">Name of project</th>
                 <th style="width:10%;">Account Number</th>
@@ -91,7 +93,7 @@ function renderProjectBudgetSection(section, data, sectionId, isFirstSection) {
                 <th style="width:9%;">Budget Allocated</th>
                 <th style="width:9%;">Budget released</th>
                 <th style="width:9%;">Expenditure</th>
-                <th style="width:14%;">Unspent balance as on 31st March</th>
+                <th style="width:12%;">Unspent balance as on 31st March</th>
             </tr>
         </thead>
         <tbody>${body}</tbody>

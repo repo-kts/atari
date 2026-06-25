@@ -21,13 +21,14 @@ function renderRevolvingFundSection(section, data, sectionId, isFirstSection) {
     const esc = (v) => this._escapeHtml(v ?? '');
 
     const body = rows
-        .map((row) => {
+        .map((row, index) => {
             const closing = row.closingBalance != null && Number.isFinite(Number(row.closingBalance))
                 ? row.closingBalance
                 : (Number(row.openingBalance) || 0)
                     + (Number(row.incomeDuringYear) || 0)
                     - (Number(row.expenditureDuringYear) || 0);
             return `<tr>
+                <td style="text-align:center;">${index + 1}</td>
                 <td>${esc(kvkNameOf(row) || '—')}</td>
                 <td style="text-align:right;">${esc(fmtMoney(row.openingBalance))}</td>
                 <td style="text-align:right;">${esc(fmtMoney(row.incomeDuringYear))}</td>
@@ -49,7 +50,8 @@ function renderRevolvingFundSection(section, data, sectionId, isFirstSection) {
     <table class="data-table fin-revolving-table">
         <thead>
             <tr>
-                <th style="width:22%;">Name of KVK</th>
+                <th style="width:6%;">S.No.</th>
+                <th style="width:16%;">Name of KVK</th>
                 <th style="width:18%;">Opening balance as on 1st April</th>
                 <th style="width:16%;">Income during the year</th>
                 <th style="width:16%;">Expenditure during the year</th>

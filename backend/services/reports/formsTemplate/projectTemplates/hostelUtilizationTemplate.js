@@ -7,14 +7,16 @@
 function renderHostelUtilizationTable(ctx, records) {
     const headers = `
         <tr>
+            <th style="width: 40px;">S.No.</th>
             <th>Months</th>
             <th>No. of Trainees Stayed</th>
             <th>Trainee Days(Days Stayed)</th>
             <th>Reason for Short Fall(if any)</th>
         </tr>`;
 
-    const rows = records.map((record) => `
+    const rows = records.map((record, index) => `
         <tr>
+            <td style="text-align: center;">${index + 1}</td>
             <td>${ctx._escapeHtml(record.months)}</td>
             <td style="text-align: center;">${record.traineesStayed}</td>
             <td style="text-align: center;">${record.traineeDays}</td>

@@ -588,6 +588,9 @@ const exportData = async (req, res) => {
                     || templateKey === 'village-adoption-programme-report'
                     || templateKey === 'priority-thrust-area-report'
                     || templateKey === 'demonstration-unit'
+                    || templateKey === 'financial-revenue-generation-report'
+                    || templateKey === 'financial-resource-generation-report'
+                    || templateKey === 'functional-linkage'
                 ) {
                     // These builders already emit their own serial column — suppress
                     // the generic 'S.No.' prepend so there's a single serial column.
@@ -730,6 +733,9 @@ const exportData = async (req, res) => {
                     || templateKey === 'village-adoption-programme-report'
                     || templateKey === 'priority-thrust-area-report'
                     || templateKey === 'demonstration-unit'
+                    || templateKey === 'financial-revenue-generation-report'
+                    || templateKey === 'financial-resource-generation-report'
+                    || templateKey === 'functional-linkage'
                 ) {
                     // These builders already emit their own serial column — suppress
                     // the generic 'S.No.' prepend so there's a single serial column.
