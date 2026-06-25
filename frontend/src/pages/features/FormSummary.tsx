@@ -880,7 +880,17 @@ function ErrorState({ error, isSuperAdmin }: { error: unknown; isSuperAdmin: boo
 
 export const FormSummary: React.FC = () => {
     const { user } = useAuth()
-    const { data, isPending, isError, error } = useFormSummary()
+    const [year, setYear] = useState<number | undefined>(undefined)
+    const { data, isPending, isFetching, isError, error } = useFormSummary(
+        undefined,
+        year,
+    )
+
+    // Plain calendar years, current year back 15.
+    const yearOptions = useMemo(() => {
+        const current = new Date().getFullYear()
+        return Array.from({ length: 15 }, (_, i) => current - i)
+    }, [])
 
     const title = user?.role === 'super_admin' ? 'Form Summary — All KVKs' : 'Form Summary'
     const subtitle =
@@ -890,13 +900,43 @@ export const FormSummary: React.FC = () => {
 
     return (
         <div className="bg-white rounded-2xl p-1">
-            <div className="mb-6 px-6 pt-6">
-                <h1 className="text-2xl font-bold" style={{ color: THEME.primary }}>
-                    {title}
-                </h1>
-                <p className="text-sm mt-1 font-medium" style={{ color: THEME.mutedText }}>
-                    {subtitle}
-                </p>
+            <div className="mb-6 px-6 pt-6 flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                    <h1 className="text-2xl font-bold" style={{ color: THEME.primary }}>
+                        {title}
+                    </h1>
+                    <p className="text-sm mt-1 font-medium" style={{ color: THEME.mutedText }}>
+                        {subtitle}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    {isFetching && !isPending && (
+                        <Loader2 className="w-4 h-4 animate-spin" style={{ color: THEME.mutedText }} />
+                    )}
+                    <label className="text-xs font-medium" style={{ color: THEME.mutedText }}>
+                        Reporting year
+                    </label>
+                    <select
+                        value={year ?? ''}
+                        onChange={e =>
+                            setYear(e.target.value ? Number(e.target.value) : undefined)
+                        }
+                        className="h-9 px-3 text-sm rounded-lg bg-white border focus:outline-none focus:ring-2 cursor-pointer"
+                        style={{
+                            borderColor: THEME.border,
+                            color: '#2c2c2c',
+                            // @ts-expect-error — CSS custom property
+                            '--tw-ring-color': THEME.primary,
+                        }}
+                    >
+                        <option value="">All years</option>
+                        {yearOptions.map(y => (
+                            <option key={y} value={y}>
+                                {y}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="px-6 pb-6">

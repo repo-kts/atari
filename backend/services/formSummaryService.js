@@ -1,3 +1,4 @@
+const { Prisma } = require('@prisma/client');
 const prisma = require('../config/prisma.js');
 const { REGISTRY, CATEGORY_ORDER } = require('../config/formSummaryRegistry.js');
 const {
@@ -5,6 +6,60 @@ const {
   getScopeWhere,
   buildKvkListingWhere,
 } = require('../utils/dashboardScope.js');
+
+// Year filter binds to the column that represents WHEN the record's activity
+// happened. Most forms use `reportingYear`; activity forms use `startDate` or a
+// single activity-date column. Static forms (bank account, infrastructure, …)
+// have no such column — they are never year-filtered (always counted).
+// Ordered by preference; first match on a model wins.
+const YEAR_FIELD_PRIORITY = [
+  'reportingYear',
+  'startDate',
+  'oftStartDate',
+  'eventDate',
+  'celebrationDate',
+  'dateOfProgram',
+  'dateOfTheProgramme',
+  'programmeDate',
+  'trainingDate',
+  'activityDate',
+  'observationDate',
+  'meetingDate',
+  'dateOfVisit',
+  'visitDate',
+  'publicationDate',
+  'awardDate',
+  'trialDate',
+  'dateOfOutbreak',
+  'dateOfCompletion',
+];
+
+// delegate name (camelCase) -> set of its DateTime field names, from the DMMF.
+const dmmfDateFields = (() => {
+  const map = new Map();
+  const models = Prisma?.dmmf?.datamodel?.models || [];
+  for (const m of models) {
+    const delegate = m.name.charAt(0).toLowerCase() + m.name.slice(1);
+    const dates = new Set(
+      m.fields.filter(f => f.type === 'DateTime').map(f => f.name),
+    );
+    map.set(delegate, dates);
+  }
+  return map;
+})();
+
+const yearFieldCache = new Map();
+/** Resolve which column a model's year filter should bind to (or null). */
+function resolveYearField(modelName) {
+  if (yearFieldCache.has(modelName)) return yearFieldCache.get(modelName);
+  const dates = dmmfDateFields.get(modelName);
+  let field = null;
+  if (dates) {
+    field = YEAR_FIELD_PRIORITY.find(f => dates.has(f)) || null;
+  }
+  yearFieldCache.set(modelName, field);
+  return field;
+}
 
 const STATUS = Object.freeze({
   COMPLETED: 'completed',
@@ -30,9 +85,15 @@ function isValidDelegate(modelName) {
  * Returns Map<kvkId, count>. Empty map on errors so one bad form
  * never brings down the whole summary.
  */
-async function countForEntry(entry, scopeWhere) {
+async function countForEntry(entry, scopeWhere, dateRange) {
   if (!isValidDelegate(entry.model)) return new Map();
   const where = { ...scopeWhere, ...(entry.where || {}) };
+  // Apply the year filter only when the model has a date column to bind to;
+  // static forms (no such column) are left unfiltered.
+  if (dateRange) {
+    const yearField = resolveYearField(entry.model);
+    if (yearField) where[yearField] = dateRange;
+  }
   try {
     const rows = await prisma[entry.model].groupBy({
       by: ['kvkId'],
@@ -52,11 +113,11 @@ async function countForEntry(entry, scopeWhere) {
 }
 
 /** Run N queries in capped parallel batches to avoid exhausting the pg pool. */
-async function batchedCount(entries, scopeWhere, batchSize = 20) {
+async function batchedCount(entries, scopeWhere, dateRange, batchSize = 20) {
   const results = new Array(entries.length);
   for (let i = 0; i < entries.length; i += batchSize) {
     const slice = entries.slice(i, i + batchSize);
-    const settled = await Promise.all(slice.map(e => countForEntry(e, scopeWhere)));
+    const settled = await Promise.all(slice.map(e => countForEntry(e, scopeWhere, dateRange)));
     for (let j = 0; j < slice.length; j++) results[i + j] = settled[j];
   }
   return results;
@@ -87,10 +148,10 @@ function progressPct(completed, total) {
  * Per-KVK summary — one row per registry entry with status + count.
  * Used by kvk_admin and any scoped user viewing their own KVK.
  */
-async function getKvkSummary(actor, kvkId) {
+async function getKvkSummary(actor, kvkId, dateRange = null) {
   const scopeWhere = kvkId != null ? { kvkId: Number(kvkId) } : getScopeWhere(actor);
 
-  const counts = await batchedCount(REGISTRY, scopeWhere);
+  const counts = await batchedCount(REGISTRY, scopeWhere, dateRange);
 
   const resolvedKvkId = scopeWhere.kvkId ?? null;
   const modules = REGISTRY.map((entry, i) => {
@@ -123,7 +184,7 @@ async function getKvkSummary(actor, kvkId) {
  * Cross-KVK summary — matrix of every in-scope KVK × every form, plus
  * per-KVK progress. For super_admin (global) or higher admins (scoped).
  */
-async function getAllKvkSummary(actor) {
+async function getAllKvkSummary(actor, dateRange = null) {
   const listWhere = buildKvkListingWhere(actor, null);
   const kvks = await prisma.kvk.findMany({
     where: listWhere,
@@ -138,7 +199,7 @@ async function getAllKvkSummary(actor) {
     };
   }
 
-  const counts = await batchedCount(REGISTRY, listWhere);
+  const counts = await batchedCount(REGISTRY, listWhere, dateRange);
   const total = REGISTRY.length;
 
   const kvkRows = kvks.map(kvk => {
