@@ -1,27 +1,43 @@
 import React from 'react'
 import {
     Building2,
+    Users,
+    Map,
     Truck,
     Wrench,
 } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 
+// Groups mirror the all-reports "About KVK" taxonomy
+// (src/config/reportIndexTaxonomy.ts → REPORT_INDEX_TAXONOMY.about).
 const sections: FeatureSection[] = [
     {
-        title: 'About KVK',
+        title: 'Basic Information',
         icon: <Building2 className="w-5 h-5" />,
         items: [
             { label: 'View KVKs', path: '/forms/about-kvk/view-kvks' },
             { label: 'Bank Account Details', path: '/forms/about-kvk/bank-account' },
+        ],
+    },
+    {
+        title: 'Employee Information',
+        icon: <Users className="w-5 h-5" />,
+        items: [
             { label: 'Employee Details', path: '/forms/about-kvk/employee-details' },
             { label: 'Details of Staff Transferred', path: '/forms/about-kvk/staff-transferred' },
+        ],
+    },
+    {
+        title: 'Land & Infrastructure Information',
+        icon: <Map className="w-5 h-5" />,
+        items: [
             { label: 'Infrastructure Details', path: '/forms/about-kvk/infrastructure' },
             { label: 'Land Details', path: '/forms/about-kvk/land-details' },
             { label: 'Staff Quarters', path: '/forms/performance/infrastructure/staff-quarters', moduleCode: 'performance_indicators_infrastructure' },
         ],
     },
     {
-        title: 'Vehicles',
+        title: 'Vehicles Information',
         icon: <Truck className="w-5 h-5" />,
         items: [
             { label: 'Vehicles', path: '/forms/about-kvk/vehicles' },
@@ -29,7 +45,7 @@ const sections: FeatureSection[] = [
         ],
     },
     {
-        title: 'Equipments',
+        title: 'Equipments Information',
         icon: <Wrench className="w-5 h-5" />,
         items: [
             { label: 'Equipments', path: '/forms/about-kvk/equipments' },
