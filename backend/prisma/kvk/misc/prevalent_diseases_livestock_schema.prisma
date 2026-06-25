@@ -2,7 +2,7 @@ model PrevalentDiseasesOnLivestock {
   prevalentLivestockDiseaseId Int @id @default(autoincrement()) @map("prevalent_livestock_disease_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   diseaseName        String   @map("disease_name")
   livestockType      String   @map("livestock_type")

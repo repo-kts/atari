@@ -7,7 +7,7 @@ model PpvFraTraining {
   ppvFraTrainingId Int @id @default(autoincrement()) @map("ppv_fra_training_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   programmeDate  DateTime           @map("programme_date")
   typeId         Int?               @map("type_id")
