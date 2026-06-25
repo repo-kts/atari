@@ -7,14 +7,10 @@
 function renderDemonstrationUnitTable(ctx, records) {
     const headers = `
         <tr>
-            <th rowspan="2" style="width: 40px;">Sr.No.</th>
-            <th rowspan="2">Name of Demo Unit</th>
-            <th rowspan="2">Year of estt.</th>
-            <th rowspan="2">Area(Sq. mt)</th>
-            <th colspan="3" style="text-align: center;">Details of Production</th>
-            <th colspan="3" style="text-align: center;">Amount(Rs.)</th>
-        </tr>
-        <tr>
+            <th style="width: 40px;">Sr.No.</th>
+            <th>Name of Demo Unit</th>
+            <th>Year of Estt.</th>
+            <th>Area (Sq. mt)</th>
             <th>Variety/Breed</th>
             <th>Produce</th>
             <th>Qty.</th>

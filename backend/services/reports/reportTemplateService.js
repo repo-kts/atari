@@ -1568,24 +1568,38 @@ class ReportTemplateService {
         .section-page {
             page-break-before: auto !important;
             page-break-after: auto !important;
-            page-break-inside: avoid;
+            /* Allow long sections (tall tables) to flow across pages instead of
+               being forced onto one page, which clipped the last rows. */
+            page-break-inside: auto;
         }
-        
+
         .section-page-first {
             page-break-before: auto !important;
             margin-top: 0;
         }
-        
+
         .section-page-continued {
             page-break-before: auto !important;
             margin-top: 4mm;
         }
-        
+
         .data-table,
         .grouped-table {
             page-break-inside: auto;
         }
-        
+
+        /* Never split a single row across a page boundary, and repeat the table
+           header on each page a long table spills onto. */
+        .data-table tr,
+        .grouped-table tr {
+            page-break-inside: avoid;
+        }
+
+        .data-table thead,
+        .grouped-table thead {
+            display: table-header-group;
+        }
+
         .section-title {
             page-break-after: avoid;
         }

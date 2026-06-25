@@ -467,6 +467,24 @@ const exportData = async (req, res) => {
                     buffer = await generateNicraVcrmcExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryExcelBuffer(effectiveRawData);
+                } else if (
+                    templateKey === 'success-story'
+                    || templateKey === 'entrepreneurship'
+                    || templateKey === 'kvk-impact-activity'
+                ) {
+                    // Build Excel from the SAME HTML the PDF uses so the PDF, Word and
+                    // Excel are identical (same columns, names, order and single serial).
+                    const html = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportExcelService.generateStandaloneExcelFromHtml(title, html);
+                } else if (
+                    templateKey === 'operational-area-details-report'
+                    || templateKey === 'village-adoption-programme-report'
+                    || templateKey === 'priority-thrust-area-report'
+                    || templateKey === 'demonstration-unit'
+                ) {
+                    // These builders already emit their own serial column — suppress
+                    // the generic 'S.No.' prepend so there's a single serial column.
+                    buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows, { includeSerialColumn: false });
                 } else {
                     buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
                 }
@@ -556,6 +574,24 @@ const exportData = async (req, res) => {
                     buffer = await generateNicraVcrmcWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryWordBuffer(effectiveRawData);
+                } else if (
+                    templateKey === 'success-story'
+                    || templateKey === 'entrepreneurship'
+                    || templateKey === 'kvk-impact-activity'
+                ) {
+                    // Build Word from the SAME HTML the PDF uses so the PDF, Word and
+                    // Excel are identical (same columns, names, order and single serial).
+                    const html = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportWordService.generateStandaloneWordFromHtml(title, html);
+                } else if (
+                    templateKey === 'operational-area-details-report'
+                    || templateKey === 'village-adoption-programme-report'
+                    || templateKey === 'priority-thrust-area-report'
+                    || templateKey === 'demonstration-unit'
+                ) {
+                    // These builders already emit their own serial column — suppress
+                    // the generic 'S.No.' prepend so there's a single serial column.
+                    buffer = await exportHelper.generateWord(title, tabularData.headers, tabularData.rows, { includeSerialColumn: false });
                 } else {
                     buffer = await exportHelper.generateWord(title, tabularData.headers, tabularData.rows);
                 }
@@ -2751,6 +2787,8 @@ function buildKvkImpactActivityTabularData(rawData, format, fallbackHeaders, fal
         'Farmers Benefitted',
         'Horizontal Spread',
         '% Adoption',
+        'Impact of the technology in subjective terms',
+        'Impact of the technology in objective terms',
         'Income Before',
         'Income After',
     ];
@@ -2764,6 +2802,8 @@ function buildKvkImpactActivityTabularData(rawData, format, fallbackHeaders, fal
         formatExportValue(row.farmersBenefitted || 0, format),
         formatExportValue(row.horizontalSpread || '0', format),
         formatExportValue(row.adoptionPercentage || 0, format),
+        formatExportValue(row.qualitativeImpact || '-', format),
+        formatExportValue(row.quantitativeImpact || '-', format),
         formatExportValue(row.incomeBefore || 0, format),
         formatExportValue(row.incomeAfter || 0, format),
     ]);
