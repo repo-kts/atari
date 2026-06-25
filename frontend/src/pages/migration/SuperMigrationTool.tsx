@@ -105,18 +105,11 @@ function rowKvkName(row: Row): string {
 // so match on a stripped core (drop the "KVK"/"Krishi Vigyan Kendra" prefix and
 // all punctuation) rather than the literal string.
 const DEFAULT_KVKS = [
-    'KVK Begusarai',
     'KVK Chatra',
-    'KVK Darbhanga',
-    'KVK Dhanbad',
-    'KVK Dumka',
-    'KVK Gumla',
-    'KVK Manpur, Gaya',
-    'KVK Nalanda',
-    'KVK Nawada',
-    'KVK Pakur',
-    'KVK Patna',
-    'KVK Sahibganj',
+    'KVK Jamtara',
+    'KVK Simdega',
+    'KVK West Singhbhum',
+    'KVK Sitamarhi',
 ]
 
 function kvkCore(name: string): string {
