@@ -171,20 +171,17 @@ function resolveRecordTemporalShape(item: unknown): TemporalShape {
     if (!item || typeof item !== 'object') return { kind: 'unresolvable' }
     const rec = item as Record<string, unknown>
 
-    // OFT and FLD records are filtered by createdAt per stakeholder requirement.
-    if ('kvkOftId' in rec || 'kvkFldId' in rec) {
-        const created = parseDate(rec.createdAt)
-        if (created) return { kind: 'point', date: startOfDay(created) }
-    }
+    // OFT/FLD are filtered by their domain start date (oftStartDate / startDate),
+    // not createdAt. createdAt is record-insert time, which misclassifies migrated
+    // rows (all inserted on the import date) and trials whose start year differs
+    // from when the form was filled. tryIntervalFromPairs/trySingleFromKeys below
+    // resolve oftStartDate (and FLD startDate) directly; only when those are
+    // absent does it fall back to createdAt.
 
     return (
         tryIntervalFromPairs(rec) ??
         trySingleFromKeys(rec) ?? { kind: 'unresolvable' }
     )
-}
-
-function isWithinMaxDate(date: Date, maxDate: Date): boolean {
-    return date.getTime() <= maxDate.getTime()
 }
 
 /**
@@ -236,12 +233,15 @@ function matchesPointDate(
  * - Interval rows are matched by start/end boundaries.
  * - Point rows are matched by their single date.
  * - Boundaries are normalized to day-start/day-end for stable inclusive comparisons.
+ *
+ * No "today" ceiling: this filter only runs once the user sets a from/to boundary
+ * (the no-boundary case early-returns above), so future-dated rows such as OFT
+ * trials starting later this year must be honored when they fall inside the range.
  */
 export function itemMatchesDateRangeFilter(
     item: unknown,
     fromBoundary: Date | null,
-    toBoundary: Date | null,
-    maxDate: Date
+    toBoundary: Date | null
 ): boolean {
     const normalizedFrom = normalizeBoundary(fromBoundary, 'from')
     const normalizedTo = normalizeBoundary(toBoundary, 'to')
@@ -254,10 +254,8 @@ export function itemMatchesDateRangeFilter(
     if (shape.kind === 'unresolvable') return false
 
     if (shape.kind === 'interval') {
-        if (!isWithinMaxDate(shape.start, maxDate)) return false
         return matchesInterval(shape, normalizedFrom, normalizedTo)
     }
 
-    if (!isWithinMaxDate(shape.date, maxDate)) return false
     return matchesPointDate(shape, normalizedFrom, normalizedTo)
 }

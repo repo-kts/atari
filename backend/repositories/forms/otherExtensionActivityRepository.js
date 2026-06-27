@@ -339,9 +339,7 @@ function _mapResponse(r) {
     const startDate = r.startDate ? new Date(r.startDate) : null;
     let reportingYear = null;
     if (startDate && !isNaN(startDate.getTime())) {
-        const month = startDate.getMonth() + 1;
-        const startYear = month >= 4 ? startDate.getFullYear() : startDate.getFullYear() - 1;
-        reportingYear = String(startYear);
+        reportingYear = String(startDate.getFullYear());
     }
 
     const activityName = r.otherExtensionActivity ? r.otherExtensionActivity.otherExtensionName : undefined;

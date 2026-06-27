@@ -390,6 +390,22 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.yearName || null,
         priority: 5,
     },
+    [FIELD_NAMES.MONTH_YEAR]: {
+        // Backend returns monthYear as a 'YYYY-MM' string (e.g. NICRA Basic
+        // Information). Render it as MM/YYYY to match the dd/MM/yyyy date style.
+        extractor: (item: any) => {
+            const val = item.monthYear;
+            if (!val) return null;
+            try {
+                const raw = String(val);
+                const ymd = /^\d{4}-\d{2}$/.test(raw) ? `${raw}-01` : raw;
+                const date = new Date(ymd);
+                if (isNaN(date.getTime())) return raw;
+                return date.toLocaleDateString('en-GB', { month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 7,
+    },
     [FIELD_NAMES.REPORTING_YEAR]: {
         extractor: (item: any) => {
             if (item.reportingYear) {
@@ -407,6 +423,19 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return null;
         },
         priority: 5,
+    },
+    [FIELD_NAMES.PUBLICATION_YEAR]: {
+        // Publications are scoped by the reporting year; surface it under a
+        // "Publication Year" header (backend returns `year` = reportingYear).
+        extractor: (item: any) => {
+            const raw = item.publicationYear ?? item.year ?? item.reportingYear;
+            if (!raw) return null;
+            if (typeof raw === 'object' && raw.yearName) return String(raw.yearName);
+            const date = new Date(raw);
+            if (!Number.isNaN(date.getTime())) return String(date.getUTCFullYear());
+            return String(raw);
+        },
+        priority: 6,
     },
     [FIELD_NAMES.PUBLICATION_ITEM]: {
         extractor: (item: any) => {
@@ -1240,7 +1269,15 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.titleOfNaturalFarmingTrainingProgramme || item.trainingTitle || null,
     },
     [FIELD_NAMES.DATE_OF_TRAINING]: {
-        extractor: (item: any) => item.dateOfTraining || item.trainingDate || null,
+        extractor: (item: any) => {
+            const dateVal = item.dateOfTraining || item.trainingDate;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
     },
     [FIELD_NAMES.VENUE_OF_PROGRAMME]: {
         extractor: (item: any) => item.venueOfProgramme || item.venue || null,
@@ -1796,7 +1833,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
 
     // Performance Infrastructure - Staff Quarters
     [FIELD_NAMES.DATE_OF_COMPLETION]: {
-        extractor: (item: any) => item.dateOfCompletion ? new Date(item.dateOfCompletion).toLocaleDateString('en-IN') : null,
+        extractor: (item: any) => {
+            if (!item.dateOfCompletion) return null;
+            try {
+                const date = new Date(item.dateOfCompletion);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
         priority: 6,
     },
     [FIELD_NAMES.WHETHER_STAFF_QUARTERS_COMPLETED]: {

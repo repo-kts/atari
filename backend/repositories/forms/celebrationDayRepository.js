@@ -195,9 +195,7 @@ const celebrationDayRepository = {
     _mapResponse: (a) => {
         if (!a) return null;
         const eventDate = new Date(a.eventDate);
-        const month = eventDate.getMonth() + 1;
-        const startYear = month >= 4 ? eventDate.getFullYear() : eventDate.getFullYear() - 1;
-        const reportingYear = String(startYear);
+        const reportingYear = String(eventDate.getFullYear());
 
         // Handle both camelCase and snake_case field names from Prisma
         const farmersGeneralM = a.farmersGeneralM ?? a.farmers_general_m ?? 0;

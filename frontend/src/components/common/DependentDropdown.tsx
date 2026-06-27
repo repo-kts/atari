@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Loader2, ChevronDown, Info } from 'lucide-react'
 import { InlineLoader } from './InlineLoader'
 
@@ -205,8 +205,17 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
         }
     }, [dependencyKey, hasAllDependencies, dependencyPayload, debouncedFetch, lastDependencyKey])
 
-    // Use local options if available, otherwise use provided options
-    const displayOptions = localOptions.length > 0 ? localOptions : options
+    // Use local options if available, otherwise use provided options.
+    // Alphabetical (numeric-aware) order so the dropdown is easy to scan.
+    const displayOptions = useMemo(() => {
+        const base = localOptions.length > 0 ? localOptions : options
+        return [...base].sort((a, b) =>
+            String(a.label).localeCompare(String(b.label), undefined, {
+                numeric: true,
+                sensitivity: 'base',
+            }),
+        )
+    }, [localOptions, options])
     const isActuallyLoading = isLoading || localLoading
     // Don't disable the select during loading - allow user to interact
     // Only disable if explicitly disabled or (if dependsOn is defined, then check if parent value is missing)

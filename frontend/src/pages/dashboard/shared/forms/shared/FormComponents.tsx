@@ -216,6 +216,18 @@ export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required
     const displayLabel = formatFormLabel(label)
     const { labelRef, paddingTopPx } = useFloatingLabelPadding(displayLabel)
 
+    // Alphabetical (numeric-aware) order so every form dropdown is easy to scan.
+    const sortedOptions = React.useMemo(
+        () =>
+            [...options].sort((a, b) =>
+                String(a.label).localeCompare(String(b.label), undefined, {
+                    numeric: true,
+                    sensitivity: 'base',
+                }),
+            ),
+        [options],
+    )
+
     return (
         <div className="relative pt-2">
             <label
@@ -235,7 +247,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required
                 className={`w-full px-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white text-base min-h-[48px] h-auto ${className}`}
             >
                 <option value="">{placeholder || `Select`}</option>
-                {options.map((opt) => (
+                {sortedOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                         {opt.label}
                     </option>
