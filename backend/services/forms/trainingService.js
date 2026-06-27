@@ -28,9 +28,7 @@ const trainingService = {
             let reportingYear = null;
             if (training.startDate && !isNaN(Date.parse(training.startDate))) {
                 const startDate = new Date(training.startDate);
-                const month = startDate.getMonth() + 1;
-                const startYear = month >= 4 ? startDate.getFullYear() : startDate.getFullYear() - 1;
-                reportingYear = String(startYear);
+                reportingYear = String(startDate.getFullYear());
             }
 
             // Calculate total participants

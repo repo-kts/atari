@@ -148,9 +148,7 @@ function calculateReportingYear(eventDate) {
     try {
         const date = eventDate instanceof Date ? eventDate : new Date(eventDate);
         if (isNaN(date.getTime())) return '';
-        const month = date.getMonth() + 1;
-        const startYear = month >= 4 ? date.getFullYear() : date.getFullYear() - 1;
-        return String(startYear);
+        return String(date.getFullYear());
     } catch {
         return '';
     }

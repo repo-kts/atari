@@ -71,8 +71,7 @@ function inferYearLabel(records) {
         if (!r.startDate) continue;
         const d = new Date(r.startDate);
         if (Number.isNaN(d.getTime())) continue;
-        const month = d.getMonth() + 1;
-        const startYear = month >= 4 ? d.getFullYear() : d.getFullYear() - 1;
+        const startYear = d.getFullYear();
         if (startYear <= currentYear) years.push(startYear);
     }
     if (years.length === 0) return '';

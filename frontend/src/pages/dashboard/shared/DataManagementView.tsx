@@ -479,8 +479,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // slice + handles search on the backend, so skip client-side filtering.
     const filteredData = useMemo(() => {
         if (useServerPaging) return items
-        const maxDate = new Date()
-        maxDate.setHours(23, 59, 59, 999)
         const rawFromDate = reportingYearFrom
             ? new Date(reportingYearFrom)
             : null
@@ -500,7 +498,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     : rawFromDate
                 : rawToDate
         const yearFiltered = dedupedBaseItems.filter((item: any) =>
-            itemMatchesDateRangeFilter(item, fromDate, toDate, maxDate)
+            itemMatchesDateRangeFilter(item, fromDate, toDate)
         )
 
         if (!debouncedSearch.trim()) return yearFiltered
@@ -521,23 +519,33 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const columnFilteredData = useMemo(() => {
         if (useServerPaging) return items
         const result = applyColumnFilters(filteredData, fields, columnFilters)
-        // Default alphabetical order (by the first column) unless the user has
-        // applied an explicit column sort.
+        // Default order: most-recent first (newest createdAt, then highest id)
+        // unless the user has applied an explicit column sort.
         const hasActiveSort = Object.values(columnFilters || {}).some(
             (f: any) => f?.sort,
         )
-        const sortKey = fields[0]
-        if (hasActiveSort || !sortKey || result.length < 2) return result
+        if (hasActiveSort || result.length < 2) return result
+        const recencyOf = (item: any): number => {
+            const raw = item?.createdAt ?? item?.updatedAt
+            if (raw) {
+                const t = new Date(raw).getTime()
+                if (!Number.isNaN(t)) return t
+            }
+            return 0
+        }
+        const idOf = (item: any): number => {
+            if (!item || typeof item !== 'object') return 0
+            if (typeof item.id === 'number') return item.id
+            for (const k of Object.keys(item)) {
+                if (/Id$/.test(k) && typeof item[k] === 'number') return item[k]
+            }
+            return 0
+        }
         return [...result].sort((a, b) => {
-            const av = valueToString(getFieldValue(a, sortKey))
-            const bv = valueToString(getFieldValue(b, sortKey))
-            if (av === bv) return 0
-            if (av === '') return 1
-            if (bv === '') return -1
-            return av.localeCompare(bv, undefined, {
-                numeric: true,
-                sensitivity: 'base',
-            })
+            const ra = recencyOf(a)
+            const rb = recencyOf(b)
+            if (ra !== rb) return rb - ra
+            return idOf(b) - idOf(a)
         })
     }, [filteredData, fields, columnFilters, useServerPaging, items])
 
