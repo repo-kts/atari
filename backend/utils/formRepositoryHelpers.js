@@ -233,8 +233,20 @@ function validateRequiredString(data, fieldNames, errorMessage, errorField, opti
         }
     }
 
-    if (!value || (actualOptions.allowEmpty === false && value.trim() === '')) {
-        throw new ValidationError(actualErrorMessage, actualErrorField || fieldNameArray[0]);
+    const allowEmpty = actualOptions.allowEmpty === true;
+    const isEmpty =
+        value === null ||
+        value === undefined ||
+        (typeof value === 'string' && value.trim() === '');
+
+    if (isEmpty) {
+        // Required (allowEmpty not set): reject. Optional (allowEmpty: true):
+        // treat blank as "no value" and return null so the caller skips/clears it
+        // instead of erroring (e.g. quantityText for numeric-unit crops).
+        if (!allowEmpty) {
+            throw new ValidationError(actualErrorMessage, actualErrorField || fieldNameArray[0]);
+        }
+        return null;
     }
 
     return actualOptions.trim !== false ? value.trim() : value;
