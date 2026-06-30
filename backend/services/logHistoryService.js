@@ -73,8 +73,9 @@ function buildScopeFilter(actor) {
     return { orgId: actor.orgId };
   }
   if (role === 'kvk_admin') {
-    if (actor.kvkId == null) throw new Error('Admin user is not assigned to a KVK');
-    return { kvkId: actor.kvkId };
+    // KVK admins see only their own activity, not the whole KVK.
+    if (actor.userId == null) throw new Error('Admin user is not identified');
+    return { userId: actor.userId };
   }
 
   return {};
@@ -201,9 +202,10 @@ const logHistoryService = {
    * @param {object} actor
    */
   getUserFilterOptions: async (actor) => {
-    // Authorize caller, but return all active users in DB as requested.
-    buildScopeFilter(actor);
-    const rows = await logHistoryRepository.listScopedUsers({});
+    // Scope the dropdown to what the caller may view (own logs for KVK
+    // admins, geographic scope for higher admins, everyone for super admin).
+    const scopeFilter = buildScopeFilter(actor);
+    const rows = await logHistoryRepository.listScopedUsers(scopeFilter);
 
     return rows.map((row) => ({
       userId: row.userId,
