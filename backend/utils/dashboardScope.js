@@ -106,8 +106,8 @@ function buildLoginLogWhere(actor) {
     return { orgId: actor.orgId };
   }
   if (role === 'kvk_admin' || role === 'kvk_user') {
-    if (actor.kvkId == null) return { userId: actor.userId };
-    return { kvkId: actor.kvkId };
+    // KVK-level users see only their own activity, not the whole KVK.
+    return { userId: actor.userId };
   }
   if (actor.kvkId != null) {
     return { kvkId: actor.kvkId };

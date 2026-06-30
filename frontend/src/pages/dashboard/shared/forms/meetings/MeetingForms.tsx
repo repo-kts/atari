@@ -72,16 +72,18 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
     const recordId = formData?.sacMeetingId ?? formData?.id ?? null
     const kvkId = formData?.kvkId ?? null
 
-    const renderPhotoFields = () => (
+    const renderFileFields = () => (
         <FormAttachmentSection
-            title="Photographs"
+            title="Files"
             formCode={SAC_FORM_CODE}
-            kind="PHOTO"
+            kind="DOCUMENT"
             kvkId={kvkId}
             recordId={recordId}
-            showCaption
-            initialAttachments={formData?.photos}
+            initialAttachments={formData?.documents}
             onAttachmentIdsChange={handleAttachmentIds}
+            accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,video/*,audio/*"
+            maxBytes={25 * 1024 * 1024}
+            helperText="Images and any files (PDF, Word, Excel, CSV, video, audio). Hold Ctrl/Cmd to select multiple. (Max 25 MB per file)"
         />
     )
 
@@ -173,7 +175,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                                 placeholder="Select"
                             />
 
-                            {renderPhotoFields()}
+                            {renderFileFields()}
                         </div>
                     </div>
                 </div>
