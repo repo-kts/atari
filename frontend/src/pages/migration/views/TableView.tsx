@@ -6,6 +6,7 @@ import type { RowAction } from '../../../services/migrationApi'
 const ACTION_STYLES: Record<RowAction, { bg: string; text: string; label: string }> = {
     created: { bg: 'bg-green-100', text: 'text-green-700', label: 'created' },
     updated: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'updated' },
+    unchanged: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'unchanged' },
     skipped: { bg: 'bg-gray-100', text: 'text-gray-500', label: 'skipped' },
     failed:  { bg: 'bg-red-100',  text: 'text-red-700',  label: 'failed'  },
 }
@@ -42,6 +43,18 @@ export function TableView({ data, fk, idPrefix = 'raw', rowActions, visibleIndic
         return <p className="p-3 text-sm text-gray-400">No rows match the current filter.</p>
     }
     const fkMeta = (c: string) => fk?.foreignKeys[c]
+    const jumpToRawRow = (rawIndex: unknown) => {
+        const n = Number(rawIndex)
+        if (!Number.isInteger(n)) return
+        const el = document.getElementById(`row-raw-${n}`)
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
+            el.classList.add('ring-2', 'ring-blue-400', 'ring-inset')
+            window.setTimeout(() => {
+                el.classList.remove('ring-2', 'ring-blue-400', 'ring-inset')
+            }, 1800)
+        }
+    }
 
     const allSelected =
         !!selection && selection.selectable.size > 0 &&
@@ -84,6 +97,7 @@ export function TableView({ data, fk, idPrefix = 'raw', rowActions, visibleIndic
                     return (
                         <tr
                             key={index}
+                            id={`row-${idPrefix}-${index}`}
                             className={`group ${
                                 isPlaceholder
                                     ? 'bg-red-50/60'
@@ -145,6 +159,23 @@ export function TableView({ data, fk, idPrefix = 'raw', rowActions, visibleIndic
                                     )
                                 }
                                 const canEdit = !!fk?.onEditField && !isPlaceholder
+                                if (c === 'sourceIndex') {
+                                    return (
+                                        <td
+                                            key={c}
+                                            className="border-b border-r border-gray-200 px-3 py-2"
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={() => jumpToRawRow(row[c])}
+                                                className="rounded border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                                                title={`Jump to raw response row #${String(row[c])}`}
+                                            >
+                                                Raw #{String(row[c])}
+                                            </button>
+                                        </td>
+                                    )
+                                }
                                 return (
                                     <td
                                         key={c}

@@ -2,7 +2,7 @@ const prisma = require('../config/prisma.js');
 const { MasterResolver, normalize } = require('./masterResolver.js');
 const { getModule } = require('./registry.js');
 const { extractRows } = require('./engine.js');
-const { decodeEntities, cleanText } = require('./util.js');
+const { decodeEntities, cleanText, parseYearMonth } = require('./util.js');
 
 /**
  * Super-migration engine. Same pipeline as engine.js, but the target KVK is NOT
@@ -66,6 +66,83 @@ const ENRICHERS = {
     oft: (rows, headers) => require('./modules/oft.js').enrichOftRows(rows, headers),
     fld: (rows, headers) => require('./modules/fld.js').enrichFldRows(rows, headers),
 };
+
+function intOrZero(value) {
+    const n = parseInt(String(value ?? '').trim(), 10);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function floatOrZero(value) {
+    const n = parseFloat(String(value ?? '').trim());
+    return Number.isFinite(n) ? n : 0;
+}
+
+function stripTrailingEllipsis(value) {
+    return String(value || '').replace(/(?:\.{3,}|…)+\s*$/u, '').trim();
+}
+
+function isTruncatedText(value) {
+    return /(?:\.{3,}|…)\s*$/u.test(String(value || '').trim());
+}
+
+function sameNormalizedText(a, b) {
+    return normalize(cleanText(a)) === normalize(cleanText(b));
+}
+
+function sourceProblemLooksComplete(sourceProblem, rowProblem) {
+    if (!sourceProblem) return false;
+    if (isTruncatedText(sourceProblem)) return false;
+    const sourceBase = normalize(sourceProblem);
+    const rowBase = normalize(stripTrailingEllipsis(rowProblem));
+    return !rowBase || sourceBase.length >= rowBase.length;
+}
+
+function shouldUpdateProblem(existingProblem, sourceProblem) {
+    if (!sourceProblem) return false;
+    if (isTruncatedText(existingProblem)) return true;
+    if (sameNormalizedText(existingProblem, sourceProblem)) return false;
+
+    const existingBase = normalize(stripTrailingEllipsis(existingProblem));
+    const sourceBase = normalize(sourceProblem);
+    return Boolean(existingBase && sourceBase.startsWith(existingBase) && sourceBase.length > existingBase.length);
+}
+
+async function findExistingOftForProblemUpdate(source) {
+    const sameDateRows = await prisma.kvkoft.findMany({
+        where: {
+            kvkId: source.kvkId,
+            oftStartDate: source.oftStartDate,
+        },
+        select: {
+            kvkOftId: true,
+            title: true,
+            problemDiagnosed: true,
+            sourceOfTechnology: true,
+            productionSystem: true,
+            criticalInput: true,
+            quantity: true,
+            numberOfTrialReplication: true,
+            costOfOft: true,
+        },
+    });
+
+    const exactTitleRows = sameDateRows.filter(row => sameNormalizedText(row.title, source.title));
+    if (exactTitleRows.length === 1) return { matches: exactTitleRows, reason: 'exact-title-date' };
+    if (exactTitleRows.length > 1) {
+        return { matches: exactTitleRows, reason: `multi-match ${exactTitleRows.length} rows with same KVK, title and start date` };
+    }
+
+    const sourceTitlePrefix = normalize(stripTrailingEllipsis(source.rawTitle));
+    const prefixRows = sourceTitlePrefix
+        ? sameDateRows.filter(row => normalize(row.title).startsWith(sourceTitlePrefix))
+        : [];
+    if (prefixRows.length === 1) return { matches: prefixRows, reason: 'truncated-title-prefix-date' };
+    if (prefixRows.length > 1) {
+        return { matches: [], reason: `ambiguous ${prefixRows.length} rows with same KVK, title prefix and start date` };
+    }
+
+    return { matches: [], reason: 'no row matched by KVK, title and start date' };
+}
 
 /**
  * Transform every old row, resolving each row's KVK independently. Rows whose
@@ -190,4 +267,200 @@ async function superSeed(moduleKey, records) {
     return result;
 }
 
-module.exports = { superTransform, superSeed };
+async function listOftProblemDiagnosedIssues() {
+    const rows = await prisma.kvkoft.findMany({
+        where: {
+            OR: [
+                { problemDiagnosed: { endsWith: '...' } },
+                { problemDiagnosed: { endsWith: '....' } },
+                { problemDiagnosed: { endsWith: '…' } },
+            ],
+        },
+        select: {
+            kvkOftId: true,
+            kvkId: true,
+            title: true,
+            problemDiagnosed: true,
+            kvk: { select: { kvkName: true } },
+        },
+        orderBy: [{ kvkId: 'asc' }, { kvkOftId: 'asc' }],
+    });
+
+    const byKvkMap = new Map();
+    for (const row of rows) {
+        const current = byKvkMap.get(row.kvkId) || {
+            kvkId: row.kvkId,
+            kvkName: row.kvk?.kvkName || `KVK #${row.kvkId}`,
+            count: 0,
+        };
+        current.count++;
+        byKvkMap.set(row.kvkId, current);
+    }
+
+    return {
+        total: rows.length,
+        byKvk: [...byKvkMap.values()].sort((a, b) => a.kvkName.localeCompare(b.kvkName)),
+        sample: rows.slice(0, 50).map(row => ({
+            kvkOftId: row.kvkOftId,
+            kvkId: row.kvkId,
+            kvkName: row.kvk?.kvkName || `KVK #${row.kvkId}`,
+            title: row.title,
+            problemDiagnosed: row.problemDiagnosed,
+        })),
+    };
+}
+
+/**
+ * Update-only repair for already-seeded OFT rows whose problem_diagnosed came
+ * from truncated list JSON. This does not run the normal module transform or
+ * seed path, so it cannot create masters or insert OFTs.
+ */
+async function superUpdateExisting(moduleKey, raw, headers, opts = {}) {
+    if (moduleKey !== 'oft') {
+        throw new Error('update-existing currently supports only the oft module');
+    }
+
+    const resolver = new MasterResolver();
+    let rows = extractRows(raw);
+    if (headers && rows.length) {
+        rows = await require('./modules/oft.js').enrichOftRows(rows, headers);
+    }
+
+    const result = {
+        total: rows.length,
+        updated: 0,
+        unchanged: 0,
+        skipped: 0,
+        failed: [],
+        actions: [],
+        rows: [],
+    };
+
+    for (let index = 0; index < rows.length; index++) {
+        const row = rows[index];
+        const sourceIndex = Number.isInteger(Number(row?._sourceIndex)) ? Number(row._sourceIndex) : index;
+        try {
+            const oldKvkName = rowKvkName(row);
+            if (!oldKvkName) {
+                result.skipped++;
+                result.actions.push('skipped');
+                result.rows.push({ index, sourceIndex, action: 'skipped', reason: 'No KVK name on old row' });
+                continue;
+            }
+
+            const hit = await resolver.resolve('kvk', 'kvkName', 'kvkId', oldKvkName);
+            if (!hit.matched) {
+                result.skipped++;
+                result.actions.push('skipped');
+                result.rows.push({ index, sourceIndex, action: 'skipped', kvkName: oldKvkName, reason: `KVK "${oldKvkName}" not found in our DB` });
+                continue;
+            }
+
+            const oftStartDate = parseYearMonth(row.oft_start_date);
+            if (!oftStartDate) {
+                result.skipped++;
+                result.actions.push('skipped');
+                result.rows.push({ index, sourceIndex, action: 'skipped', kvkName: oldKvkName, reason: `Missing or invalid oft_start_date "${row.oft_start_date}"` });
+                continue;
+            }
+
+            const sourceProblem = decodeEntities(cleanText(row.problem_diagnosed)) || '';
+            if (!sourceProblemLooksComplete(sourceProblem, row.problem_diagnosed)) {
+                result.skipped++;
+                result.actions.push('skipped');
+                result.rows.push({ index, sourceIndex, action: 'skipped', kvkName: oldKvkName, after: sourceProblem, reason: 'Source problem_diagnosed is still empty or truncated' });
+                continue;
+            }
+
+            const source = {
+                kvkId: hit.id,
+                title: decodeEntities(cleanText(row.title_fram_trail)) || '',
+                rawTitle: decodeEntities(cleanText(row.title_fram_trail)) || '',
+                problemDiagnosed: sourceProblem,
+                sourceOfTechnology: cleanText(row.source_of_technology) || '',
+                productionSystem: cleanText(row.production_system) || '',
+                criticalInput: cleanText(row.critical_input) || '',
+                quantity: floatOrZero(row.area),
+                numberOfTrialReplication: intOrZero(row.no_of_trial),
+                costOfOft: floatOrZero(row.cost_of_oft),
+                oftStartDate,
+            };
+
+            if (!source.title) {
+                result.skipped++;
+                result.actions.push('skipped');
+                result.rows.push({ index, sourceIndex, action: 'skipped', kvkName: oldKvkName, after: source.problemDiagnosed, reason: 'Missing title_fram_trail' });
+                continue;
+            }
+
+            const { matches, reason } = await findExistingOftForProblemUpdate(source);
+            if (!matches.length) {
+                result.skipped++;
+                result.actions.push('skipped');
+                result.rows.push({
+                    index,
+                    sourceIndex,
+                    action: 'skipped',
+                    kvkName: oldKvkName,
+                    title: source.title,
+                    after: source.problemDiagnosed,
+                    reason,
+                });
+                continue;
+            }
+
+            for (const match of matches) {
+                if (!opts.force && !shouldUpdateProblem(match.problemDiagnosed, source.problemDiagnosed)) {
+                    result.unchanged++;
+                    result.actions.push('unchanged');
+                    result.rows.push({
+                        index,
+                        sourceIndex,
+                        action: 'unchanged',
+                        kvkOftId: match.kvkOftId,
+                        kvkName: oldKvkName,
+                        title: source.title,
+                        before: match.problemDiagnosed,
+                        after: source.problemDiagnosed,
+                        reason: 'Existing problem_diagnosed is not truncated or already matches source',
+                    });
+                    continue;
+                }
+
+                if (!opts.dryRun) {
+                    await prisma.kvkoft.update({
+                        where: { kvkOftId: match.kvkOftId },
+                        data: { problemDiagnosed: source.problemDiagnosed },
+                    });
+                }
+
+                result.updated++;
+                result.actions.push('updated');
+                result.rows.push({
+                    index,
+                    sourceIndex,
+                    action: 'updated',
+                    kvkOftId: match.kvkOftId,
+                    kvkName: oldKvkName,
+                    title: source.title,
+                    reason,
+                    before: match.problemDiagnosed,
+                    after: source.problemDiagnosed,
+                });
+            }
+        } catch (err) {
+            result.failed.push({ index, message: err.message });
+            result.actions.push('failed');
+            result.rows.push({
+                index,
+                sourceIndex,
+                action: 'failed',
+                reason: err.message,
+            });
+        }
+    }
+
+    return result;
+}
+
+module.exports = { superTransform, superSeed, superUpdateExisting, listOftProblemDiagnosedIssues };
