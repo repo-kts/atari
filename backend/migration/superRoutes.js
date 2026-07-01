@@ -24,6 +24,14 @@ router.get('/master-options/:master', async (req, res) => {
     }
 });
 
+router.get('/oft/problem-diagnosed-issues', async (req, res) => {
+    try {
+        res.json(await superEngine.listOftProblemDiagnosedIssues());
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 // Replay a pasted curl against the old site, return its raw JSON. Same as
 // /migration/fetch — enrichment hooks live in the shared engine.
 router.post('/fetch', async (req, res) => {
@@ -67,6 +75,26 @@ router.post('/seed', async (req, res) => {
             return res.status(400).json({ error: 'module and records[] are required' });
         }
         const out = await superEngine.superSeed(module, records);
+        res.json(out);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Update-only repair for already-created rows. This is intentionally separate
+// from transform/seed: it replays the old-site curl, enriches OFT edit pages,
+// matches existing records, and updates only problemDiagnosed.
+router.post('/update-existing', async (req, res) => {
+    try {
+        const { module, raw, curl, force, dryRun } = req.body;
+        if (!module || raw === undefined) {
+            return res.status(400).json({ error: 'module and raw are required' });
+        }
+        const headers = curl ? parseCurl(curl).headers : undefined;
+        const out = await superEngine.superUpdateExisting(module, raw, headers, {
+            force: Boolean(force),
+            dryRun: Boolean(dryRun),
+        });
         res.json(out);
     } catch (err) {
         res.status(400).json({ error: err.message });

@@ -7,6 +7,8 @@ import {
     type ModuleInfo,
     type TransformResult,
     type SeedResult,
+    type UpdateExistingResult,
+    type OftProblemDiagnosedIssuesResult,
     type RowAction,
 } from '../../services/migrationApi'
 import { RecordsViewer } from './components/RecordsViewer'
@@ -16,8 +18,9 @@ import { KvkSelectDropdown, type KvkOption } from './components/KvkSelectDropdow
 import type { FkEditing } from './views/tableUtils'
 import type { RowSelection } from './views/TableView'
 
-type Busy = '' | 'fetch' | 'transform' | 'seed'
+type Busy = '' | 'fetch' | 'transform' | 'seed' | 'update-existing' | 'scan-db'
 type Row = Record<string, unknown>
+type RepairFilter = 'all' | 'updated' | 'issues'
 
 // A superadmin pull is hundreds/thousands of rows, and both transform (per-row
 // DB lookups) and seed (per-row insert) run serially server-side — one giant
@@ -196,6 +199,10 @@ export function SuperMigrationTool() {
         {},
     )
     const [seedResult, setSeedResult] = useState<SeedResult | null>(null)
+    const [updateResult, setUpdateResult] = useState<UpdateExistingResult | null>(null)
+    const [updatePreviewRows, setUpdatePreviewRows] = useState<UpdateExistingResult['rows'] | null>(null)
+    const [oftIssues, setOftIssues] = useState<OftProblemDiagnosedIssuesResult | null>(null)
+    const [repairFilter, setRepairFilter] = useState<RepairFilter>('all')
     const [rowActions, setRowActions] = useState<RowAction[]>([])
 
     // Push filters: which KVKs and which individual rows to migrate. Populated
@@ -310,6 +317,9 @@ export function SuperMigrationTool() {
             setTransformed(null)
             setRecords([])
             setSeedResult(null)
+            setUpdateResult(null)
+            setUpdatePreviewRows(null)
+            setRepairFilter('all')
             setRowActions([])
             const out = await superMigrationApi.fetchCurl(curl)
             setRaw(out.raw)
@@ -317,9 +327,29 @@ export function SuperMigrationTool() {
             setEnrichTruncated(out.enrichTruncated === true)
         })
 
+    const onScanDbIssues = () =>
+        run('scan-db', async () => {
+            const out = await superMigrationApi.getOftProblemDiagnosedIssues()
+            setOftIssues(out)
+        })
+
+    const selectAffectedRawKvks = () => {
+        if (!oftIssues || rawKvkGroups.length === 0) return
+        const affectedCores = new Set(oftIssues.byKvk.map(k => kvkCore(k.kvkName)))
+        const matched = rawKvkGroups.filter(g => affectedCores.has(kvkCore(g.name)))
+        setSelectedRawKvks(new Set(matched.map(g => g.name)))
+    }
+
+    const selectAllRawKvks = () => {
+        setSelectedRawKvks(new Set(rawKvkGroups.map(g => g.name)))
+    }
+
     const onTransform = () =>
         run('transform', async () => {
             setSeedResult(null)
+            setUpdateResult(null)
+            setUpdatePreviewRows(null)
+            setRepairFilter('all')
             setRowActions([])
             // Only transform rows whose KVK the user picked — a 900+ row
             // superadmin pull can be migrated a few KVKs at a time, keeping each
@@ -382,6 +412,9 @@ export function SuperMigrationTool() {
 
     const onSeed = () =>
         run('seed', async () => {
+            setUpdateResult(null)
+            setUpdatePreviewRows(null)
+            setRepairFilter('all')
             // Push only selected rows; unselected become null → skipped server-side.
             // Index positions are preserved so returned actions align with the table.
             const filtered = records.map((r, i) => (selectedRowIndices.has(i) ? r : null))
@@ -412,6 +445,49 @@ export function SuperMigrationTool() {
             setSeedResult(merged)
             setRowActions(merged.actions)
         })
+
+    const runUpdateExisting = (dryRun: boolean) =>
+        run('update-existing', async () => {
+            setSeedResult(null)
+            setUpdateResult(null)
+            if (!dryRun) setUpdatePreviewRows(null)
+            setRepairFilter('all')
+            setRowActions([])
+
+            const allRows = extractRows(raw)
+                .map((r, sourceIndex) => ({ ...r, _sourceIndex: sourceIndex }))
+                .filter(r => selectedRawKvks.has(rowKvkName(r)))
+            const batchSize = ENRICH_MODULES.has(moduleKey) ? ENRICH_BATCH_SIZE : BATCH_SIZE
+            const merged: UpdateExistingResult = {
+                total: allRows.length,
+                updated: 0,
+                unchanged: 0,
+                skipped: 0,
+                failed: [],
+                actions: [],
+                rows: [],
+            }
+
+            setProgress({ done: 0, total: allRows.length })
+            for (let off = 0; off < allRows.length; off += batchSize) {
+                const slice = allRows.slice(off, off + batchSize)
+                const out = await superMigrationApi.updateExisting(moduleKey, slice, curl, false, dryRun)
+                merged.updated += out.updated
+                merged.unchanged += out.unchanged
+                merged.skipped += out.skipped
+                out.failed.forEach(f => merged.failed.push({ ...f, index: f.index + off }))
+                ;(out.actions ?? []).forEach(a => merged.actions.push(a))
+                ;(out.rows ?? []).forEach(r => merged.rows.push({ ...r, index: r.index + off }))
+                setProgress({ done: Math.min(off + slice.length, allRows.length), total: allRows.length })
+            }
+            setProgress(null)
+            setUpdateResult(merged)
+            setUpdatePreviewRows(merged.rows)
+            setRowActions(merged.actions)
+        })
+
+    const onPreviewExisting = () => runUpdateExisting(true)
+    const onUpdateExisting = () => runUpdateExisting(false)
 
     const onEditCell = (rowIndex: number, field: string, value: number | null) => {
         const meta = activeModule?.foreignKeys[field]
@@ -562,6 +638,7 @@ export function SuperMigrationTool() {
     }, [showErrorsOnly, allKvkSelected, errorIndices, records, selectedKvkIds])
 
     const displayRecords = useMemo(() => {
+        if (updatePreviewRows) return updatePreviewRows
         const source = records.length > 0 ? records : transformed?.records
         if (!source) return undefined
         return source.map((r, index) => {
@@ -573,13 +650,27 @@ export function SuperMigrationTool() {
                     .join(' | ') || 'Transform returned null for this row'
             return { _status: 'not mapped', _issues: summary }
         })
-    }, [records, transformed])
+    }, [records, transformed, updatePreviewRows])
+
+    const repairVisibleIndices = useMemo(() => {
+        if (!updatePreviewRows || repairFilter === 'all') return undefined
+        const s = new Set<number>()
+        updatePreviewRows.forEach((row, index) => {
+            if (repairFilter === 'updated' && row.action === 'updated') s.add(index)
+            if (repairFilter === 'issues' && (row.action === 'skipped' || row.action === 'failed')) {
+                s.add(index)
+            }
+        })
+        return s
+    }, [repairFilter, updatePreviewRows])
 
     const fk: FkEditing | undefined = activeModule
         ? { foreignKeys: activeModule.foreignKeys, fkOptions, onEditCell, onEditField, onFillUnmatched }
         : undefined
 
     const canTransform = raw !== undefined && moduleKey !== '' && selectedRawKvks.size > 0
+    const canUpdateExisting = canTransform && moduleKey === 'oft'
+    const canApplyExisting = canUpdateExisting && (updateResult?.updated ?? 0) > 0
     // Selective push: enabled as long as at least one row is selected (clean rows
     // can ship even while others still carry errors).
     const canSeed = selectedRowIndices.size > 0
@@ -634,6 +725,38 @@ export function SuperMigrationTool() {
                                 : 'Pushing…'
                             : `Push to DB${transformed ? ` (${selectedRowIndices.size})` : ''}`}
                     </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={onPreviewExisting}
+                        disabled={!canUpdateExisting || busy !== ''}
+                        title="For OFT only: update existing problem_diagnosed from edit-oft data without inserting records"
+                    >
+                        {busy === 'update-existing'
+                            ? progress
+                                ? `Checking ${progress.done}/${progress.total}…`
+                                : 'Checking…'
+                            : 'Preview OFT fixes'}
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={onScanDbIssues}
+                        disabled={moduleKey !== 'oft' || busy !== ''}
+                        title="Scan our DB for existing OFT problem_diagnosed values ending with dots"
+                    >
+                        {busy === 'scan-db' ? 'Scanning…' : 'Scan DB issues'}
+                    </Button>
+                    <Button
+                        onClick={onUpdateExisting}
+                        disabled={!canApplyExisting || busy !== ''}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        title="Apply the OFT problem_diagnosed fixes shown in the preview table"
+                    >
+                        {busy === 'update-existing'
+                            ? progress
+                                ? `Applying ${progress.done}/${progress.total}…`
+                                : 'Applying…'
+                            : `Apply OFT fixes${updateResult ? ` (${updateResult.updated})` : ''}`}
+                    </Button>
                 </div>
             </div>
 
@@ -646,9 +769,30 @@ export function SuperMigrationTool() {
                         selected={selectedRawKvks}
                         onChange={setSelectedRawKvks}
                     />
+                    <button
+                        type="button"
+                        onClick={selectAllRawKvks}
+                        className="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                    >
+                        Select all raw KVKs
+                    </button>
+                    {oftIssues && (
+                        <button
+                            type="button"
+                            onClick={selectAffectedRawKvks}
+                            className="rounded border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                        >
+                            Select DB affected KVKs ({oftIssues.byKvk.length})
+                        </button>
+                    )}
                     {selectedRawKvks.size === 0 && (
                         <span className="text-xs text-amber-700">
                             Select at least one KVK to transform.
+                        </span>
+                    )}
+                    {oftIssues && (
+                        <span className="text-xs text-blue-700">
+                            DB scan: {oftIssues.total} dotted OFT problems across {oftIssues.byKvk.length} KVKs.
                         </span>
                     )}
                 </div>
@@ -675,6 +819,17 @@ export function SuperMigrationTool() {
                     {seedResult.skipped}
                     {seedResult.failed.length > 0 &&
                         `, failed ${seedResult.failed.length} (${seedResult.failed
+                            .map(f => `#${f.index}: ${f.message}`)
+                            .join('; ')})`}
+                </div>
+            )}
+
+            {updateResult && (
+                <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+                    Existing OFT repair — updated {updateResult.updated}, unchanged{' '}
+                    {updateResult.unchanged}, skipped {updateResult.skipped}
+                    {updateResult.failed.length > 0 &&
+                        `, failed ${updateResult.failed.length} (${updateResult.failed
                             .map(f => `#${f.index}: ${f.message}`)
                             .join('; ')})`}
                 </div>
@@ -741,21 +896,44 @@ export function SuperMigrationTool() {
                 <div style={{ width: `${100 - splitPercent}%` }} className="min-w-0 h-full flex flex-col pl-2">
                     <div style={{ height: `${transformed ? verticalSplit : 100}%` }} className="min-h-0 flex flex-col">
                         <RecordsViewer
-                            title="Mapped to our schema"
+                            title={updatePreviewRows ? 'OFT repair preview' : 'Mapped to our schema'}
                             data={displayRecords}
                             defaultView="table"
                             fk={fk}
                             badge={
-                                transformed
+                                updatePreviewRows
+                                    ? `${updateResult?.updated ?? 0} fixable · ${updateResult?.unchanged ?? 0} unchanged · ${updateResult?.skipped ?? 0} skipped`
+                                    : transformed
                                     ? `${transformed.report.mapped} mapped · ${selectedRowIndices.size} selected`
                                     : undefined
                             }
-                            placeholder="Transform to see records mapped to your DB schema."
+                            placeholder="Transform to see records mapped to your DB schema, or preview OFT fixes."
                             rowActions={rowActions}
-                            visibleIndices={visibleIndices}
-                            selection={transformed ? selection : undefined}
+                            visibleIndices={updatePreviewRows ? repairVisibleIndices : visibleIndices}
+                            selection={transformed && !updatePreviewRows ? selection : undefined}
                             headerExtra={
-                                transformed ? (
+                                updatePreviewRows ? (
+                                    <div className="flex overflow-hidden rounded-md border border-gray-200">
+                                        {([
+                                            ['all', `All (${updatePreviewRows.length})`],
+                                            ['updated', `Updated (${updateResult?.updated ?? 0})`],
+                                            ['issues', `Issues (${(updateResult?.skipped ?? 0) + (updateResult?.failed.length ?? 0)})`],
+                                        ] as Array<[RepairFilter, string]>).map(([key, label]) => (
+                                            <button
+                                                key={key}
+                                                type="button"
+                                                onClick={() => setRepairFilter(key)}
+                                                className={`px-2.5 py-1 text-xs font-medium transition-colors ${
+                                                    repairFilter === key
+                                                        ? 'bg-blue-600 text-white'
+                                                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : transformed ? (
                                     <button
                                         type="button"
                                         onClick={() => setShowErrorsOnly(v => !v)}

@@ -58,7 +58,7 @@ export interface TransformResult {
     report: TransformReport
 }
 
-export type RowAction = 'created' | 'updated' | 'skipped' | 'failed'
+export type RowAction = 'created' | 'updated' | 'unchanged' | 'skipped' | 'failed'
 
 export interface SeedResult {
     created: number
@@ -66,6 +66,38 @@ export interface SeedResult {
     skipped: number
     failed: Array<{ index: number; message: string }>
     actions: RowAction[]
+}
+
+export interface UpdateExistingResult {
+    total: number
+    updated: number
+    unchanged: number
+    skipped: number
+    failed: Array<{ index: number; message: string }>
+    actions: RowAction[]
+    rows: Array<{
+        index: number
+        sourceIndex?: number
+        action: RowAction
+        kvkOftId?: number
+        kvkName?: string
+        title?: string
+        reason?: string
+        before?: string
+        after?: string
+    }>
+}
+
+export interface OftProblemDiagnosedIssuesResult {
+    total: number
+    byKvk: Array<{ kvkId: number; kvkName: string; count: number }>
+    sample: Array<{
+        kvkOftId: number
+        kvkId: number
+        kvkName: string
+        title: string
+        problemDiagnosed: string
+    }>
 }
 
 export const migrationApi = {

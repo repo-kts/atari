@@ -81,6 +81,20 @@ function parseTitleFromHtml(html) {
     return m ? decodeEntities(m[1].trim()) : '';
 }
 
+/**
+ * problem_diagnosed is truncated in the oft-data list JSON (old site appends
+ * "...."). Pull the full value from the edit-oft form <input>. The old form
+ * renders this field with `value` BEFORE `name` (unlike title_fram_trail), so
+ * match both attribute orders within the same tag.
+ */
+function parseProblemDiagnosedFromHtml(html) {
+    if (!html) return '';
+    let m = html.match(/name="problem_diagnosed"[^>]*value="([^"]*)"/);
+    if (m) return decodeEntities(m[1].trim());
+    m = html.match(/value="([^"]*)"[^>]*name="problem_diagnosed"/);
+    return m ? decodeEntities(m[1].trim()) : '';
+}
+
 function oftResultEditPath(oldId) {
     const token = Buffer.from(String(oldId)).toString('base64');
     return `https://atariams.org/edit-oft-result/${token}`;
@@ -221,12 +235,17 @@ async function enrichOftRows(rows, headers) {
             try {
                 const res = await fetch(oftEditPath(id), { headers: fetchHeaders, signal: AbortSignal.timeout(8000) });
                 const html = await res.text();
-                if (res.ok && html.includes('technology_treatments')) {
+                if (res.ok && (html.includes('title_fram_trail') || html.includes('technology_treatments'))) {
                     const fullTitle = parseTitleFromHtml(html);
                     enrichedRow.title_fram_trail = fullTitle || row.title_fram_trail;
+                    enrichedRow.problem_diagnosed =
+                        parseProblemDiagnosedFromHtml(html) || row.problem_diagnosed;
                     enrichedRow._technologies = parseTechnologiesFromHtml(html);
                     enrichedRow.performance_indicators =
                         parsePerformanceIndicatorsFromHtml(html) || row.performance_indicators;
+                    if (!html.includes('technology_treatments')) {
+                        enrichedRow._enrichFailed = true;
+                    }
                 } else {
                     enrichedRow._enrichFailed = true;
                 }

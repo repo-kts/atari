@@ -5,6 +5,8 @@ import type {
     FetchResult,
     TransformResult,
     SeedResult,
+    UpdateExistingResult,
+    OftProblemDiagnosedIssuesResult,
 } from './migrationApi'
 
 /**
@@ -19,6 +21,11 @@ export const superMigrationApi = {
             `/super-migration/master-options/${encodeURIComponent(master)}`,
         ),
 
+    getOftProblemDiagnosedIssues: () =>
+        apiClient.get<OftProblemDiagnosedIssuesResult>(
+            '/super-migration/oft/problem-diagnosed-issues',
+        ),
+
     fetchCurl: (curl: string) =>
         apiClient.post<FetchResult>('/super-migration/fetch', { curl }),
 
@@ -29,4 +36,13 @@ export const superMigrationApi = {
 
     seed: (module: string, records: unknown[]) =>
         apiClient.post<SeedResult>('/super-migration/seed', { module, records }),
+
+    updateExisting: (module: string, raw: unknown, curl?: string, force = false, dryRun = false) =>
+        apiClient.post<UpdateExistingResult>('/super-migration/update-existing', {
+            module,
+            raw,
+            curl,
+            force,
+            dryRun,
+        }),
 }
