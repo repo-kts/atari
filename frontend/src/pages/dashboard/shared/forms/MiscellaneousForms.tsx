@@ -4,6 +4,7 @@ import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { useAuth } from '@/contexts/AuthContext'
 import { PrevalentDiseaseForms } from './miscellaneous/PrevalentDiseaseForms'
 import { NykTrainingForm } from './miscellaneous/NykTrainingForm'
+import { PoshanMaahForm } from './miscellaneous/PoshanMaahForm'
 import { PpvFraForms } from './miscellaneous/PpvFraForms'
 import { RaweFetForms } from './miscellaneous/RaweFetForms'
 
@@ -34,6 +35,8 @@ export const MiscellaneousForms: React.FC<MiscellaneousFormsProps> = ({
 
     const isNykTraining = entityType === ENTITY_TYPES.MISC_NYK_TRAINING
 
+    const isPoshanMaah = entityType === ENTITY_TYPES.MISC_POSHAN_MAAH
+
     const isPpvFra = entityType === ENTITY_TYPES.MISC_PPV_FRA_TRAINING ||
         entityType === ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES
 
@@ -50,6 +53,12 @@ export const MiscellaneousForms: React.FC<MiscellaneousFormsProps> = ({
             )}
             {isNykTraining && (
                 <NykTrainingForm
+                    formData={formData}
+                    setFormData={setFormData}
+                />
+            )}
+            {isPoshanMaah && (
+                <PoshanMaahForm
                     formData={formData}
                     setFormData={setFormData}
                 />

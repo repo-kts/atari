@@ -40,6 +40,19 @@ async function getNykTraining(kvkId, filters = {}) {
     });
 }
 
+async function getPoshanMaah(kvkId, filters = {}) {
+    const where = { kvkId };
+    applyDateFilters(where, filters, 'activityDate');
+
+    return await prisma.poshanMaah.findMany({
+        where,
+        include: {
+            kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
+        },
+        orderBy: [{ activityDate: 'asc' }, { eventName: 'asc' }],
+    });
+}
+
 async function getPpvFraPlantVarieties(kvkId, filters = {}) {
     const where = { kvkId };
     applyDateFilters(where, filters, 'reportingYearDate');
@@ -99,6 +112,7 @@ module.exports = {
     getPrevalentDiseasesCrops,
     getPrevalentDiseasesLivestock,
     getNykTraining,
+    getPoshanMaah,
     getPpvFraPlantVarieties,
     getPpvFraTraining,
     getVipVisitors,

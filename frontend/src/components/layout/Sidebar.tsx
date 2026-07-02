@@ -233,6 +233,7 @@ const superAdminMenuItems: MenuItem[] = [
                     'misc_prevalent_diseases_crops',
                     'misc_prevalent_diseases_livestock',
                     'misc_nyk_training',
+                    'misc_poshan_maah',
                     'misc_ppv_fra_training',
                     'misc_rawe_fet',
                     'misc_vip_visitors',

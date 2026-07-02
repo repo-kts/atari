@@ -1734,6 +1734,18 @@ const reportConfig = {
             filters: { dateFields: ['startDate', 'endDate', 'createdAt'] },
             fields: [],
         },
+        {
+            id: '5.8',
+            title: 'Poshan Maah',
+            description: 'Datewise events/programmes conducted during Poshan Maah with participant demographics',
+            subsection: true,
+            parentSectionId: '5',
+            dataSource: 'poshanMaah',
+            format: 'custom',
+            customTemplate: 'misc-poshan-maah',
+            filters: { dateFields: ['activityDate', 'createdAt'] },
+            fields: [],
+        },
         // ── Digital Information (grouped under Miscellaneous) ─────────
         {
             id: '6.1',
