@@ -105,6 +105,16 @@ export const FIELD_NAMES = {
     NO_OF_PARTICIPANTS: 'noOfParticipants',
     TOTAL_PARTICIPANTS: 'totalParticipants',
     PARTICIPANTS: 'participants',
+
+    // Poshan Maah Fields
+    ACTIVITIES_CONDUCTED: 'activitiesConducted',
+    SAPLINGS_PLANTED: 'saplingsPlanted',
+    VEGETABLE_KITS_DISTRIBUTED: 'vegetableKitsDistributed',
+    GIRLS: 'girls',
+    FARM_WOMEN: 'farmWomen',
+    ANGANWADI_WORKERS: 'anganwadiWorkers',
+    GOVT_OFFICIALS: 'govtOfficials',
+    PUBLIC_REPRESENTATIVES: 'publicRepresentatives',
     NO_OF_FARMERS_ATTENDED: 'noOfFarmersAttended',
     TOTAL_TRAINED_FARMERS: 'totalTrainedFarmers',
     TOTAL_PARTICIPANTS_ATTENDED: 'totalParticipantsAttended',
@@ -1598,6 +1608,23 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.MALE,
         FIELD_NAMES.FEMALE,
         FIELD_NAMES.AMOUNT_OF_FUND_RECEIVED,
+    ] as const,
+
+    // Miscellaneous Routes - Poshan Maah
+    MISC_POSHAN_MAAH: [
+        FIELD_NAMES.KVK_NAME,
+        FIELD_NAMES.ACTIVITY_DATE,
+        FIELD_NAMES.ACTIVITIES_CONDUCTED,
+        FIELD_NAMES.EVENT_NAME,
+        FIELD_NAMES.SAPLINGS_PLANTED,
+        FIELD_NAMES.VEGETABLE_KITS_DISTRIBUTED,
+        FIELD_NAMES.GIRLS,
+        FIELD_NAMES.FARM_WOMEN,
+        FIELD_NAMES.FARMERS,
+        FIELD_NAMES.ANGANWADI_WORKERS,
+        FIELD_NAMES.GOVT_OFFICIALS,
+        FIELD_NAMES.PUBLIC_REPRESENTATIVES,
+        FIELD_NAMES.TOTAL_PARTICIPANTS,
     ] as const,
 
     // Miscellaneous Routes - PPV & FRA

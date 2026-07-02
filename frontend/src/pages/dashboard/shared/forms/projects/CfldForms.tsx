@@ -4,7 +4,6 @@ import { ENTITY_TYPES } from '@/constants/entityConstants';
 import { MONTHS } from '@/constants/monthConstants';
 import { FormInput, FormSelect, FormSection } from '../shared/FormComponents';
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown';
-import { DependentDropdown } from '@/components/common/DependentDropdown';
 import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput';
 import { useOtherSpecify } from '@/hooks/useOtherSpecify';
 import { createMasterDataOptions } from '@/utils/formHelpers';
@@ -340,47 +339,27 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     );
 
 
-    // Function to load CFLD crops by crop type ID
-    const loadCfldCropsByType = useCallback(
-        async (compositeValue: number | string, signal?: AbortSignal): Promise<Array<{ value: string | number; label: string }>> => {
-            try {
-                const parsed = String(compositeValue || '')
-                const [seasonIdRaw, typeIdRaw] = parsed.split('-')
-                const seasonId = Number(seasonIdRaw)
-                const typeId = Number(typeIdRaw)
-
-                if (!Number.isFinite(seasonId) || !Number.isFinite(typeId)) return []
-
-                // Filter crops by typeId from already loaded data
-                const filteredCrops = cfldCrops.filter((crop: any) => {
-                    const cropTypeId = crop.typeId || crop.cropType?.typeId || crop.CropTypeId
-                    const cropSeasonId = crop.seasonId ?? crop.SeasonId ?? crop.season?.seasonId
-                    return Number(cropTypeId) === Number(typeId) && Number(cropSeasonId) === Number(seasonId)
-                });
-
-                // If no crops found in loaded data, try fetching from API
-                if (filteredCrops.length === 0) {
-                    // Note: The API endpoint requires both seasonId and typeId, but we can pass a dummy seasonId
-                    // For now, we'll just return empty array if not found in loaded data
-                    // In the future, we could add a dedicated endpoint for filtering by type only
-                    return [];
-                }
-
-                return filteredCrops.map((crop: any) => ({
-                    value: crop.CropName || crop.cropName,
-                    label: crop.CropName || crop.cropName,
-                    isOther: Boolean(crop.isOther),
-                }));
-            } catch (error) {
-                if (signal?.aborted) {
-                    return [];
-                }
-                console.error('Error loading CFLD crops by type:', error);
-                return [];
-            }
-        },
-        [cfldCrops]
-    );
+    // Crop types that actually have a CFLD crop configured for the selected season.
+    // Computed reactively from master data so it never gets stuck on a stale/empty
+    // result (the previous DependentDropdown cached the first fetch — which ran
+    // before cfldCrops finished loading — and then showed "No crop types available").
+    const cropTypeOptionsBySeason = useMemo(() => {
+        const seasonId = Number(formData.seasonId)
+        if (!Number.isFinite(seasonId)) return []
+        const allowedTypeIds = new Set(
+            (cfldCrops as any[])
+                .filter((c: any) => Number(c.seasonId ?? c.SeasonId ?? c.season?.seasonId) === seasonId)
+                .map((c: any) => Number(c.typeId ?? c.cropType?.typeId ?? c.CropTypeId))
+                .filter((id: number) => Number.isFinite(id))
+        )
+        return (cropTypes as any[])
+            .filter((ct: any) => allowedTypeIds.has(Number(ct.id ?? ct.typeId)))
+            .map((ct: any) => ({
+                value: ct.id ?? ct.typeId,
+                label: ct.typeName,
+                isOther: Boolean(ct.isOther),
+            }))
+    }, [cfldCrops, cropTypes, formData.seasonId])
 
     const extensionActivityOptions = useMemo(
         () => extensionActivityTypes.map((ext: any) => ({
@@ -436,7 +415,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                 ...prev,
                 cropTypeId: parsed,
                 type: selectedType ? selectedType.typeName.toUpperCase() : '',
-                // Reset CFLD crop because it depends on crop type (+ season) via DependentDropdown
+                // Reset CFLD crop because it depends on crop type (+ season)
                 crop: '',
                 cropName: '',
                 // Clear the "specify other" text unless the newly picked crop type is the Other row.
@@ -446,7 +425,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [cropTypes, setFormData, cropTypeResetPatch]
     )
 
-    // Crop change handler (for DependentDropdown)
+    // Crop change handler (for the CFLD Crop dropdown)
     const handleCropChange = useCallback(
         (value: string | number) => {
             setFormData((prev: any) => ({
@@ -606,38 +585,18 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         onChange={(e) => handleFieldChange('seasonOther', e.target.value)}
                     />
                 )}
-                <DependentDropdown
+                <MasterDataDropdown
                     label="CFLD Crop Type"
                     required
                     value={formData.cropTypeId ?? ''}
                     onChange={(v) => handleCropTypeChangeFromValue(v)}
-                    options={[]}
-                    dependsOn={{
-                        value: formData.seasonId ?? '',
-                        field: 'seasonId',
-                    }}
-                    onOptionsLoad={async (parentSeasonId: any) => {
-                        const seasonId = Number(parentSeasonId)
-                        if (!Number.isFinite(seasonId)) return []
-
-                        const allowedTypeIds = new Set(
-                            (cfldCrops as any[])
-                                .filter((crop: any) => Number(crop.seasonId ?? crop.SeasonId ?? crop.season?.seasonId) === seasonId)
-                                .map((crop: any) => Number(crop.typeId ?? crop.cropType?.typeId ?? crop.CropTypeId))
-                                .filter((id: number) => Number.isFinite(id))
-                        )
-
-                        return cropTypes
-                            .filter((ct: any) => allowedTypeIds.has(Number(ct.id ?? ct.typeId)))
-                            .map((ct: any) => ({
-                                value: ct.id ?? ct.typeId,
-                                label: ct.typeName,
-                                isOther: Boolean(ct.isOther),
-                            }))
-                    }}
-                    cacheKey="cfld-crop-types-by-season"
-                    emptyMessage="No crop types available for selected season"
-                    loadingMessage="Loading crop types..."
+                    options={cropTypeOptionsBySeason}
+                    disabled={!formData.seasonId}
+                    emptyMessage={
+                        formData.seasonId
+                            ? 'No crop types available for selected season'
+                            : 'Select a season first'
+                    }
                 />
                 {isOtherCropType && (
                     <SpecifyOtherInput
@@ -647,20 +606,18 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         onChange={(e) => handleFieldChange('typeOther', e.target.value)}
                     />
                 )}
-                <DependentDropdown
+                <MasterDataDropdown
                     label="CFLD Crop"
                     required
                     value={formData.crop ?? formData.cropName ?? ''}
                     onChange={handleCropChange}
-                    options={[]}
-                    dependsOn={{
-                        value: formData.seasonId && formData.cropTypeId ? `${formData.seasonId}-${formData.cropTypeId}` : '',
-                        field: 'seasonId',
-                    }}
-                    onOptionsLoad={loadCfldCropsByType}
-                    cacheKey="cfld-crops-by-season-and-type"
-                    emptyMessage="No crops available for selected crop type"
-                    loadingMessage="Loading crops..."
+                    options={cfldCropOptions}
+                    disabled={!formData.seasonId || !formData.cropTypeId}
+                    emptyMessage={
+                        formData.seasonId && formData.cropTypeId
+                            ? 'No crops available for selected crop type'
+                            : 'Select a season and crop type first'
+                    }
                 />
                 {isOtherCfldCrop && (
                     <SpecifyOtherInput
@@ -1220,8 +1177,6 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     // Main render logic
     if (entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM) {
         const isEditMode = Boolean(formData?.id || formData?.cfldTechId)
-        const isCompletedStatus = String(formData?.status || '').toUpperCase().trim() === 'COMPLETED'
-        const showAdditionalSections = !isCompletedStatus
         const tabButtonClass = (active: boolean) =>
             active
                 ? 'px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] transition-all'
@@ -1235,48 +1190,44 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         return (
             <div className="space-y-6">
                 {/* Desktop tabs */}
-                {showAdditionalSections && (
-                    <div className="hidden sm:flex flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#F5F5F5]">
-                        <button type="button" className={tabButtonClass(cfldSection === 'technical')} onClick={() => setActiveSection('technical')}>
-                            Edit CfldTechnicalParameter
-                        </button>
-                        <button type="button" className={tabButtonClass(cfldSection === 'economic')} onClick={() => setActiveSection('economic')}>
-                            Economic Parameters of CFLD
-                        </button>
-                        <button type="button" className={tabButtonClass(cfldSection === 'socio')} onClick={() => setActiveSection('socio')}>
-                            Update Socio Economic Parameters of CFLD
-                        </button>
-                        <button type="button" className={tabButtonClass(cfldSection === 'perception')} onClick={() => setActiveSection('perception')}>
-                            Farmers Perception parameters of CFLD
-                        </button>
-                    </div>
-                )}
+                <div className="hidden sm:flex flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#F5F5F5]">
+                    <button type="button" className={tabButtonClass(cfldSection === 'technical')} onClick={() => setActiveSection('technical')}>
+                        Edit CfldTechnicalParameter
+                    </button>
+                    <button type="button" className={tabButtonClass(cfldSection === 'economic')} onClick={() => setActiveSection('economic')}>
+                        Economic Parameters of CFLD
+                    </button>
+                    <button type="button" className={tabButtonClass(cfldSection === 'socio')} onClick={() => setActiveSection('socio')}>
+                        Update Socio Economic Parameters of CFLD
+                    </button>
+                    <button type="button" className={tabButtonClass(cfldSection === 'perception')} onClick={() => setActiveSection('perception')}>
+                        Farmers Perception parameters of CFLD
+                    </button>
+                </div>
 
                 {/* Mobile dropdown */}
-                {showAdditionalSections && (
-                    <div className="sm:hidden">
-                        <div className="relative inline-flex max-w-[90vw]">
-                            <select
-                                value={cfldSection}
-                                onChange={(e) => setActiveSection(e.target.value as any)}
-                                className="appearance-none w-full min-w-[240px] pr-10 pl-3 py-3 border border-[#E0E0E0] rounded-xl bg-white text-sm text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749]"
-                            >
-                                <option value="technical">Edit CfldTechnicalParameter</option>
-                                <option value="economic">Economic Parameters of CFLD</option>
-                                <option value="socio">Update Socio Economic Parameters of CFLD</option>
-                                <option value="perception">Farmers Perception parameters of CFLD</option>
-                            </select>
-                            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#757575]">
-                                <ChevronDown className="w-4 h-4" />
-                            </div>
+                <div className="sm:hidden">
+                    <div className="relative inline-flex max-w-[90vw]">
+                        <select
+                            value={cfldSection}
+                            onChange={(e) => setActiveSection(e.target.value as any)}
+                            className="appearance-none w-full min-w-[240px] pr-10 pl-3 py-3 border border-[#E0E0E0] rounded-xl bg-white text-sm text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749]"
+                        >
+                            <option value="technical">Edit CfldTechnicalParameter</option>
+                            <option value="economic">Economic Parameters of CFLD</option>
+                            <option value="socio">Update Socio Economic Parameters of CFLD</option>
+                            <option value="perception">Farmers Perception parameters of CFLD</option>
+                        </select>
+                        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#757575]">
+                            <ChevronDown className="w-4 h-4" />
                         </div>
                     </div>
-                )}
+                </div>
 
-                {showAdditionalSections && cfldSection === 'economic' ? renderEconomicParametersForm() : null}
-                {showAdditionalSections && cfldSection === 'socio' ? renderSocioEconomicForm() : null}
-                {showAdditionalSections && cfldSection === 'perception' ? renderFarmersPerceptionForm() : null}
-                {(!showAdditionalSections || cfldSection === 'technical') ? renderTechnicalParamForm() : null}
+                {cfldSection === 'economic' ? renderEconomicParametersForm() : null}
+                {cfldSection === 'socio' ? renderSocioEconomicForm() : null}
+                {cfldSection === 'perception' ? renderFarmersPerceptionForm() : null}
+                {cfldSection === 'technical' ? renderTechnicalParamForm() : null}
             </div>
         )
     }

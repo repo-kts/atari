@@ -1,6 +1,7 @@
 const fldRepository = require('../../repositories/forms/fldRepository.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
 const { FLD_STATUS, normalizeFldStatus } = require('../../constants/fldStatus.js');
+const { FLD_RESULT_TEMPLATES, getFldResultTemplate } = require('../../constants/fldResultTemplate.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 async function invalidateFldStateCategoryReport(kvkId) {
@@ -108,7 +109,7 @@ const fldService = {
         if (sourceStatus !== FLD_STATUS.ONGOING) {
             throw new ValidationError('Result can only be added for ONGOING FLD records');
         }
-        _validateFldResultPayload(payload);
+        _validateFldResultPayload(payload, source);
         const result = await fldRepository.createResultTx(id, payload);
         await fldRepository.updateStatus(id, FLD_STATUS.COMPLETED);
         await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
@@ -122,7 +123,7 @@ const fldService = {
         if (sourceStatus !== FLD_STATUS.COMPLETED) {
             throw new ValidationError('Result can only be edited for COMPLETED FLD records');
         }
-        _validateFldResultPayload(payload);
+        _validateFldResultPayload(payload, source);
         const updated = await fldRepository.updateResultTx(id, payload);
         await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
         return updated;
@@ -158,20 +159,37 @@ function _assertExpectedCompletionDate(payload) {
     }
 }
 
-function _validateFldResultPayload(payload) {
+function _validateFldResultPayload(payload, source) {
     const requiredNumericFields = [
         'demoYield',
         'checkYield',
         'increasePercent',
-        'demoGrossCost',
-        'demoGrossReturn',
-        'demoNetReturn',
-        'demoBcr',
-        'checkGrossCost',
-        'checkGrossReturn',
-        'checkNetReturn',
-        'checkBcr',
     ];
+
+    const template = getFldResultTemplate(source);
+    if (
+        template === FLD_RESULT_TEMPLATES.CROP_ECONOMICS ||
+        template === FLD_RESULT_TEMPLATES.DEMO_ECONOMICS ||
+        template === FLD_RESULT_TEMPLATES.FULL_WITH_OTHER_PARAMETERS
+    ) {
+        requiredNumericFields.push('demoGrossCost', 'demoGrossReturn', 'demoNetReturn', 'demoBcr');
+    }
+
+    if (
+        template === FLD_RESULT_TEMPLATES.CROP_ECONOMICS ||
+        template === FLD_RESULT_TEMPLATES.FULL_WITH_OTHER_PARAMETERS
+    ) {
+        requiredNumericFields.push('checkGrossCost', 'checkGrossReturn', 'checkNetReturn', 'checkBcr');
+    }
+
+    if (template === FLD_RESULT_TEMPLATES.FULL_WITH_OTHER_PARAMETERS) {
+        requiredNumericFields.push('otherParameterDemo', 'otherParameterCheck');
+    }
+
+    if (template === FLD_RESULT_TEMPLATES.MECHANIZATION) {
+        requiredNumericFields.push('laborReductionManDays', 'costReduction');
+    }
+
     for (const field of requiredNumericFields) {
         const value = Number(payload?.[field]);
         if (!Number.isFinite(value)) {

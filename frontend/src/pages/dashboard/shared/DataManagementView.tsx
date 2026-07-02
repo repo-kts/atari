@@ -92,6 +92,7 @@ import {
     NariValueAdditionResultValue,
 } from './forms/achievement/NariValueAdditionResultForm'
 import { useNariResult } from '@/hooks/useNariResult'
+import { getFldResultTemplate } from '@/utils/fldResultTemplate'
 
 interface DataManagementViewProps {
     title: string
@@ -1171,10 +1172,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         openCfldSectionForm(item, 'economic'),
                     isVisible: (item: any) => {
                         const normalized = normalizeOftStatus(item?.status)
-                        return (
-                            normalized !== 'TRANSFERRED' &&
-                            normalized !== 'COMPLETED'
-                        )
+                        return normalized !== 'TRANSFERRED'
                     },
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
@@ -1187,10 +1185,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         openCfldSectionForm(item, 'socio'),
                     isVisible: (item: any) => {
                         const normalized = normalizeOftStatus(item?.status)
-                        return (
-                            normalized !== 'TRANSFERRED' &&
-                            normalized !== 'COMPLETED'
-                        )
+                        return normalized !== 'TRANSFERRED'
                     },
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
@@ -1203,10 +1198,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         openCfldSectionForm(item, 'perception'),
                     isVisible: (item: any) => {
                         const normalized = normalizeOftStatus(item?.status)
-                        return (
-                            normalized !== 'TRANSFERRED' &&
-                            normalized !== 'COMPLETED'
-                        )
+                        return normalized !== 'TRANSFERRED'
                     },
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
@@ -1654,6 +1646,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[300px] p-6">
                                 <FldResultForm
                                     mode={fldResultMode}
+                                    template={getFldResultTemplate(selectedFldItem)}
                                     initialValue={
                                         (fldResultQuery.data as any)?.data ||
                                         (fldResultQuery.data as any) ||

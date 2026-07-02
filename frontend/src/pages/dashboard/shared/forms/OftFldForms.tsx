@@ -24,6 +24,7 @@ import { useDisciplines } from '../../../../hooks/forms/useAboutKvkData'
 import { useKvkStaffForDropdown } from '../../../../hooks/forms/useAboutKvkData'
 import { useFundingSources, useUnits } from '../../../../hooks/useOtherMastersData'
 import { QUANTITY_DATA_TYPE_OPTIONS } from '../../../../constants/quantityDataType'
+import { isWomenEmpowermentName } from '@/utils/fldResultTemplate'
 import { useAuth } from '../../../../contexts/AuthContext'
 import { useProjectData } from '../../../../hooks/useProjectData'
 import { oftFldApi } from '../../../../services/oftFldApi'
@@ -1188,7 +1189,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             value={formData.sectorId ?? ''}
                             onChange={(value) => {
                                 const sectorName = fldSectors.find((s: any) => s.sectorId === value)?.sectorName ?? ''
-                                const isWomenEmpowerment = sectorName.trim().toLowerCase() === 'women empowerment'
+                                const isWomenEmpowerment = isWomenEmpowermentName(sectorName)
                                 setFormData({
                                     ...formData,
                                     sectorId: value as number,
@@ -1407,7 +1408,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         />
                         {(() => {
                             const selectedSectorName = fldSectors.find((s: any) => s.sectorId === formData.sectorId)?.sectorName ?? ''
-                            const isWomenEmpowerment = selectedSectorName.trim().toLowerCase() === 'women empowerment'
+                            const isWomenEmpowerment = isWomenEmpowermentName(selectedSectorName)
                             if (isWomenEmpowerment) return null
                             // Unit + quantity are driven by the selected crop's master.
                             const selectedCrop: any = fldCrops.find((c: any) => Number(c.cropId) === Number(formData.cropId))

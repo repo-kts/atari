@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { FormInput, FormSection } from '../shared/FormComponents'
+import {
+    FLD_RESULT_TEMPLATES,
+} from '@/utils/fldResultTemplate'
+import type { FldResultTemplate } from '@/utils/fldResultTemplate'
 
 export interface FldResultValue {
     demoYield: number | string
@@ -13,11 +17,16 @@ export interface FldResultValue {
     checkGrossReturn: number | string
     checkNetReturn: number | string
     checkBcr: number | string
+    otherParameterDemo: number | string
+    otherParameterCheck: number | string
+    laborReductionManDays: number | string
+    costReduction: number | string
 }
 
 interface FldResultFormProps {
     mode: 'create' | 'edit'
     initialValue?: Partial<FldResultValue>
+    template?: FldResultTemplate
     onClose: () => void
     onSubmit: (value: FldResultValue) => Promise<void>
 }
@@ -34,6 +43,10 @@ const defaultValue: FldResultValue = {
     checkGrossReturn: '',
     checkNetReturn: '',
     checkBcr: '',
+    otherParameterDemo: '',
+    otherParameterCheck: '',
+    laborReductionManDays: '',
+    costReduction: '',
 }
 
 const COMPUTED_INPUT_CLASS = 'bg-gray-100 cursor-not-allowed text-gray-700'
@@ -47,7 +60,53 @@ const num = (v: number | string): number => {
 const fmt = (n: number, digits = 2): string =>
     Number.isFinite(n) ? n.toFixed(digits) : ''
 
-export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue, onClose, onSubmit }) => {
+const otherParameterKeys: Array<keyof FldResultValue> = [
+    'otherParameterDemo',
+    'otherParameterCheck',
+]
+
+const mechanizationKeys: Array<keyof FldResultValue> = [
+    'laborReductionManDays',
+    'costReduction',
+]
+
+function clearHiddenFields(value: FldResultValue, template: FldResultTemplate): FldResultValue {
+    const next = { ...value }
+    const showDemoEconomics =
+        template === FLD_RESULT_TEMPLATES.CROP_ECONOMICS ||
+        template === FLD_RESULT_TEMPLATES.DEMO_ECONOMICS ||
+        template === FLD_RESULT_TEMPLATES.FULL_WITH_OTHER_PARAMETERS
+    const showCheckEconomics =
+        template === FLD_RESULT_TEMPLATES.CROP_ECONOMICS ||
+        template === FLD_RESULT_TEMPLATES.FULL_WITH_OTHER_PARAMETERS
+    const showOtherParameters = template === FLD_RESULT_TEMPLATES.FULL_WITH_OTHER_PARAMETERS
+    const showMechanization = template === FLD_RESULT_TEMPLATES.MECHANIZATION
+
+    if (!showDemoEconomics) {
+        ;(['demoGrossCost', 'demoGrossReturn', 'demoNetReturn', 'demoBcr'] as Array<keyof FldResultValue>)
+            .forEach((key) => { next[key] = '' })
+    }
+    if (!showCheckEconomics) {
+        ;(['checkGrossCost', 'checkGrossReturn', 'checkNetReturn', 'checkBcr'] as Array<keyof FldResultValue>)
+            .forEach((key) => { next[key] = '' })
+    }
+    if (!showOtherParameters) {
+        otherParameterKeys.forEach((key) => { next[key] = '' })
+    }
+    if (!showMechanization) {
+        mechanizationKeys.forEach((key) => { next[key] = '' })
+    }
+
+    return next
+}
+
+export const FldResultForm: React.FC<FldResultFormProps> = ({
+    mode,
+    initialValue,
+    template = FLD_RESULT_TEMPLATES.CROP_ECONOMICS,
+    onClose,
+    onSubmit,
+}) => {
     const [value, setValue] = useState<FldResultValue>({ ...defaultValue, ...(initialValue || {}) })
     const [submitting, setSubmitting] = useState(false)
 
@@ -108,7 +167,7 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue
         e.preventDefault()
         setSubmitting(true)
         try {
-            await onSubmit(value)
+            await onSubmit(clearHiddenFields(value, template))
             onClose()
         } catch {
             // Error already surfaced by the caller; keep the form open for retry.
@@ -116,6 +175,16 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue
             setSubmitting(false)
         }
     }
+
+    const showDemoEconomics =
+        template === FLD_RESULT_TEMPLATES.CROP_ECONOMICS ||
+        template === FLD_RESULT_TEMPLATES.DEMO_ECONOMICS ||
+        template === FLD_RESULT_TEMPLATES.FULL_WITH_OTHER_PARAMETERS
+    const showCheckEconomics =
+        template === FLD_RESULT_TEMPLATES.CROP_ECONOMICS ||
+        template === FLD_RESULT_TEMPLATES.FULL_WITH_OTHER_PARAMETERS
+    const showOtherParameters = template === FLD_RESULT_TEMPLATES.FULL_WITH_OTHER_PARAMETERS
+    const showMechanization = template === FLD_RESULT_TEMPLATES.MECHANIZATION
 
     return (
         <div className="space-y-3">
@@ -128,65 +197,55 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormInput
                             label="% Increase"
+                            required
                             type="number"
                             value={value.increasePercent}
                             onChange={noop}
                             disabled
                             className={COMPUTED_INPUT_CLASS}
-                            helperText="Auto: ((demo - check) / check) × 100"
                         />
                     </div>
                 </FormSection>
 
-                <FormSection title="Economics of demonstration (Rs./ha)" className="mb-3 space-y-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormInput label="Gross Cost" required type="number" value={value.demoGrossCost} onChange={(e) => setField('demoGrossCost', e.target.value)} />
-                        <FormInput label="Gross Return" required type="number" value={value.demoGrossReturn} onChange={(e) => setField('demoGrossReturn', e.target.value)} />
-                        <FormInput
-                            label="Net Return"
-                            type="number"
-                            value={value.demoNetReturn}
-                            onChange={noop}
-                            disabled
-                            className={COMPUTED_INPUT_CLASS}
-                            helperText="Auto: gross return − gross cost"
-                        />
-                        <FormInput
-                            label="BCR"
-                            type="number"
-                            value={value.demoBcr}
-                            onChange={noop}
-                            disabled
-                            className={COMPUTED_INPUT_CLASS}
-                            helperText="Auto: gross return ÷ gross cost"
-                        />
-                    </div>
-                </FormSection>
+                {showOtherParameters && (
+                    <FormSection title="Other Parameters" className="mb-3 space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <FormInput label="Demonstration" required type="number" value={value.otherParameterDemo} onChange={(e) => setField('otherParameterDemo', e.target.value)} />
+                            <FormInput label="Check" required type="number" value={value.otherParameterCheck} onChange={(e) => setField('otherParameterCheck', e.target.value)} />
+                        </div>
+                    </FormSection>
+                )}
 
-                <FormSection title="Economics of check (Rs./ha)" className="mb-3 space-y-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormInput label="Gross Cost" required type="number" value={value.checkGrossCost} onChange={(e) => setField('checkGrossCost', e.target.value)} />
-                        <FormInput label="Gross Return" required type="number" value={value.checkGrossReturn} onChange={(e) => setField('checkGrossReturn', e.target.value)} />
-                        <FormInput
-                            label="Net Return"
-                            type="number"
-                            value={value.checkNetReturn}
-                            onChange={noop}
-                            disabled
-                            className={COMPUTED_INPUT_CLASS}
-                            helperText="Auto: gross return − gross cost"
-                        />
-                        <FormInput
-                            label="BCR"
-                            type="number"
-                            value={value.checkBcr}
-                            onChange={noop}
-                            disabled
-                            className={COMPUTED_INPUT_CLASS}
-                            helperText="Auto: gross return ÷ gross cost"
-                        />
-                    </div>
-                </FormSection>
+                {showMechanization && (
+                    <FormSection title="Other Parameters" className="mb-3 space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <FormInput label="Labor reduction (man days)" required type="number" value={value.laborReductionManDays} onChange={(e) => setField('laborReductionManDays', e.target.value)} />
+                            <FormInput label="Cost reduction (Rs./ha or Rs./)" required type="number" value={value.costReduction} onChange={(e) => setField('costReduction', e.target.value)} />
+                        </div>
+                    </FormSection>
+                )}
+
+                {showDemoEconomics && (
+                    <FormSection title="Economics of demonstration (Rs./ha)" className="mb-3 space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <FormInput label="Gross Cost" required type="number" value={value.demoGrossCost} onChange={(e) => setField('demoGrossCost', e.target.value)} />
+                            <FormInput label="Gross Return" required type="number" value={value.demoGrossReturn} onChange={(e) => setField('demoGrossReturn', e.target.value)} />
+                            <FormInput label="Net Return" required type="number" value={value.demoNetReturn} onChange={noop} disabled className={COMPUTED_INPUT_CLASS} />
+                            <FormInput label="BCR" required type="number" value={value.demoBcr} onChange={noop} disabled className={COMPUTED_INPUT_CLASS} />
+                        </div>
+                    </FormSection>
+                )}
+
+                {showCheckEconomics && (
+                    <FormSection title="Economics of check (Rs./ha)" className="mb-3 space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <FormInput label="Gross Cost" required type="number" value={value.checkGrossCost} onChange={(e) => setField('checkGrossCost', e.target.value)} />
+                            <FormInput label="Gross Return" required type="number" value={value.checkGrossReturn} onChange={(e) => setField('checkGrossReturn', e.target.value)} />
+                            <FormInput label="Net Return" required type="number" value={value.checkNetReturn} onChange={noop} disabled className={COMPUTED_INPUT_CLASS} />
+                            <FormInput label="BCR" required type="number" value={value.checkBcr} onChange={noop} disabled className={COMPUTED_INPUT_CLASS} />
+                        </div>
+                    </FormSection>
+                )}
 
                 <div className="flex justify-end gap-2 pt-1">
                     <button type="button" className="px-3 py-1.5 border rounded-lg text-sm" onClick={onClose} disabled={submitting}>Cancel</button>

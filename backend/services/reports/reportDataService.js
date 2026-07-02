@@ -345,6 +345,9 @@ class ReportDataService {
             case 'nykTraining':
                 rawData = await miscReportRepository.getNykTraining(effectiveKvkId, sectionFilters);
                 break;
+            case 'poshanMaah':
+                rawData = await miscReportRepository.getPoshanMaah(effectiveKvkId, sectionFilters);
+                break;
             case 'ppvFraPlantVarieties':
                 rawData = await miscReportRepository.getPpvFraPlantVarieties(effectiveKvkId, sectionFilters);
                 break;
@@ -529,6 +532,7 @@ class ReportDataService {
             || dataSource === 'prevalentDiseasesCrops'
             || dataSource === 'prevalentDiseasesLivestock'
             || dataSource === 'nykTraining'
+            || dataSource === 'poshanMaah'
             || dataSource === 'ppvFraPlantVarieties'
             || dataSource === 'ppvFraTraining'
             || dataSource === 'vipVisitors'

@@ -2,6 +2,7 @@ const prisma = require('../../config/prisma.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { FLD_STATUS, normalizeFldStatus } = require('../../constants/fldStatus.js');
+const { getFldResultTemplate, isWomenEmpowermentName } = require('../../constants/fldResultTemplate.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const {
     validateInput,
@@ -311,8 +312,7 @@ const fldRepository = {
                     where: { sectorId: parsedSectorId },
                     select: { sectorName: true },
                 });
-                isWomenEmpowermentSector =
-                    (sector?.sectorName || '').trim().toLowerCase() === 'women empowerment';
+                isWomenEmpowermentSector = isWomenEmpowermentName(sector?.sectorName);
             }
         }
 
@@ -552,22 +552,47 @@ const fldRepository = {
             throw new ValidationError('Record not found or unauthorized');
         }
 
-        await checkRecordOwnership(
-            (query) => prisma[FLD_CONFIG.model].findFirst(query),
-            where
-        );
+        const existingRecord = await prisma[FLD_CONFIG.model].findFirst({
+            where,
+            include: {
+                sector: { select: { sectorName: true } },
+            },
+        });
+        if (!existingRecord) {
+            throw new ValidationError('Record not found or unauthorized');
+        }
+
+        const updatePayload = { ...(data || {}) };
+        const incomingSectorId = updatePayload.sectorId ?? existingRecord.sectorId;
+        let sectorName = existingRecord.sector?.sectorName || '';
+        if (incomingSectorId !== existingRecord.sectorId && incomingSectorId !== undefined && incomingSectorId !== null && incomingSectorId !== '') {
+            const nextSector = await prisma.sector.findUnique({
+                where: { sectorId: parseInt(String(incomingSectorId), 10) },
+                select: { sectorName: true },
+            });
+            sectorName = nextSector?.sectorName || sectorName;
+        }
+
+        if (isWomenEmpowermentName(sectorName)) {
+            delete updatePayload.quantity;
+            delete updatePayload.area;
+            delete updatePayload.areaHa;
+            delete updatePayload.quantityText;
+            updatePayload.unit = '';
+            updatePayload.unitId = null;
+        }
 
         // Build update data using field definitions
-        const updateData = buildUpdateData(data, UPDATE_FIELD_DEFINITIONS);
-        if (data.expectedCompletionDate !== undefined) {
-            const d = data.expectedCompletionDate ? new Date(data.expectedCompletionDate) : null;
+        const updateData = buildUpdateData(updatePayload, UPDATE_FIELD_DEFINITIONS);
+        if (updatePayload.expectedCompletionDate !== undefined) {
+            const d = updatePayload.expectedCompletionDate ? new Date(updatePayload.expectedCompletionDate) : null;
             updateData.expectedCompletionDate = d && !Number.isNaN(d.getTime()) ? d : null;
         }
         delete updateData.status;
         delete updateData.ongoingCompleted;
 
         // Handle farmer counts separately
-        const farmerCounts = validateFarmerCounts(data, FLD_CONFIG.farmerCountMapping, {
+        const farmerCounts = validateFarmerCounts(updatePayload, FLD_CONFIG.farmerCountMapping, {
             validateNonNegative: true,
         });
         Object.assign(updateData, farmerCounts);
@@ -730,20 +755,7 @@ const fldRepository = {
     createResultTx: async (fldId, payload) => {
         const parsedId = validateId(fldId, FLD_CONFIG.idField);
         return prisma.kvkFldResult.create({
-            data: {
-                kvkFldId: parsedId,
-                demoYield: Number(payload.demoYield),
-                checkYield: Number(payload.checkYield),
-                increasePercent: Number(payload.increasePercent),
-                demoGrossCost: Number(payload.demoGrossCost),
-                demoGrossReturn: Number(payload.demoGrossReturn),
-                demoNetReturn: Number(payload.demoNetReturn),
-                demoBcr: Number(payload.demoBcr),
-                checkGrossCost: Number(payload.checkGrossCost),
-                checkGrossReturn: Number(payload.checkGrossReturn),
-                checkNetReturn: Number(payload.checkNetReturn),
-                checkBcr: Number(payload.checkBcr),
-            },
+            data: _buildFldResultData(parsedId, payload),
         });
     },
 
@@ -751,19 +763,7 @@ const fldRepository = {
         const parsedId = validateId(fldId, FLD_CONFIG.idField);
         return prisma.kvkFldResult.update({
             where: { kvkFldId: parsedId },
-            data: {
-                demoYield: Number(payload.demoYield),
-                checkYield: Number(payload.checkYield),
-                increasePercent: Number(payload.increasePercent),
-                demoGrossCost: Number(payload.demoGrossCost),
-                demoGrossReturn: Number(payload.demoGrossReturn),
-                demoNetReturn: Number(payload.demoNetReturn),
-                demoBcr: Number(payload.demoBcr),
-                checkGrossCost: Number(payload.checkGrossCost),
-                checkGrossReturn: Number(payload.checkGrossReturn),
-                checkNetReturn: Number(payload.checkNetReturn),
-                checkBcr: Number(payload.checkBcr),
-            },
+            data: _buildFldResultData(parsedId, payload, { includeId: false }),
         });
     },
 
@@ -845,6 +845,7 @@ function _mapResponse(r) {
         fldResult: r.fldResult ? {
             fldResultId: r.fldResult.fldResultId,
             kvkFldId: r.fldResult.kvkFldId,
+            resultTemplate: getFldResultTemplate(r),
             demoYield: r.fldResult.demoYield,
             checkYield: r.fldResult.checkYield,
             increasePercent: r.fldResult.increasePercent,
@@ -856,9 +857,46 @@ function _mapResponse(r) {
             checkGrossReturn: r.fldResult.checkGrossReturn,
             checkNetReturn: r.fldResult.checkNetReturn,
             checkBcr: r.fldResult.checkBcr,
+            otherParameterDemo: r.fldResult.otherParameterDemo,
+            otherParameterCheck: r.fldResult.otherParameterCheck,
+            laborReductionManDays: r.fldResult.laborReductionManDays,
+            costReduction: r.fldResult.costReduction,
         } : null,
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
+    };
+}
+
+function _optionalNumber(value) {
+    if (value === '' || value === null || value === undefined) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+function _requiredNumber(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function _buildFldResultData(fldId, payload, options = {}) {
+    const includeId = options.includeId !== false;
+    return {
+        ...(includeId ? { kvkFldId: fldId } : {}),
+        demoYield: _requiredNumber(payload.demoYield),
+        checkYield: _requiredNumber(payload.checkYield),
+        increasePercent: _requiredNumber(payload.increasePercent),
+        demoGrossCost: _optionalNumber(payload.demoGrossCost),
+        demoGrossReturn: _optionalNumber(payload.demoGrossReturn),
+        demoNetReturn: _optionalNumber(payload.demoNetReturn),
+        demoBcr: _optionalNumber(payload.demoBcr),
+        checkGrossCost: _optionalNumber(payload.checkGrossCost),
+        checkGrossReturn: _optionalNumber(payload.checkGrossReturn),
+        checkNetReturn: _optionalNumber(payload.checkNetReturn),
+        checkBcr: _optionalNumber(payload.checkBcr),
+        otherParameterDemo: _optionalNumber(payload.otherParameterDemo),
+        otherParameterCheck: _optionalNumber(payload.otherParameterCheck),
+        laborReductionManDays: _optionalNumber(payload.laborReductionManDays),
+        costReduction: _optionalNumber(payload.costReduction),
     };
 }
 

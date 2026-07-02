@@ -188,6 +188,7 @@ export const ENTITY_TYPES = {
     MISC_PREVALENT_DISEASES_CROPS: 'misc-prevalent-diseases-crops',
     MISC_PREVALENT_DISEASES_LIVESTOCK: 'misc-prevalent-diseases-livestock',
     MISC_NYK_TRAINING: 'misc-nyk-training',
+    MISC_POSHAN_MAAH: 'misc-poshan-maah',
     MISC_PPV_FRA_TRAINING: 'misc-ppv-fra-training',
     MISC_PPV_FRA_PLANT_VARIETIES: 'misc-ppv-fra-plant-varieties',
     MISC_RAWE_FET: 'misc-rawe-fet',

@@ -83,6 +83,7 @@ model Kvk {
   prevalentDiseasesInCrop       PrevalentDiseasesInCrop[]
   prevalentDiseasesOnLivestock  PrevalentDiseasesOnLivestock[]
   nykTraining                   NykTraining[]
+  poshanMaah                    PoshanMaah[]
   vipVisitor                    VipVisitor[]
   raweFetFitProgramme           RaweFetFitProgramme[]
   ppvFraTraining                PpvFraTraining[]

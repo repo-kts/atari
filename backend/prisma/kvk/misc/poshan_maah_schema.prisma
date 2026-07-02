@@ -1,0 +1,32 @@
+// Poshan Maah — datewise report of events/programmes conducted during
+// POSHAN MAAH (September). One row per datewise activity per KVK.
+model PoshanMaah {
+  poshanMaahId Int @id @default(autoincrement()) @map("poshan_maah_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  activityDate         DateTime @map("activity_date")
+  activitiesConducted  Int      @default(0) @map("activities_conducted")
+  eventName            String   @map("event_name")
+  saplingsPlanted      Int      @default(0) @map("saplings_planted")
+  vegetableKitsDistributed Int  @default(0) @map("vegetable_kits_distributed")
+
+  // No. of participants (by category)
+  girls                 Int @default(0) @map("girls")
+  farmWomen             Int @default(0) @map("farm_women")
+  farmers               Int @default(0) @map("farmers")
+  anganwadiWorkers      Int @default(0) @map("anganwadi_workers")
+  govtOfficials         Int @default(0) @map("govt_officials")
+  publicRepresentatives Int @default(0) @map("public_representatives")
+
+  // Denormalized sum of the six participant categories (authoritative value
+  // is always recomputed server-side on create/update).
+  totalParticipants Int @default(0) @map("total_participants")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([kvkId])
+  @@map("poshan_maah")
+}
