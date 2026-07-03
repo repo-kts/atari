@@ -41,6 +41,7 @@ interface DataManagementFormPageProps {
     onSave: () => void
     onClose: () => void
     isSaving?: boolean
+    extraActions?: React.ReactNode
 }
 
 export function DataManagementFormPage({
@@ -51,6 +52,7 @@ export function DataManagementFormPage({
     onSave,
     onClose,
     isSaving = false,
+    extraActions,
 }: DataManagementFormPageProps) {
 
 
@@ -149,6 +151,7 @@ export function DataManagementFormPage({
                             >
                                 {title.startsWith('Edit') ? 'Update' : 'Submit'}
                             </LoadingButton>
+                            {extraActions}
                         </div>
                     </form>
                 )}

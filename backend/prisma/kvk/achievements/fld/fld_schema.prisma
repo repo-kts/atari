@@ -39,6 +39,7 @@ model KvkFldIntroduction {
   stM                         Int                         @map("st_m")
   stF                         Int                         @map("st_f")
   ongoingCompleted            FldStatus                   @default(ONGOING) @map("ongoing_completed")
+  transferredFromFldId         Int?                        @map("transferred_from_fld_id")
   createdAt                   DateTime                    @default(now()) @map("created_at")
   updatedAt                   DateTime                    @updatedAt @map("updated_at")
   fldExtensions               FldExtension[]
@@ -55,6 +56,8 @@ model KvkFldIntroduction {
   thematicArea                FldThematicArea?            @relation(fields: [thematicAreaId], references: [thematicAreaId], onDelete: SetNull)
   unitMaster                  Unit?                       @relation(fields: [unitId], references: [unitId], onDelete: SetNull)
   kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+  transferredFrom             KvkFldIntroduction?         @relation("FldTransferChain", fields: [transferredFromFldId], references: [kvkFldId])
+  transferredToChildren       KvkFldIntroduction[]        @relation("FldTransferChain")
 
   @@index([kvkId])
   @@index([seasonId])
@@ -67,6 +70,7 @@ model KvkFldIntroduction {
   @@index([unitId])
   @@index([expectedCompletionDate])
   @@index([reportingYear])
+  @@index([transferredFromFldId])
   @@map("kvk_fld_introduction")
 }
 

@@ -50,6 +50,15 @@ async function cleanupBoth(record, user) {
     await actionAttachments.cleanup(record, user);
 }
 
+function isSuperAdmin(user) {
+    return user?.roleName === 'super_admin' || user?.role === 'super_admin';
+}
+
+function wasTouchedAfterCreate(record) {
+    if (!record?.createdAt || !record?.updatedAt) return false;
+    return new Date(record.updatedAt).getTime() > new Date(record.createdAt).getTime() + 1000;
+}
+
 const TRANSACTION_OPTIONS = {
     maxWait: 5000,
     timeout: 12000,
@@ -180,6 +189,7 @@ const cfldTechnicalParameterService = {
                     seasonOther: source.seasonOther,
                     reportingYear: nextReportingYear,
                     status: 'ONGOING',
+                    transferredFromCfldTechId: source.cfldTechId,
                     varietyName: source.varietyName,
                     areaInHa: source.areaInHa,
                     technologyDemonstrated: source.technologyDemonstrated,
@@ -263,6 +273,120 @@ const cfldTechnicalParameterService = {
         }, TRANSACTION_OPTIONS);
         await invalidateCfldReportCache(source.kvkId);
         return transferred;
+    },
+
+    revokeTransfer: async (id, user) => {
+        if (!isSuperAdmin(user)) {
+            throw new UnauthorizedError('Only superadmin can undo CFLD transfer');
+        }
+
+        const cfldTechId = Number(id);
+        if (!Number.isFinite(cfldTechId) || cfldTechId <= 0) {
+            throw new ValidationError('Invalid CFLD technical parameter id', 'id');
+        }
+
+        const source = await prisma.cfldTechnicalParameter.findUnique({
+            where: { cfldTechId },
+            include: {
+                economicParameters: true,
+                socioEconomicParameters: true,
+                farmersPerceptionParameters: true,
+            },
+        });
+        if (!source) throw new NotFoundError('CFLD technical parameter');
+        if (source.status !== 'TRANSFERRED') {
+            throw new ValidationError('Only transferred CFLD records can have their transfer undone');
+        }
+
+        const children = await prisma.cfldTechnicalParameter.findMany({
+            where: { transferredFromCfldTechId: cfldTechId },
+            include: {
+                economicParameters: true,
+                socioEconomicParameters: true,
+                farmersPerceptionParameters: true,
+            },
+        });
+
+        for (const child of children) {
+            const sections = [
+                ...(child.economicParameters || []),
+                ...(child.socioEconomicParameters || []),
+                ...(child.farmersPerceptionParameters || []),
+            ];
+            const childWasTouched = child.status !== 'ONGOING' || wasTouchedAfterCreate(child);
+            const sectionWasTouched = sections.some((section) => section.status !== 'ONGOING' || wasTouchedAfterCreate(section));
+            if (childWasTouched || sectionWasTouched) {
+                throw new ValidationError(
+                    'Cannot undo: the next-year CFLD already has updates or was completed/transferred again.'
+                );
+            }
+        }
+
+        const restored = await prisma.$transaction(async (tx) => {
+            const childIds = children.map((child) => child.cfldTechId);
+            if (childIds.length) {
+                await tx.cfldTechnicalParameter.deleteMany({
+                    where: { cfldTechId: { in: childIds } },
+                });
+            }
+            return tx.cfldTechnicalParameter.update({
+                where: { cfldTechId },
+                data: { status: 'ONGOING', completedAt: null },
+            });
+        }, TRANSACTION_OPTIONS);
+
+        await invalidateCfldReportCache(source.kvkId);
+        return restored;
+    },
+
+    markCompleted: async (id, user) => {
+        const cfldTechId = Number(id);
+        if (!Number.isFinite(cfldTechId) || cfldTechId <= 0) {
+            throw new ValidationError('Invalid CFLD technical parameter id', 'id');
+        }
+
+        const source = await prisma.cfldTechnicalParameter.findUnique({
+            where: { cfldTechId },
+            include: {
+                economicParameters: true,
+                socioEconomicParameters: true,
+                farmersPerceptionParameters: true,
+            },
+        });
+        if (!source) throw new NotFoundError('CFLD technical parameter');
+        assertKvkRecordAccess(source, user);
+        if (source.status === 'TRANSFERRED') {
+            throw new ValidationError('Transferred CFLD records cannot be marked completed');
+        }
+
+        const economic = source.economicParameters?.[0] || null;
+        const socio = source.socioEconomicParameters?.[0] || null;
+        const perception = source.farmersPerceptionParameters?.[0] || null;
+        if (!economic || !socio || !perception) {
+            throw new ValidationError('Save economic, socio economic, and farmers perception details before marking completed');
+        }
+
+        const updated = await prisma.$transaction(async (tx) => {
+            await tx.cfldEconomicParameters.updateMany({
+                where: { cfldTechId },
+                data: { status: 'COMPLETED' },
+            });
+            await tx.cfldSocioEconomicParameters.updateMany({
+                where: { cfldTechId },
+                data: { status: 'COMPLETED' },
+            });
+            await tx.cfldFarmersPerceptionParameters.updateMany({
+                where: { cfldTechId },
+                data: { status: 'COMPLETED' },
+            });
+            return tx.cfldTechnicalParameter.update({
+                where: { cfldTechId },
+                data: { status: 'COMPLETED', completedAt: source.completedAt || new Date() },
+            });
+        }, TRANSACTION_OPTIONS);
+
+        await invalidateCfldReportCache(source.kvkId);
+        return updated;
     },
 
     delete: async (id, user) => {

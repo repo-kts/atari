@@ -349,7 +349,7 @@ async function upsertEconomicParameters(tx, { cfldTechId, data }) {
             cfldTechId,
         },
         update: {
-            status: 'COMPLETED',
+            status: 'ONGOING',
             existingPlotGrossCost: safeMaybeFloat(data.existingPlotGrossCost),
             existingPlotGrossReturn: safeMaybeFloat(data.existingPlotGrossReturn),
             existingPlotNetReturn: safeMaybeFloat(data.existingPlotNetReturn),
@@ -362,7 +362,7 @@ async function upsertEconomicParameters(tx, { cfldTechId, data }) {
         },
         create: {
             cfldTechId,
-            status: 'COMPLETED',
+            status: 'ONGOING',
             existingPlotGrossCost: safeMaybeFloat(data.existingPlotGrossCost),
             existingPlotGrossReturn: safeMaybeFloat(data.existingPlotGrossReturn),
             existingPlotNetReturn: safeMaybeFloat(data.existingPlotNetReturn),
@@ -385,7 +385,7 @@ async function upsertSocioEconomicParameters(tx, { cfldTechId, data }) {
     });
 
     const payload = {
-        status: 'COMPLETED',
+        status: 'ONGOING',
         totalProduceObtainedKg: safeMaybeFloat(data.totalProduceObtainedKg),
         produceSoldKgPerHousehold: safeMaybeFloat(data.produceSoldKgPerHousehold),
         sellingRateRsPerKg: safeMaybeFloat(data.sellingRateRsPerKg),
@@ -417,7 +417,7 @@ async function upsertFarmersPerceptionParameters(tx, { cfldTechId, data }) {
     });
 
     const payload = {
-        status: 'COMPLETED',
+        status: 'ONGOING',
         suitabilityToFarmingSystem: safeMaybeText(data.suitabilityToFarmingSystem),
         likingPreference: safeMaybeText(data.likingPreference),
         affordability: safeMaybeText(data.affordability),

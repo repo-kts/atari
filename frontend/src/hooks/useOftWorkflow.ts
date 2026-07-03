@@ -31,11 +31,23 @@ export function useTransferFldToNextYear() {
     })
 }
 
+export function useRevokeFldTransfer() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (id: number | string) => oftWorkflowApi.revokeFldTransfer(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['project-data', 'achievement-fld'] })
+        },
+    })
+}
+
 export function useFldResult(fldId?: number | string) {
     return useQuery({
         queryKey: ['achievement-fld-result', fldId],
         queryFn: () => oftWorkflowApi.getFldResult(fldId as number | string),
         enabled: Boolean(fldId),
+        staleTime: 0,
+        refetchOnMount: 'always',
     })
 }
 
@@ -59,6 +71,17 @@ export function useUpdateFldResult() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['project-data', 'achievement-fld'] })
             queryClient.invalidateQueries({ queryKey: ['achievement-fld-result', variables.id] })
+        },
+    })
+}
+
+export function useMarkFldCompleted() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (id: number | string) => oftWorkflowApi.markFldCompleted(id),
+        onSuccess: (_, id) => {
+            queryClient.invalidateQueries({ queryKey: ['project-data', 'achievement-fld'] })
+            queryClient.invalidateQueries({ queryKey: ['achievement-fld-result', id] })
         },
     })
 }
