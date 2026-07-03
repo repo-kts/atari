@@ -30,6 +30,10 @@ export const oftWorkflowApi = {
         return apiClient.put(`/forms/achievements/oft/${id}/result`, payload)
     },
 
+    markCompleted: async (id: number | string) => {
+        return apiClient.post(`/forms/achievements/oft/${id}/mark-completed`)
+    },
+
     transferFldToNextYear: async (id: number | string) => {
         return apiClient.post(`/forms/achievements/fld/${id}/transfer-next-year`)
     },

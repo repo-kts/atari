@@ -114,6 +114,16 @@ const oftController = {
         });
     }),
 
+    markCompleted: asyncHandler(async (req, res) => {
+        const result = await oftService.markCompleted(req.params.id, req.user);
+        res.status(200).json({
+            success: true,
+            message: 'OFT marked completed successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
     getResult: asyncHandler(async (req, res) => {
         const result = await oftService.getResult(req.params.id, req.user);
         res.status(200).json({

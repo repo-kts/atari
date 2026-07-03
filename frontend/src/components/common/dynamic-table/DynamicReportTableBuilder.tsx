@@ -65,27 +65,11 @@ const createDefaultTable = (
         : [],
 })
 
-function reconcileRows(table: ResultTable, sourceRows: Array<{ optionKey: string; optionName: string }>): ResultTable {
-    const rowByKey = new Map((table.rows || []).map((row) => [String(row.optionKey || ''), row]))
-    const nextRows = sourceRows.map((src, idx) => {
-        const existing = rowByKey.get(src.optionKey)
-        const nextCells = { ...(existing?.cells || {}), [FIRST_COLUMN_KEY]: src.optionName }
-        return {
-            optionKey: src.optionKey,
-            rowLabel: src.optionName,
-            sortOrder: idx + 1,
-            cells: nextCells,
-        }
-    })
-    return { ...table, rows: nextRows }
-}
-
 export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps> = ({
     tables,
     onChange,
     sourceRows = [],
 }) => {
-    void reconcileRows
     const safeTables = tables.length > 0
         ? tables
         : [createDefaultTable(1, sourceRows), createDefaultTable(2)]
@@ -174,7 +158,7 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                         <table className="w-full min-w-full table-fixed border-separate border-spacing-0">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    {table.columns.map((column, colIdx) => (
+                                    {table.columns.map((column) => (
                                         <th key={column.columnKey} className="border-b border-r border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                                             <div className="flex items-center gap-2">
                                                 <input
@@ -185,7 +169,7 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                                                         columns: t.columns.map((col) => col.columnKey === column.columnKey ? { ...col, columnLabel: e.target.value } : col),
                                                     }))}
                                                 />
-                                                {colIdx > 0 && (
+                                                {column.columnKey !== FIRST_COLUMN_KEY && (
                                                     <button type="button" className="text-xs text-red-600" onClick={() => removeColumn(tableIndex, column.columnKey)}>X</button>
                                                 )}
                                             </div>
@@ -200,7 +184,12 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                                         {table.columns.map((column) => (
                                             <td key={`${rowIndex}-${column.columnKey}`} className="border-b border-r border-gray-300 px-3 py-2">
                                                 <input
-                                                    className="w-full border border-gray-300 rounded px-2 py-1"
+                                                    className={`w-full border rounded px-2 py-1 ${
+                                                        row.optionKey && column.columnKey === FIRST_COLUMN_KEY
+                                                            ? 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed'
+                                                            : 'border-gray-300'
+                                                    }`}
+                                                    readOnly={Boolean(row.optionKey && column.columnKey === FIRST_COLUMN_KEY)}
                                                     value={row.cells?.[column.columnKey] || ''}
                                                     onChange={(e) => patchTable(tableIndex, (t) => ({
                                                         ...t,

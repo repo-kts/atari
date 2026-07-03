@@ -25,9 +25,11 @@ interface OftResultFormProps {
     initialValue?: Partial<OftResultFormValue>
     onClose: () => void
     onSubmit: (value: OftResultFormValue) => Promise<void>
+    onMarkCompleted?: () => Promise<void>
     embedded?: boolean
     sourceRows?: Array<{ optionKey: string; optionName: string }>
     kvkId?: number | null
+    isCompleted?: boolean
 }
 
 const defaultValue: OftResultFormValue = {
@@ -95,7 +97,7 @@ function normalizeInitialValue(
             }
         })
 
-        const safeRows = rows.map((row: any, rowIndex: number) => {
+        const safeRows: ResultTable['rows'] = rows.map((row: any, rowIndex: number) => {
             const cellsObject: Record<string, string> = {}
             if (Array.isArray(row.cells)) {
                 row.cells.forEach((cell: any) => {
@@ -115,11 +117,65 @@ function normalizeInitialValue(
             }
         })
 
+        const reconciledRows = tableIndex === 0 && sourceRows.length > 0
+            ? (() => {
+                type Row = ResultTable['rows'][number]
+                const existingByKey = new Map<string, Row>(
+                    safeRows
+                        .filter((row: Row) => row.optionKey)
+                        .map((row: Row) => [String(row.optionKey), row])
+                )
+                const existingByLabel = new Map<string, Row>(
+                    safeRows.map((row: Row) => [
+                        String(row.rowLabel || row.cells?.tech_option || '')
+                            .trim()
+                            .toLowerCase(),
+                        row,
+                    ])
+                )
+                // Track which saved rows have already been bound to a source row so a
+                // positional fallback never steals cells from a row that legitimately
+                // belongs to a later source option.
+                const usedRows = new Set<Row>()
+                const claim = (row?: Row) => {
+                    if (!row || usedRows.has(row)) return undefined
+                    usedRows.add(row)
+                    return row
+                }
+                const sourceAlignedRows = sourceRows.map((src, srcIndex) => {
+                    // Match by optionKey → rowLabel → position. Old OFTs whose source
+                    // technology was renamed drift on BOTH key and label; the positional
+                    // fallback recovers their saved proposed/actual cells instead of
+                    // rendering a blank seeded row (rows are ordered consistently).
+                    const existing =
+                        claim(existingByKey.get(String(src.optionKey))) ||
+                        claim(existingByLabel.get(String(src.optionName).trim().toLowerCase())) ||
+                        claim(safeRows[srcIndex])
+                    return {
+                        optionKey: src.optionKey,
+                        rowLabel: src.optionName,
+                        sortOrder: srcIndex + 1,
+                        cells: {
+                            ...(existing?.cells || {}),
+                            tech_option: src.optionName,
+                        },
+                    }
+                })
+                const customRows = safeRows
+                    .filter((row: Row) => !usedRows.has(row))
+                    .map((row: Row, idx: number) => ({
+                        ...row,
+                        sortOrder: sourceAlignedRows.length + idx + 1,
+                    }))
+                return [...sourceAlignedRows, ...customRows]
+            })()
+            : safeRows
+
         return {
             tableTitle: String(table.tableTitle || `Table ${tableIndex + 1}`),
             sortOrder: Number(table.sortOrder || tableIndex + 1),
             columns: safeColumns,
-            rows: safeRows,
+            rows: reconciledRows,
         }
     })
 
@@ -136,11 +192,15 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
     initialValue,
     onClose,
     onSubmit,
+    onMarkCompleted,
     embedded = false,
     sourceRows = [],
     kvkId,
+    isCompleted = false,
 }) => {
     const [submitting, setSubmitting] = useState(false)
+    const [markingCompleted, setMarkingCompleted] = useState(false)
+    const [hasSavedResult, setHasSavedResult] = useState(Boolean(initialValue?.oftResultReportId))
     const [value, setValue] = useState<OftResultFormValue>(normalizeInitialValue(initialValue, sourceRows))
     const [photoIds, setPhotoIds] = useState<number[]>([])
     const [datasheetIds, setDatasheetIds] = useState<number[]>([])
@@ -150,6 +210,7 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
 
     useEffect(() => {
         setValue(normalizeInitialValue(initialValue, sourceRows))
+        setHasSavedResult(Boolean(initialValue?.oftResultReportId))
     }, [initialValue, mode, sourceRows])
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -162,11 +223,21 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
         try {
             const attachmentIds = [...photoIds, ...datasheetIds]
             await onSubmit({ ...value, attachmentIds })
-            onClose()
+            setHasSavedResult(true)
         } catch {
             // Error already surfaced by the caller; keep the form open for retry.
         } finally {
             setSubmitting(false)
+        }
+    }
+
+    const handleMarkCompleted = async () => {
+        if (!onMarkCompleted || !hasSavedResult || isCompleted) return
+        setMarkingCompleted(true)
+        try {
+            await onMarkCompleted()
+        } finally {
+            setMarkingCompleted(false)
         }
     }
 
@@ -240,6 +311,16 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
                 <button type="submit" className="px-4 py-2 bg-[#487749] text-white rounded-lg disabled:opacity-60" disabled={submitting}>
                     {submitting ? 'Saving...' : mode === 'create' ? 'Create Result' : 'Update Result'}
                 </button>
+                {!isCompleted && onMarkCompleted && (
+                    <button
+                        type="button"
+                        className="px-4 py-2 bg-[#2f5f34] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!hasSavedResult || submitting || markingCompleted}
+                        onClick={handleMarkCompleted}
+                    >
+                        {markingCompleted ? 'Marking...' : 'Mark as Completed'}
+                    </button>
+                )}
             </div>
         </form>
     )

@@ -1228,7 +1228,6 @@ export const FIELD_GROUPS = {
 
     // Achievements Routes - OFT & FLD
     OFT: [
-        FIELD_NAMES.REPORTING_YEAR,
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.STAFF,
         FIELD_NAMES.TRIAL_ON_FORM,

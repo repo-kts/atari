@@ -8,6 +8,7 @@ import {
     ArrowRight,
     FilePlus2,
     FilePenLine,
+    CheckCircle2,
     ChevronDown,
     RotateCcw,
     FilterX,
@@ -62,6 +63,7 @@ import {
     useTransferFldToNextYear,
     useCreateOftResult,
     useUpdateOftResult,
+    useMarkOftCompleted,
     useOftResult,
     useFldResult,
     useCreateFldResult,
@@ -145,6 +147,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const transferCfldMutation = useTransferCfldTechnicalToNextYear()
     const createOftResultMutation = useCreateOftResult()
     const updateOftResultMutation = useUpdateOftResult()
+    const markOftCompletedMutation = useMarkOftCompleted()
     const createFldResultMutation = useCreateFldResult()
     const updateFldResultMutation = useUpdateFldResult()
     const [isOftResultPageOpen, setIsOftResultPageOpen] = useState(false)
@@ -661,6 +664,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             .toUpperCase()
             .trim()
 
+    const unwrapApiData = (response: any) => {
+        if (
+            response &&
+            typeof response === 'object' &&
+            ('success' in response || 'data' in response)
+        ) {
+            return response.data ?? undefined
+        }
+        return response
+    }
+
     const handleTransferOftToNextYear = async (item: any) => {
         const id = item?.id ?? item?.kvkOftId
         if (!id) {
@@ -671,21 +685,37 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             })
             return
         }
-        try {
-            await transferOftMutation.mutateAsync(id)
-            alert({
-                title: 'Success',
-                message: 'OFT transferred to next reporting year successfully.',
-                variant: 'success',
-                autoClose: true,
-            })
-        } catch (err: any) {
-            alert({
-                title: 'Transfer failed',
-                message: err?.message || 'Unable to transfer OFT.',
-                variant: 'error',
-            })
-        }
+        confirm(
+            {
+                title: 'Transfer OFT?',
+                message:
+                    'This will move the OFT to the next reporting year and create a next-year copy. The OFT start date will stay unchanged.',
+                variant: 'warning',
+                confirmText: 'Transfer',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await transferOftMutation.mutateAsync(id)
+                    if (activeHook && 'refetch' in activeHook) {
+                        await (activeHook as any).refetch()
+                    }
+                    alert({
+                        title: 'Success',
+                        message: 'OFT transferred to next reporting year successfully.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                } catch (err: any) {
+                    alert({
+                        title: 'Transfer failed',
+                        message: err?.message || 'Unable to transfer OFT.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
     }
 
     const handleRevokeOftTransfer = async (item: any) => {
@@ -698,21 +728,37 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             })
             return
         }
-        try {
-            await revokeOftMutation.mutateAsync(id)
-            alert({
-                title: 'Success',
-                message: 'OFT transfer revoked; record restored to Ongoing.',
-                variant: 'success',
-                autoClose: true,
-            })
-        } catch (err: any) {
-            alert({
-                title: 'Revoke failed',
-                message: err?.message || 'Unable to revoke OFT transfer.',
-                variant: 'error',
-            })
-        }
+        confirm(
+            {
+                title: 'Undo OFT transfer?',
+                message:
+                    'This will delete the untouched next-year OFT copy and restore the original OFT to Ongoing. This is available only to superadmin and only before the next-year copy is completed or transferred again.',
+                variant: 'warning',
+                confirmText: 'Undo Transfer',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await revokeOftMutation.mutateAsync(id)
+                    if (activeHook && 'refetch' in activeHook) {
+                        await (activeHook as any).refetch()
+                    }
+                    alert({
+                        title: 'Success',
+                        message: 'OFT transfer undone; original record restored to Ongoing.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                } catch (err: any) {
+                    alert({
+                        title: 'Undo transfer failed',
+                        message: err?.message || 'Unable to undo OFT transfer.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
     }
 
     const handleTransferFldToNextYear = async (item: any) => {
@@ -798,6 +844,105 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         setIsOftResultPageOpen(true)
     }
 
+    const oftResultInitialValue = unwrapApiData(oftResultQuery.data)
+
+    useEffect(() => {
+        if (!isOftResultPageOpen || !oftResultInitialValue) return
+        setOftResultMode('edit')
+        setSelectedOftItem((prev: any) => ({
+            ...(prev || {}),
+            resultReport: oftResultInitialValue,
+            oftResultReportId: (oftResultInitialValue as any)?.oftResultReportId,
+        }))
+    }, [isOftResultPageOpen, oftResultInitialValue])
+
+    const itemHasOftResult = (item: any) =>
+        Boolean(item?.resultReport || item?.oftResultReportId || item?.resultReportId)
+
+    const getOftSourceRows = (item: any, result: any) => {
+        // Prefer the result's technology options (the snapshot the saved rows were
+        // built from) and fall back to the list item's. Concatenating both would
+        // duplicate rows and break positional cell alignment in the result form.
+        const rawOptions = Array.isArray(result?.technologyOptions) && result.technologyOptions.length > 0
+            ? result.technologyOptions
+            : Array.isArray(item?.technologyOptions)
+                ? item.technologyOptions
+                : []
+        const seen = new Set<string>()
+        const explicitOptions = rawOptions
+            .map((row: any) => ({
+                optionKey: String(row?.optionKey || ''),
+                optionName: String(row?.optionName || '').trim(),
+            }))
+            .filter((row: { optionKey: string; optionName: string }) => {
+                if (!row.optionName) return false
+                const dedupeKey = `${row.optionKey}::${row.optionName.toLowerCase()}`
+                if (seen.has(dedupeKey)) return false
+                seen.add(dedupeKey)
+                return true
+            })
+
+        if (explicitOptions.length > 0) {
+            return explicitOptions
+        }
+
+        return Object.keys(item || {})
+            .filter((key) => key.startsWith('tech_'))
+            .map((key) => {
+                const optionName = key.replace(/^tech_/, '').trim()
+                return {
+                    optionKey: `legacy_${optionName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+                    optionName,
+                }
+            })
+            .filter((row) => row.optionName)
+    }
+
+    const handleMarkOftCompleted = async (item: any) => {
+        const id = item?.id ?? item?.kvkOftId ?? selectedOftId
+        if (!id) {
+            alert({
+                title: 'Error',
+                message: 'Unable to mark OFT completed: missing record id.',
+                variant: 'error',
+            })
+            return
+        }
+        confirm(
+            {
+                title: 'Mark OFT as completed?',
+                message:
+                    'Are you sure you want to mark this OFT result as completed? You can continue editing the result after completion, but it will no longer be treated as ongoing.',
+                variant: 'warning',
+                confirmText: 'Mark Completed',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await markOftCompletedMutation.mutateAsync(id)
+                    alert({
+                        title: 'Success',
+                        message: 'OFT marked completed successfully.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                    setIsOftResultPageOpen(false)
+                    setSelectedOftId(null)
+                    setSelectedOftItem(null)
+                } catch (err: any) {
+                    alert({
+                        title: 'Error',
+                        message:
+                            err?.message ||
+                            'Failed to mark the OFT as completed. Please save the result first.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
+    }
+
     const handleSubmitOftResult = async (payload: OftResultFormValue) => {
         if (!selectedOftId) return
         try {
@@ -806,6 +951,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     id: selectedOftId,
                     payload,
                 })
+                setOftResultMode('edit')
+                setSelectedOftItem((prev: any) => ({
+                    ...(prev || {}),
+                    resultReport: { ...(prev?.resultReport || {}), ...payload },
+                }))
             } else {
                 await updateOftResultMutation.mutateAsync({
                     id: selectedOftId,
@@ -865,8 +1015,13 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         const normalized = normalizeOftStatus(
             item.status || item.ongoingCompleted
         )
-        const canAdd = normalized === 'ONGOING'
-        const canEditResult = normalized === 'COMPLETED'
+        const hasResult = opts.kind === 'oft' ? itemHasOftResult(item) : false
+        const canAdd =
+            opts.kind === 'oft'
+                ? normalized === 'ONGOING' && !hasResult
+                : normalized === 'ONGOING'
+        const canEditResult =
+            opts.kind === 'oft' ? hasResult : normalized === 'COMPLETED'
 
         const labelEdit = opts.kind === 'oft' ? 'Edit OFT' : 'Edit FLD'
 
@@ -1114,19 +1269,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
             ? [
                 {
-                    key: 'transfer-next-year',
-                    label: 'Transfer',
-                    onClick: handleTransferOftToNextYear,
-                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                    className:
-                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                    icon: ArrowRight,
-                },
-                {
                     key: 'add-result',
                     label: 'Add Result',
                     onClick: handleAddOftResult,
-                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    isVisible: (item: any) =>
+                        statusValue(item) === 'ONGOING' && !itemHasOftResult(item),
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
                     icon: FilePlus2,
@@ -1136,16 +1283,35 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     label: 'Edit Result',
                     onClick: handleEditOftResult,
                     isVisible: (item: any) =>
-                        statusValue(item) === 'COMPLETED',
+                        itemHasOftResult(item),
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
                     icon: FilePenLine,
                 },
                 {
+                    key: 'mark-completed',
+                    label: 'Mark Completed',
+                    onClick: handleMarkOftCompleted,
+                    isVisible: (item: any) =>
+                        statusValue(item) === 'ONGOING' && itemHasOftResult(item),
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
+                    icon: CheckCircle2,
+                },
+                {
+                    key: 'transfer-next-year',
+                    label: 'Transfer',
+                    onClick: handleTransferOftToNextYear,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                    icon: ArrowRight,
+                },
+                {
                     key: 'revoke-transfer',
-                    label: 'Revoke Transfer',
+                    label: 'Undo Transfer',
                     onClick: handleRevokeOftTransfer,
-                    // Super-admin only, and only for records already transferred.
+                    // Super-admin only, and only for original records already transferred.
                     isVisible: (item: any) =>
                         user?.role === 'super_admin' &&
                         statusValue(item) === 'TRANSFERRED_TO_NEXT_YEAR',
@@ -1626,30 +1792,36 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             </div>
                             <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[260px] p-4">
                                 {oftResultQuery.isLoading ? (
-                                    <LoadingState message="Loading result…" />
+                                    <div className="min-h-[260px] flex items-center justify-center">
+                                        <LoadingState message="Loading result…" />
+                                    </div>
                                 ) : (
                                     <OftResultForm
                                         embedded
                                         mode={oftResultMode}
-                                        initialValue={
-                                            (oftResultQuery.data as any)?.data ||
-                                            (oftResultQuery.data as any) ||
-                                            undefined
-                                        }
+                                        initialValue={oftResultInitialValue}
                                         sourceRows={
-                                            Array.isArray(
-                                                selectedOftItem?.technologyOptions
+                                            getOftSourceRows(
+                                                selectedOftItem,
+                                                oftResultInitialValue
                                             )
-                                                ? selectedOftItem.technologyOptions
-                                                : []
                                         }
                                         kvkId={selectedOftItem?.kvkId ?? null}
+                                        isCompleted={
+                                            statusValue(selectedOftItem) ===
+                                            'COMPLETED'
+                                        }
                                         onClose={() => {
                                             setIsOftResultPageOpen(false)
                                             setSelectedOftId(null)
                                             setSelectedOftItem(null)
                                         }}
                                         onSubmit={handleSubmitOftResult}
+                                        onMarkCompleted={() =>
+                                            handleMarkOftCompleted(
+                                                selectedOftItem
+                                            )
+                                        }
                                     />
                                 )}
                             </div>
