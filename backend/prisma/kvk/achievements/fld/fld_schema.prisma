@@ -29,6 +29,7 @@ model KvkFldIntroduction {
   unitId                      Int?                        @map("unit_id")
   startDate                   DateTime?                   @map("start_date")
   expectedCompletionDate      DateTime?                   @map("expected_completion_date")
+  reportingYear               DateTime?                   @map("reporting_year")
   generalM                    Int                         @map("general_m")
   generalF                    Int                         @map("general_f")
   obcM                        Int                         @map("obc_m")
@@ -65,6 +66,7 @@ model KvkFldIntroduction {
   @@index([kvkStaffId])
   @@index([unitId])
   @@index([expectedCompletionDate])
+  @@index([reportingYear])
   @@map("kvk_fld_introduction")
 }
 

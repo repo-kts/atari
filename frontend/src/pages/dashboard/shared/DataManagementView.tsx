@@ -258,6 +258,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     // Check if this is Employee Details view
     const isEmployeeDetails = entityType === ENTITY_TYPES.KVK_EMPLOYEES
+    const isStaffTable =
+        entityType === ENTITY_TYPES.KVK_EMPLOYEES ||
+        entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED
 
     // Check if this is an About KVK entity
     const { isAboutKvk: isAboutKvkEntity } = getEntityTypeChecks(entityType)
@@ -520,12 +523,42 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const columnFilteredData = useMemo(() => {
         if (useServerPaging) return items
         const result = applyColumnFilters(filteredData, fields, columnFilters)
-        // Default order: most-recent first (newest createdAt, then highest id)
+        // Default order: newest reporting year first when present, then newest
+        // createdAt/id. Explicit column sorts still take precedence.
         // unless the user has applied an explicit column sort.
         const hasActiveSort = Object.values(columnFilters || {}).some(
             (f: any) => f?.sort,
         )
         if (hasActiveSort || result.length < 2) return result
+        const staffPositionOf = (item: any): number => {
+            const raw = item?.positionOrder ?? item?.position
+            const parsed = Number(raw)
+            return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER
+        }
+        const kvkNameOf = (item: any): string =>
+            String(item?.kvk?.kvkName ?? item?.kvkName ?? '')
+        if (isStaffTable) {
+            return [...result].sort((a, b) => {
+                const kvkCompare = kvkNameOf(a).localeCompare(kvkNameOf(b))
+                if (kvkCompare !== 0) return kvkCompare
+                const positionCompare = staffPositionOf(a) - staffPositionOf(b)
+                if (positionCompare !== 0) return positionCompare
+                return String((a as any)?.staffName || '').localeCompare(String((b as any)?.staffName || ''))
+            })
+        }
+        const reportingYearOf = (item: any): number => {
+            const raw =
+                item?.reportingYear ??
+                item?.reportingYearDate ??
+                item?.year ??
+                item?.yearName
+            if (raw === null || raw === undefined || raw === '') return 0
+            if (typeof raw === 'number') return raw
+            const parsed = new Date(raw)
+            if (!Number.isNaN(parsed.getTime())) return parsed.getFullYear()
+            const match = String(raw).match(/^(\d{4})/)
+            return match ? Number(match[1]) : 0
+        }
         const recencyOf = (item: any): number => {
             const raw = item?.createdAt ?? item?.updatedAt
             if (raw) {
@@ -543,12 +576,15 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             return 0
         }
         return [...result].sort((a, b) => {
+            const ya = reportingYearOf(a)
+            const yb = reportingYearOf(b)
+            if (ya !== yb) return yb - ya
             const ra = recencyOf(a)
             const rb = recencyOf(b)
             if (ra !== rb) return rb - ra
             return idOf(b) - idOf(a)
         })
-    }, [filteredData, fields, columnFilters, useServerPaging, items])
+    }, [filteredData, fields, columnFilters, useServerPaging, items, isStaffTable])
 
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
@@ -1589,29 +1625,33 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 </h1>
                             </div>
                             <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[260px] p-4">
-                                <OftResultForm
-                                    embedded
-                                    mode={oftResultMode}
-                                    initialValue={
-                                        (oftResultQuery.data as any)?.data ||
-                                        (oftResultQuery.data as any) ||
-                                        undefined
-                                    }
-                                    sourceRows={
-                                        Array.isArray(
-                                            selectedOftItem?.technologyOptions
-                                        )
-                                            ? selectedOftItem.technologyOptions
-                                            : []
-                                    }
-                                    kvkId={selectedOftItem?.kvkId ?? null}
-                                    onClose={() => {
-                                        setIsOftResultPageOpen(false)
-                                        setSelectedOftId(null)
-                                        setSelectedOftItem(null)
-                                    }}
-                                    onSubmit={handleSubmitOftResult}
-                                />
+                                {oftResultQuery.isLoading ? (
+                                    <LoadingState message="Loading result…" />
+                                ) : (
+                                    <OftResultForm
+                                        embedded
+                                        mode={oftResultMode}
+                                        initialValue={
+                                            (oftResultQuery.data as any)?.data ||
+                                            (oftResultQuery.data as any) ||
+                                            undefined
+                                        }
+                                        sourceRows={
+                                            Array.isArray(
+                                                selectedOftItem?.technologyOptions
+                                            )
+                                                ? selectedOftItem.technologyOptions
+                                                : []
+                                        }
+                                        kvkId={selectedOftItem?.kvkId ?? null}
+                                        onClose={() => {
+                                            setIsOftResultPageOpen(false)
+                                            setSelectedOftId(null)
+                                            setSelectedOftItem(null)
+                                        }}
+                                        onSubmit={handleSubmitOftResult}
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -1644,49 +1684,65 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
                             </div>
                             <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[300px] p-6">
-                                <FldResultForm
-                                    mode={fldResultMode}
-                                    template={getFldResultTemplate(selectedFldItem)}
-                                    initialValue={
-                                        (fldResultQuery.data as any)?.data ||
-                                        (fldResultQuery.data as any) ||
-                                        undefined
-                                    }
-                                    onClose={() => {
-                                        setIsFldResultPageOpen(false)
-                                        setSelectedFldId(null)
-                                        setSelectedFldItem(null)
-                                    }}
-                                    onSubmit={handleSubmitFldResult}
-                                />
+                                {fldResultQuery.isLoading ? (
+                                    <LoadingState message="Loading result…" />
+                                ) : (
+                                    <FldResultForm
+                                        mode={fldResultMode}
+                                        template={getFldResultTemplate(selectedFldItem)}
+                                        initialValue={
+                                            (fldResultQuery.data as any)?.data ||
+                                            (fldResultQuery.data as any) ||
+                                            undefined
+                                        }
+                                        onClose={() => {
+                                            setIsFldResultPageOpen(false)
+                                            setSelectedFldId(null)
+                                            setSelectedFldItem(null)
+                                        }}
+                                        onSubmit={handleSubmitFldResult}
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>
                 ) : isNariNutriResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                        <NariNutritionalGardenResultForm
-                            mode={
-                                nariNutriResult.resultData ? 'edit' : 'create'
-                            }
-                            initialValue={nariNutriResult.resultData}
-                            onClose={() => {
-                                setIsNariNutriResultPageOpen(false)
-                                setSelectedNariNutriId(null)
-                            }}
-                            onSubmit={handleSubmitNariNutriResult}
-                        />
+                        {nariNutriResult.isLoading ? (
+                            <LoadingState message="Loading result…" />
+                        ) : (
+                            <NariNutritionalGardenResultForm
+                                mode={
+                                    nariNutriResult.resultData
+                                        ? 'edit'
+                                        : 'create'
+                                }
+                                initialValue={nariNutriResult.resultData}
+                                onClose={() => {
+                                    setIsNariNutriResultPageOpen(false)
+                                    setSelectedNariNutriId(null)
+                                }}
+                                onSubmit={handleSubmitNariNutriResult}
+                            />
+                        )}
                     </div>
                 ) : isNariBioResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                        <NariBioFortifiedResultForm
-                            mode={nariBioResult.resultData ? 'edit' : 'create'}
-                            initialValue={nariBioResult.resultData}
-                            onClose={() => {
-                                setIsNariBioResultPageOpen(false)
-                                setSelectedNariBioId(null)
-                            }}
-                            onSubmit={handleSubmitNariBioResult}
-                        />
+                        {nariBioResult.isLoading ? (
+                            <LoadingState message="Loading result…" />
+                        ) : (
+                            <NariBioFortifiedResultForm
+                                mode={
+                                    nariBioResult.resultData ? 'edit' : 'create'
+                                }
+                                initialValue={nariBioResult.resultData}
+                                onClose={() => {
+                                    setIsNariBioResultPageOpen(false)
+                                    setSelectedNariBioId(null)
+                                }}
+                                onSubmit={handleSubmitNariBioResult}
+                            />
+                        )}
                     </div>
                 ) : isNariValueResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">

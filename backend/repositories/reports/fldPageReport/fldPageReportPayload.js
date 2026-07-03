@@ -1,4 +1,5 @@
 const prisma = require('../../../config/prisma.js');
+const { getFldResultTemplate } = require('../../../constants/fldResultTemplate.js');
 
 function safeInt(v) {
     if (v === null || v === undefined || v === '') return 0;
@@ -79,7 +80,9 @@ async function enrichFldListWithResults(rawData) {
 function mapDetailRow(r) {
     const fr = r.fldResult;
     const farmers = totalFarmers(r);
+    const resultTemplate = getFldResultTemplate(r);
     return {
+        resultTemplate,
         crop: r.cropName ?? '—',
         thematicArea: r.thematicAreaName ?? r.thematicArea ?? '—',
         technology: r.technologyName ?? r.fldName ?? '—',
@@ -97,6 +100,10 @@ function mapDetailRow(r) {
         checkGrossReturn: fr ? safeFloat(fr.checkGrossReturn) : null,
         checkNetReturn: fr ? safeFloat(fr.checkNetReturn) : null,
         checkBcr: fr ? safeFloat(fr.checkBcr) : null,
+        otherParameterDemo: fr ? safeFloat(fr.otherParameterDemo) : null,
+        otherParameterCheck: fr ? safeFloat(fr.otherParameterCheck) : null,
+        laborReductionManDays: fr ? safeFloat(fr.laborReductionManDays) : null,
+        costReduction: fr ? safeFloat(fr.costReduction) : null,
     };
 }
 
@@ -152,6 +159,7 @@ function buildFldPageReportPayload(enrichedRecords) {
         });
         return {
             categoryName: cat,
+            resultTemplate: getFldResultTemplate(rows[0] || { categoryName: cat }),
             rows: rows.map(mapDetailRow),
         };
     });

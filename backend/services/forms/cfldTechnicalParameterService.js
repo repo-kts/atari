@@ -118,16 +118,17 @@ const cfldTechnicalParameterService = {
 
         assertKvkRecordAccess(source, user);
 
-        if (!source.reportingYear) {
-            throw new ValidationError('Cannot transfer CFLD without reportingYear', 'reportingYear');
-        }
-
         // Allow transfer unless already transferred
         if (source.status === 'TRANSFERRED') {
             throw new ValidationError('This CFLD record is already transferred');
         }
 
-        const nextReportingYear = new Date(source.reportingYear);
+        const sourceReportingYear = source.reportingYear || source.month;
+        if (!sourceReportingYear) {
+            throw new ValidationError('Cannot transfer CFLD without reportingYear', 'reportingYear');
+        }
+
+        const nextReportingYear = new Date(sourceReportingYear);
         if (Number.isNaN(nextReportingYear.getTime())) {
             throw new ValidationError('Invalid source reportingYear for transfer', 'reportingYear');
         }
@@ -171,9 +172,12 @@ const cfldTechnicalParameterService = {
                 data: {
                     kvkId: source.kvkId,
                     cropId: source.cropId,
+                    cropOther: source.cropOther,
                     month: source.month,
                     typeId: source.typeId,
+                    typeOther: source.typeOther,
                     seasonId: source.seasonId,
+                    seasonOther: source.seasonOther,
                     reportingYear: nextReportingYear,
                     status: 'ONGOING',
                     varietyName: source.varietyName,

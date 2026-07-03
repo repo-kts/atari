@@ -1,4 +1,8 @@
 const { resolveFldPageReportPayload } = require('../../../../repositories/reports/fldPageReport/fldPageReportPayload.js');
+const {
+    getFldResultReportColumns,
+    groupColumns,
+} = require('../../../../utils/fldResultReportColumns.js');
 
 const MAIN_TITLE = 'ACHIEVEMENTS OF FRONTLINE DEMONSTRATIONS (FLD)';
 
@@ -82,7 +86,11 @@ function renderSectionA(payload) {
   </table>`;
 }
 
-function renderDetailTable(rows) {
+function renderDetailTable(rows, category) {
+    const columns = getFldResultReportColumns(category || rows?.[0] || {});
+    const columnGroups = groupColumns(columns);
+    const fixedColspan = 6;
+    const totalColspan = fixedColspan + columns.length;
     const body = (rows || []).map((r) => `
       <tr>
         <td class="l">${esc(r.crop)}</td>
@@ -91,17 +99,7 @@ function renderDetailTable(rows) {
         <td>${fmtInt(r.noOfDemonstration)}</td>
         <td>${fmtInt(r.noOfFarmers)}</td>
         <td>${r.areaHa != null ? fmtNum(r.areaHa, 2) : '—'}</td>
-        <td>${r.yieldDemo != null ? fmtNum(r.yieldDemo, 2) : '—'}</td>
-        <td>${r.yieldCheck != null ? fmtNum(r.yieldCheck, 2) : '—'}</td>
-        <td>${r.increasePercent != null ? fmtNum(r.increasePercent, 2) : '—'}</td>
-        <td>${r.demoGrossCost != null ? fmtNum(r.demoGrossCost, 1) : '—'}</td>
-        <td>${r.demoGrossReturn != null ? fmtNum(r.demoGrossReturn, 1) : '—'}</td>
-        <td>${r.demoNetReturn != null ? fmtNum(r.demoNetReturn, 1) : '—'}</td>
-        <td>${r.demoBcr != null ? fmtNum(r.demoBcr, 2) : '—'}</td>
-        <td>${r.checkGrossCost != null ? fmtNum(r.checkGrossCost, 1) : '—'}</td>
-        <td>${r.checkGrossReturn != null ? fmtNum(r.checkGrossReturn, 1) : '—'}</td>
-        <td>${r.checkNetReturn != null ? fmtNum(r.checkNetReturn, 1) : '—'}</td>
-        <td>${r.checkBcr != null ? fmtNum(r.checkBcr, 2) : '—'}</td>
+        ${columns.map((col) => `<td>${r[col.key] != null ? fmtNum(r[col.key], col.decimals) : '—'}</td>`).join('')}
       </tr>`).join('');
 
     return `
@@ -114,26 +112,20 @@ function renderDetailTable(rows) {
         <th rowspan="2">No. of Demonstration</th>
         <th rowspan="2">No. of Farmers</th>
         <th rowspan="2">Area(ha)</th>
-        <th colspan="3">Yield (q/ha)</th>
-        <th colspan="4">Economics of demonstration (Rs./ha)</th>
-        <th colspan="4">Economics of check (Rs./ha)</th>
+        ${columnGroups.map((group) => `<th colspan="${group.columns.length}">${esc(group.label)}</th>`).join('')}
       </tr>
       <tr>
-        <th>Demo</th>
-        <th>Check</th>
-        <th>% Increase</th>
-        <th>Gross Cost</th><th>Gross Return</th><th>Net Return</th><th>BCR</th>
-        <th>Gross Cost</th><th>Gross Return</th><th>Net Return</th><th>BCR</th>
+        ${columns.map((col) => `<th>${esc(col.label)}</th>`).join('')}
       </tr>
     </thead>
-    <tbody>${body || '<tr><td colspan="17">—</td></tr>'}</tbody>
+    <tbody>${body || `<tr><td colspan="${totalColspan}">—</td></tr>`}</tbody>
   </table>`;
 }
 
 function renderSectionB(payload) {
     const blocks = (payload.sectionB || []).map((cat) => `
   <div class="fld-cat-title">${esc(cat.categoryName)}</div>
-  ${renderDetailTable(cat.rows)}`).join('');
+  ${renderDetailTable(cat.rows, cat)}`).join('');
 
     return `
   <div class="fld-subtitle">B. Details of FLDs conducted${payload.yearLabel ? ` for ${esc(payload.yearLabel)}` : ''}</div>

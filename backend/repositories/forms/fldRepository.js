@@ -26,7 +26,7 @@ const {
 const FLD_CONFIG = {
     model: 'kvkFldIntroduction',
     idField: 'kvkFldId',
-    orderBy: { kvkFldId: 'desc' },
+    orderBy: [{ reportingYear: 'desc' }, { kvkFldId: 'desc' }],
     includes: {
         kvk: { select: { kvkId: true, kvkName: true } },
         kvkStaff: { select: { kvkStaffId: true, staffName: true } },
@@ -317,6 +317,13 @@ const fldRepository = {
         }
 
         // Validate and sanitize all required fields
+        const startDate = (() => {
+            if (!data.startDate) return null;
+            const d = new Date(data.startDate);
+            return Number.isNaN(d.getTime()) ? null : d;
+        })();
+        const reportingYear = _parseReportingYearOrFallback(data.reportingYear, startDate);
+
         const createData = {
             kvkId,
             kvkStaffId: validateRequiredInteger(
@@ -402,11 +409,8 @@ const fldRepository = {
                 CREATE_FIELD_DEFINITIONS.noOfDemonstration.errorField,
                 { allowNegative: false }
             ),
-            startDate: (() => {
-                if (!data.startDate) return null;
-                const d = new Date(data.startDate);
-                return Number.isNaN(d.getTime()) ? null : d;
-            })(),
+            startDate,
+            reportingYear,
             quantity: isWomenEmpowermentSector
                 ? 0
                 : validateRequiredNumber(
@@ -588,6 +592,12 @@ const fldRepository = {
             const d = updatePayload.expectedCompletionDate ? new Date(updatePayload.expectedCompletionDate) : null;
             updateData.expectedCompletionDate = d && !Number.isNaN(d.getTime()) ? d : null;
         }
+        if (updatePayload.reportingYear !== undefined) {
+            updateData.reportingYear = _parseReportingYearOrFallback(
+                updatePayload.reportingYear,
+                existingRecord.reportingYear || existingRecord.startDate
+            );
+        }
         delete updateData.status;
         delete updateData.ongoingCompleted;
 
@@ -677,20 +687,18 @@ const fldRepository = {
         return prisma[FLD_CONFIG.model].findFirst({ where, include: FLD_CONFIG.includes });
     },
 
-    transferToNextYearTx: async (sourceFld, targetStartDate, targetExpectedCompletionDate) => {
+    transferToNextYearTx: async (sourceFld, targetReportingYear, targetExpectedCompletionDate) => {
         return prisma.$transaction(async (tx) => {
             await tx.kvkFldIntroduction.update({
                 where: { kvkFldId: sourceFld.kvkFldId },
                 data: { ongoingCompleted: FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR },
             });
 
-            const nextStartDate = targetStartDate instanceof Date
-                ? targetStartDate
-                : (targetStartDate
-                    ? new Date(targetStartDate)
-                    : (sourceFld.startDate
-                        ? new Date(new Date(sourceFld.startDate).setFullYear(new Date(sourceFld.startDate).getFullYear() + 1))
-                        : new Date()));
+            const nextReportingYear = targetReportingYear instanceof Date
+                ? targetReportingYear
+                : (targetReportingYear
+                    ? new Date(targetReportingYear)
+                    : _nextYearDate(_effectiveFldReportingYear(sourceFld)));
 
             const cloneData = removeIdFieldsForUpdate({
                 kvkId: sourceFld.kvkId,
@@ -711,7 +719,8 @@ const fldRepository = {
                 quantity: sourceFld.quantity,
                 unit: sourceFld.unit,
                 unitId: sourceFld.unitId,
-                startDate: nextStartDate,
+                startDate: sourceFld.startDate,
+                reportingYear: nextReportingYear,
                 generalM: sourceFld.generalM,
                 generalF: sourceFld.generalF,
                 obcM: sourceFld.obcM,
@@ -782,6 +791,7 @@ function _mapResponse(r) {
     if (!r) return null;
     const isCompleted = r.ongoingCompleted === FLD_STATUS.COMPLETED;
     const completionDate = isCompleted ? (r.updatedAt || null) : null;
+    const effectiveReportingYear = _effectiveFldReportingYear(r);
 
     return {
         id: r.kvkFldId,
@@ -792,6 +802,7 @@ function _mapResponse(r) {
         kvkStaffId: r.kvkStaffId,
         staffName: r.kvkStaff?.staffName,
         expectedCompletionDate: r.expectedCompletionDate ? r.expectedCompletionDate.toISOString().split('T')[0] : '',
+        reportingYear: formatReportingYear(effectiveReportingYear),
         seasonId: r.seasonId,
         seasonName: r.season?.seasonName,
         sectorId: r.sectorId,
@@ -865,6 +876,25 @@ function _mapResponse(r) {
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
     };
+}
+
+function _parseReportingYearOrFallback(value, fallbackDate) {
+    const parsed = parseReportingYearDate(value);
+    ensureNotFutureDate(parsed);
+    if (parsed) return parsed;
+    return fallbackDate ? new Date(fallbackDate) : null;
+}
+
+function _effectiveFldReportingYear(record) {
+    return record?.reportingYear || record?.startDate || null;
+}
+
+function _nextYearDate(dateValue) {
+    const date = dateValue ? new Date(dateValue) : new Date();
+    if (Number.isNaN(date.getTime())) return null;
+    const next = new Date(date);
+    next.setFullYear(next.getFullYear() + 1);
+    return next;
 }
 
 function _optionalNumber(value) {

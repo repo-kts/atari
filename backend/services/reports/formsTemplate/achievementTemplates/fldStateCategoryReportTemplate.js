@@ -16,6 +16,10 @@
 const {
     resolveFldStateCategoryPayload,
 } = require('../../../../repositories/reports/fldStateCategoryReport/fldStateCategoryReportRepository.js');
+const {
+    getFldResultReportColumns,
+    groupColumns,
+} = require('../../../../utils/fldResultReportColumns.js');
 
 function fmtInt(v) {
     const n = Number(v);
@@ -99,15 +103,26 @@ function renderStateWise(ctx, sectionA, yearLabel) {
 }
 
 // ── C. Details (per category: crops x states, yield + economics) ─────
-function renderDetailTable(ctx, cropGroups) {
+function renderDetailTable(ctx, cropGroups, category) {
     const esc = (v) => ctx._escapeHtml(v);
-    // Columns: Crop, States, Demo, Area, Farmers, 3 yield, 4 demo econ, 4 check econ = 16
-    const fs = fitFont(16);
+    const firstSource = category || cropGroups?.[0]?.totalRow || cropGroups?.[0]?.rows?.[0] || {};
+    const columns = getFldResultReportColumns(firstSource);
+    const columnGroups = groupColumns(columns);
+    const totalColCount = 5 + columns.length;
+    const fs = fitFont(totalColCount);
 
     const fr = (r) => r.fldResult || {};
+    const resultValue = (f, key) => {
+        if (key === 'yieldDemo') return f.demoYield;
+        if (key === 'yieldCheck') return f.checkYield;
+        return f[key];
+    };
     const detailCells = (r) => {
         const f = fr(r);
-        return `<td style="text-align:center;">${f.demoYield != null ? fmtNum(f.demoYield, 2) : '—'}</td><td style="text-align:center;">${f.checkYield != null ? fmtNum(f.checkYield, 2) : '—'}</td><td style="text-align:center;">${f.increasePercent != null ? fmtNum(f.increasePercent, 2) : '—'}</td><td style="text-align:center;">${f.demoGrossCost != null ? fmtNum(f.demoGrossCost, 1) : '—'}</td><td style="text-align:center;">${f.demoGrossReturn != null ? fmtNum(f.demoGrossReturn, 1) : '—'}</td><td style="text-align:center;">${f.demoNetReturn != null ? fmtNum(f.demoNetReturn, 1) : '—'}</td><td style="text-align:center;">${f.demoBcr != null ? fmtNum(f.demoBcr, 2) : '—'}</td><td style="text-align:center;">${f.checkGrossCost != null ? fmtNum(f.checkGrossCost, 1) : '—'}</td><td style="text-align:center;">${f.checkGrossReturn != null ? fmtNum(f.checkGrossReturn, 1) : '—'}</td><td style="text-align:center;">${f.checkNetReturn != null ? fmtNum(f.checkNetReturn, 1) : '—'}</td><td style="text-align:center;">${f.checkBcr != null ? fmtNum(f.checkBcr, 2) : '—'}</td>`;
+        return columns.map((col) => {
+            const value = resultValue(f, col.key);
+            return `<td style="text-align:center;">${value != null ? fmtNum(value, col.decimals) : '—'}</td>`;
+        }).join('');
     };
 
     let body = '';
@@ -125,7 +140,7 @@ function renderDetailTable(ctx, cropGroups) {
             body += `<td>Total</td><td style="text-align:center;">${fmtInt(cg.totalRow.demos)}</td><td style="text-align:center;">${fmtNum(cg.totalRow.areaHa, 2)}</td><td style="text-align:center;">${fmtInt(cg.totalRow.farmers)}</td>${detailCells(cg.totalRow)}</tr>`;
         }
     }
-    if (!body) body = `<tr><td colspan="16" style="text-align:center;">No data</td></tr>`;
+    if (!body) body = `<tr><td colspan="${totalColCount}" style="text-align:center;">No data</td></tr>`;
 
     return `<table class="data-table report-fit" style="font-size:${fs}pt;">
         <thead>
@@ -135,14 +150,10 @@ function renderDetailTable(ctx, cropGroups) {
                 <th rowspan="2" style="text-align:center;">No of Demonstration</th>
                 <th rowspan="2" style="text-align:center;">Area (ha)</th>
                 <th rowspan="2" style="text-align:center;">No of Farmers</th>
-                <th colspan="3" style="text-align:center;">Yield (q/ha)</th>
-                <th colspan="4" style="text-align:center;">Economics of demonstration (Rs/ha)</th>
-                <th colspan="4" style="text-align:center;">Economics of check (Rs/ha)</th>
+                ${columnGroups.map((group) => `<th colspan="${group.columns.length}" style="text-align:center;">${esc(group.label)}</th>`).join('')}
             </tr>
             <tr>
-                <th style="text-align:center;">Demo</th><th style="text-align:center;">Check</th><th style="text-align:center;">Increase (%)</th>
-                <th style="text-align:center;">Gross Cost</th><th style="text-align:center;">Gross Return</th><th style="text-align:center;">Net Return</th><th style="text-align:center;">BCR</th>
-                <th style="text-align:center;">Gross Cost</th><th style="text-align:center;">Gross Return</th><th style="text-align:center;">Net Return</th><th style="text-align:center;">BCR</th>
+                ${columns.map((col) => `<th style="text-align:center;">${esc(col.label)}</th>`).join('')}
             </tr>
         </thead>
         <tbody>${body}</tbody>
@@ -155,7 +166,7 @@ function renderDetails(ctx, sectionB, yearLabel) {
     let out = '';
     for (const cat of sectionB) {
         out += `<h3 class="about-kvk-subheading" style="margin-top:12px;">Details of Front-Line Demonstration on ${esc(cat.categoryName)}</h3>`;
-        out += renderDetailTable(ctx, cat.cropGroups || []);
+        out += renderDetailTable(ctx, cat.cropGroups || [], cat);
     }
     out += `<p style="font-size:7pt;color:#555;margin-top:6px;">* Economics worked out on total cost of production per unit area, not on critical inputs alone.&nbsp;&nbsp;** BCR = Gross Return / Gross Cost.</p>`;
     return out;
