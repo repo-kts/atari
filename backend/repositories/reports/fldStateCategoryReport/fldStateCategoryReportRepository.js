@@ -2,6 +2,7 @@ const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
 const { yearLabelFromFilters } = require('../reportYearLabel.js');
 const { FLD_STATUS } = require('../../../constants/fldStatus.js');
+const { getFldResultTemplate } = require('../../../constants/fldResultTemplate.js');
 
 function safeInt(v) {
     if (v === null || v === undefined || v === '') return 0;
@@ -38,6 +39,7 @@ function normalizePrismaRow(r) {
         stateName,
         sectorName,
         categoryName,
+        resultTemplate: getFldResultTemplate({ sectorName, categoryName }),
         cropName: r.cropOther || r.crop?.cropName || '—',
         thematicAreaName: r.thematicAreaOther || r.thematicArea?.thematicAreaName || '—',
         fldName: r.fldName || '—',
@@ -94,6 +96,10 @@ function mergeFldResultsForRows(rows) {
         checkGrossReturn: weightedAvgFromFldRows(rows, (fr) => fr.checkGrossReturn),
         checkNetReturn: weightedAvgFromFldRows(rows, (fr) => fr.checkNetReturn),
         checkBcr: weightedAvgFromFldRows(rows, (fr) => fr.checkBcr),
+        otherParameterDemo: weightedAvgFromFldRows(rows, (fr) => fr.otherParameterDemo),
+        otherParameterCheck: weightedAvgFromFldRows(rows, (fr) => fr.otherParameterCheck),
+        laborReductionManDays: weightedAvgFromFldRows(rows, (fr) => fr.laborReductionManDays),
+        costReduction: weightedAvgFromFldRows(rows, (fr) => fr.costReduction),
     };
 }
 
@@ -204,6 +210,7 @@ function buildDetailRowsForCategory(catRecords) {
             const technology = tech.length ? [...new Set(tech)].join(', ') : '—';
             const mergedFr = mergeFldResultsForRows(list);
             rows.push({
+                resultTemplate: list[0]?.resultTemplate,
                 crop: cropName,
                 state: st,
                 thematicAreaName,
@@ -228,6 +235,7 @@ function buildDetailRowsForCategory(catRecords) {
             cropName,
             rows,
             totalRow: {
+                resultTemplate: cropList[0]?.resultTemplate,
                 crop: cropName,
                 state: 'Total',
                 thematicAreaName: '—',
@@ -268,10 +276,14 @@ function buildPayloadFromRecords(records, filters = {}) {
         a.localeCompare(b, undefined, { sensitivity: 'base' }),
     );
 
-    const sectionB = catOrder.map((categoryName) => ({
-        categoryName,
-        cropGroups: buildDetailRowsForCategory(byCategory.get(categoryName) || []),
-    }));
+    const sectionB = catOrder.map((categoryName) => {
+        const rows = byCategory.get(categoryName) || [];
+        return {
+            categoryName,
+            resultTemplate: rows[0]?.resultTemplate,
+            cropGroups: buildDetailRowsForCategory(rows),
+        };
+    });
 
     return {
         yearLabel,

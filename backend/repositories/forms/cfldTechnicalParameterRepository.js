@@ -72,7 +72,7 @@ const REPO_CONFIG = {
             },
         },
     },
-    orderBy: { cfldTechId: 'desc' },
+    orderBy: [{ reportingYear: 'desc' }, { cfldTechId: 'desc' }],
 };
 
 /**
@@ -247,7 +247,7 @@ async function buildCreateData(data, user) {
     const kvkId = resolveKvkId(user, data);
     const seasonId = data.seasonId ? safeParseInt(data.seasonId) : null;
     const month = parseMonth(data.month);
-    const reportingYear = parseReportingYearDate(data.reportingYear);
+    const reportingYear = parseReportingYearDate(data.reportingYear) || month;
     ensureNotFutureDate(reportingYear);
 
     // Resolve CFLD crop ID
@@ -304,7 +304,7 @@ async function buildCreateData(data, user) {
         month,
         typeId,
         typeOther: safeMaybeText(data.typeOther),
-        ...(reportingYear ? { reportingYear } : {}),
+        reportingYear,
         ...(data.status ? { status: data.status } : {}),
         varietyName: data.varietyName || '',
         areaInHa: safeParseFloat(data.areaInHa || data.areaHectare, 0),
@@ -779,7 +779,7 @@ function _mapResponse(r) {
         seasonId: r.seasonId,
         seasonName: r.seasonOther || (r.season ? r.season.seasonName : undefined),
         seasonOther: r.seasonOther ?? '',
-        reportingYear: formatReportingYear(r.reportingYear),
+        reportingYear: formatReportingYear(r.reportingYear || r.month),
         status: r.status,
         completedAt: r.completedAt,
         varietyName: r.varietyName,

@@ -14,6 +14,7 @@ const {
     BorderStyle,
     ShadingType,
 } = require('docx');
+const { getFldResultReportColumns } = require('./fldResultReportColumns.js');
 
 const WD_BORDER = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
 const WD_BORDERS = { top: WD_BORDER, bottom: WD_BORDER, left: WD_BORDER, right: WD_BORDER };
@@ -109,29 +110,19 @@ async function generateFldPageExcelBuffer(reportTitle, payload) {
     const subB = ws.addRow([`B. Details of FLDs conducted${y ? ` for ${y}` : ''}`]);
     subB.getCell(1).font = { bold: true };
 
-    const bHead = [
-        'Category',
-        'Crop',
-        'Thematic Area',
-        'Technology',
-        'No. of Demo',
-        'No. of Farmers',
-        'Area (ha)',
-        'Yield Demo',
-        'Yield Check',
-        '% Increase',
-        'Demo Gross Cost',
-        'Demo Gross Return',
-        'Demo Net Return',
-        'Demo BCR',
-        'Check Gross Cost',
-        'Check Gross Return',
-        'Check Net Return',
-        'Check BCR',
-    ];
-
-    const B_COLS = bHead.length;
     (payload.sectionB || []).forEach((cat) => {
+        const resultColumns = getFldResultReportColumns(cat);
+        const bHead = [
+            'Category',
+            'Crop',
+            'Thematic Area',
+            'Technology',
+            'No. of Demo',
+            'No. of Farmers',
+            'Area (ha)',
+            ...resultColumns.map((col) => `${col.group}: ${col.label}`),
+        ];
+        const B_COLS = bHead.length;
         const catRow = ws.addRow([`— ${cat.categoryName} —`]);
         ws.mergeCells(catRow.number, 1, catRow.number, B_COLS);
         styleRow(catRow, B_COLS, { fill: XL_CAT_FILL, bold: true });
@@ -145,17 +136,7 @@ async function generateFldPageExcelBuffer(reportTitle, payload) {
                 fmtI(row.noOfDemonstration),
                 fmtI(row.noOfFarmers),
                 row.areaHa != null ? fmt(row.areaHa, 2) : '',
-                row.yieldDemo != null ? fmt(row.yieldDemo, 2) : '',
-                row.yieldCheck != null ? fmt(row.yieldCheck, 2) : '',
-                row.increasePercent != null ? fmt(row.increasePercent, 2) : '',
-                row.demoGrossCost != null ? fmt(row.demoGrossCost, 1) : '',
-                row.demoGrossReturn != null ? fmt(row.demoGrossReturn, 1) : '',
-                row.demoNetReturn != null ? fmt(row.demoNetReturn, 1) : '',
-                row.demoBcr != null ? fmt(row.demoBcr, 2) : '',
-                row.checkGrossCost != null ? fmt(row.checkGrossCost, 1) : '',
-                row.checkGrossReturn != null ? fmt(row.checkGrossReturn, 1) : '',
-                row.checkNetReturn != null ? fmt(row.checkNetReturn, 1) : '',
-                row.checkBcr != null ? fmt(row.checkBcr, 2) : '',
+                ...resultColumns.map((col) => row[col.key] != null ? fmt(row[col.key], col.decimals) : ''),
             ]);
             styleRow(r, B_COLS);
         });
@@ -244,6 +225,7 @@ async function generateFldPageWordBuffer(reportTitle, payload) {
 
     (payload.sectionB || []).forEach((cat) => {
         children.push(new Paragraph({ text: cat.categoryName, heading: HeadingLevel.HEADING_3 }));
+        const resultColumns = getFldResultReportColumns(cat);
         const hdr = [
             'Crop',
             'Thematic',
@@ -251,17 +233,7 @@ async function generateFldPageWordBuffer(reportTitle, payload) {
             'No.Demo',
             'Farmers',
             'Area',
-            'Y.Demo',
-            'Y.Chk',
-            '%Inc',
-            'D.GC',
-            'D.GR',
-            'D.NR',
-            'D.BCR',
-            'C.GC',
-            'C.GR',
-            'C.NR',
-            'C.BCR',
+            ...resultColumns.map((col) => col.label),
         ];
         const bRows = [
             new TableRow({
@@ -278,17 +250,7 @@ async function generateFldPageWordBuffer(reportTitle, payload) {
                         cellText(fmtI(r.noOfDemonstration)),
                         cellText(fmtI(r.noOfFarmers)),
                         cellText(r.areaHa != null ? fmt(r.areaHa, 2) : ''),
-                        cellText(r.yieldDemo != null ? fmt(r.yieldDemo, 2) : ''),
-                        cellText(r.yieldCheck != null ? fmt(r.yieldCheck, 2) : ''),
-                        cellText(r.increasePercent != null ? fmt(r.increasePercent, 2) : ''),
-                        cellText(r.demoGrossCost != null ? fmt(r.demoGrossCost, 1) : ''),
-                        cellText(r.demoGrossReturn != null ? fmt(r.demoGrossReturn, 1) : ''),
-                        cellText(r.demoNetReturn != null ? fmt(r.demoNetReturn, 1) : ''),
-                        cellText(r.demoBcr != null ? fmt(r.demoBcr, 2) : ''),
-                        cellText(r.checkGrossCost != null ? fmt(r.checkGrossCost, 1) : ''),
-                        cellText(r.checkGrossReturn != null ? fmt(r.checkGrossReturn, 1) : ''),
-                        cellText(r.checkNetReturn != null ? fmt(r.checkNetReturn, 1) : ''),
-                        cellText(r.checkBcr != null ? fmt(r.checkBcr, 2) : ''),
+                        ...resultColumns.map((col) => cellText(r[col.key] != null ? fmt(r[col.key], col.decimals) : '')),
                     ],
                 }),
             );

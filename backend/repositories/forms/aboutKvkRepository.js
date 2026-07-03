@@ -327,6 +327,7 @@ async function findAll(entityName, options = {}, user = null) {
         filters = {},
     } = options;
 
+    const defaultOrderBy = getDefaultOrderBy(entityName);
     const actualSortBy = sortBy || config.idField;
     const skip = (page - 1) * limit;
     const take = Math.min(limit, 10000);
@@ -446,15 +447,7 @@ async function findAll(entityName, options = {}, user = null) {
         });
 
         // Apply pagination
-        const sortedData = filteredData.sort((a, b) => {
-            const aVal = a[actualSortBy];
-            const bVal = b[actualSortBy];
-            if (sortOrder === 'asc') {
-                return aVal > bVal ? 1 : -1;
-            } else {
-                return aVal < bVal ? 1 : -1;
-            }
-        });
+        const sortedData = filteredData.sort((a, b) => compareStaffRows(a, b, sortBy, sortOrder, entityName));
 
         total = filteredData.length;
         data = sortedData.slice(skip, skip + take);
@@ -467,9 +460,9 @@ async function findAll(entityName, options = {}, user = null) {
                 include: config.includes,
                 skip,
                 take,
-                orderBy: {
-                    [actualSortBy]: sortOrder,
-                },
+                orderBy: sortBy
+                    ? { [actualSortBy]: sortOrder }
+                    : defaultOrderBy,
             }),
             model.count({ where }),
         ]);
@@ -479,6 +472,40 @@ async function findAll(entityName, options = {}, user = null) {
     await recoverEquipmentParents(entityName, data);
 
     return { data, total };
+}
+
+function getDefaultOrderBy(entityName) {
+    if (entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') {
+        return [
+            { kvk: { kvkName: 'asc' } },
+            { positionOrder: 'asc' },
+            { staffName: 'asc' },
+            { kvkStaffId: 'asc' },
+        ];
+    }
+    return undefined;
+}
+
+function compareStaffRows(a, b, sortBy, sortOrder, entityName) {
+    if (sortBy) {
+        const aVal = a?.[sortBy];
+        const bVal = b?.[sortBy];
+        if (aVal === bVal) return 0;
+        if (sortOrder === 'asc') return aVal > bVal ? 1 : -1;
+        return aVal < bVal ? 1 : -1;
+    }
+
+    if (entityName !== 'kvk-employees' && entityName !== 'kvk-staff-transferred') {
+        return 0;
+    }
+
+    const kvkCompare = String(a?.kvk?.kvkName || '').localeCompare(String(b?.kvk?.kvkName || ''));
+    if (kvkCompare !== 0) return kvkCompare;
+    const positionCompare = Number(a?.positionOrder || 0) - Number(b?.positionOrder || 0);
+    if (positionCompare !== 0) return positionCompare;
+    const nameCompare = String(a?.staffName || '').localeCompare(String(b?.staffName || ''));
+    if (nameCompare !== 0) return nameCompare;
+    return Number(a?.kvkStaffId || 0) - Number(b?.kvkStaffId || 0);
 }
 
 async function findById(entityName, id) {
@@ -1439,9 +1466,11 @@ async function getStaffForDropdown(kvkId) {
                 }
             }
         },
-        orderBy: {
-            staffName: 'asc'
-        }
+        orderBy: [
+            { positionOrder: 'asc' },
+            { staffName: 'asc' },
+            { kvkStaffId: 'asc' },
+        ]
     });
 }
 

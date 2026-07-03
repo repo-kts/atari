@@ -128,7 +128,7 @@ const oftRepository = {
         const results = await prisma.kvkoft.findMany({
             where,
             include: OFT_INCLUDE,
-            orderBy: { kvkOftId: 'desc' }
+            orderBy: [{ reportingYear: 'desc' }, { kvkOftId: 'desc' }]
         });
 
         return results.map(_mapOftResponse);
@@ -222,7 +222,7 @@ const oftRepository = {
         });
     },
 
-    transferToNextYearTx: async (sourceOft, targetStartDate, targetExpectedCompletionDate) => {
+    transferToNextYearTx: async (sourceOft, targetReportingYear, targetExpectedCompletionDate) => {
         const sourceId = sourceOft.kvkOftId;
         return prisma.$transaction(async (tx) => {
             await tx.kvkoft.update({
@@ -230,9 +230,9 @@ const oftRepository = {
                 data: { status: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR },
             });
 
-            const resolvedStartDate = targetStartDate instanceof Date
-                ? targetStartDate
-                : (targetStartDate ? sanitizeDate(targetStartDate) : sourceOft.oftStartDate);
+            const resolvedReportingYear = targetReportingYear instanceof Date
+                ? targetReportingYear
+                : (targetReportingYear ? sanitizeDate(targetReportingYear) : _nextYearDate(_effectiveOftReportingYear(sourceOft)));
 
             const createData = removeIdFieldsForUpdate({
                 kvkId: sourceOft.kvkId,
@@ -258,7 +258,8 @@ const oftRepository = {
                 quantity: sourceOft.quantity,
                 numberOfLocation: sourceOft.numberOfLocation,
                 numberOfTrialReplication: sourceOft.numberOfTrialReplication,
-                oftStartDate: resolvedStartDate,
+                oftStartDate: sourceOft.oftStartDate,
+                reportingYear: resolvedReportingYear,
                 criticalInput: sourceOft.criticalInput,
                 costOfOft: sourceOft.costOfOft,
                 farmersGeneralM: sourceOft.farmersGeneralM,
@@ -382,6 +383,8 @@ const oftRepository = {
 
 function _buildOftCreateData(data, kvkId) {
     const expectedCompletionDate = sanitizeDate(safeGet(data, 'expectedCompletionDate'));
+    const oftStartDate = sanitizeDate(safeGet(data, 'oftStartDate') || safeGet(data, 'duration')) || new Date();
+    const reportingYear = _parseReportingYearOrFallback(safeGet(data, 'reportingYear'), oftStartDate);
     const seasonId = sanitizeInteger(safeGet(data, 'seasonId'), { defaultValue: 1 });
     const staffId = sanitizeInteger(safeGet(data, 'staffId') || safeGet(data, 'staffName'), { defaultValue: 1 });
     const oftSubjectId = sanitizeInteger(safeGet(data, 'oftSubjectId'));
@@ -417,7 +420,8 @@ function _buildOftCreateData(data, kvkId) {
         quantity: sanitizeNumber(safeGet(data, 'quantity') ?? safeGet(data, 'areaHaNumber') ?? safeGet(data, 'area'), { defaultValue: 0 }),
         numberOfLocation: sanitizeInteger(safeGet(data, 'numberOfLocation') || safeGet(data, 'locations'), { defaultValue: 0 }),
         numberOfTrialReplication: sanitizeInteger(safeGet(data, 'numberOfTrialReplication') || safeGet(data, 'replications'), { defaultValue: 0 }),
-        oftStartDate: sanitizeDate(safeGet(data, 'oftStartDate') || safeGet(data, 'duration')) || new Date(),
+        oftStartDate,
+        reportingYear,
         criticalInput: sanitizeString(safeGet(data, 'criticalInput'), { allowEmpty: true }) || '',
         costOfOft: sanitizeNumber(safeGet(data, 'costOfOft') || safeGet(data, 'cost'), { defaultValue: 0 }),
         farmersGeneralM: sanitizeInteger(safeGet(data, 'farmersGeneralM') || safeGet(data, 'gen_m'), { defaultValue: 0 }),
@@ -436,6 +440,9 @@ function _buildOftUpdateData(data, existing) {
     const updateData = {};
     if (data.expectedCompletionDate !== undefined) {
         updateData.expectedCompletionDate = sanitizeDate(data.expectedCompletionDate);
+    }
+    if (data.reportingYear !== undefined) {
+        updateData.reportingYear = _parseReportingYearOrFallback(data.reportingYear, existing.reportingYear || existing.oftStartDate);
     }
     if (data.seasonId !== undefined) updateData.seasonId = sanitizeInteger(data.seasonId);
     if (data.staffId !== undefined || data.staffName !== undefined) updateData.staffId = sanitizeInteger(data.staffId || data.staffName);
@@ -487,6 +494,7 @@ async function _buildTechnologiesCreateData(data) {
 
 function _mapOftResponse(r) {
     if (!r) return null;
+    const effectiveReportingYear = _effectiveOftReportingYear(r);
 
     const mapped = {
         id: r.kvkOftId,
@@ -498,6 +506,7 @@ function _mapOftResponse(r) {
         // r.kvk.state.stateName resolve the same as the data-service path.
         kvk: r.kvk ? { kvkName: r.kvk.kvkName, state: r.kvk.state } : undefined,
         expectedCompletionDate: r.expectedCompletionDate ? r.expectedCompletionDate.toISOString().split('T')[0] : '',
+        reportingYear: formatReportingYear(effectiveReportingYear),
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
         staffId: r.staffId,
@@ -605,6 +614,25 @@ function _mapOftResponse(r) {
     }
 
     return mapped;
+}
+
+function _parseReportingYearOrFallback(value, fallbackDate) {
+    const parsed = parseReportingYearDate(value);
+    ensureNotFutureDate(parsed);
+    if (parsed) return parsed;
+    return fallbackDate ? new Date(fallbackDate) : null;
+}
+
+function _effectiveOftReportingYear(record) {
+    return record?.reportingYear || record?.oftStartDate || null;
+}
+
+function _nextYearDate(dateValue) {
+    const date = dateValue ? new Date(dateValue) : new Date();
+    if (Number.isNaN(date.getTime())) return null;
+    const next = new Date(date);
+    next.setFullYear(next.getFullYear() + 1);
+    return next;
 }
 
 function _extractTechnologyOptions(data = {}) {

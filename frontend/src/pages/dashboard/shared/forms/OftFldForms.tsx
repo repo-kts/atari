@@ -259,14 +259,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         const match = text.match(/^(\d{4})/)
         return match ? Number(match[1]) : null
     }
-    // The FLD "belongs" to its START YEAR (what the FLD list grid shows),
-    // not its expectedCompletionDate (which is required and often a later
-    // year). Prefer the precomputed numeric startYear, then fall back to
-    // raw dates. startYear is already a year number, so don't run it
-    // through getYearValue (new Date(2025) would resolve to 1970).
+    // FLD now has a persisted reporting year. Older migrated rows can still be
+    // null, so fall back to startYear/startDate for those records.
     const getFldYear = (f: any): number | null => {
+        const reportingYear = getYearValue(f?.reportingYear)
+        if (reportingYear != null) return reportingYear
         if (f?.startYear != null) return Number(f.startYear)
-        return getYearValue(f?.startDate ?? f?.expectedCompletionDate ?? f?.reportingYear)
+        return getYearValue(f?.startDate ?? f?.expectedCompletionDate)
     }
     const fldOptionsByKvkAndYear = useMemo(() => {
         return (fldList as any[]).filter((f: any) => {
@@ -780,13 +779,22 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 const next = e.target.value
                                 const expected = formData.expectedCompletionDate
                                 const expectedInvalid = expected && next && expected < next
+                                const shouldSeedReportingYear = !formData.id && !formData.kvkOftId && !formData.reportingYear
                                 setFormData({
                                     ...formData,
                                     duration: next,
                                     oftStartDate: next,
+                                    ...(shouldSeedReportingYear ? { reportingYear: next } : {}),
                                     ...(expectedInvalid ? { expectedCompletionDate: '' } : {}),
                                 })
                             }}
+                        />
+                        <FormInput
+                            label="Reporting Year"
+                            required
+                            type="date"
+                            value={formData.reportingYear ?? ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Expected Completion Date"
@@ -1138,12 +1146,21 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 const next = e.target.value
                                 const expected = formData.expectedCompletionDate
                                 const expectedInvalid = expected && next && expected < next
+                                const shouldSeedReportingYear = !formData.id && !formData.kvkFldId && !formData.reportingYear
                                 setFormData({
                                     ...formData,
                                     startDate: next,
+                                    ...(shouldSeedReportingYear ? { reportingYear: next } : {}),
                                     ...(expectedInvalid ? { expectedCompletionDate: '' } : {}),
                                 })
                             }}
+                        />
+                        <FormInput
+                            label="Reporting Year"
+                            required
+                            type="date"
+                            value={formData.reportingYear ?? ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Expected Completion Date"
