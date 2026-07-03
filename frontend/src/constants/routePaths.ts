@@ -40,7 +40,7 @@ export const ROUTE_PATHS = {
         OTHER_EXTENSION: '/forms/achievements/other-extension',
         TECHNOLOGY_WEEK: '/forms/achievements/technology-week',
         CELEBRATION_DAYS: '/forms/achievements/celebration-days',
-        POSHAN_MAHA: '/forms/achievements/poshan-maha',
+        POSHAN_MAAHA: '/forms/achievements/poshan-maaha',
         PRODUCTION_SUPPLY: '/forms/achievements/production-supply',
         PUBLICATIONS: '/forms/achievements/publication-details',
         SOIL_EQUIPMENT: '/forms/achievements/soil-equipment',
@@ -172,7 +172,6 @@ export const ROUTE_PATHS = {
             LIVESTOCK: '/forms/miscellaneous/diseases/livestock',
         },
         NEHRU_YUVA_KENDRA: '/forms/miscellaneous/nehru-yuva-kendra',
-        POSHAN_MAAH: '/forms/miscellaneous/poshan-maah',
         PPV_FRA: {
             TRAINING: '/forms/miscellaneous/ppv-fra/training',
             PLANT_VARIETIES: '/forms/miscellaneous/ppv-fra/plant-varieties',

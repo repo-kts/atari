@@ -70,7 +70,7 @@ const sections: FeatureSection[] = [
             { label: 'Technology week celebration', path: ROUTE_PATHS.ACHIEVEMENTS.TECHNOLOGY_WEEK, moduleCode: 'achievements_technology_week_celebration' },
             { label: 'Celebration of important days', path: ROUTE_PATHS.ACHIEVEMENTS.CELEBRATION_DAYS, moduleCode: 'achievements_celebration_days' },
             { label: 'Details of World Soil Day Celebration', path: ROUTE_PATHS.ACHIEVEMENTS.WORLD_SOIL_DAY, moduleCode: 'achievements_soil_water_testing' },
-            { label: 'Poshan Maaha', path: ROUTE_PATHS.ACHIEVEMENTS.POSHAN_MAHA, moduleCode: 'achievements_celebration_days' },
+            { label: 'Poshan Maaha', path: ROUTE_PATHS.ACHIEVEMENTS.POSHAN_MAAHA, moduleCode: 'misc_poshan_maah' },
         ],
     },
     {

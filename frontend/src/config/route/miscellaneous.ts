@@ -49,18 +49,6 @@ export const miscellaneousRoutes: RouteConfig[] = [
         fields: FIELD_GROUPS.MISC_NEHRU_YUVA_KENDRA,
     },
 
-    // Poshan Maah
-    {
-        path: ROUTE_PATHS.MISCELLANEOUS.POSHAN_MAAH,
-        title: 'Poshan Maah',
-        description: 'Datewise report of events/programmes conducted during Poshan Maah',
-        category: 'Form Management',
-        subcategory: 'Miscellaneous',
-        parent: ROUTE_PATHS.MISCELLANEOUS.BASE,
-        moduleCode: 'misc_poshan_maah',
-        fields: FIELD_GROUPS.MISC_POSHAN_MAAH,
-    },
-
     // PPV & FRA Sensitization
     {
         path: ROUTE_PATHS.MISCELLANEOUS.PPV_FRA.TRAINING,
