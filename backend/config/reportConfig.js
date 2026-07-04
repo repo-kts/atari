@@ -46,7 +46,7 @@ const reportConfig = {
                 { dbField: 'district.districtName', displayName: 'District' },
                 { dbField: 'org.orgName', displayName: 'Organization' },
                 { dbField: 'university.universityName', displayName: 'University', optional: true },
-                { dbField: 'hostOrg', displayName: 'Host Organization' },
+                { dbField: 'university.universityName', displayName: 'Host Organization' },
                 { dbField: 'hostAddress', displayName: 'Host Address', optional: true },
                 { dbField: 'hostLandline', displayName: 'Host Office Phone', optional: true },
                 { dbField: 'hostFax', displayName: 'Host Fax', optional: true },

@@ -31,7 +31,7 @@ function renderAboutKvkSection(section, data, sectionId, isFirstSection) {
         <h4 class="about-kvk-subheading">${base}.2 Name and address of host organization with phone, fax and e-mail</h4>
         ${this._renderContactTable({
             rows: records.map(record => ({
-                name: this._toDisplayValue(this._pickValue(record, ['Host Organization', 'hostOrg', 'org.orgName', 'org.uniName'])),
+                name: this._toDisplayValue(this._pickValue(record, ['Host Organization', 'university.universityName', 'org.orgName', 'org.uniName'])),
                 address: this._toDisplayValue(this._pickValue(record, ['Host Address', 'hostAddress'])),
                 officePhone: this._toDisplayValue(this._pickValue(record, ['Host Office Phone', 'hostLandline', 'hostMobile'])),
                 fax: this._toDisplayValue(this._pickValue(record, ['Host Fax', 'hostFax'])),

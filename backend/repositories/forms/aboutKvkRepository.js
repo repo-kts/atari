@@ -15,7 +15,6 @@ const ENTITY_CONFIG = {
         model: 'kvk',
         idField: 'kvkId',
         nameField: 'kvkName',
-        hostOrganizationName: 'hostOrg',
         includes: {
             zone: {
                 select: { zoneId: true, zoneName: true }
@@ -800,7 +799,7 @@ function sanitizeData(entityName, data) {
         const allowedFields = [
             'kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId',
             'mobile', 'landline', 'fax', 'email', 'address',
-            'hostOrg', 'hostMobile', 'hostLandline', 'hostFax', 'hostEmail', 'hostAddress',
+            'hostMobile', 'hostLandline', 'hostFax', 'hostEmail', 'hostAddress',
             'yearOfSanction', 'landDetails'
         ];
 
@@ -820,9 +819,6 @@ function sanitizeData(entityName, data) {
         }
         if (sanitized.fax !== undefined) {
             sanitized.fax = sanitizeString(safeGet(data, 'fax'), { allowEmpty: true });
-        }
-        if (sanitized.hostOrg !== undefined) {
-            sanitized.hostOrg = sanitizeString(safeGet(data, 'hostOrg'), { allowEmpty: true });
         }
         if (sanitized.hostMobile !== undefined) {
             const rawHost = safeGet(data, 'hostMobile');

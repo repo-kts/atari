@@ -384,7 +384,7 @@ class AboutKvkService {
      */
     validateRequiredFields(entityName, data) {
         const requiredFields = {
-            'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
+            'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId', 'mobile', 'email', 'address', 'yearOfSanction'],
             // Note: universityId is required as per the newest form requirements
             // *Other free-text fields are conditional (only when the chosen master isOther) — enforced on the frontend, not required here.
             'kvk-bank-accounts': ['kvkId', 'bankAccountTypeMasterId', 'accountName', 'bankName', 'location', 'accountNumber'],

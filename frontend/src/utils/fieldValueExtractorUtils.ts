@@ -308,11 +308,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.HOST_ORG]: {
         extractor: (item: any) => {
-            // Prefer university.hostOrg if available
-            if (item.university?.hostOrg) return item.university.hostOrg;
-            // Some APIs may flatten this onto the item
-            if (item.hostOrg) return item.hostOrg;
-            // Fallback to universityName if hostOrg is not set
+            // Host org is the linked university's name (Kvk.hostOrg column removed).
             if (item.university?.universityName) return item.university.universityName;
             if (item.universityName) return item.universityName;
             return null;

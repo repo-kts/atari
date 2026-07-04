@@ -8,7 +8,7 @@
  *   - Bullet lines: • Thematic area: … / • Problem definition/Name of OFT: …
  *   - 16 fields in 3-column table: narrow # | bold label | value (NO header row)
  *   - Technology field 3: bold option names (Farmer Practice:, TO1:, TO2:)
- *   - Result table: "Tehcnology Options | Proposed | Actual | …" (original spelling)
+ *   - Result table: "Technology Options | Proposed | Actual | …"
  *   - Result: text paragraph after table
  *
  * Bound to reportTemplateService (`this`).
@@ -280,19 +280,28 @@ function _renderResultTable(table, tableNumber) {
         /^actual$/i.test((c.columnLabel || '').trim()) ||
         /^actual$/i.test((c.columnKey || '').trim())
     );
-    const dataColumns = columns.filter(c => c !== proposedCol && c !== actualCol);
+    const isTechnologyOptionColumn = (c) => {
+        const key = String(c.columnKey || '').trim().toLowerCase();
+        const label = String(c.columnLabel || '').trim().toLowerCase();
+        return key === 'tech_option'
+            || label === 'technology options with detailed treatments'
+            || label === 'technology treatments'
+            || label === 'technology option'
+            || label === 'technology options';
+    };
+    const dataColumns = columns.filter(c => c !== proposedCol && c !== actualCol && !isTechnologyOptionColumn(c));
 
-    const tableTitle = table.tableTitle || '';
+    const tableTitle = table.tableTitle || `Table ${tableNumber}`;
 
     // Table title — bold, larger font, matching original
     let html = `
             <p style="margin:16px 0 8px 0;font-size:10pt;font-weight:bold;">
-                Table ${tableNumber} : ${this._escapeHtml(tableTitle)}
+                ${this._escapeHtml(tableTitle)}
             </p>
             <table class="data-table" style="width:100%;margin-bottom:12px;font-size:8pt;">
                 <thead>
                     <tr>
-                        <th>Tehcnology Options</th>`;
+                        <th>Technology Options</th>`;
 
     // Proposed and Actual columns right after Technology Options
     if (proposedCol) {
