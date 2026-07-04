@@ -30,6 +30,7 @@ interface OftResultFormProps {
     sourceRows?: Array<{ optionKey: string; optionName: string }>
     kvkId?: number | null
     isCompleted?: boolean
+    canMarkCompleted?: boolean
 }
 
 const defaultValue: OftResultFormValue = {
@@ -197,6 +198,7 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
     sourceRows = [],
     kvkId,
     isCompleted = false,
+    canMarkCompleted = true,
 }) => {
     const [submitting, setSubmitting] = useState(false)
     const [markingCompleted, setMarkingCompleted] = useState(false)
@@ -311,7 +313,7 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
                 <button type="submit" className="px-4 py-2 bg-[#487749] text-white rounded-lg disabled:opacity-60" disabled={submitting}>
                     {submitting ? 'Saving...' : mode === 'create' ? 'Create Result' : 'Update Result'}
                 </button>
-                {!isCompleted && onMarkCompleted && (
+                {canMarkCompleted && !isCompleted && onMarkCompleted && (
                     <button
                         type="button"
                         className="px-4 py-2 bg-[#2f5f34] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"

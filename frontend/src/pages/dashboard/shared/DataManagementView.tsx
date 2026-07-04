@@ -232,10 +232,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false)
     const [isMobileRouteMenuOpen, setIsMobileRouteMenuOpen] = useState(false)
     const [isOftFldTabMenuOpen, setIsOftFldTabMenuOpen] = useState(false)
+    const [isCfldTabMenuOpen, setIsCfldTabMenuOpen] = useState(false)
 
     const mobileRouteMenuRef = useRef<HTMLDivElement | null>(null)
     const exportMenuRef = useRef<HTMLDivElement | null>(null)
     const oftFldTabMenuRef = useRef<HTMLDivElement | null>(null)
+    const cfldTabMenuRef = useRef<HTMLDivElement | null>(null)
 
     // Get entity type from path
     const entityType = getEntityTypeFromPath(location.pathname)
@@ -1375,6 +1377,92 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         )
     }
 
+    // CFLD section switcher — same pill/menu look as the OFT/FLD tabs, shown
+    // above the form (Back button) when editing a CFLD technical param record.
+    // Source of truth is formData.cfldActiveSection (CfldForms syncs off it).
+    const renderCfldTabs = () => {
+        const isEdit = Boolean(formData?.id || formData?.cfldTechId)
+        if (!isEdit) return null
+        const active = String(formData?.cfldActiveSection || 'technical')
+            .toLowerCase()
+        const currentSection = ['economic', 'socio', 'perception'].includes(
+            active
+        )
+            ? active
+            : 'technical'
+        const isTransferred = normalizeOftStatus(formData?.status) === 'TRANSFERRED'
+        const goSection = (next: string) => {
+            setFormData((prev: any) => ({ ...prev, cfldActiveSection: next }))
+        }
+        const tabs: Array<{ value: string; label: string; isVisible: boolean }> = [
+            { value: 'technical', label: 'Edit CfldTechnicalParameter', isVisible: true },
+            { value: 'economic', label: 'Economic Parameters of CFLD', isVisible: !isTransferred },
+            { value: 'socio', label: 'Update Socio Economic Parameters of CFLD', isVisible: !isTransferred },
+            { value: 'perception', label: 'Farmers Perception parameters of CFLD', isVisible: !isTransferred },
+        ]
+        const visibleTabs = tabs.filter(t => t.isVisible)
+
+        return (
+            <>
+                {/* Desktop tabs */}
+                <div className="hidden sm:flex mb-4 flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#3d6540]">
+                    {visibleTabs.map(t => (
+                        <button
+                            key={t.value}
+                            type="button"
+                            className={tabButtonClass(currentSection === t.value)}
+                            onClick={() => goSection(t.value)}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Mobile dropdown (custom menu like the OFT/FLD tabs) */}
+                <div className="sm:hidden mb-4">
+                    <div
+                        ref={cfldTabMenuRef}
+                        className="relative inline-flex max-w-[90vw]"
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setIsCfldTabMenuOpen(v => !v)}
+                            className="inline-flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                        >
+                            {visibleTabs.find(t => t.value === currentSection)
+                                ?.label || 'Select'}
+                            <ChevronDown className="w-4 h-4 text-[#757575]" />
+                        </button>
+
+                        {isCfldTabMenuOpen && (
+                            <div className="absolute z-50 mt-1 w-72 max-w-[90vw] rounded-2xl border border-[#E0E0E0] bg-white p-1">
+                                {visibleTabs.map(t => {
+                                    const selected = t.value === currentSection
+                                    return (
+                                        <button
+                                            key={t.value}
+                                            type="button"
+                                            onClick={() => {
+                                                setIsCfldTabMenuOpen(false)
+                                                goSection(t.value)
+                                            }}
+                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
+                                                ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                }`}
+                                        >
+                                            {t.label}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </>
+        )
+    }
+
     const handleSubmitFldResult = async (payload: FldResultValue) => {
         if (!selectedFldId) return
         try {
@@ -1608,36 +1696,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const cfldCustomActions =
         entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
             ? [
-                {
-                    key: 'transfer-next-year',
-                    label: 'Transfer',
-                    onClick: handleTransferCfldToNextYear,
-                    isVisible: (item: any) => item?.status === 'ONGOING',
-                    className:
-                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                    icon: ArrowRight,
-                },
-                {
-                    key: 'mark-completed',
-                    label: 'Mark Completed',
-                    onClick: handleMarkCfldCompleted,
-                    isVisible: (item: any) =>
-                        item?.status === 'ONGOING' && itemHasCfldSavedSections(item),
-                    className:
-                        'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
-                    icon: CheckCircle2,
-                },
-                {
-                    key: 'revoke-transfer',
-                    label: 'Undo Transfer',
-                    onClick: handleRevokeCfldTransfer,
-                    isVisible: (item: any) =>
-                        user?.role === 'super_admin' &&
-                        item?.status === 'TRANSFERRED',
-                    className:
-                        'px-2 py-1 text-xs rounded-lg border border-orange-300 text-orange-700 hover:bg-orange-50 transition-colors',
-                    icon: RotateCcw,
-                },
+                // Edit forms first (Edit built-in sits above these), then
+                // complete, then transfer, then delete (built-in, below).
                 {
                     key: 'economic-params',
                     label: 'Economic Parameters',
@@ -1676,6 +1736,36 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
                     icon: FilePenLine,
+                },
+                {
+                    key: 'mark-completed',
+                    label: 'Mark Completed',
+                    onClick: handleMarkCfldCompleted,
+                    isVisible: (item: any) =>
+                        item?.status === 'ONGOING' && itemHasCfldSavedSections(item),
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
+                    icon: CheckCircle2,
+                },
+                {
+                    key: 'transfer-next-year',
+                    label: 'Transfer',
+                    onClick: handleTransferCfldToNextYear,
+                    isVisible: (item: any) => item?.status === 'ONGOING',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                    icon: ArrowRight,
+                },
+                {
+                    key: 'revoke-transfer',
+                    label: 'Undo Transfer',
+                    onClick: handleRevokeCfldTransfer,
+                    isVisible: (item: any) =>
+                        user?.role === 'super_admin' &&
+                        item?.status === 'TRANSFERRED',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-orange-300 text-orange-700 hover:bg-orange-50 transition-colors',
+                    icon: RotateCcw,
                 },
             ]
             : []
@@ -1879,10 +1969,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             ) {
                 setIsOftFldTabMenuOpen(false)
             }
+            if (
+                isCfldTabMenuOpen &&
+                cfldTabMenuRef.current &&
+                !cfldTabMenuRef.current.contains(target)
+            ) {
+                setIsCfldTabMenuOpen(false)
+            }
         }
         document.addEventListener('mousedown', onDocMouseDown)
         return () => document.removeEventListener('mousedown', onDocMouseDown)
-    }, [isMobileRouteMenuOpen, isExportMenuOpen, isOftFldTabMenuOpen])
+    }, [isMobileRouteMenuOpen, isExportMenuOpen, isOftFldTabMenuOpen, isCfldTabMenuOpen])
 
     const loading = getHookLoading(activeHook)
     // Server-paginated hooks (e.g. Equipment Master) keep the previous page via
@@ -2047,6 +2144,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 kind: 'fld',
                                 item: editingItem,
                             })}
+                        {entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM &&
+                            renderCfldTabs()}
 
                         <DataManagementFormPage
                             entityType={entityType}
@@ -2062,7 +2161,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             isSaving={isSaving}
                             extraActions={
                                 isCfldPerceptionSectionForm &&
-                                    statusValue(formData) !== 'COMPLETED' ? (
+                                    statusValue(formData) === 'ONGOING' ? (
                                     <button
                                         type="button"
                                         onClick={() => handleMarkCfldCompleted(formData)}
@@ -2132,6 +2231,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             statusValue(selectedOftItem) ===
                                             'COMPLETED'
                                         }
+                                        canMarkCompleted={
+                                            statusValue(selectedOftItem) ===
+                                            'ONGOING'
+                                        }
                                         onClose={() => {
                                             setIsOftResultPageOpen(false)
                                             setSelectedOftId(null)
@@ -2192,6 +2295,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             itemHasFldResult(selectedFldItem)
                                         }
                                         isCompleted={statusValue(selectedFldItem) === 'COMPLETED'}
+                                        canMarkCompleted={statusValue(selectedFldItem) === 'ONGOING'}
                                         onClose={() => {
                                             setIsFldResultPageOpen(false)
                                             setSelectedFldId(null)

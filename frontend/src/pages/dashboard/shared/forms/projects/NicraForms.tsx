@@ -228,6 +228,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         <FormSelect
             label="Month"
             required
+            preserveOrder
             value={formData.month ?? ''}
             onChange={(e) => setFormData({ ...formData, month: e.target.value })}
             options={MONTH_OPTIONS}
