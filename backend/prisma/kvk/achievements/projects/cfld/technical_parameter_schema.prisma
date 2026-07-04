@@ -17,6 +17,7 @@ model CfldTechnicalParameter {
   reportingYear               DateTime?                    @map("reporting_year")
   status                      CfldTechnicalWorkflowStatus  @default(ONGOING) @map("status")
   completedAt                 DateTime?                    @map("completed_at")
+  transferredFromCfldTechId    Int?                        @map("transferred_from_cfld_tech_id")
   varietyName                String        @map("variety_name")
   areaInHa                   Float         @map("area_in_ha")
   technologyDemonstrated     String        @map("technology_demonstrated")
@@ -52,12 +53,15 @@ model CfldTechnicalParameter {
   economicParameters          CfldEconomicParameters[]
   socioEconomicParameters    CfldSocioEconomicParameters[]
   farmersPerceptionParameters CfldFarmersPerceptionParameters[]
+  transferredFrom             CfldTechnicalParameter?      @relation("CfldTechnicalTransferChain", fields: [transferredFromCfldTechId], references: [cfldTechId])
+  transferredToChildren       CfldTechnicalParameter[]     @relation("CfldTechnicalTransferChain")
 
   @@index([kvkId])
   @@index([cropId])
   @@index([seasonId])
   @@index([typeId])
   @@index([reportingYear])
+  @@index([transferredFromCfldTechId])
   @@map("cfl_cfld_technical_parameter")
 }
 

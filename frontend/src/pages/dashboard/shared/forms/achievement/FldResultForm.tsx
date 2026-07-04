@@ -27,8 +27,12 @@ interface FldResultFormProps {
     mode: 'create' | 'edit'
     initialValue?: Partial<FldResultValue>
     template?: FldResultTemplate
+    hasSavedResult?: boolean
     onClose: () => void
     onSubmit: (value: FldResultValue) => Promise<void>
+    onMarkCompleted?: () => void
+    isCompleted?: boolean
+    canMarkCompleted?: boolean
 }
 
 const defaultValue: FldResultValue = {
@@ -104,8 +108,12 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({
     mode,
     initialValue,
     template = FLD_RESULT_TEMPLATES.CROP_ECONOMICS,
+    hasSavedResult = false,
     onClose,
     onSubmit,
+    onMarkCompleted,
+    isCompleted = false,
+    canMarkCompleted = true,
 }) => {
     const [value, setValue] = useState<FldResultValue>({ ...defaultValue, ...(initialValue || {}) })
     const [submitting, setSubmitting] = useState(false)
@@ -168,7 +176,6 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({
         setSubmitting(true)
         try {
             await onSubmit(clearHiddenFields(value, template))
-            onClose()
         } catch {
             // Error already surfaced by the caller; keep the form open for retry.
         } finally {
@@ -256,6 +263,17 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({
                     >
                         {submitting ? 'Saving...' : mode === 'create' ? 'Create Result' : 'Update Result'}
                     </button>
+                    {canMarkCompleted && !isCompleted && onMarkCompleted && (
+                        <button
+                            type="button"
+                            className="px-4 py-2.5 text-sm font-medium text-white bg-[#487749] rounded-xl hover:bg-[#3d6540] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                            disabled={submitting || !hasSavedResult}
+                            onClick={onMarkCompleted}
+                            title={!hasSavedResult ? 'Save the result before marking completed' : undefined}
+                        >
+                            Mark as Completed
+                        </button>
+                    )}
                 </div>
             </form>
         </div>

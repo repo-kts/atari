@@ -106,6 +106,16 @@ const fldController = {
         });
     }),
 
+    revokeTransfer: asyncHandler(async (req, res) => {
+        const result = await fldService.revokeTransfer(req.params.id, req.user);
+        res.status(200).json({
+            success: true,
+            message: 'FLD transfer undone successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
     addResult: asyncHandler(async (req, res) => {
         const result = await fldService.addResult(req.params.id, req.body, req.user);
         res.status(201).json({
@@ -121,6 +131,16 @@ const fldController = {
         res.status(200).json({
             success: true,
             message: 'FLD result updated successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
+    markCompleted: asyncHandler(async (req, res) => {
+        const result = await fldService.markCompleted(req.params.id, req.user);
+        res.status(200).json({
+            success: true,
+            message: 'FLD marked completed successfully',
             data: result,
             timestamp: new Date().toISOString(),
         });

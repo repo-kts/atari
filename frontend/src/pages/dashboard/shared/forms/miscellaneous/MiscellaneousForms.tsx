@@ -6,6 +6,7 @@ import { NehruYuvaKendraForms } from './NehruYuvaKendraForms'
 import { PPVFRASensitizationForms } from './PPVFRASensitizationForms'
 import { RAWEFETProgrammeForms } from './RAWEFETProgrammeForms'
 import { VIPVisitorsForms } from './VIPVisitorsForms'
+import { PoshanMaahForm } from './PoshanMaahForm'
 
 interface MiscellaneousFormsProps {
     entityType: ExtendedEntityType | null
@@ -61,6 +62,15 @@ export const MiscellaneousForms: React.FC<MiscellaneousFormsProps> = ({
         return (
             <RAWEFETProgrammeForms
                 entityType={entityType}
+                formData={formData}
+                setFormData={setFormData}
+            />
+        )
+    }
+
+    if (entityType === ENTITY_TYPES.MISC_POSHAN_MAAH) {
+        return (
+            <PoshanMaahForm
                 formData={formData}
                 setFormData={setFormData}
             />

@@ -730,6 +730,7 @@ const fldRepository = {
                 stM: sourceFld.stM,
                 stF: sourceFld.stF,
                 ongoingCompleted: FLD_STATUS.ONGOING,
+                transferredFromFldId: sourceFld.kvkFldId,
                 expectedCompletionDate: targetExpectedCompletionDate instanceof Date
                     ? targetExpectedCompletionDate
                     : (targetExpectedCompletionDate ? new Date(targetExpectedCompletionDate) : null),
@@ -749,6 +750,33 @@ const fldRepository = {
                 source: _mapResponse(sourceRecord),
                 transferred: _mapResponse(newRecord),
             };
+        });
+    },
+
+    findTransferChildren: async (sourceId) => {
+        return prisma.kvkFldIntroduction.findMany({
+            where: { transferredFromFldId: parseInt(sourceId, 10) },
+            select: {
+                kvkFldId: true,
+                ongoingCompleted: true,
+                fldResult: { select: { fldResultId: true } },
+            },
+        });
+    },
+
+    revokeTransferTx: async (sourceId, childIds = []) => {
+        return prisma.$transaction(async (tx) => {
+            if (childIds.length) {
+                await tx.kvkFldIntroduction.deleteMany({
+                    where: { kvkFldId: { in: childIds } },
+                });
+            }
+            const restored = await tx.kvkFldIntroduction.update({
+                where: { kvkFldId: parseInt(sourceId, 10) },
+                data: { ongoingCompleted: FLD_STATUS.ONGOING },
+                include: FLD_CONFIG.includes,
+            });
+            return _mapResponse(restored);
         });
     },
 

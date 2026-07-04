@@ -604,6 +604,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <FormSelect
                             label="Months"
                             required
+                            preserveOrder
                             value={formData.months ?? ''}
                             onChange={handleFieldChange('months')}
                             options={MONTH_OPTIONS}

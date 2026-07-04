@@ -8,6 +8,7 @@ import {
     ArrowRight,
     FilePlus2,
     FilePenLine,
+    CheckCircle2,
     ChevronDown,
     RotateCcw,
     FilterX,
@@ -60,14 +61,21 @@ import {
     useTransferOftToNextYear,
     useRevokeOftTransfer,
     useTransferFldToNextYear,
+    useRevokeFldTransfer,
     useCreateOftResult,
     useUpdateOftResult,
+    useMarkOftCompleted,
+    useMarkFldCompleted,
     useOftResult,
     useFldResult,
     useCreateFldResult,
     useUpdateFldResult,
 } from '@/hooks/useOftWorkflow'
-import { useTransferCfldTechnicalToNextYear } from '@/hooks/useCfldWorkflow'
+import {
+    useMarkCfldTechnicalCompleted,
+    useRevokeCfldTechnicalTransfer,
+    useTransferCfldTechnicalToNextYear,
+} from '@/hooks/useCfldWorkflow'
 import {
     OftResultForm,
     OftResultFormValue,
@@ -142,11 +150,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const transferOftMutation = useTransferOftToNextYear()
     const revokeOftMutation = useRevokeOftTransfer()
     const transferFldMutation = useTransferFldToNextYear()
+    const revokeFldMutation = useRevokeFldTransfer()
     const transferCfldMutation = useTransferCfldTechnicalToNextYear()
+    const revokeCfldMutation = useRevokeCfldTechnicalTransfer()
+    const markCfldCompletedMutation = useMarkCfldTechnicalCompleted()
     const createOftResultMutation = useCreateOftResult()
     const updateOftResultMutation = useUpdateOftResult()
+    const markOftCompletedMutation = useMarkOftCompleted()
     const createFldResultMutation = useCreateFldResult()
     const updateFldResultMutation = useUpdateFldResult()
+    const markFldCompletedMutation = useMarkFldCompleted()
     const [isOftResultPageOpen, setIsOftResultPageOpen] = useState(false)
     const [oftResultMode, setOftResultMode] = useState<'create' | 'edit'>(
         'create'
@@ -219,10 +232,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false)
     const [isMobileRouteMenuOpen, setIsMobileRouteMenuOpen] = useState(false)
     const [isOftFldTabMenuOpen, setIsOftFldTabMenuOpen] = useState(false)
+    const [isCfldTabMenuOpen, setIsCfldTabMenuOpen] = useState(false)
 
     const mobileRouteMenuRef = useRef<HTMLDivElement | null>(null)
     const exportMenuRef = useRef<HTMLDivElement | null>(null)
     const oftFldTabMenuRef = useRef<HTMLDivElement | null>(null)
+    const cfldTabMenuRef = useRef<HTMLDivElement | null>(null)
 
     // Get entity type from path
     const entityType = getEntityTypeFromPath(location.pathname)
@@ -661,6 +676,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             .toUpperCase()
             .trim()
 
+    const unwrapApiData = (response: any) => {
+        if (
+            response &&
+            typeof response === 'object' &&
+            ('success' in response || 'data' in response)
+        ) {
+            return response.data ?? undefined
+        }
+        return response
+    }
+
     const handleTransferOftToNextYear = async (item: any) => {
         const id = item?.id ?? item?.kvkOftId
         if (!id) {
@@ -671,21 +697,37 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             })
             return
         }
-        try {
-            await transferOftMutation.mutateAsync(id)
-            alert({
-                title: 'Success',
-                message: 'OFT transferred to next reporting year successfully.',
-                variant: 'success',
-                autoClose: true,
-            })
-        } catch (err: any) {
-            alert({
-                title: 'Transfer failed',
-                message: err?.message || 'Unable to transfer OFT.',
-                variant: 'error',
-            })
-        }
+        confirm(
+            {
+                title: 'Transfer OFT?',
+                message:
+                    'This will move the OFT to the next reporting year and create a next-year copy. The OFT start date will stay unchanged.',
+                variant: 'warning',
+                confirmText: 'Transfer',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await transferOftMutation.mutateAsync(id)
+                    if (activeHook && 'refetch' in activeHook) {
+                        await (activeHook as any).refetch()
+                    }
+                    alert({
+                        title: 'Success',
+                        message: 'OFT transferred to next reporting year successfully.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                } catch (err: any) {
+                    alert({
+                        title: 'Transfer failed',
+                        message: err?.message || 'Unable to transfer OFT.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
     }
 
     const handleRevokeOftTransfer = async (item: any) => {
@@ -698,21 +740,37 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             })
             return
         }
-        try {
-            await revokeOftMutation.mutateAsync(id)
-            alert({
-                title: 'Success',
-                message: 'OFT transfer revoked; record restored to Ongoing.',
-                variant: 'success',
-                autoClose: true,
-            })
-        } catch (err: any) {
-            alert({
-                title: 'Revoke failed',
-                message: err?.message || 'Unable to revoke OFT transfer.',
-                variant: 'error',
-            })
-        }
+        confirm(
+            {
+                title: 'Undo OFT transfer?',
+                message:
+                    'This will delete the untouched next-year OFT copy and restore the original OFT to Ongoing. This is available only to superadmin and only before the next-year copy is completed or transferred again.',
+                variant: 'warning',
+                confirmText: 'Undo Transfer',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await revokeOftMutation.mutateAsync(id)
+                    if (activeHook && 'refetch' in activeHook) {
+                        await (activeHook as any).refetch()
+                    }
+                    alert({
+                        title: 'Success',
+                        message: 'OFT transfer undone; original record restored to Ongoing.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                } catch (err: any) {
+                    alert({
+                        title: 'Undo transfer failed',
+                        message: err?.message || 'Unable to undo OFT transfer.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
     }
 
     const handleTransferFldToNextYear = async (item: any) => {
@@ -725,21 +783,80 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             })
             return
         }
-        try {
-            await transferFldMutation.mutateAsync(id)
+        confirm(
+            {
+                title: 'Transfer FLD?',
+                message:
+                    'This will move the current FLD to transferred status and create a new ongoing copy for the next reporting year.',
+                variant: 'warning',
+                confirmText: 'Transfer',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await transferFldMutation.mutateAsync(id)
+                    if (activeHook && 'refetch' in activeHook) {
+                        await (activeHook as any).refetch()
+                    }
+                    alert({
+                        title: 'Success',
+                        message: 'FLD transferred to next reporting year successfully.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                } catch (err: any) {
+                    alert({
+                        title: 'Transfer failed',
+                        message: err?.message || 'Unable to transfer FLD.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
+    }
+
+    const handleRevokeFldTransfer = async (item: any) => {
+        const id = item?.id ?? item?.kvkFldId
+        if (!id) {
             alert({
-                title: 'Success',
-                message: 'FLD transferred to next reporting year successfully.',
-                variant: 'success',
-                autoClose: true,
-            })
-        } catch (err: any) {
-            alert({
-                title: 'Transfer failed',
-                message: err?.message || 'Unable to transfer FLD.',
+                title: 'Error',
+                message: 'Unable to revoke transfer: missing record id.',
                 variant: 'error',
             })
+            return
         }
+        confirm(
+            {
+                title: 'Undo FLD transfer?',
+                message:
+                    'This will delete the untouched next-year FLD copy and restore the original FLD to Ongoing. This is available only to superadmin and only before the next-year copy is completed or transferred again.',
+                variant: 'warning',
+                confirmText: 'Undo Transfer',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await revokeFldMutation.mutateAsync(id)
+                    if (activeHook && 'refetch' in activeHook) {
+                        await (activeHook as any).refetch()
+                    }
+                    alert({
+                        title: 'Success',
+                        message: 'FLD transfer undone; original record restored to Ongoing.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                } catch (err: any) {
+                    alert({
+                        title: 'Undo transfer failed',
+                        message: err?.message || 'Unable to undo FLD transfer.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
     }
 
     const handleTransferCfldToNextYear = async (item: any) => {
@@ -770,6 +887,95 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         }
     }
 
+    const handleRevokeCfldTransfer = async (item: any) => {
+        const id = item?.id ?? item?.cfldTechId
+        if (!id) {
+            alert({
+                title: 'Error',
+                message: 'Unable to revoke transfer: missing record id.',
+                variant: 'error',
+            })
+            return
+        }
+        confirm(
+            {
+                title: 'Undo CFLD transfer?',
+                message:
+                    'This will delete the untouched next-year CFLD copy and restore the original CFLD to Ongoing. This is available only to superadmin before the copy is updated.',
+                variant: 'warning',
+                confirmText: 'Undo Transfer',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await revokeCfldMutation.mutateAsync(id)
+                    if (activeHook && 'refetch' in activeHook) {
+                        await (activeHook as any).refetch()
+                    }
+                    alert({
+                        title: 'Success',
+                        message: 'CFLD transfer undone; original record restored to Ongoing.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                } catch (err: any) {
+                    alert({
+                        title: 'Undo transfer failed',
+                        message: err?.message || 'Unable to undo CFLD transfer.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
+    }
+
+    const handleMarkCfldCompleted = async (item: any) => {
+        const id = item?.id ?? item?.cfldTechId
+        if (!id) {
+            alert({
+                title: 'Error',
+                message: 'Unable to mark CFLD completed: missing record id.',
+                variant: 'error',
+            })
+            return
+        }
+        confirm(
+            {
+                title: 'Mark CFLD as completed?',
+                message:
+                    'Are you sure you want to mark this CFLD as completed? Save economic, socio economic, and farmers perception details first.',
+                variant: 'warning',
+                confirmText: 'Mark Completed',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await markCfldCompletedMutation.mutateAsync(id)
+                    if (activeHook && 'refetch' in activeHook) {
+                        await (activeHook as any).refetch()
+                    }
+                    alert({
+                        title: 'Success',
+                        message: 'CFLD marked completed successfully.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                    closeForm()
+                } catch (err: any) {
+                    alert({
+                        title: 'Error',
+                        message:
+                            err?.message ||
+                            'Failed to mark the CFLD as completed. Please save all CFLD sections first.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
+    }
+
     const openCfldSectionForm = (
         item: any,
         section: 'technical' | 'economic' | 'socio' | 'perception'
@@ -798,6 +1004,105 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         setIsOftResultPageOpen(true)
     }
 
+    const oftResultInitialValue = unwrapApiData(oftResultQuery.data)
+
+    useEffect(() => {
+        if (!isOftResultPageOpen || !oftResultInitialValue) return
+        setOftResultMode('edit')
+        setSelectedOftItem((prev: any) => ({
+            ...(prev || {}),
+            resultReport: oftResultInitialValue,
+            oftResultReportId: (oftResultInitialValue as any)?.oftResultReportId,
+        }))
+    }, [isOftResultPageOpen, oftResultInitialValue])
+
+    const itemHasOftResult = (item: any) =>
+        Boolean(item?.resultReport || item?.oftResultReportId || item?.resultReportId)
+
+    const getOftSourceRows = (item: any, result: any) => {
+        // Prefer the result's technology options (the snapshot the saved rows were
+        // built from) and fall back to the list item's. Concatenating both would
+        // duplicate rows and break positional cell alignment in the result form.
+        const rawOptions = Array.isArray(result?.technologyOptions) && result.technologyOptions.length > 0
+            ? result.technologyOptions
+            : Array.isArray(item?.technologyOptions)
+                ? item.technologyOptions
+                : []
+        const seen = new Set<string>()
+        const explicitOptions = rawOptions
+            .map((row: any) => ({
+                optionKey: String(row?.optionKey || ''),
+                optionName: String(row?.optionName || '').trim(),
+            }))
+            .filter((row: { optionKey: string; optionName: string }) => {
+                if (!row.optionName) return false
+                const dedupeKey = `${row.optionKey}::${row.optionName.toLowerCase()}`
+                if (seen.has(dedupeKey)) return false
+                seen.add(dedupeKey)
+                return true
+            })
+
+        if (explicitOptions.length > 0) {
+            return explicitOptions
+        }
+
+        return Object.keys(item || {})
+            .filter((key) => key.startsWith('tech_'))
+            .map((key) => {
+                const optionName = key.replace(/^tech_/, '').trim()
+                return {
+                    optionKey: `legacy_${optionName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+                    optionName,
+                }
+            })
+            .filter((row) => row.optionName)
+    }
+
+    const handleMarkOftCompleted = async (item: any) => {
+        const id = item?.id ?? item?.kvkOftId ?? selectedOftId
+        if (!id) {
+            alert({
+                title: 'Error',
+                message: 'Unable to mark OFT completed: missing record id.',
+                variant: 'error',
+            })
+            return
+        }
+        confirm(
+            {
+                title: 'Mark OFT as completed?',
+                message:
+                    'Are you sure you want to mark this OFT result as completed? You can continue editing the result after completion, but it will no longer be treated as ongoing.',
+                variant: 'warning',
+                confirmText: 'Mark Completed',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await markOftCompletedMutation.mutateAsync(id)
+                    alert({
+                        title: 'Success',
+                        message: 'OFT marked completed successfully.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                    setIsOftResultPageOpen(false)
+                    setSelectedOftId(null)
+                    setSelectedOftItem(null)
+                } catch (err: any) {
+                    alert({
+                        title: 'Error',
+                        message:
+                            err?.message ||
+                            'Failed to mark the OFT as completed. Please save the result first.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
+    }
+
     const handleSubmitOftResult = async (payload: OftResultFormValue) => {
         if (!selectedOftId) return
         try {
@@ -806,6 +1111,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     id: selectedOftId,
                     payload,
                 })
+                setOftResultMode('edit')
+                setSelectedOftItem((prev: any) => ({
+                    ...(prev || {}),
+                    resultReport: { ...(prev?.resultReport || {}), ...payload },
+                }))
             } else {
                 await updateOftResultMutation.mutateAsync({
                     id: selectedOftId,
@@ -849,6 +1159,66 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         setIsFldResultPageOpen(true)
     }
 
+    const fldResultInitialValue = unwrapApiData(fldResultQuery.data)
+
+    useEffect(() => {
+        if (!isFldResultPageOpen || !fldResultInitialValue) return
+        setFldResultMode('edit')
+        setSelectedFldItem((prev: any) => ({
+            ...(prev || {}),
+            fldResult: fldResultInitialValue,
+            fldResultId: (fldResultInitialValue as any)?.fldResultId,
+        }))
+    }, [isFldResultPageOpen, fldResultInitialValue])
+
+    const itemHasFldResult = (item: any) =>
+        Boolean(item?.fldResult || item?.fldResultId || item?.resultReportId)
+
+    const handleMarkFldCompleted = async (item: any) => {
+        const id = item?.id ?? item?.kvkFldId ?? selectedFldId
+        if (!id) {
+            alert({
+                title: 'Error',
+                message: 'Unable to mark FLD completed: missing record id.',
+                variant: 'error',
+            })
+            return
+        }
+        confirm(
+            {
+                title: 'Mark FLD as completed?',
+                message:
+                    'Are you sure you want to mark this FLD result as completed? Save or update the result before completing it.',
+                variant: 'warning',
+                confirmText: 'Mark Completed',
+                cancelText: 'Cancel',
+            },
+            async () => {
+                try {
+                    await markFldCompletedMutation.mutateAsync(id)
+                    alert({
+                        title: 'Success',
+                        message: 'FLD marked completed successfully.',
+                        variant: 'success',
+                        autoClose: true,
+                    })
+                    setIsFldResultPageOpen(false)
+                    setSelectedFldId(null)
+                    setSelectedFldItem(null)
+                } catch (err: any) {
+                    alert({
+                        title: 'Error',
+                        message:
+                            err?.message ||
+                            'Failed to mark the FLD as completed. Please save the result first.',
+                        variant: 'error',
+                    })
+                    throw err
+                }
+            }
+        )
+    }
+
     const tabButtonClass = (active: boolean) =>
         active
             ? 'px-4 py-2 bg-white text-[#487749] rounded-xl text-sm font-medium transition-all'
@@ -865,8 +1235,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         const normalized = normalizeOftStatus(
             item.status || item.ongoingCompleted
         )
-        const canAdd = normalized === 'ONGOING'
-        const canEditResult = normalized === 'COMPLETED'
+        const hasResult = opts.kind === 'oft' ? itemHasOftResult(item) : itemHasFldResult(item)
+        const canAdd =
+            opts.kind === 'oft'
+                ? normalized === 'ONGOING' && !hasResult
+                : normalized === 'ONGOING' && !hasResult
+        const canEditResult = hasResult
 
         const labelEdit = opts.kind === 'oft' ? 'Edit OFT' : 'Edit FLD'
 
@@ -1003,6 +1377,92 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         )
     }
 
+    // CFLD section switcher — same pill/menu look as the OFT/FLD tabs, shown
+    // above the form (Back button) when editing a CFLD technical param record.
+    // Source of truth is formData.cfldActiveSection (CfldForms syncs off it).
+    const renderCfldTabs = () => {
+        const isEdit = Boolean(formData?.id || formData?.cfldTechId)
+        if (!isEdit) return null
+        const active = String(formData?.cfldActiveSection || 'technical')
+            .toLowerCase()
+        const currentSection = ['economic', 'socio', 'perception'].includes(
+            active
+        )
+            ? active
+            : 'technical'
+        const isTransferred = normalizeOftStatus(formData?.status) === 'TRANSFERRED'
+        const goSection = (next: string) => {
+            setFormData((prev: any) => ({ ...prev, cfldActiveSection: next }))
+        }
+        const tabs: Array<{ value: string; label: string; isVisible: boolean }> = [
+            { value: 'technical', label: 'Edit CfldTechnicalParameter', isVisible: true },
+            { value: 'economic', label: 'Economic Parameters of CFLD', isVisible: !isTransferred },
+            { value: 'socio', label: 'Update Socio Economic Parameters of CFLD', isVisible: !isTransferred },
+            { value: 'perception', label: 'Farmers Perception parameters of CFLD', isVisible: !isTransferred },
+        ]
+        const visibleTabs = tabs.filter(t => t.isVisible)
+
+        return (
+            <>
+                {/* Desktop tabs */}
+                <div className="hidden sm:flex mb-4 flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#3d6540]">
+                    {visibleTabs.map(t => (
+                        <button
+                            key={t.value}
+                            type="button"
+                            className={tabButtonClass(currentSection === t.value)}
+                            onClick={() => goSection(t.value)}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Mobile dropdown (custom menu like the OFT/FLD tabs) */}
+                <div className="sm:hidden mb-4">
+                    <div
+                        ref={cfldTabMenuRef}
+                        className="relative inline-flex max-w-[90vw]"
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setIsCfldTabMenuOpen(v => !v)}
+                            className="inline-flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                        >
+                            {visibleTabs.find(t => t.value === currentSection)
+                                ?.label || 'Select'}
+                            <ChevronDown className="w-4 h-4 text-[#757575]" />
+                        </button>
+
+                        {isCfldTabMenuOpen && (
+                            <div className="absolute z-50 mt-1 w-72 max-w-[90vw] rounded-2xl border border-[#E0E0E0] bg-white p-1">
+                                {visibleTabs.map(t => {
+                                    const selected = t.value === currentSection
+                                    return (
+                                        <button
+                                            key={t.value}
+                                            type="button"
+                                            onClick={() => {
+                                                setIsCfldTabMenuOpen(false)
+                                                goSection(t.value)
+                                            }}
+                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
+                                                ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                }`}
+                                        >
+                                            {t.label}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </>
+        )
+    }
+
     const handleSubmitFldResult = async (payload: FldResultValue) => {
         if (!selectedFldId) return
         try {
@@ -1011,11 +1471,20 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     id: selectedFldId,
                     payload,
                 })
+                setFldResultMode('edit')
+                setSelectedFldItem((prev: any) => ({
+                    ...(prev || {}),
+                    fldResult: { ...(prev?.fldResult || {}), ...payload },
+                }))
             } else {
                 await updateFldResultMutation.mutateAsync({
                     id: selectedFldId,
                     payload,
                 })
+                setSelectedFldItem((prev: any) => ({
+                    ...(prev || {}),
+                    fldResult: { ...(prev?.fldResult || {}), ...payload },
+                }))
             }
             alert({
                 title: 'Success',
@@ -1110,9 +1579,41 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const statusValue = (item: any) =>
         normalizeOftStatus(item.status || item.ongoingCompleted)
+    const itemHasCfldSavedSections = (item: any) =>
+        Boolean(item?.economicStatus && item?.socioStatus && item?.perceptionStatus)
     const oftCustomActions =
         entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
             ? [
+                {
+                    key: 'add-result',
+                    label: 'Add Result',
+                    onClick: handleAddOftResult,
+                    isVisible: (item: any) =>
+                        statusValue(item) === 'ONGOING' && !itemHasOftResult(item),
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                    icon: FilePlus2,
+                },
+                {
+                    key: 'edit-result',
+                    label: 'Edit Result',
+                    onClick: handleEditOftResult,
+                    isVisible: (item: any) =>
+                        itemHasOftResult(item),
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                    icon: FilePenLine,
+                },
+                {
+                    key: 'mark-completed',
+                    label: 'Mark Completed',
+                    onClick: handleMarkOftCompleted,
+                    isVisible: (item: any) =>
+                        statusValue(item) === 'ONGOING' && itemHasOftResult(item),
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
+                    icon: CheckCircle2,
+                },
                 {
                     key: 'transfer-next-year',
                     label: 'Transfer',
@@ -1123,29 +1624,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     icon: ArrowRight,
                 },
                 {
-                    key: 'add-result',
-                    label: 'Add Result',
-                    onClick: handleAddOftResult,
-                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                    className:
-                        'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                    icon: FilePlus2,
-                },
-                {
-                    key: 'edit-result',
-                    label: 'Edit Result',
-                    onClick: handleEditOftResult,
-                    isVisible: (item: any) =>
-                        statusValue(item) === 'COMPLETED',
-                    className:
-                        'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
-                    icon: FilePenLine,
-                },
-                {
                     key: 'revoke-transfer',
-                    label: 'Revoke Transfer',
+                    label: 'Undo Transfer',
                     onClick: handleRevokeOftTransfer,
-                    // Super-admin only, and only for records already transferred.
+                    // Super-admin only, and only for original records already transferred.
                     isVisible: (item: any) =>
                         user?.role === 'super_admin' &&
                         statusValue(item) === 'TRANSFERRED_TO_NEXT_YEAR',
@@ -1160,19 +1642,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         entityType === ENTITY_TYPES.ACHIEVEMENT_FLD
             ? [
                 {
-                    key: 'transfer-next-year',
-                    label: 'Transfer',
-                    onClick: handleTransferFldToNextYear,
-                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                    className:
-                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                    icon: ArrowRight,
-                },
-                {
                     key: 'add-result',
                     label: 'Add Result',
                     onClick: handleAddFldResult,
-                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    isVisible: (item: any) =>
+                        statusValue(item) === 'ONGOING' && !itemHasFldResult(item),
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
                     icon: FilePlus2,
@@ -1182,25 +1656,48 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     label: 'Edit Result',
                     onClick: handleEditFldResult,
                     isVisible: (item: any) =>
-                        statusValue(item) === 'COMPLETED',
+                        itemHasFldResult(item),
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
                     icon: FilePenLine,
+                },
+                {
+                    key: 'mark-completed',
+                    label: 'Mark Completed',
+                    onClick: handleMarkFldCompleted,
+                    isVisible: (item: any) =>
+                        statusValue(item) === 'ONGOING' && itemHasFldResult(item),
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
+                    icon: CheckCircle2,
+                },
+                {
+                    key: 'transfer-next-year',
+                    label: 'Transfer',
+                    onClick: handleTransferFldToNextYear,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                    icon: ArrowRight,
+                },
+                {
+                    key: 'revoke-transfer',
+                    label: 'Undo Transfer',
+                    onClick: handleRevokeFldTransfer,
+                    isVisible: (item: any) =>
+                        user?.role === 'super_admin' &&
+                        statusValue(item) === 'TRANSFERRED_TO_NEXT_YEAR',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-orange-300 text-orange-700 hover:bg-orange-50 transition-colors',
+                    icon: RotateCcw,
                 },
             ]
             : []
     const cfldCustomActions =
         entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
             ? [
-                {
-                    key: 'transfer-next-year',
-                    label: 'Transfer',
-                    onClick: handleTransferCfldToNextYear,
-                    isVisible: (item: any) => item?.status === 'ONGOING',
-                    className:
-                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                    icon: ArrowRight,
-                },
+                // Edit forms first (Edit built-in sits above these), then
+                // complete, then transfer, then delete (built-in, below).
                 {
                     key: 'economic-params',
                     label: 'Economic Parameters',
@@ -1239,6 +1736,36 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     className:
                         'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
                     icon: FilePenLine,
+                },
+                {
+                    key: 'mark-completed',
+                    label: 'Mark Completed',
+                    onClick: handleMarkCfldCompleted,
+                    isVisible: (item: any) =>
+                        item?.status === 'ONGOING' && itemHasCfldSavedSections(item),
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
+                    icon: CheckCircle2,
+                },
+                {
+                    key: 'transfer-next-year',
+                    label: 'Transfer',
+                    onClick: handleTransferCfldToNextYear,
+                    isVisible: (item: any) => item?.status === 'ONGOING',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                    icon: ArrowRight,
+                },
+                {
+                    key: 'revoke-transfer',
+                    label: 'Undo Transfer',
+                    onClick: handleRevokeCfldTransfer,
+                    isVisible: (item: any) =>
+                        user?.role === 'super_admin' &&
+                        item?.status === 'TRANSFERRED',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-orange-300 text-orange-700 hover:bg-orange-50 transition-colors',
+                    icon: RotateCcw,
                 },
             ]
             : []
@@ -1311,12 +1838,25 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             ]
             : []
 
+    const isCfldTechnicalSectionForm =
+        entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM &&
+        Boolean(editingItem) &&
+        ['economic', 'socio', 'perception'].includes(String(formData?.cfldActiveSection || '').toLowerCase())
+
+    const isCfldPerceptionSectionForm =
+        entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM &&
+        Boolean(editingItem) &&
+        String(formData?.cfldActiveSection || '').toLowerCase() === 'perception'
+
     // Custom hook for save operations with proper error handling
     const { save: saveData, isSaving } = useDataSave({
         entityType,
         activeHook: activeHook,
         isBasicMasterEntity: isBasicMasterEntity(entityType) || false,
-        onSuccess: closeForm,
+        onSuccess: () => {
+            if (isCfldTechnicalSectionForm) return
+            closeForm()
+        },
         onError: (err: Error) => {
             toast({
                 title: 'Save failed',
@@ -1334,6 +1874,23 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const handleSaveModal = async () => {
         if (activeHook && entityType) {
             await saveData(formData, editingItem)
+            if (isCfldTechnicalSectionForm) {
+                const section = String(formData?.cfldActiveSection || '').toLowerCase()
+                const statusField =
+                    section === 'economic'
+                        ? 'economicStatus'
+                        : section === 'socio'
+                            ? 'socioStatus'
+                            : section === 'perception'
+                                ? 'perceptionStatus'
+                                : ''
+                if (statusField) {
+                    setFormData((prev: any) => ({
+                        ...(prev || {}),
+                        [statusField]: prev?.[statusField] || 'ONGOING',
+                    }))
+                }
+            }
         } else {
             console.warn('Cannot save: missing activeHook or entityType', {
                 activeHook,
@@ -1412,10 +1969,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             ) {
                 setIsOftFldTabMenuOpen(false)
             }
+            if (
+                isCfldTabMenuOpen &&
+                cfldTabMenuRef.current &&
+                !cfldTabMenuRef.current.contains(target)
+            ) {
+                setIsCfldTabMenuOpen(false)
+            }
         }
         document.addEventListener('mousedown', onDocMouseDown)
         return () => document.removeEventListener('mousedown', onDocMouseDown)
-    }, [isMobileRouteMenuOpen, isExportMenuOpen, isOftFldTabMenuOpen])
+    }, [isMobileRouteMenuOpen, isExportMenuOpen, isOftFldTabMenuOpen, isCfldTabMenuOpen])
 
     const loading = getHookLoading(activeHook)
     // Server-paginated hooks (e.g. Equipment Master) keep the previous page via
@@ -1580,6 +2144,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 kind: 'fld',
                                 item: editingItem,
                             })}
+                        {entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM &&
+                            renderCfldTabs()}
 
                         <DataManagementFormPage
                             entityType={entityType}
@@ -1593,6 +2159,26 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             onSave={handleSaveModal}
                             onClose={closeForm}
                             isSaving={isSaving}
+                            extraActions={
+                                isCfldPerceptionSectionForm &&
+                                    statusValue(formData) === 'ONGOING' ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleMarkCfldCompleted(formData)}
+                                        disabled={
+                                            isSaving ||
+                                            markCfldCompletedMutation.isPending ||
+                                            !itemHasCfldSavedSections(formData)
+                                        }
+                                        className="px-4 py-2.5 text-sm font-medium text-white bg-[#487749] rounded-xl hover:bg-[#3d6540] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                                        title={!itemHasCfldSavedSections(formData) ? 'Save economic, socio economic, and farmers perception sections before marking completed' : undefined}
+                                    >
+                                        {markCfldCompletedMutation.isPending
+                                            ? 'Completing...'
+                                            : 'Mark as Completed'}
+                                    </button>
+                                ) : null
+                            }
                         />
                     </div>
                 ) : isOftResultPageOpen ? (
@@ -1626,30 +2212,40 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             </div>
                             <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[260px] p-4">
                                 {oftResultQuery.isLoading ? (
-                                    <LoadingState message="Loading result…" />
+                                    <div className="min-h-[260px] flex items-center justify-center">
+                                        <LoadingState message="Loading result…" />
+                                    </div>
                                 ) : (
                                     <OftResultForm
                                         embedded
                                         mode={oftResultMode}
-                                        initialValue={
-                                            (oftResultQuery.data as any)?.data ||
-                                            (oftResultQuery.data as any) ||
-                                            undefined
-                                        }
+                                        initialValue={oftResultInitialValue}
                                         sourceRows={
-                                            Array.isArray(
-                                                selectedOftItem?.technologyOptions
+                                            getOftSourceRows(
+                                                selectedOftItem,
+                                                oftResultInitialValue
                                             )
-                                                ? selectedOftItem.technologyOptions
-                                                : []
                                         }
                                         kvkId={selectedOftItem?.kvkId ?? null}
+                                        isCompleted={
+                                            statusValue(selectedOftItem) ===
+                                            'COMPLETED'
+                                        }
+                                        canMarkCompleted={
+                                            statusValue(selectedOftItem) ===
+                                            'ONGOING'
+                                        }
                                         onClose={() => {
                                             setIsOftResultPageOpen(false)
                                             setSelectedOftId(null)
                                             setSelectedOftItem(null)
                                         }}
                                         onSubmit={handleSubmitOftResult}
+                                        onMarkCompleted={() =>
+                                            handleMarkOftCompleted(
+                                                selectedOftItem
+                                            )
+                                        }
                                     />
                                 )}
                             </div>
@@ -1685,22 +2281,28 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             </div>
                             <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[300px] p-6">
                                 {fldResultQuery.isLoading ? (
-                                    <LoadingState message="Loading result…" />
+                                    <div className="min-h-[260px] flex items-center justify-center">
+                                        <LoadingState message="Loading result…" />
+                                    </div>
                                 ) : (
                                     <FldResultForm
                                         mode={fldResultMode}
                                         template={getFldResultTemplate(selectedFldItem)}
-                                        initialValue={
-                                            (fldResultQuery.data as any)?.data ||
-                                            (fldResultQuery.data as any) ||
-                                            undefined
+                                        initialValue={fldResultInitialValue || undefined}
+                                        hasSavedResult={
+                                            fldResultMode === 'edit' ||
+                                            Boolean(fldResultInitialValue) ||
+                                            itemHasFldResult(selectedFldItem)
                                         }
+                                        isCompleted={statusValue(selectedFldItem) === 'COMPLETED'}
+                                        canMarkCompleted={statusValue(selectedFldItem) === 'ONGOING'}
                                         onClose={() => {
                                             setIsFldResultPageOpen(false)
                                             setSelectedFldId(null)
                                             setSelectedFldItem(null)
                                         }}
                                         onSubmit={handleSubmitFldResult}
+                                        onMarkCompleted={() => handleMarkFldCompleted(selectedFldItem)}
                                     />
                                 )}
                             </div>

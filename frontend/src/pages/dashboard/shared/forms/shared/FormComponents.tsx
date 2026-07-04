@@ -210,22 +210,27 @@ interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> 
     required?: boolean
     error?: string
     placeholder?: string
+    // Keep the given option order (e.g. months Jan→Dec) instead of alphabetizing.
+    preserveOrder?: boolean
 }
 
-export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required, error, placeholder, className = '', ...props }) => {
+export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required, error, placeholder, preserveOrder = false, className = '', ...props }) => {
     const displayLabel = formatFormLabel(label)
     const { labelRef, paddingTopPx } = useFloatingLabelPadding(displayLabel)
 
     // Alphabetical (numeric-aware) order so every form dropdown is easy to scan.
+    // Opt out via preserveOrder for sequences that have a natural order (months).
     const sortedOptions = React.useMemo(
         () =>
-            [...options].sort((a, b) =>
-                String(a.label).localeCompare(String(b.label), undefined, {
-                    numeric: true,
-                    sensitivity: 'base',
-                }),
-            ),
-        [options],
+            preserveOrder
+                ? options
+                : [...options].sort((a, b) =>
+                    String(a.label).localeCompare(String(b.label), undefined, {
+                        numeric: true,
+                        sensitivity: 'base',
+                    }),
+                ),
+        [options, preserveOrder],
     )
 
     return (

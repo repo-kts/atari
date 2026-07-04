@@ -30,8 +30,16 @@ export const oftWorkflowApi = {
         return apiClient.put(`/forms/achievements/oft/${id}/result`, payload)
     },
 
+    markCompleted: async (id: number | string) => {
+        return apiClient.post(`/forms/achievements/oft/${id}/mark-completed`)
+    },
+
     transferFldToNextYear: async (id: number | string) => {
         return apiClient.post(`/forms/achievements/fld/${id}/transfer-next-year`)
+    },
+
+    revokeFldTransfer: async (id: number | string) => {
+        return apiClient.post(`/forms/achievements/fld/${id}/revoke-transfer`)
     },
 
     getFldResult: async (id: number | string) => {
@@ -44,5 +52,9 @@ export const oftWorkflowApi = {
 
     updateFldResult: async (id: number | string, payload: any) => {
         return apiClient.put(`/forms/achievements/fld/${id}/result`, payload)
+    },
+
+    markFldCompleted: async (id: number | string) => {
+        return apiClient.post(`/forms/achievements/fld/${id}/mark-completed`)
     },
 }

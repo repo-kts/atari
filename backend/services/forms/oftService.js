@@ -122,7 +122,7 @@ const oftService = {
         if (!source) throw new NotFoundError('OFT record');
 
         const sourceStatus = normalizeOftStatus(source.status);
-        if (!canTransition(sourceStatus, OFT_STATUS.COMPLETED)) {
+        if (sourceStatus !== OFT_STATUS.ONGOING) {
             throw new ValidationError('Result can only be added for ONGOING OFT records');
         }
 
@@ -130,8 +130,10 @@ const oftService = {
         _validateResultPayload(payload, sourceRows);
 
         const { attachmentIds } = resultAttachments.strip(payload);
-        const result = await oftRepository.createResultReportTx(id, payload);
-        await oftRepository.updateStatus(id, OFT_STATUS.COMPLETED);
+        const existingResult = await oftRepository.getResultByOftId(id);
+        const result = existingResult
+            ? await oftRepository.updateResultReportTx(id, payload)
+            : await oftRepository.createResultReportTx(id, payload);
         await resultAttachments.attach(
             { ...result, kvkId: source.kvkId },
             attachmentIds,
@@ -146,8 +148,8 @@ const oftService = {
         if (!source) throw new NotFoundError('OFT record');
 
         const sourceStatus = normalizeOftStatus(source.status);
-        if (sourceStatus !== OFT_STATUS.COMPLETED) {
-            throw new ValidationError('Result can only be edited for COMPLETED OFT records');
+        if (sourceStatus === OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR) {
+            throw new ValidationError('Result cannot be edited for transferred OFT records');
         }
 
         const sourceRows = await oftRepository.getTechnologyOptionsByOftId(id);
@@ -163,6 +165,28 @@ const oftService = {
         return resultAttachments.decorate({ ...result, kvkId: source.kvkId }, user);
     },
 
+    markCompleted: async (id, user) => {
+        const source = await oftRepository.findRawById(id, user);
+        if (!source) throw new NotFoundError('OFT record');
+
+        const sourceStatus = normalizeOftStatus(source.status);
+        if (sourceStatus === OFT_STATUS.COMPLETED) {
+            return source;
+        }
+        if (!canTransition(sourceStatus, OFT_STATUS.COMPLETED)) {
+            throw new ValidationError('Only ONGOING OFT records can be marked completed');
+        }
+
+        const result = await oftRepository.getResultByOftId(id);
+        if (!result) {
+            throw new ValidationError('Save the OFT result before marking it completed');
+        }
+
+        const updated = await oftRepository.updateStatus(id, OFT_STATUS.COMPLETED);
+        await _invalidateOftReports(source.kvkId);
+        return updated;
+    },
+
     getResult: async (id, user) => {
         const source = await oftRepository.findRawById(id, user);
         if (!source) throw new NotFoundError('OFT record');
@@ -170,7 +194,8 @@ const oftService = {
         // No result entered yet → return null (200) so the UI can open an empty
         // result form for first-time entry instead of treating it as an error.
         if (!result) return null;
-        return resultAttachments.decorate({ ...result, kvkId: source.kvkId }, user);
+        const normalizedResult = _mapResultReportForForm(result, source);
+        return resultAttachments.decorate({ ...normalizedResult, kvkId: source.kvkId }, user);
     },
 
     deleteOft: async (id, user) => {
@@ -226,6 +251,72 @@ function _validateResultPayload(payload, sourceRows = []) {
 
     validateFileSize({ size: payload.supplementaryDatasheetSize }, 5 * 1024 * 1024, 'Supplementary Datasheet');
     validateFileSize({ size: payload.photographSize }, 5 * 1024 * 1024, 'Photograph');
+}
+
+function _mapResultReportForForm(result, source) {
+    const technologyOptions = (source?.technologies || [])
+        .map((tech, index) => ({
+            optionKey: String(
+                tech.optionKey ||
+                `legacy_${String(tech.optionName || index + 1).toLowerCase().replace(/[^a-z0-9]+/g, '_')}`
+            ),
+            optionName: String(tech.optionName || tech.oftTechnologyType?.name || '').trim(),
+            details: tech.details || '',
+        }))
+        .filter((row) => row.optionName);
+
+    return {
+        oftResultReportId: result.oftResultReportId,
+        kvkOftId: result.kvkOftId,
+        finalRecommendation: result.finalRecommendation || '',
+        constraintsFeedback: result.constraintsFeedback || '',
+        farmersParticipationProcess: result.farmersParticipationProcess || '',
+        resultText: result.resultText || '',
+        remark: result.remark || '',
+        supplementaryDatasheetPath: result.supplementaryDatasheetPath,
+        supplementaryDatasheetName: result.supplementaryDatasheetName,
+        supplementaryDatasheetSize: result.supplementaryDatasheetSize,
+        supplementaryDatasheetMime: result.supplementaryDatasheetMime,
+        photographPath: result.photographPath,
+        photographName: result.photographName,
+        photographSize: result.photographSize,
+        photographMime: result.photographMime,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+        technologyOptions,
+        tables: (result.tables || []).map((table, tableIndex) => {
+            const columns = (table.columns || []).map((column, columnIndex) => ({
+                oftResultTableColumnId: column.oftResultTableColumnId,
+                columnKey: column.columnKey,
+                columnLabel: column.columnLabel,
+                isMandatory: column.isMandatory,
+                sortOrder: column.sortOrder || columnIndex + 1,
+            }));
+            const columnKeyById = new Map(
+                columns.map((column) => [Number(column.oftResultTableColumnId), column.columnKey])
+            );
+            return {
+                oftResultTableId: table.oftResultTableId,
+                tableTitle: table.tableTitle || `Table ${tableIndex + 1}`,
+                sortOrder: table.sortOrder || tableIndex + 1,
+                columns,
+                rows: (table.rows || []).map((row, rowIndex) => {
+                    const cells = {};
+                    (row.cells || []).forEach((cell) => {
+                        const key = columnKeyById.get(Number(cell.oftResultTableColumnId));
+                        if (key) cells[key] = cell.value || '';
+                    });
+                    return {
+                        oftResultTableRowId: row.oftResultTableRowId,
+                        optionKey: row.optionKey,
+                        rowLabel: row.rowLabel || `Row ${rowIndex + 1}`,
+                        sortOrder: row.sortOrder || rowIndex + 1,
+                        cells,
+                    };
+                }),
+            };
+        }),
+    };
 }
 
 module.exports = oftService;

@@ -253,9 +253,13 @@ async function enrichOftRows(rows, headers) {
                 enrichedRow._enrichFailed = true;
             }
 
-            // 2. Fetch edit-oft-result page if status is COMPLETED
+            // 2. Fetch edit-oft-result page whenever a result may exist on the old
+            // site. ONGOING OFTs can already have saved result tables (proposed/
+            // actual values) — gating this on COMPLETED left those cells empty on
+            // migration. The `final_recommendation` content check below still skips
+            // OFTs with no result page, so fetching for any active status is safe.
             const status = normalizeOftStatus(getRawStatusText(row));
-            if (status === 'COMPLETED') {
+            if (status === 'COMPLETED' || status === 'ONGOING') {
                 try {
                     const resResult = await fetch(oftResultEditPath(id), { headers: fetchHeaders, signal: AbortSignal.timeout(8000) });
                     const htmlResult = await resResult.text();

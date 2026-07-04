@@ -12,6 +12,8 @@ router.post('/', cfldTechnicalParameterController.create);
 router.put('/:id', cfldTechnicalParameterController.update);
 router.patch('/:id', cfldTechnicalParameterController.update);
 router.post('/:id/transfer-next-year', cfldTechnicalParameterController.transferToNextYear);
+router.post('/:id/revoke-transfer', cfldTechnicalParameterController.revokeTransfer);
+router.post('/:id/mark-completed', cfldTechnicalParameterController.markCompleted);
 router.delete('/:id', cfldTechnicalParameterController.delete);
 
 module.exports = router;

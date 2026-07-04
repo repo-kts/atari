@@ -790,13 +790,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             }}
                         />
                         <FormInput
-                            label="Reporting Year"
-                            required
-                            type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
-                        />
-                        <FormInput
                             label="Expected Completion Date"
                             required
                             type="date"

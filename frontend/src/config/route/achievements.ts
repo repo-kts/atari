@@ -104,13 +104,14 @@ export const achievementsRoutes: RouteConfig[] = [
         siblings: ROUTE_SIBLING_GROUPS.SPECIAL_DAYS,
     },
     {
-        path: ROUTE_PATHS.ACHIEVEMENTS.POSHAN_MAHA,
+        path: ROUTE_PATHS.ACHIEVEMENTS.POSHAN_MAAHA,
         title: 'Poshan Maaha',
+        description: 'Datewise report of events/programmes conducted during Poshan Maaha',
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
-        moduleCode: 'achievements_celebration_days',
-        fields: FIELD_GROUPS.POSHAN_MAHA,
+        moduleCode: 'misc_poshan_maah',
+        fields: FIELD_GROUPS.MISC_POSHAN_MAAH,
         siblings: ROUTE_SIBLING_GROUPS.SPECIAL_DAYS,
     },
     {

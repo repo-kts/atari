@@ -1,6 +1,6 @@
 const fldRepository = require('../../repositories/forms/fldRepository.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
-const { FLD_STATUS, normalizeFldStatus } = require('../../constants/fldStatus.js');
+const { FLD_STATUS, normalizeFldStatus, canTransition } = require('../../constants/fldStatus.js');
 const { FLD_RESULT_TEMPLATES, getFldResultTemplate } = require('../../constants/fldResultTemplate.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
@@ -74,7 +74,7 @@ const fldService = {
         if (!source) throw new NotFoundError('FLD record');
 
         const sourceStatus = normalizeFldStatus(source.ongoingCompleted);
-        if (sourceStatus !== FLD_STATUS.ONGOING) {
+        if (!canTransition(sourceStatus, FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR)) {
             throw new ValidationError('Only ONGOING FLD records can be transferred');
         }
 
@@ -108,6 +108,28 @@ const fldService = {
         return out;
     },
 
+    revokeTransfer: async (id, user) => {
+        const source = await fldRepository.findRawById(id, user);
+        if (!source) throw new NotFoundError('FLD record');
+
+        if (normalizeFldStatus(source.ongoingCompleted) !== FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR) {
+            throw new ValidationError('Only transferred FLD records can have their transfer revoked');
+        }
+
+        const children = await fldRepository.findTransferChildren(id);
+        for (const child of children) {
+            if (normalizeFldStatus(child.ongoingCompleted) !== FLD_STATUS.ONGOING || child.fldResult) {
+                throw new ValidationError(
+                    'Cannot revoke: the next-year FLD already has results or was transferred again.'
+                );
+            }
+        }
+
+        const restored = await fldRepository.revokeTransferTx(id, children.map((child) => child.kvkFldId));
+        await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
+        return restored;
+    },
+
     addResult: async (id, payload, user) => {
         const source = await fldRepository.findRawById(id, user);
         if (!source) throw new NotFoundError('FLD record');
@@ -117,8 +139,10 @@ const fldService = {
             throw new ValidationError('Result can only be added for ONGOING FLD records');
         }
         _validateFldResultPayload(payload, source);
-        const result = await fldRepository.createResultTx(id, payload);
-        await fldRepository.updateStatus(id, FLD_STATUS.COMPLETED);
+        const existingResult = await fldRepository.getResultByFldId(id);
+        const result = existingResult
+            ? await fldRepository.updateResultTx(id, payload)
+            : await fldRepository.createResultTx(id, payload);
         await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
         return result;
     },
@@ -127,11 +151,33 @@ const fldService = {
         const source = await fldRepository.findRawById(id, user);
         if (!source) throw new NotFoundError('FLD record');
         const sourceStatus = normalizeFldStatus(source.ongoingCompleted);
-        if (sourceStatus !== FLD_STATUS.COMPLETED) {
-            throw new ValidationError('Result can only be edited for COMPLETED FLD records');
+        if (sourceStatus === FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR) {
+            throw new ValidationError('Result cannot be edited for transferred FLD records');
         }
         _validateFldResultPayload(payload, source);
         const updated = await fldRepository.updateResultTx(id, payload);
+        await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
+        return updated;
+    },
+
+    markCompleted: async (id, user) => {
+        const source = await fldRepository.findRawById(id, user);
+        if (!source) throw new NotFoundError('FLD record');
+
+        const sourceStatus = normalizeFldStatus(source.ongoingCompleted);
+        if (sourceStatus === FLD_STATUS.COMPLETED) {
+            return source;
+        }
+        if (!canTransition(sourceStatus, FLD_STATUS.COMPLETED)) {
+            throw new ValidationError('Only ONGOING FLD records can be marked completed');
+        }
+
+        const result = await fldRepository.getResultByFldId(id);
+        if (!result) {
+            throw new ValidationError('Save the FLD result before marking it completed');
+        }
+
+        const updated = await fldRepository.updateStatus(id, FLD_STATUS.COMPLETED);
         await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
         return updated;
     },
@@ -140,7 +186,7 @@ const fldService = {
         const source = await fldRepository.findRawById(id, user);
         if (!source) throw new NotFoundError('FLD record');
         const result = await fldRepository.getResultByFldId(id);
-        if (!result) throw new NotFoundError('FLD result');
+        if (!result) return null;
         return result;
     },
 

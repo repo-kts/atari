@@ -78,6 +78,24 @@ const cfldTechnicalParameterController = {
             return sendError(res, error, 'transfer');
         }
     },
+
+    revokeTransfer: async (req, res) => {
+        try {
+            const result = await cfldTechnicalParameterService.revokeTransfer(req.params.id, req.user);
+            res.json({ success: true, data: result });
+        } catch (error) {
+            return sendError(res, error, 'revokeTransfer');
+        }
+    },
+
+    markCompleted: async (req, res) => {
+        try {
+            const result = await cfldTechnicalParameterService.markCompleted(req.params.id, req.user);
+            res.json({ success: true, data: result });
+        } catch (error) {
+            return sendError(res, error, 'markCompleted');
+        }
+    },
 };
 
 module.exports = cfldTechnicalParameterController;

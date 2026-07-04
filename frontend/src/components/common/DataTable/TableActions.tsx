@@ -55,9 +55,23 @@ export const TableActions: React.FC<TableActionsProps> = ({
         const trigger = triggerRef.current
         if (!trigger) return
         const rect = trigger.getBoundingClientRect()
+        const menuRect = menuRef.current?.getBoundingClientRect()
+        const menuWidth = Math.max(220, menuRect?.width || 0)
+        const estimatedMenuHeight = Math.max(48, menuRect?.height || 240)
+        const viewportPadding = 8
+        const preferredTop = rect.bottom + 6
+        const preferredLeft = rect.right - menuWidth
+        const top = Math.min(
+            Math.max(viewportPadding, preferredTop),
+            Math.max(viewportPadding, window.innerHeight - estimatedMenuHeight - viewportPadding),
+        )
+        const left = Math.min(
+            Math.max(viewportPadding, preferredLeft),
+            Math.max(viewportPadding, window.innerWidth - menuWidth - viewportPadding),
+        )
         setMenuPosition({
-            top: rect.bottom + 6,
-            left: rect.right - 220,
+            top,
+            left,
         })
     }, [])
 
@@ -109,6 +123,21 @@ export const TableActions: React.FC<TableActionsProps> = ({
 
     const visibleCustomActions = customActions
         .filter((action) => (action.isVisible ? action.isVisible(item) : true))
+    const menuSafeActionClassName = (className?: string) =>
+        String(className || '')
+            .split(/\s+/)
+            .filter(Boolean)
+            .filter((token) =>
+                !(
+                    token === 'text-xs' ||
+                    token.startsWith('px-') ||
+                    token.startsWith('py-') ||
+                    token.startsWith('rounded') ||
+                    token === 'border' ||
+                    token.startsWith('border-')
+                )
+            )
+            .join(' ')
 
     const hasAnyActions =
         canEdit ||
@@ -149,19 +178,23 @@ export const TableActions: React.FC<TableActionsProps> = ({
                             Edit
                         </button>
                     )}
-                    {canDelete && (
+                    {visibleCustomActions.map((action) => {
+                        const Icon = action.icon || Circle
+                        return (
                         <button
+                            key={action.key}
                             onClick={() => {
-                                onDelete(item)
+                                action.onClick(item)
                                 setIsMenuOpen(false)
                             }}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 flex items-center gap-2 text-red-600"
-                            title="Delete"
+                            className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700 ${menuSafeActionClassName(action.className)}`}
+                            title={action.label}
                         >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
+                            <Icon className="w-4 h-4" />
+                            {action.label}
                         </button>
-                    )}
+                        )
+                    })}
                     {(canTransfer || canTransferFurther) && onTransfer && (
                         <button
                             onClick={() => {
@@ -188,23 +221,19 @@ export const TableActions: React.FC<TableActionsProps> = ({
                             View Transfer History
                         </button>
                     )}
-                    {visibleCustomActions.map((action) => {
-                        const Icon = action.icon || Circle
-                        return (
+                    {canDelete && (
                         <button
-                            key={action.key}
                             onClick={() => {
-                                action.onClick(item)
+                                onDelete(item)
                                 setIsMenuOpen(false)
                             }}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
-                            title={action.label}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 flex items-center gap-2 text-red-600"
+                            title="Delete"
                         >
-                            <Icon className="w-4 h-4" />
-                            {action.label}
+                            <Trash2 className="w-4 h-4" />
+                            Delete
                         </button>
-                        )
-                    })}
+                    )}
                 </div>,
                 document.body
             )}

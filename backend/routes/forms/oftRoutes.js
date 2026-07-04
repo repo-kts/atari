@@ -36,6 +36,7 @@ router.post('/:id/transfer-next-year', requireRole([...kvkRoles, 'super_admin'])
 router.post('/:id/revoke-transfer', requireRole(['super_admin']), oftController.revokeTransfer);
 router.post('/:id/result', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.addResult);
 router.put('/:id/result', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.editResult);
+router.post('/:id/mark-completed', requireRole([...kvkRoles, 'super_admin']), oftController.markCompleted);
 router.get('/:id/result', requireRole(allRoles), oftController.getResult);
 
 /**
