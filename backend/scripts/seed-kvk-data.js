@@ -176,6 +176,22 @@ async function getOrCreateBudgetItem(name) {
   });
 }
 
+async function getOrCreateJobType(name) {
+  return prisma.jobTypeMaster.upsert({
+    where: { name },
+    update: {},
+    create: { name },
+  });
+}
+
+async function getOrCreateBankAccountType(name, isOther = false) {
+  return prisma.bankAccountTypeMaster.upsert({
+    where: { name },
+    update: { isOther },
+    create: { name, isOther },
+  });
+}
+
 async function getOrCreateFldCrop(name) {
   let crop = await prisma.fldCrop.findFirst({ where: { cropName: name } });
   if (!crop) {
@@ -294,6 +310,9 @@ async function seedKvks() {
 
   const budgetItem1 = await getOrCreateBudgetItem('Critical Input');
   const budgetItem2 = await getOrCreateBudgetItem('TA/DA');
+  const permanentJobType = await getOrCreateJobType('Permanent');
+  const kvkBankAccountType = await getOrCreateBankAccountType('KVK');
+  const revolvingFundAccountType = await getOrCreateBankAccountType('Revolving Fund');
 
   // Use existing FLD crops if available
   const existingFldCrops = await prisma.fldCrop.findMany({ take: 2 });
@@ -376,16 +395,17 @@ async function seedKvks() {
 
   const kvks = [];
   for (const data of kvkData) {
+    const { hostOrg, ...kvkWriteData } = data;
     let kvk = await prisma.kvk.findFirst({
       where: { kvkName: data.kvkName }
     });
     if (!kvk) {
-      kvk = await prisma.kvk.create({ data });
+      kvk = await prisma.kvk.create({ data: kvkWriteData });
       console.log(`   ✅ Created KVK: ${kvk.kvkName}`);
     } else if (data.kvkName === 'kvkpatna') {
       await prisma.kvk.update({
         where: { kvkId: kvk.kvkId },
-        data,
+        data: kvkWriteData,
       });
       kvk = await prisma.kvk.findUnique({ where: { kvkId: kvk.kvkId } });
       console.log(`   ✅ Updated KVK: ${kvk.kvkName}`);
@@ -410,7 +430,7 @@ async function seedKvks() {
         disciplineId: discipline1.disciplineId,
         payLevelId: payLevel10.payLevelId,
         dateOfJoining: new Date('2015-06-01'),
-        jobType: 'PERMANENT',
+        jobTypeMasterId: permanentJobType.jobTypeId,
         transferStatus: 'ACTIVE',
       },
       {
@@ -424,7 +444,7 @@ async function seedKvks() {
         disciplineId: discipline2.disciplineId,
         payLevelId: payLevel11.payLevelId,
         dateOfJoining: new Date('2018-03-15'),
-        jobType: 'PERMANENT',
+        jobTypeMasterId: permanentJobType.jobTypeId,
         transferStatus: 'ACTIVE',
       },
     ];
@@ -446,7 +466,7 @@ async function seedKvks() {
     const bankAccounts = [
       {
         kvkId: kvk.kvkId,
-        accountType: 'KVK',
+        bankAccountTypeMasterId: kvkBankAccountType.bankAccountTypeId,
         accountName: `${kvk.kvkName} Main Account`,
         bankName: 'State Bank of India',
         location: kvk.address,
@@ -454,7 +474,7 @@ async function seedKvks() {
       },
       {
         kvkId: kvk.kvkId,
-        accountType: 'REVOLVING_FUND',
+        bankAccountTypeMasterId: revolvingFundAccountType.bankAccountTypeId,
         accountName: `${kvk.kvkName} Revolving Fund`,
         bankName: 'Punjab National Bank',
         location: kvk.address,

@@ -8,6 +8,7 @@ async function getKvkLandDetails(kvkId, filters = {}) {
         where,
         include: {
             kvk: { select: { kvkId: true, kvkName: true } },
+            landItemMaster: { select: { name: true, isOther: true } },
         },
         orderBy: { landId: 'asc' },
     });

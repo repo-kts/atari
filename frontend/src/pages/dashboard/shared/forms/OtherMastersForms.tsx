@@ -236,6 +236,21 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                 </div>
             )}
 
+            {entityType === ENTITY_TYPES.LAND_ITEM_MASTER && (
+                <div className="space-y-4">
+                    <FormInput
+                        label="Land Item Name"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter land item name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
+            )}
+
             {entityType === ENTITY_TYPES.IMPORTANT_DAY && (
                 <div className="space-y-4">
                     <FormInput

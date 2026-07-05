@@ -149,13 +149,18 @@ model Kvk {
 }
 
 model KvkLandDetail {
-  landId Int    @id @default(autoincrement()) @map("land_id")
-  kvkId  Int    @map("kvk_id")
-  item   String @map("item")
-  areaHa Float  @map("area_ha")
+  landId           Int     @id @default(autoincrement()) @map("land_id")
+  kvkId            Int     @map("kvk_id")
+  landItemMasterId Int?    @map("land_item_master_id")
+  item             String  @map("item")
+  specifyItemName  String? @map("specify_item_name")
+  description      String? @map("description")
+  areaHa           Float   @map("area_ha")
 
-  kvk Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  kvk            Kvk             @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  landItemMaster LandItemMaster?  @relation(fields: [landItemMasterId], references: [landItemId], onDelete: SetNull)
 
   @@index([kvkId])
+  @@index([landItemMasterId])
   @@map("kvk_land_details")
 }

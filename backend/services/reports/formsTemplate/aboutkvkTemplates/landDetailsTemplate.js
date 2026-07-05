@@ -1,6 +1,7 @@
 /**
  * Land Details template (§1.3.B "Land Details").
- * Source: KvkLandDetail { item, areaHa }. One row per land item.
+ * Source: KvkLandDetail { landItemMaster, specifyItemName, description, areaHa }.
+ * One row per land item.
  * Bound to reportTemplateService (`this`).
  */
 function renderLandDetailsSection(section, data, sectionId, isFirstSection, reportContext = {}) {
@@ -18,7 +19,11 @@ function renderLandDetailsSection(section, data, sectionId, isFirstSection, repo
     let total = 0
     const rows = records.map((row, index) => {
         const kvk = this._pickValue(row, ['KVK', 'kvk.kvkName']) || '-'
-        const item = this._pickValue(row, ['Item', 'item']) || '-'
+        const masterName = this._pickValue(row, ['landItemMaster.name'])
+        const isOther = Boolean(this._pickValue(row, ['landItemMaster.isOther']))
+        const specified = this._pickValue(row, ['Specify Item', 'specifyItemName'])
+        const item = (isOther && specified) ? specified : (masterName || this._pickValue(row, ['Item', 'item']) || '-')
+        const description = this._pickValue(row, ['Description', 'description']) || '-'
         const areaRaw = this._pickValue(row, ['Area (ha)', 'areaHa'])
         const area = areaRaw === null || areaRaw === undefined || areaRaw === '' ? '-' : areaRaw
         if (typeof areaRaw === 'number') total += areaRaw
@@ -27,6 +32,7 @@ function renderLandDetailsSection(section, data, sectionId, isFirstSection, repo
                 <td class="s-no">${index + 1}</td>
                 ${showKvk ? `<td>${this._escapeHtml(String(kvk))}</td>` : ''}
                 <td>${this._escapeHtml(String(item))}</td>
+                <td>${this._escapeHtml(String(description))}</td>
                 <td style="text-align:right;">${this._escapeHtml(String(area))}</td>
             </tr>`
     }).join('')
@@ -40,6 +46,7 @@ function renderLandDetailsSection(section, data, sectionId, isFirstSection, repo
                 <th class="s-no">S. No.</th>
                 ${showKvk ? '<th>KVK</th>' : ''}
                 <th>Item</th>
+                <th>Description</th>
                 <th>Area (ha)</th>
             </tr>
         </thead>
@@ -49,6 +56,7 @@ function renderLandDetailsSection(section, data, sectionId, isFirstSection, repo
                 <td class="s-no"></td>
                 ${showKvk ? '<td></td>' : ''}
                 <td style="font-weight:bold;">Total</td>
+                <td></td>
                 <td style="text-align:right;font-weight:bold;">${total ? total : '-'}</td>
             </tr>
         </tfoot>

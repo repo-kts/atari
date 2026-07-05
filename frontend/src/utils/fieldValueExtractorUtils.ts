@@ -942,6 +942,23 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
+    [FIELD_NAMES.LAND_ITEM]: {
+        extractor: (item: any) => {
+            if (item.landItemMaster?.isOther && item.specifyItemName) return item.specifyItemName;
+            if (item.landItemMaster?.name) return item.landItemMaster.name;
+            if (item.item) return item.item;
+            return null;
+        },
+        priority: 7,
+    },
+    [FIELD_NAMES.DESCRIPTION]: {
+        extractor: (item: any) => item.description || null,
+        priority: 5,
+    },
+    [FIELD_NAMES.SPECIFY_ITEM_NAME]: {
+        extractor: (item: any) => item.specifyItemName || null,
+        priority: 5,
+    },
 
     // CFLD Technical Parameter fields - using camelCase
     [FIELD_NAMES.MONTH]: {
@@ -1409,6 +1426,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             if (item.areaCoveredHa !== undefined) return String(item.areaCoveredHa);
             if (item.areaInHa !== undefined) return String(item.areaInHa);
+            if (item.areaHa !== undefined) return String(item.areaHa);
             if (item.area !== undefined) return String(item.area);
             if (item.areaInAcre) return `${item.areaInAcre} acre`;
             return null;

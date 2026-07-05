@@ -1,0 +1,8 @@
+model LandItemMaster {
+  landItemId Int             @id @default(autoincrement()) @map("land_item_id")
+  name       String          @unique @map("name")
+  isOther    Boolean         @default(false) @map("is_other")
+  landDetails KvkLandDetail[]
+
+  @@map("land_item_master")
+}

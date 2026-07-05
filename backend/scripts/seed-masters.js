@@ -191,6 +191,20 @@ const CFLD_BUDGET_ITEM_MASTER = [
     'Publication',
 ];
 
+const LAND_ITEM_MASTER = [
+    'Administrative building',
+    'Farmers hostel',
+    'Demonstration units',
+    'Staff quarters',
+    'Rain water harvesting structure',
+    'Soil water testing labs',
+    'Minimal processing facilities',
+    'Carp hatchery',
+    'Boundary Wall',
+    'Demo',
+    'Others',
+];
+
 /**
  * Product category → types (production supply master).
  * `seed-product.json` uses: crop = category name, subcategory = type, category = product name.
@@ -1053,6 +1067,20 @@ async function seedCfldBudgetItemMasters() {
     console.log('   ✅ Done\n');
 }
 
+async function seedLandItemMasters() {
+    console.log('🌱 Land item master...');
+
+    for (const name of LAND_ITEM_MASTER) {
+        await prisma.landItemMaster.upsert({
+            where: { name },
+            update: { isOther: name === 'Others' },
+            create: { name, isOther: name === 'Others' },
+        });
+    }
+
+    console.log('   ✅ Done\n');
+}
+
 async function seedProducts() {
     console.log('🌱 Products (categories, types, seed-product.json)...');
 
@@ -1811,6 +1839,7 @@ async function run() {
     await seedEventsMasters();
     await seedFundingSources();
     await seedCfldBudgetItemMasters();
+    await seedLandItemMasters();
     await seedProducts();
     await seedCRASystems();
     await seedCfldCropMasters();

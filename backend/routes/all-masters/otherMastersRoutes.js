@@ -185,6 +185,12 @@ router.post('/infrastructure-master',    requirePermission('all_masters_infrastr
 router.put('/infrastructure-master/:id', requirePermission('all_masters_infrastructure_master', 'EDIT'),   otherMastersController.updateInfrastructureMaster);
 router.delete('/infrastructure-master/:id', requirePermission('all_masters_infrastructure_master', 'DELETE'), otherMastersController.deleteInfrastructureMaster);
 
+router.get('/land-item-master',     otherMastersController.getAllLandItemMasters);
+router.get('/land-item-master/:id', otherMastersController.getLandItemMasterById);
+router.post('/land-item-master',    requirePermission('all_masters_infrastructure_master', 'ADD'),    otherMastersController.createLandItemMaster);
+router.put('/land-item-master/:id', requirePermission('all_masters_infrastructure_master', 'EDIT'),   otherMastersController.updateLandItemMaster);
+router.delete('/land-item-master/:id', requirePermission('all_masters_infrastructure_master', 'DELETE'), otherMastersController.deleteLandItemMaster);
+
 // ============================================
 // Soil Water Testing Masters Routes
 // ============================================

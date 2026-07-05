@@ -62,7 +62,7 @@ const EQUIPMENT_DETAIL_ALLOWED_KEYS = [
 ] as const;
 
 const LAND_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'item', 'areaHa',
+    'kvkId', 'landItemMasterId', 'item', 'specifyItemName', 'description', 'areaHa',
 ] as const;
 
 function pickAllowedFields<TData>(

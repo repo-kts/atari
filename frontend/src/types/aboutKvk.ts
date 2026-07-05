@@ -165,8 +165,12 @@ export interface KvkEquipment {
 export interface KvkLandDetail {
     landId: number;
     kvkId: number;
-    item: string;
+    landItemMasterId?: number | null;
+    item?: string;
+    specifyItemName?: string | null;
+    description?: string | null;
     areaHa: number;
+    landItemMaster?: { landItemId: number; name: string; isOther?: boolean };
     kvk?: { kvkId: number; kvkName: string };
 }
 

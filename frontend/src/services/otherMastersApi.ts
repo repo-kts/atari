@@ -219,6 +219,15 @@ export interface InfrastructureMaster {
     };
 }
 
+export interface LandItemMaster {
+    landItemId: number;
+    name: string;
+    isOther?: boolean;
+    _count?: {
+        landDetails: number;
+    };
+}
+
 // Form Data Types
 export interface StaffCategoryFormData {
     categoryName: string;
@@ -304,6 +313,11 @@ export interface CropTypeFormData {
 }
 
 export interface InfrastructureMasterFormData {
+    name: string;
+    isOther?: boolean;
+}
+
+export interface LandItemMasterFormData {
     name: string;
     isOther?: boolean;
 }
@@ -772,6 +786,17 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<InfrastructureMaster>>(`${BASE_URL}/infrastructure-master/${id}`, data),
     deleteInfrastructureMaster: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/infrastructure-master/${id}`),
+
+    getLandItemMasters: () =>
+        apiClient.get<PaginatedResponse<LandItemMaster>>(`${BASE_URL}/land-item-master`),
+    getLandItemMasterById: (id: number) =>
+        apiClient.get<ApiResponse<LandItemMaster>>(`${BASE_URL}/land-item-master/${id}`),
+    createLandItemMaster: (data: LandItemMasterFormData) =>
+        apiClient.post<ApiResponse<LandItemMaster>>(`${BASE_URL}/land-item-master`, data),
+    updateLandItemMaster: (id: number, data: Partial<LandItemMasterFormData>) =>
+        apiClient.put<ApiResponse<LandItemMaster>>(`${BASE_URL}/land-item-master/${id}`, data),
+    deleteLandItemMaster: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/land-item-master/${id}`),
 
     getVehiclePresentStatuses: () =>
         apiClient.get<PaginatedResponse<VehiclePresentStatus>>(`${BASE_URL}/vehicle-present-status`),

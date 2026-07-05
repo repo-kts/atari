@@ -20,7 +20,15 @@ async function getKvkBasicInfo(kvkId) {
                 select: { universityId: true, universityName: true },
             },
             landDetails: {
-                select: { landId: true, item: true, areaHa: true },
+                select: {
+                    landId: true,
+                    item: true,
+                    landItemMasterId: true,
+                    specifyItemName: true,
+                    description: true,
+                    areaHa: true,
+                    landItemMaster: { select: { name: true, isOther: true } },
+                },
                 orderBy: { landId: 'asc' },
             },
         },
@@ -30,4 +38,3 @@ async function getKvkBasicInfo(kvkId) {
 module.exports = {
     getKvkBasicInfo,
 };
-

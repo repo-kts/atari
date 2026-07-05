@@ -32,7 +32,15 @@ const ENTITY_CONFIG = {
                 select: { universityId: true, universityName: true }
             },
             landDetails: {
-                select: { landId: true, item: true, areaHa: true }
+                select: {
+                    landId: true,
+                    item: true,
+                    landItemMasterId: true,
+                    specifyItemName: true,
+                    description: true,
+                    areaHa: true,
+                    landItemMaster: { select: { landItemId: true, name: true, isOther: true } },
+                }
             }
         }
     },
@@ -185,7 +193,8 @@ const ENTITY_CONFIG = {
         idField: 'landId',
         nameField: 'item',
         includes: {
-            kvk: { select: { kvkId: true, kvkName: true } }
+            kvk: { select: { kvkId: true, kvkName: true } },
+            landItemMaster: { select: { landItemId: true, name: true, isOther: true } }
         }
     },
     'staff-transfer-history': {
@@ -457,8 +466,37 @@ async function findAll(entityName, options = {}, user = null) {
     }
 
     await recoverEquipmentParents(entityName, data);
+    data = normalizeLandDetailRows(entityName, data);
 
     return { data, total };
+}
+
+function getLandDetailItemLabel(row) {
+    if (!row) return '';
+    const masterName = row.landItemMaster?.name;
+    if (row.landItemMaster?.isOther && row.specifyItemName) return row.specifyItemName;
+    return masterName || row.item || row.specifyItemName || '';
+}
+
+function normalizeLandDetailRows(entityName, rows) {
+    if (entityName !== 'kvk-land-details' && entityName !== 'kvks') return rows;
+    const normalize = (row) => {
+        if (!row || typeof row !== 'object') return row;
+        if (entityName === 'kvks' && Array.isArray(row.landDetails)) {
+            return {
+                ...row,
+                landDetails: row.landDetails.map((detail) => ({
+                    ...detail,
+                    item: getLandDetailItemLabel(detail),
+                })),
+            };
+        }
+        return {
+            ...row,
+            item: getLandDetailItemLabel(row),
+        };
+    };
+    return Array.isArray(rows) ? rows.map(normalize) : normalize(rows);
 }
 
 function getDefaultOrderBy(entityName) {
@@ -610,7 +648,7 @@ async function findById(entityName, id) {
         include: config.includes,
     });
     await recoverEquipmentParents(entityName, record);
-    return record;
+    return normalizeLandDetailRows(entityName, record);
 }
 
 /**
@@ -666,6 +704,9 @@ function convertRelationFieldsForKvk(data) {
             deleteMany: {},
             create: converted.landDetails.map(item => ({
                 item: sanitizeString(item.item),
+                landItemMasterId: item.landItemMasterId ? sanitizeInteger(item.landItemMasterId) : null,
+                specifyItemName: sanitizeString(item.specifyItemName, { allowEmpty: true }) || null,
+                description: sanitizeString(item.description, { allowEmpty: true }) || null,
                 areaHa: parseFloat(item.areaHa) || 0
             }))
         };
@@ -1123,7 +1164,7 @@ function sanitizeData(entityName, data) {
     }
 
     if (entityName === 'kvk-land-details') {
-        const allowedFields = ['kvkId', 'item', 'areaHa'];
+        const allowedFields = ['kvkId', 'landItemMasterId', 'item', 'specifyItemName', 'description', 'areaHa'];
 
         Object.keys(sanitized).forEach((field) => {
             if (!allowedFields.includes(field)) {
@@ -1137,6 +1178,16 @@ function sanitizeData(entityName, data) {
         if (sanitized.item !== undefined) {
             sanitized.item = sanitizeString(safeGet(data, 'item'), { allowEmpty: false });
         }
+        if (sanitized.landItemMasterId !== undefined) {
+            const value = safeGet(data, 'landItemMasterId');
+            sanitized.landItemMasterId = value === null || value === '' ? null : sanitizeInteger(value);
+        }
+        if (sanitized.specifyItemName !== undefined) {
+            sanitized.specifyItemName = sanitizeString(safeGet(data, 'specifyItemName'), { allowEmpty: true });
+        }
+        if (sanitized.description !== undefined) {
+            sanitized.description = sanitizeString(safeGet(data, 'description'), { allowEmpty: true });
+        }
         if (sanitized.areaHa !== undefined) {
             const numericValue = Number(safeGet(data, 'areaHa'));
             sanitized.areaHa = Number.isNaN(numericValue) ? 0 : numericValue;
@@ -1144,6 +1195,57 @@ function sanitizeData(entityName, data) {
     }
 
     return sanitized;
+}
+
+async function buildLandDetailPayload(data, { partial = false } = {}) {
+    const finalData = {};
+
+    if (data.kvkId !== undefined) finalData.kvkId = sanitizeInteger(data.kvkId);
+    if (data.areaHa !== undefined) {
+        const numericValue = Number(data.areaHa);
+        finalData.areaHa = Number.isNaN(numericValue) ? 0 : numericValue;
+    }
+    if (data.description !== undefined) {
+        finalData.description = sanitizeString(data.description, { allowEmpty: true }) || null;
+    }
+
+    let landItemMaster = null;
+    if (data.landItemMasterId !== undefined) {
+        if (data.landItemMasterId === null || data.landItemMasterId === '') {
+            finalData.landItemMasterId = null;
+        } else {
+            const landItemMasterId = sanitizeInteger(data.landItemMasterId);
+            landItemMaster = await prisma.landItemMaster.findUnique({
+                where: { landItemId: landItemMasterId },
+                select: { landItemId: true, name: true, isOther: true },
+            });
+            if (!landItemMaster) {
+                throw new ValidationError(`Invalid land item master ID: ${data.landItemMasterId}`);
+            }
+            finalData.landItemMasterId = landItemMaster.landItemId;
+            finalData.item = landItemMaster.name;
+            finalData.specifyItemName = landItemMaster.isOther
+                ? (sanitizeString(data.specifyItemName, { allowEmpty: true }) || null)
+                : null;
+            if (landItemMaster.isOther && !finalData.specifyItemName) {
+                throw new ValidationError('specifyItemName is required when land item is Others');
+            }
+        }
+    } else if (data.item !== undefined) {
+        finalData.item = sanitizeString(data.item, { allowEmpty: false });
+    } else if (!partial) {
+        throw new ValidationError('landItemMasterId is required');
+    }
+
+    if (data.specifyItemName !== undefined && data.landItemMasterId === undefined) {
+        finalData.specifyItemName = sanitizeString(data.specifyItemName, { allowEmpty: true }) || null;
+    }
+
+    if (!partial && finalData.item === undefined) {
+        finalData.item = landItemMaster?.name || sanitizeString(data.item, { allowEmpty: false });
+    }
+
+    return finalData;
 }
 
 async function create(entityName, data) {
@@ -1209,6 +1311,14 @@ async function create(entityName, data) {
 
         return executePrismaWrite(entityName, 'create', async () => {
             return await prisma[config.model].create({ data: finalData, include: config.includes });
+        });
+    }
+
+    if (entityName === 'kvk-land-details') {
+        const finalData = await buildLandDetailPayload(sanitizedData);
+        return executePrismaWrite(entityName, 'create', async () => {
+            const created = await prisma[config.model].create({ data: finalData, include: config.includes });
+            return normalizeLandDetailRows(entityName, created);
         });
     }
 
@@ -1359,6 +1469,18 @@ async function update(entityName, id, data) {
                 data: finalUpdateData,
                 include: config.includes,
             });
+        });
+    }
+
+    if (entityName === 'kvk-land-details') {
+        const finalUpdateData = await buildLandDetailPayload(sanitizedData, { partial: true });
+        return executePrismaWrite(entityName, 'update', async () => {
+            const updated = await prisma[config.model].update({
+                where: { [config.idField]: resolvedId },
+                data: finalUpdateData,
+                include: config.includes,
+            });
+            return normalizeLandDetailRows(entityName, updated);
         });
     }
 

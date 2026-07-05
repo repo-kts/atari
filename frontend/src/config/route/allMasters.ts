@@ -595,6 +595,17 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_infrastructure_master',
     },
     {
+        path: ENTITY_PATHS.LAND_ITEM_MASTER,
+        title: 'Land Item Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: MASTER_SIBLING_GROUPS.RESOURCE_MASTERS,
+        fields: FIELD_GROUPS.LAND_ITEM_MASTER,
+        moduleCode: 'all_masters_infrastructure_master',
+    },
+    {
         path: ENTITY_PATHS.IMPORTANT_DAY,
         title: 'Important Day Master',
         category: 'All Masters',

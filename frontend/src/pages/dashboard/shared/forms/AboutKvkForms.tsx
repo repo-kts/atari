@@ -13,7 +13,7 @@ import {
     useVehiclePresentStatuses,
     useEquipmentPresentStatuses,
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useVehicleTypes, useEquipmentTypes, useBankAccountTypes, useJobTypes } from '@/hooks/useOtherMastersData'
+import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useVehicleTypes, useEquipmentTypes, useBankAccountTypes, useJobTypes, useLandItemMasters } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
@@ -66,6 +66,8 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: equipmentTypes = [] } = useEquipmentTypes()
     const { data: bankAccountTypes = [] } = useBankAccountTypes()
     const { data: jobTypes = [] } = useJobTypes()
+    const shouldFetchLandItems = entityType === ENTITY_TYPES.KVK_LAND_DETAILS
+    const { data: landItemMasters = [] } = useLandItemMasters({ enabled: shouldFetchLandItems })
 
     const activeKvkId = user?.kvkId
         || formData.kvkId
@@ -115,6 +117,15 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         () => toOptions(infraMasters as any[], 'infraMasterId', 'name'),
         [infraMasters],
     )
+    const landItemMasterOptions = React.useMemo(
+        () => toOptions(landItemMasters as any[], 'landItemId', 'name'),
+        [landItemMasters],
+    )
+    const selectedLandItemMaster = React.useMemo(
+        () => (landItemMasters as any[]).find((item) => String(item.landItemId) === String(formData.landItemMasterId)),
+        [landItemMasters, formData.landItemMasterId],
+    )
+    const isOtherLandItemSelected = Boolean(selectedLandItemMaster?.isOther)
     const isOtherInfraSelected = React.useMemo(() => {
         const selected = (infraMasters as any[]).find(
             (m) => String(m.infraMasterId) === String(formData.infraMasterId),
@@ -1002,13 +1013,40 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             {entityType === ENTITY_TYPES.KVK_LAND_DETAILS && (
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormInput
-                            label="Item"
+                        <FormSelect
+                            label="Land Item"
                             required
-                            value={formData.item ?? ''}
-                            onChange={(e) => setFormData({ ...formData, item: e.target.value })}
-                            placeholder="e.g. Main Farm"
+                            value={formData.landItemMasterId ?? ''}
+                            onChange={(e) => {
+                                const landItemMasterId = e.target.value === '' ? '' : Number(e.target.value)
+                                const selected = (landItemMasters as any[]).find((item) => String(item.landItemId) === String(landItemMasterId))
+                                setFormData({
+                                    ...formData,
+                                    landItemMasterId,
+                                    item: selected?.name || '',
+                                    specifyItemName: selected?.isOther ? formData.specifyItemName : '',
+                                })
+                            }}
+                            placeholder="Select land item"
+                            options={landItemMasterOptions}
+                            preserveOrder
                         />
+                        <FormTextArea
+                            label="Description"
+                            value={formData.description ?? ''}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            placeholder="Enter description"
+                            rows={3}
+                        />
+                        {isOtherLandItemSelected && (
+                            <FormInput
+                                label="Specify Item"
+                                required
+                                value={formData.specifyItemName ?? ''}
+                                onChange={(e) => setFormData({ ...formData, specifyItemName: e.target.value })}
+                                placeholder="Enter item name"
+                            />
+                        )}
                         <FormInput
                             label="Area (Ha)"
                             type="number"

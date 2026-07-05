@@ -294,6 +294,20 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'land-item-master': {
+        model: 'landItemMaster',
+        idField: 'landItemId',
+        nameField: 'name',
+        extraFields: ['isOther'],
+        allowDeleteWithDependents: true,
+        includes: {
+            _count: {
+                select: {
+                    landDetails: true,
+                },
+            },
+        },
+    },
     // Soil Water Testing Masters
     'soil-water-analysis': {
         model: 'soilWaterAnalysis',
@@ -692,6 +706,7 @@ const create = async (entityType, data) => {
         'seasons',
         'crop-type',
         'important-day',
+        'land-item-master',
         'soil-water-analysis',
         'enterprise-type',
         'account-type',
@@ -714,6 +729,7 @@ const create = async (entityType, data) => {
                          entityType === 'funding-source' ? 'funding_source_master' :
                          entityType === 'crop-type' ? 'crop_type' :
                          entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' :
+                         entityType === 'land-item-master' ? 'land_item_master' :
                          entityType === 'soil-water-analysis' ? 'soil_water_analysis' :
                          entityType === 'enterprise-type' ? 'enterprise_type_master' :
                          entityType === 'account-type' ? 'account_type_master' :
@@ -770,6 +786,7 @@ const create = async (entityType, data) => {
                                  entityType === 'funding-source' ? 'funding_source_master' :
                                  entityType === 'crop-type' ? 'crop_type' :
                                  entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' :
+                                 entityType === 'land-item-master' ? 'land_item_master' :
                                  entityType === 'soil-water-analysis' ? 'soil_water_analysis' : null; 
                 
                 const columnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();

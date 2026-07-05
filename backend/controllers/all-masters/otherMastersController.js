@@ -285,6 +285,12 @@ exports.createInfrastructureMaster = create('infrastructure-master');
 exports.updateInfrastructureMaster = update('infrastructure-master');
 exports.deleteInfrastructureMaster = deleteEntity('infrastructure-master');
 
+exports.getAllLandItemMasters = getAll('land-item-master');
+exports.getLandItemMasterById = getById('land-item-master');
+exports.createLandItemMaster = create('land-item-master');
+exports.updateLandItemMaster = update('land-item-master');
+exports.deleteLandItemMaster = deleteEntity('land-item-master');
+
 // ============================================
 // Soil Water Analysis Masters Controllers
 // ============================================

@@ -37,6 +37,7 @@ const sections: FeatureSection[] = [
         icon: <Wrench className="w-5 h-5" />,
         items: [
             { label: 'Infrastructure Master', path: '/all-master/infrastructure-master' },
+            { label: 'Land Item Master', path: '/all-master/land-item-master' },
             { label: 'Soil Water Analysis Master', path: '/all-master/soil-water-analysis' },
             { label: 'Asset Status Master', path: '/all-master/vehicle-present-status' },
             { label: 'Vehicle Type Master', path: '/all-master/vehicle-type' },
