@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { sanitizeString, sanitizeInteger } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const {
     validateInput,
     resolveKvkId,
@@ -431,7 +432,7 @@ const trainingRepository = {
                 coordinator: { select: { name: true } },
                 fundingSource: { select: { name: true } },
             },
-            orderBy: { trainingAchievementId: 'desc' },
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'trainingAchievementId' }),
         });
 
         const mappedResults = await Promise.all(results.map(r => _mapResponse(r)));

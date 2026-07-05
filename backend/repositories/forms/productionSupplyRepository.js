@@ -9,6 +9,7 @@ const {
 } = require('../../utils/repositoryHelpers.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 /**
  * Production Supply Repository
  * Handles all database operations for Production and Supply of Technological Products
@@ -286,8 +287,9 @@ const productionSupplyRepository = {
                     productType: { select: { productCategoryType: true } },
                     product: { select: { productName: true, unit: { select: { unitName: true } } } },
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'productionSupplyId' }),
             });
+            sortFormListRows(results, user, { tiebreak: 'productionSupplyId' });
 
             return results.map(_mapResponse);
         } catch (error) {

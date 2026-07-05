@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const projectBudgetRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -45,7 +46,7 @@ const projectBudgetRepository = {
                 projectName: { select: { projectName: true } },
                 fundingAgency: { select: { agencyName: true } }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'projectBudgetId' })
         });
 
         return records.map(record => ({

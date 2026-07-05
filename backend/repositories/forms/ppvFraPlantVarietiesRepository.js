@@ -2,6 +2,7 @@ const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const parseYearFromInput = (value, fallback = null) => {
     if (value === undefined || value === null || value === '') return fallback;
     const parsed = parseInt(String(value).trim(), 10);
@@ -96,8 +97,9 @@ const ppvFraPlantVarietiesRepository = {
                     }
                 }
             },
-            orderBy: { ppvFraPlantVarietiesID: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'ppvFraPlantVarietiesID' })
         });
+        sortFormListRows(records, user, { tiebreak: 'ppvFraPlantVarietiesID' });
         return records.map(mapPlantVarietyRecord);
     },
 

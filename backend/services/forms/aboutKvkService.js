@@ -569,7 +569,7 @@ class AboutKvkService {
                 where: { kvkStaffId: employeeId },
                 data: {
                     kvkId: targetKvkId,
-                    transferStatus: 'TRANSFERRED',
+                    transferStatus: 'ACTIVE',
                     sourceKvkIds: sourceKvkIds,
                     originalKvkId: originalKvkId,
                     transferCount: (employee.transferCount || 0) + 1,
@@ -745,7 +745,7 @@ class AboutKvkService {
                 where: { kvkStaffId: staffId },
                 data: {
                     kvkId: revertToKvkId,
-                    transferStatus: revertToKvkId === employee.originalKvkId ? 'ACTIVE' : 'TRANSFERRED',
+                    transferStatus: 'ACTIVE',
                     lastTransferDate: parsedTransferDate,
                 },
                 include: {

@@ -2,6 +2,7 @@ const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/rep
 const prisma = require('../../config/prisma.js');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const safeParseFloat = (val) => {
     const parsed = parseFloat(val);
     return isNaN(parsed) ? null : parsed;
@@ -55,13 +56,14 @@ const districtLevelDataRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.districtLevelData.findMany({
+        const _sortRows = await prisma.districtLevelData.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'districtLevelDataId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'districtLevelDataId' });
     },
 
     findById: async (id, user) => {

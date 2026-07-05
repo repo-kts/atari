@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const kvkImpactActivityRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -35,13 +36,14 @@ const kvkImpactActivityRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.kvkImpactActivity.findMany({
+        const _sortRows = await prisma.kvkImpactActivity.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'impactActivityId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'impactActivityId' });
     },
 
     findById: async (id, user) => {

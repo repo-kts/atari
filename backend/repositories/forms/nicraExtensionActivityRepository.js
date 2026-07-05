@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const kvkIncludeWithState = {
     kvk: {
         select: {
@@ -44,7 +45,7 @@ const nicraExtensionActivityRepository = {
         return await prisma.nicraExtensionActivity.findMany({
             where,
             include: kvkIncludeWithState,
-            orderBy: { nicraExtensionActivityId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'nicraExtensionActivityId' })
         });
     },
 

@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const nariNutritionalGardenRepository = {
@@ -87,8 +88,9 @@ const nariNutritionalGardenRepository = {
                 typeOfNutritionalGarden: { select: { name: true } },
                 results: { orderBy: { nariNutritionalGardenResultId: 'asc' } },
             },
-            orderBy: { nariNutritionalGardenId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'nariNutritionalGardenId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'nariNutritionalGardenId' });
         return results.map(_mapResponse);
     },
 

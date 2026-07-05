@@ -4,6 +4,7 @@
  */
 
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const {
     resolveCropTypeId,
@@ -656,8 +657,9 @@ const cfldTechnicalParameterRepository = {
             const results = await prisma[REPO_CONFIG.model].findMany({
                 where,
                 include: REPO_CONFIG.include,
-                orderBy: REPO_CONFIG.orderBy,
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'cfldTechId' }),
             });
+            sortFormListRows(results, user, { tiebreak: 'cfldTechId' });
 
             return results.map(_mapResponse);
         } catch (error) {

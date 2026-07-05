@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { Prisma } = require('@prisma/client');
 const crypto = require('crypto');
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const {
     RepositoryError,
     parseInteger,
@@ -8,6 +9,15 @@ const {
     validateUUID,
     resolveStaffId,
 } = require('../../utils/repositoryHelpers.js');
+
+const getStaffNameSnapshot = async (staffId) => {
+    if (!staffId) return null;
+    const staff = await prisma.kvkStaff.findUnique({
+        where: { kvkStaffId: Number(staffId) },
+        select: { staffName: true },
+    });
+    return staff?.staffName || null;
+};
 
 /**
  * HRD Program Repository
@@ -83,8 +93,8 @@ const _mapResponse = (r) => {
         kvkStaffId: r.kvkStaffId,
         staffId: r.kvkStaffId, // Frontend compatibility
         kvkName: r.kvk?.kvkName,
-        staff: r.staff?.staffName,
-        staffName: r.staff?.staffName,
+        staff: r.staffName || r.staff?.staffName,
+        staffName: r.staffName || r.staff?.staffName,
         postName: r.staff?.sanctionedPost?.postName,
         course: r.courseName,
         courseName: r.courseName,
@@ -141,6 +151,7 @@ const hrdRepository = {
                 hrdProgramId: crypto.randomUUID(),
                 kvkId,
                 kvkStaffId,
+                staffName: await getStaffNameSnapshot(kvkStaffId),
                 courseName,
                 startDate,
                 endDate,
@@ -209,7 +220,7 @@ const hrdRepository = {
                         },
                     },
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'hrdProgramId' }),
             });
 
             return records.map(_mapResponse);
@@ -299,6 +310,7 @@ const hrdRepository = {
                 const staffIdOrName = data.kvkStaffId || data.staffId || data.staffName;
                 const kvkStaffId = await resolveStaffId(staffIdOrName, existing.kvkId);
                 updateData.kvkStaffId = kvkStaffId;
+                updateData.staffName = await getStaffNameSnapshot(kvkStaffId);
             }
 
             // Update fields if provided

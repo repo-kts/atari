@@ -7,6 +7,7 @@ const {
 } = require('../../utils/repositoryHelpers.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const _mapResponse = (r) => {
     if (!r) return null;
     return {
@@ -59,8 +60,9 @@ const mobileAppRepository = {
         const records = await prisma.mobileApp.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
-            orderBy: { mobileAppId: 'desc' },
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'mobileAppId' }),
         });
+        sortFormListRows(records, user, { tiebreak: 'mobileAppId' });
         return records.map(_mapResponse);
     },
 

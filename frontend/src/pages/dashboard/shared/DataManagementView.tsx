@@ -590,16 +590,33 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             }
             return 0
         }
+        // Superadmin / cross-KVK views group each reporting year by KVK name
+        // A→Z; KVK-scoped users see their own latest entries first.
+        const isKvkScoped =
+            user?.role === 'kvk_admin' || user?.role === 'kvk_user'
         return [...result].sort((a, b) => {
             const ya = reportingYearOf(a)
             const yb = reportingYearOf(b)
             if (ya !== yb) return yb - ya
-            const ra = recencyOf(a)
-            const rb = recencyOf(b)
-            if (ra !== rb) return rb - ra
+            if (!isKvkScoped) {
+                const nameCompare = kvkNameOf(a).localeCompare(kvkNameOf(b))
+                if (nameCompare !== 0) return nameCompare
+            } else {
+                const ra = recencyOf(a)
+                const rb = recencyOf(b)
+                if (ra !== rb) return rb - ra
+            }
             return idOf(b) - idOf(a)
         })
-    }, [filteredData, fields, columnFilters, useServerPaging, items, isStaffTable])
+    }, [
+        filteredData,
+        fields,
+        columnFilters,
+        useServerPaging,
+        items,
+        isStaffTable,
+        user?.role,
+    ])
 
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
