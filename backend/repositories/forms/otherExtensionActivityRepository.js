@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { Prisma } = require('@prisma/client');
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const {
     RepositoryError,
     parseInteger,
@@ -10,6 +11,15 @@ const {
     resolveStaffId,
     resolveOtherExtensionActivityTypeId,
 } = require('../../utils/repositoryHelpers.js');
+
+const getStaffNameSnapshot = async (staffId) => {
+    if (!staffId) return null;
+    const staff = await prisma.kvkStaff.findUnique({
+        where: { kvkStaffId: Number(staffId) },
+        select: { staffName: true },
+    });
+    return staff?.staffName || null;
+};
 
 const otherExtensionActivityRepository = {
     create: async (data, opts, user) => {
@@ -69,6 +79,7 @@ const otherExtensionActivityRepository = {
                 kvkId,
                 fldId,
                 staffId,
+                staffName: await getStaffNameSnapshot(staffId),
                 activityTypeId,
                 // "Other" free-text: only meaningful when the chosen activity-type row is flagged isOther.
                 activityTypeOther: (data.activityTypeOther && String(data.activityTypeOther).trim()) || null,
@@ -124,7 +135,7 @@ const otherExtensionActivityRepository = {
                     staff: { select: { staffName: true } },
                     otherExtensionActivity: { select: { otherExtensionName: true } },
                 },
-                orderBy: { otherExtensionActivityId: 'desc' },
+                orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'otherExtensionActivityId' }),
             });
             return results.map(_mapResponse);
         } catch (error) {
@@ -212,6 +223,9 @@ const otherExtensionActivityRepository = {
                 updateData.staffId = await resolveStaffId(data.staffName, kvkId, false);
             } else if (data.staffId !== undefined) {
                 updateData.staffId = await resolveStaffId(data.staffId, kvkId, false);
+            }
+            if (Object.prototype.hasOwnProperty.call(updateData, 'staffId')) {
+                updateData.staffName = await getStaffNameSnapshot(updateData.staffId);
             }
 
             // Resolve and update activity type ID
@@ -353,7 +367,7 @@ function _mapResponse(r) {
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         fldId: r.fldId,
         staffId: r.staffId,
-        staffName: r.staff ? r.staff.staffName : undefined,
+        staffName: r.staffName || (r.staff ? r.staff.staffName : undefined),
         activityTypeId: r.activityTypeId,
         activityId: r.activityTypeId, // For compatibility with frontend
         extensionActivityType: r.activityTypeOther || activityName,

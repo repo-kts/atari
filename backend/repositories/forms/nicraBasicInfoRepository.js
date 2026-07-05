@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 /** Build a 400 error with a clean, user-facing message. */
 function _badRequest(message) {
     const e = new Error(message);
@@ -98,7 +99,7 @@ const nicraBasicInfoRepository = {
         const items = await prisma.nicraBasicInfo.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
-            orderBy: { nicraBasicInfoId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'nicraBasicInfoId' })
         });
         return items.map(nicraBasicInfoRepository._mapResponse);
     },

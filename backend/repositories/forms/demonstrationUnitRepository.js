@@ -2,6 +2,7 @@ const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 const { parseYearOfEstablishment } = require('../../utils/formIntValidation.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const demonstrationUnitRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -36,13 +37,14 @@ const demonstrationUnitRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.demonstrationUnit.findMany({
+        const _sortRows = await prisma.demonstrationUnit.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'demonstrationUnitId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'demonstrationUnitId' });
     },
 
     findById: async (id, user) => {

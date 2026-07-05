@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { Prisma } = require('@prisma/client');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 /**
  * Custom error class for repository errors
  */
@@ -169,6 +170,15 @@ const _resolveStaffId = async (value, kvkId, required = false) => {
     }
 };
 
+const _getStaffNameSnapshot = async (staffId) => {
+    if (!staffId) return null;
+    const staff = await prisma.kvkStaff.findUnique({
+        where: { kvkStaffId: Number(staffId) },
+        select: { staffName: true },
+    });
+    return staff?.staffName || null;
+};
+
 /**
  * Resolve activity ID from Extension Activity Master (extension_activity table)
  * @param {string|number} value - Activity name or ID
@@ -328,6 +338,7 @@ const extensionActivityRepository = {
                 kvkId,
                 fldId,
                 staffId,
+                staffName: await _getStaffNameSnapshot(staffId),
                 activityId,
                 // "Other" free-text: only meaningful when the chosen extension-activity row is flagged isOther.
                 activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
@@ -384,7 +395,7 @@ const extensionActivityRepository = {
                     staff: { select: { staffName: true } },
                     fldActivity: { select: { activityName: true } },
                 },
-                orderBy: { extensionActivityId: 'desc' },
+                orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'extensionActivityId' }),
             });
             return results.map(_mapResponse);
         } catch (error) {
@@ -472,6 +483,9 @@ const extensionActivityRepository = {
                 updateData.staffId = await _resolveStaffId(data.staffName, kvkId, false);
             } else if (data.staffId !== undefined) {
                 updateData.staffId = await _resolveStaffId(data.staffId, kvkId, false);
+            }
+            if (Object.prototype.hasOwnProperty.call(updateData, 'staffId')) {
+                updateData.staffName = await _getStaffNameSnapshot(updateData.staffId);
             }
 
             // Resolve and update activity ID
@@ -621,7 +635,7 @@ function _mapResponse(r) {
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         fldId: r.fldId,
         staffId: r.staffId,
-        staffName: r.staff ? r.staff.staffName : undefined,
+        staffName: r.staffName || (r.staff ? r.staff.staffName : undefined),
         activityId: r.activityId,
         extensionActivityType: r.activityOther || activityName,
         activityOther: r.activityOther ?? '',

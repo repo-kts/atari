@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const nicraSoilHealthRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -86,7 +87,7 @@ const nicraSoilHealthRepository = {
             include: {
                 kvk: { select: { kvkName: true } }
             },
-            orderBy: { nicraSoilHealthCardId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'nicraSoilHealthCardId' })
         });
         return results.map(r => nicraSoilHealthRepository._mapResponse(r));
     },

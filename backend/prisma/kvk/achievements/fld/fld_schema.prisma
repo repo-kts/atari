@@ -8,6 +8,7 @@ model KvkFldIntroduction {
   kvkFldId                    Int                         @id @default(autoincrement()) @map("kvk_fld_id")
   kvkId                       Int
   kvkStaffId                  Int
+  staffName                   String?                     @map("staff_name")
   seasonId                    Int?
   sectorId                    Int?
   sectorOther                 String?                     @map("sector_other")

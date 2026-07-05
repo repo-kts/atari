@@ -3,6 +3,7 @@ model KvkOtherExtensionActivity {
   kvkId                    Int
   fldId                    Int?
   staffId                  Int?
+  staffName                String?                     @map("staff_name")
   activityTypeId           Int?
   activityTypeOther        String?                     @map("activity_type_other")
   numberOfActivities       Int                         @map("number_of_activities")

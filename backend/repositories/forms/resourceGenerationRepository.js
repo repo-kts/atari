@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const resourceGenerationRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -35,7 +36,7 @@ const resourceGenerationRepository = {
             include: {
                 kvk: { select: { kvkName: true } }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'resourceGenerationId' })
         });
     },
 

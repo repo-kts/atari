@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, parsePositiveInteger } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const safeParseFloat = (val) => {
     const parsed = parseFloat(val);
     return isNaN(parsed) ? 0 : parsed;
@@ -126,7 +127,7 @@ const nicraDetailsRepository = {
             }
         }
 
-        return await prisma.nicraDetails.findMany({
+        const _sortRows = await prisma.nicraDetails.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
@@ -134,8 +135,9 @@ const nicraDetailsRepository = {
                 subCategory: true,
                 season: true
             },
-            orderBy: { nicraDetailsId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'nicraDetailsId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'nicraDetailsId' });
     },
 
     findById: async (id, user) => {

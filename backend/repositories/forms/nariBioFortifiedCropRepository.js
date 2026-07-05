@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const nariBioFortifiedCropRepository = {
     create: async (data, user) => {
         const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
@@ -92,8 +93,9 @@ const nariBioFortifiedCropRepository = {
                 activity: { select: { activityName: true } },
                 cropCategory: { select: { name: true } },
             },
-            orderBy: { nariBioFortifiedCropId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'nariBioFortifiedCropId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'nariBioFortifiedCropId' });
         return results.map(_mapResponse);
     },
 

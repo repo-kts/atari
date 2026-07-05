@@ -6,6 +6,7 @@ const {
 } = require('../../utils/repositoryHelpers.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const _mapResponse = (r) => {
     if (!r) return null;
     return { ...r, id: r.kisanSarathiId, yearName: formatReportingYear(r.reportingYear) };
@@ -58,8 +59,9 @@ const kisanSarathiRepository = {
         const records = await prisma.kisanSarathi.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
-            orderBy: { kisanSarathiId: 'desc' },
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'kisanSarathiId' }),
         });
+        sortFormListRows(records, user, { tiebreak: 'kisanSarathiId' });
         return records.map(_mapResponse);
     },
 

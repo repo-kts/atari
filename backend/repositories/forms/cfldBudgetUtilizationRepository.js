@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { Prisma } = require('@prisma/client');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { mapCommonRelations } = require('../../utils/responseMapper.js');
@@ -477,8 +478,9 @@ const cfldBudgetUtilizationRepository = {
                         }
                     }
                 },
-                orderBy: { budgetId: 'desc' }
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'budgetId' })
             });
+            sortFormListRows(results, user, { tiebreak: 'budgetId' });
             return results.map(_mapResponse);
         } catch (error) {
             throwRepositoryError('fetch', error);

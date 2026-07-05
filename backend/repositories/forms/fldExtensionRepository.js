@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
@@ -247,8 +248,9 @@ const fldExtensionRepository = {
         const results = await prisma[FLD_EXTENSION_CONFIG.model].findMany({
             where,
             include: FLD_EXTENSION_CONFIG.includes,
-            orderBy: FLD_EXTENSION_CONFIG.orderBy,
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'extensionId' }),
         });
+        sortFormListRows(results, user, { tiebreak: 'extensionId' });
 
         // Fetch activities in batch for all results
         const activityIds = [...new Set(results.map(r => r.activityId).filter(Boolean))];

@@ -6,6 +6,7 @@ const {
 } = require('../../utils/repositoryHelpers.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const _mapResponse = (r) => {
     if (!r) return null;
     return { ...r, id: r.webPortalId, yearName: formatReportingYear(r.reportingYear) };
@@ -51,8 +52,9 @@ const webPortalRepository = {
         const records = await prisma.webPortal.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
-            orderBy: { webPortalId: 'desc' },
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'webPortalId' }),
         });
+        sortFormListRows(records, user, { tiebreak: 'webPortalId' });
         return records.map(_mapResponse);
     },
 

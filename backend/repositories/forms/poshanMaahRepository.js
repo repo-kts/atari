@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
 
 // Participant category fields that make up "Total Participants".
@@ -126,7 +127,7 @@ const poshanMaahRepository = {
         return prisma.poshanMaah.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
-            orderBy: [{ activityDate: 'desc' }, { poshanMaahId: 'desc' }],
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'poshanMaahId' }),
         });
     },
 

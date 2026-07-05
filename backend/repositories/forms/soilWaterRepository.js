@@ -1,5 +1,16 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { KVK_ROLES } = require('../../utils/formListOrderBy.js');
+
+// Raw-SQL ORDER BY matching buildFormListOrderBy: reporting year newest first,
+// then KVK name A→Z (superadmin) or latest entry first (KVK-scoped user).
+function _soilOrderBy(user, alias, pk) {
+    const isKvk = !!user && KVK_ROLES.includes(user.roleName);
+    const secondary = isKvk ? `${alias}.created_at DESC` : 'k.kvk_name ASC';
+    // reporting_year is a month-level DATE — group by the YEAR only so a whole
+    // year stays together (matches sortFormListRows on the Prisma side).
+    return `ORDER BY EXTRACT(YEAR FROM ${alias}.reporting_year) DESC NULLS LAST, ${secondary}, ${alias}.${pk} DESC`;
+}
 
 // Mapping functions to avoid duplicate fields from spreading raw DB objects
 function _mapEquipmentResponse(r) {
@@ -122,7 +133,7 @@ const soilWaterRepository = {
             LEFT JOIN soil_water_analysis a ON e."soilWaterAnalysisId" = a.soil_water_analysis_id
             
             ${whereClause}
-            ORDER BY e.soil_water_equipment_id DESC
+            ${_soilOrderBy(user, 'e', 'soil_water_equipment_id')}
         `, ...params);
 
         return rows.map(_mapEquipmentResponse);
@@ -243,7 +254,7 @@ const soilWaterRepository = {
             LEFT JOIN soil_water_analysis m ON a.analysis_id = m.soil_water_analysis_id
             
             ${whereClause}
-            ORDER BY a.soil_water_analysis_id DESC
+            ${_soilOrderBy(user, 'a', 'soil_water_analysis_id')}
         `, ...params);
 
         return rows.map(_mapAnalysisResponse);
@@ -376,7 +387,7 @@ const soilWaterRepository = {
             LEFT JOIN kvk k ON w."kvkId" = k.kvk_id
             
             ${whereClause}
-            ORDER BY w.world_soil_celebration_id DESC
+            ${_soilOrderBy(user, 'w', 'world_soil_celebration_id')}
         `, ...params);
 
         return rows.map(_mapWorldSoilDayResponse);

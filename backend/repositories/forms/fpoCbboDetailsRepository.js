@@ -3,6 +3,7 @@ const { sanitizeForPrisma, sanitizeInteger, sanitizeBoolean, safeGet, removeIdFi
 const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const fpoCbboDetailsRepository = {
     create: async (data, user) => {
         // Validate input
@@ -83,8 +84,9 @@ const fpoCbboDetailsRepository = {
             include: {
                 kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
             },
-            orderBy: { fpoCbboDetailsId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'fpoCbboDetailsId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'fpoCbboDetailsId' });
 
         return results.map(_mapResponse);
     },

@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { normalizeOptionalIndianMobile } = require('../../utils/validation.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const {
     ValidationError,
     UnauthorizedError,
@@ -260,8 +261,9 @@ const agriDroneRepository = {
             const records = await prisma.kvkAgriDrone.findMany({
                 where,
                 include: kvkNameSelect,
-                orderBy: { agriDroneId: 'desc' },
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'agriDroneId' }),
             });
+            sortFormListRows(records, user, { tiebreak: 'agriDroneId' });
 
             return records.map((r) => agriDroneRepository._mapResponse(r));
         }),

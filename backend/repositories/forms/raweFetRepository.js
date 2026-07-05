@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const raweFetRepository = {
     create: async (data, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -57,7 +58,7 @@ const raweFetRepository = {
                 kvk: { select: { kvkName: true } },
                 attachmentType: { select: { name: true } }
             },
-            orderBy: { raweProgrammeId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'raweProgrammeId' })
         });
     },
 
