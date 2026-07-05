@@ -391,9 +391,9 @@ class AboutKvkService {
             'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'jobTypeMasterId'],
             'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'jobTypeMasterId'],
             'kvk-infrastructure': ['kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
-            'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost'],
+            'kvk-vehicles': ['kvkId', 'vehicleTypeId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost'],
             'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'vehicleStatusId'],
-            'kvk-equipments': ['kvkId', 'equipmentTypeId', 'equipmentMasterId', 'yearOfPurchase', 'totalCost'],
+            'kvk-equipments': ['kvkId', 'equipmentTypeId', 'equipmentName', 'yearOfPurchase', 'totalCost'],
             'kvk-equipment-details': ['kvkId', 'reportingYear', 'equipmentId', 'equipmentStatusId'],
             'kvk-land-details': ['kvkId', 'item', 'areaHa'],
         };
@@ -443,16 +443,10 @@ class AboutKvkService {
     }
 
     async getVehiclesForDropdown(kvkId, reportingYear) {
-        if (!kvkId) {
-            throw new ValidationError('kvkId is required');
-        }
         return aboutKvkRepository.getVehiclesForDropdown(kvkId, reportingYear);
     }
 
     async getEquipmentsForDropdown(kvkId, reportingYear) {
-        if (!kvkId) {
-            throw new ValidationError('kvkId is required');
-        }
         return aboutKvkRepository.getEquipmentsForDropdown(kvkId, reportingYear);
     }
 

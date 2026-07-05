@@ -272,10 +272,13 @@ exports.getVehiclesForDropdown = async (req, res) => {
     try {
         const { reportingYear } = req.query;
         const resolvedKvkId = req.query.kvkId || req.user?.kvkId;
-        if (!resolvedKvkId) {
+        if (!resolvedKvkId && req.user?.roleName !== 'super_admin') {
             return res.status(400).json({ success: false, error: 'kvkId is required' });
         }
-        const data = await aboutKvkService.getVehiclesForDropdown(parseInt(resolvedKvkId, 10), reportingYear);
+        const data = await aboutKvkService.getVehiclesForDropdown(
+            resolvedKvkId ? parseInt(resolvedKvkId, 10) : null,
+            reportingYear,
+        );
         res.json({ success: true, data });
     } catch (error) {
         console.error('Error fetching vehicles for dropdown:', error);
@@ -287,10 +290,13 @@ exports.getEquipmentsForDropdown = async (req, res) => {
     try {
         const { reportingYear } = req.query;
         const resolvedKvkId = req.query.kvkId || req.user?.kvkId;
-        if (!resolvedKvkId) {
+        if (!resolvedKvkId && req.user?.roleName !== 'super_admin') {
             return res.status(400).json({ success: false, error: 'kvkId is required' });
         }
-        const data = await aboutKvkService.getEquipmentsForDropdown(parseInt(resolvedKvkId, 10), reportingYear);
+        const data = await aboutKvkService.getEquipmentsForDropdown(
+            resolvedKvkId ? parseInt(resolvedKvkId, 10) : null,
+            reportingYear,
+        );
         res.json({ success: true, data });
     } catch (error) {
         console.error('Error fetching equipments for dropdown:', error);

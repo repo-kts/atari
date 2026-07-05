@@ -13,12 +13,12 @@ import {
     useVehiclePresentStatuses,
     useEquipmentPresentStatuses,
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useEquipmentTypes, useEquipmentMasters, useBankAccountTypes, useJobTypes } from '@/hooks/useOtherMastersData'
+import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useVehicleTypes, useEquipmentTypes, useBankAccountTypes, useJobTypes } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
-import { toOptions, toFilteredOptions } from '@/utils/formOptions'
+import { toOptions } from '@/utils/formOptions'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
 
 const KVK_STAFF_FORM_CODE = 'kvk_staff'
@@ -27,7 +27,6 @@ const KVK_STAFF_FORM_CODE = 'kvk_staff'
 // identity across renders and don't pull closures from props.
 const equipmentOptionLabel = (eq: any): string => {
     const primary = eq.companyBrandModel
-        || eq.equipmentMaster?.name
         || eq.equipmentName
         || `#${eq.equipmentId}`
     return eq.identifierCode ? `${primary} — ${eq.identifierCode}` : primary
@@ -63,22 +62,21 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: payScales = [] } = usePayScales()
     const { data: fundingSources = [] } = useFundingSources()
     const { data: assetFundingSources = [] } = useAssetFundingSources()
+    const { data: vehicleTypes = [] } = useVehicleTypes()
     const { data: equipmentTypes = [] } = useEquipmentTypes()
-    const {
-        data: equipmentMasters = [],
-        isLoading: isLoadingEquipmentMasters,
-        error: equipmentMastersError,
-    } = useEquipmentMasters()
-    const equipmentMastersErrorText = equipmentMastersError
-        ? 'Failed to load equipment. Please try again.'
-        : undefined
     const { data: bankAccountTypes = [] } = useBankAccountTypes()
     const { data: jobTypes = [] } = useJobTypes()
 
-    const activeKvkId = user?.kvkId || formData.kvkId;
+    const activeKvkId = user?.kvkId
+        || formData.kvkId
+        || formData.kvk?.kvkId
+        || formData.vehicle?.kvkId
+        || formData.equipment?.kvkId
     const reportingYear = formData.reportingYear ? new Date(formData.reportingYear).toISOString() : undefined
-    const { data: vehicles = [] } = useKvkVehiclesForDropdown(activeKvkId, reportingYear)
-    const { data: equipments = [] } = useKvkEquipmentsForDropdown(activeKvkId, reportingYear)
+    const shouldFetchVehiclesDropdown = entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS
+    const shouldFetchEquipmentsDropdown = entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
+    const { data: vehicles = [] } = useKvkVehiclesForDropdown(activeKvkId, reportingYear, { enabled: shouldFetchVehiclesDropdown })
+    const { data: equipments = [] } = useKvkEquipmentsForDropdown(activeKvkId, reportingYear, { enabled: shouldFetchEquipmentsDropdown })
     const { data: vehicleStatuses = [] } = useVehiclePresentStatuses()
     const { data: equipmentStatuses = [] } = useEquipmentPresentStatuses()
 
@@ -170,42 +168,42 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         [payScales, formData.payScaleId],
     )
     const isOtherEquipmentTypeSelected = React.useMemo(
-        () => Boolean((equipmentTypes as any[]).find(
-            (t) => String(t.equipmentTypeId) === String(formData.equipmentTypeId),
-        )?.isOther),
+        () => {
+            const selected = (equipmentTypes as any[]).find(
+                (t) => String(t.equipmentTypeId) === String(formData.equipmentTypeId),
+            )
+            const name = String(selected?.name || '').trim().toLowerCase()
+            return Boolean(selected?.isOther) || name === 'others' || name === 'other' || name.includes('please specify')
+        },
         [equipmentTypes, formData.equipmentTypeId],
     )
+    const isOtherVehicleTypeSelected = React.useMemo(
+        () => {
+            const selected = (vehicleTypes as any[]).find(
+                (t) => String(t.vehicleTypeId) === String(formData.vehicleTypeId),
+            )
+            const name = String(selected?.name || '').trim().toLowerCase()
+            return Boolean(selected?.isOther) || name === 'others' || name === 'other' || name.includes('please specify')
+        },
+        [vehicleTypes, formData.vehicleTypeId],
+    )
     const isOtherAssetFundingSourceSelected = React.useMemo(
-        () => Boolean((assetFundingSources as any[]).find(
-            (a) => String(a.assetFundingSourceId) === String(formData.assetFundingSourceId),
-        )?.isOther),
+        () => {
+            const selected = (assetFundingSources as any[]).find(
+                (a) => String(a.assetFundingSourceId) === String(formData.assetFundingSourceId),
+            )
+            const name = String(selected?.name || '').trim().toLowerCase()
+            return Boolean(selected?.isOther) || name === 'others' || name === 'other' || name.includes('please specify')
+        },
         [assetFundingSources, formData.assetFundingSourceId],
     )
     const equipmentTypeOptions = React.useMemo(
         () => toOptions(equipmentTypes as any[], 'equipmentTypeId', 'name'),
         [equipmentTypes],
     )
-    // Equipment Masters filtered by the selected Equipment Type for the create-equipment form.
-    const equipmentMasterOptionsForForm = React.useMemo(
-        () => toFilteredOptions(
-            equipmentMasters as any[],
-            'equipmentMasterId',
-            'name',
-            'equipmentTypeId',
-            formData.equipmentTypeId,
-        ),
-        [equipmentMasters, formData.equipmentTypeId],
-    )
-    // Same master list but filtered by the Equipment Details selector filter.
-    const equipmentMasterOptionsForFilter = React.useMemo(
-        () => toFilteredOptions(
-            equipmentMasters as any[],
-            'equipmentMasterId',
-            'name',
-            'equipmentTypeId',
-            formData._filterEquipmentTypeId,
-        ),
-        [equipmentMasters, formData._filterEquipmentTypeId],
+    const vehicleTypeOptions = React.useMemo(
+        () => toOptions(vehicleTypes as any[], 'vehicleTypeId', 'name'),
+        [vehicleTypes],
     )
     const vehicleOptions = React.useMemo(
         () => toOptions(vehicles as any[], 'vehicleId', vehicleOptionLabel),
@@ -225,63 +223,33 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     )
     const filteredEquipmentOptions = React.useMemo(() => {
         const typeFilter = formData._filterEquipmentTypeId
-        const masterFilter = formData._filterEquipmentMasterId
         const filtered = (equipments as any[]).filter((eq) =>
-            (!typeFilter || eq.equipmentTypeId === typeFilter) &&
-            (!masterFilter || eq.equipmentMasterId === masterFilter)
+            (!typeFilter || eq.equipmentTypeId === typeFilter)
         )
         return toOptions(filtered, 'equipmentId', equipmentOptionLabel)
-    }, [equipments, formData._filterEquipmentTypeId, formData._filterEquipmentMasterId])
+    }, [equipments, formData._filterEquipmentTypeId])
 
-    // Backfill the Equipment Details "Equipment Type" / "Equipment (Model/Brand)"
-    // filter selects when editing. These are UI-only helper fields (not stored on
-    // the detail record), so on edit they start empty even though the underlying
-    // equipment IS selected. Derive them from the selected equipment so both
-    // dropdowns show the right value. If the equipment itself has no type/master
-    // (e.g. some migrated rows), they stay empty — there's nothing to show.
+    // Backfill the Equipment Details type filter when editing. This UI-only field
+    // is derived from the selected registered equipment.
     React.useEffect(() => {
         if (entityType !== ENTITY_TYPES.KVK_EQUIPMENT_DETAILS) return
         if (formData.equipmentId == null) return
-        if (
-            formData._filterEquipmentTypeId != null ||
-            formData._filterEquipmentMasterId != null
-        )
-            return
+        if (formData._filterEquipmentTypeId != null) return
         // Prefer the record's own nested equipment (loaded with the detail on edit) —
-        // the equipments dropdown list is filtered/paginated and may omit this row or
-        // its type/master ids. Fall back to the list lookup for newly-picked items.
+        // the equipments dropdown list may omit this row. Fall back to list lookup.
         const eqFromList = (equipments as any[]).find(
             (e) => Number(e.equipmentId) === Number(formData.equipmentId),
         )
         const nested = formData.equipment
-        const eq = (nested && (nested.equipmentTypeId != null || nested.equipmentMasterId != null))
+        const eq = (nested && nested.equipmentTypeId != null)
             ? nested
             : eqFromList
         if (!eq) return
-        if (eq.equipmentTypeId == null && eq.equipmentMasterId == null) return
+        if (eq.equipmentTypeId == null) return
         setFormData((prev: any) => ({
             ...prev,
             _filterEquipmentTypeId: eq.equipmentTypeId ?? prev._filterEquipmentTypeId ?? null,
-            _filterEquipmentMasterId: eq.equipmentMasterId ?? prev._filterEquipmentMasterId ?? null,
         }))
-    }, [entityType, formData.equipmentId, equipments, setFormData])
-
-    // Equipment Details inherits its Source of Funding from the selected equipment
-    // (the backend always derives it). Mirror the selected equipment's funding into
-    // the read-only field so the form shows the correct, consistent value.
-    React.useEffect(() => {
-        if (entityType !== ENTITY_TYPES.KVK_EQUIPMENT_DETAILS) return
-        const eq = formData.equipmentId != null
-            ? (equipments as any[]).find(
-                (e) => Number(e.equipmentId) === Number(formData.equipmentId),
-            )
-            : null
-        const inherited = eq ? eq.assetFundingSourceId ?? null : null
-        setFormData((prev: any) =>
-            prev.assetFundingSourceId === inherited
-                ? prev
-                : { ...prev, assetFundingSourceId: inherited },
-        )
     }, [entityType, formData.equipmentId, equipments, setFormData])
 
     // Sync kvkId from user when KVK role - use functional update to avoid dependency on formData
@@ -758,6 +726,26 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
 
             {(entityType === ENTITY_TYPES.KVK_VEHICLES) && (
                 <div className="space-y-4">
+                    <FormSelect
+                        label="Vehicle Type"
+                        required
+                        value={formData.vehicleTypeId != null ? String(formData.vehicleTypeId) : ''}
+                        onChange={(e) => {
+                            const vehicleTypeId = e.target.value ? parseInt(e.target.value) : null
+                            const selected = (vehicleTypes as any[]).find((t) => String(t.vehicleTypeId) === String(vehicleTypeId))
+                            const name = String(selected?.name || '').trim().toLowerCase()
+                            const isOther = Boolean(selected?.isOther) || name === 'others' || name === 'other' || name.includes('please specify')
+                            setFormData({ ...formData, vehicleTypeId, vehicleTypeOther: isOther ? formData.vehicleTypeOther : '' })
+                        }}
+                        options={vehicleTypeOptions}
+                    />
+                    {isOtherVehicleTypeSelected && (
+                        <FormInput
+                            label="Please specify vehicle type"
+                            value={formData.vehicleTypeOther ?? ''}
+                            onChange={(e) => setFormData({ ...formData, vehicleTypeOther: e.target.value })}
+                        />
+                    )}
                     <FormInput
                         label="Vehicle Name"
                         required
@@ -801,7 +789,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => {
                                 const equipmentTypeId = e.target.value ? parseInt(e.target.value) : null
                                 const isOther = Boolean((equipmentTypes as any[]).find((t) => String(t.equipmentTypeId) === String(equipmentTypeId))?.isOther)
-                                setFormData({ ...formData, equipmentTypeId, equipmentMasterId: null, equipmentTypeOther: isOther ? formData.equipmentTypeOther : '' })
+                                setFormData({ ...formData, equipmentTypeId, equipmentTypeOther: isOther ? formData.equipmentTypeOther : '' })
                             }}
                             options={equipmentTypeOptions}
                         />
@@ -812,24 +800,12 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, equipmentTypeOther: e.target.value })}
                             />
                         )}
-                        <FormSelect
-                            label="Equipment"
+                        <FormInput
+                            label="Equipment Name"
                             required
-                            value={formData.equipmentMasterId != null ? String(formData.equipmentMasterId) : ''}
-                            onChange={(e) => setFormData({ ...formData, equipmentMasterId: e.target.value ? parseInt(e.target.value) : null })}
-                            disabled={!formData.equipmentTypeId || isLoadingEquipmentMasters}
-                            error={equipmentMastersErrorText}
-                            placeholder={
-                                isLoadingEquipmentMasters
-                                    ? 'Loading equipment…'
-                                    : equipmentMastersError
-                                        ? 'Failed to load equipment'
-                                        : formData.equipmentTypeId &&
-                                            equipmentMasterOptionsForForm.length === 0
-                                            ? 'No equipment for this type'
-                                            : 'Select'
-                            }
-                            options={equipmentMasterOptionsForForm}
+                            value={formData.equipmentName ?? ''}
+                            onChange={(e) => setFormData({ ...formData, equipmentName: e.target.value })}
+                            placeholder="Enter equipment name"
                         />
                     </div>
                     <FormInput
@@ -853,26 +829,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             value={formData.totalCost ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) })}
                         />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormSelect
-                            label="Source of Funding"
-                            required
-                            value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
-                            onChange={(e) => {
-                                const assetFundingSourceId = e.target.value ? parseInt(e.target.value) : null
-                                const isOther = Boolean((assetFundingSources as any[]).find((a) => String(a.assetFundingSourceId) === String(assetFundingSourceId))?.isOther)
-                                setFormData({ ...formData, assetFundingSourceId, assetFundingSourceOther: isOther ? formData.assetFundingSourceOther : '' })
-                            }}
-                            options={assetFundingSourceOptions}
-                        />
-                        {isOtherAssetFundingSourceSelected && (
-                            <FormInput
-                                label="Please specify source of funding"
-                                value={formData.assetFundingSourceOther ?? ''}
-                                onChange={(e) => setFormData({ ...formData, assetFundingSourceOther: e.target.value })}
-                            />
-                        )}
                     </div>
                 </div>
             )}
@@ -950,10 +906,24 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormSelect
                             label="Source of Funding"
                             value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
-                            onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
+                            onChange={(e) => {
+                                const assetFundingSourceId = e.target.value ? parseInt(e.target.value) : null
+                                const selected = (assetFundingSources as any[]).find((a) => String(a.assetFundingSourceId) === String(assetFundingSourceId))
+                                const name = String(selected?.name || '').trim().toLowerCase()
+                                const isOther = Boolean(selected?.isOther) || name === 'others' || name === 'other' || name.includes('please specify')
+                                setFormData({ ...formData, assetFundingSourceId, assetFundingSourceOther: isOther ? formData.assetFundingSourceOther : '' })
+                            }}
                             disabled={!formData.reportingYear}
                             options={assetFundingSourceOptions}
                         />
+                        {isOtherAssetFundingSourceSelected && (
+                            <FormInput
+                                label="Please specify source of funding"
+                                value={formData.assetFundingSourceOther ?? ''}
+                                onChange={(e) => setFormData({ ...formData, assetFundingSourceOther: e.target.value })}
+                                disabled={!formData.reportingYear}
+                            />
+                        )}
                     </div>
                 </div>
             )}
@@ -975,12 +945,10 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <div className="grid grid-cols-2 gap-4">
                         <DependentDropdown
                             label="Equipment Type"
-                            required
                             value={formData._filterEquipmentTypeId != null ? String(formData._filterEquipmentTypeId) : ''}
                             onChange={(v) => setFormData({
                                 ...formData,
                                 _filterEquipmentTypeId: v ? Number(v) : null,
-                                _filterEquipmentMasterId: null,
                                 equipmentId: null,
                             })}
                             isDisabled={!formData.reportingYear}
@@ -988,33 +956,16 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             emptyMessage="Select reporting date first"
                             options={equipmentTypeOptions}
                         />
-                        <DependentDropdown
-                            label="Equipment (Model / Brand)"
-                            required
-                            value={formData._filterEquipmentMasterId != null ? String(formData._filterEquipmentMasterId) : ''}
-                            onChange={(v) => setFormData({
-                                ...formData,
-                                _filterEquipmentMasterId: v ? Number(v) : null,
-                                equipmentId: null,
-                            })}
-                            dependsOn={{ value: formData._filterEquipmentTypeId, field: 'equipmentTypeId' }}
-                            isLoading={isLoadingEquipmentMasters}
-                            error={equipmentMastersErrorText}
-                            emptyMessage="No equipment models registered for this type"
-                            loadingMessage="Loading equipment…"
-                            options={equipmentMasterOptionsForFilter}
-                        />
                     </div>
                     <DependentDropdown
-                        label="Equipment (Company / Brand / Model)"
+                        label="Equipment"
                         required
                         value={formData.equipmentId != null ? String(formData.equipmentId) : ''}
                         onChange={(v) => setFormData({ ...formData, equipmentId: v ? Number(v) : null })}
                         dependsOn={[
                             { value: formData._filterEquipmentTypeId, field: 'equipmentTypeId' },
-                            { value: formData._filterEquipmentMasterId, field: 'equipmentMasterId' },
                         ]}
-                        emptyMessage="No data — register an equipment under this type/model first"
+                        emptyMessage="No data — register an equipment under this type first"
                         options={filteredEquipmentOptions}
                     />
                     <FormSelect
@@ -1024,16 +975,26 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, equipmentStatusId: parseInt(e.target.value) })}
                         options={equipmentStatusOptions}
                     />
-                    {/* Funding source is inherited from the selected equipment — */}
-                    {/* read-only here; the backend always derives it from the parent. */}
                     <FormSelect
-                        label="Source of Funding (from equipment)"
+                        label="Source of Funding"
                         value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
-                        onChange={() => { }}
-                        disabled
-                        placeholder={formData.equipmentId ? '—' : 'Select an equipment first'}
+                        onChange={(e) => {
+                            const assetFundingSourceId = e.target.value ? parseInt(e.target.value) : null
+                            const selected = (assetFundingSources as any[]).find((a) => String(a.assetFundingSourceId) === String(assetFundingSourceId))
+                            const name = String(selected?.name || '').trim().toLowerCase()
+                            const isOther = Boolean(selected?.isOther) || name === 'others' || name === 'other' || name.includes('please specify')
+                            setFormData({ ...formData, assetFundingSourceId, assetFundingSourceOther: isOther ? formData.assetFundingSourceOther : '' })
+                        }}
+                        placeholder="Select"
                         options={assetFundingSourceOptions}
                     />
+                    {isOtherAssetFundingSourceSelected && (
+                        <FormInput
+                            label="Please specify source of funding"
+                            value={formData.assetFundingSourceOther ?? ''}
+                            onChange={(e) => setFormData({ ...formData, assetFundingSourceOther: e.target.value })}
+                        />
+                    )}
                 </div>
             )}
 

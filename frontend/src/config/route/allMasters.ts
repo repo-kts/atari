@@ -496,6 +496,17 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_asset_funding_source_master',
     },
     {
+        path: ENTITY_PATHS.VEHICLE_TYPE,
+        title: 'Vehicle Type Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: MASTER_SIBLING_GROUPS.RESOURCE_MASTERS,
+        fields: FIELD_GROUPS.EQUIPMENT_TYPE_MASTER,
+        moduleCode: 'all_masters_equipment_type_master',
+    },
+    {
         path: ENTITY_PATHS.EQUIPMENT_TYPE,
         title: 'Equipment Type Master',
         category: 'All Masters',

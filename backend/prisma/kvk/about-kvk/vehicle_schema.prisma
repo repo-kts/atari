@@ -1,6 +1,8 @@
 model KvkVehicle {
   vehicleId       Int                  @id @default(autoincrement()) @map("vehicle_id")
   kvkId           Int
+  vehicleTypeId   Int?                 @map("vehicle_type_id")
+  vehicleTypeOther String?              @map("vehicle_type_other")
   vehicleName     String               @map("vehicle_name")
   registrationNo  String               @map("registration_no")
   yearOfPurchase  Int                  @map("year_of_purchase")
@@ -8,9 +10,11 @@ model KvkVehicle {
   createdAt       DateTime             @default(now()) @map("created_at")
   updatedAt       DateTime             @updatedAt @map("updated_at")
   kvk             Kvk                  @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  vehicleType     VehicleTypeMaster?    @relation(fields: [vehicleTypeId], references: [vehicleTypeId], onDelete: SetNull)
   vehicleDetails  KvkVehicleDetail[]
 
   @@index([kvkId])
+  @@index([vehicleTypeId])
   @@index([vehicleName])
   @@map("kvk_vehicle")
 }
@@ -23,6 +27,7 @@ model KvkVehicleDetail {
   totalRun             String                     @map("total_run")
   repairingCost        Float?                     @map("repairing_cost")
   assetFundingSourceId Int?                       @map("asset_funding_source_id")
+  assetFundingSourceOther String?                 @map("asset_funding_source_other")
   vehicleStatusId      Int                        @map("vehicle_status_id")
   createdAt            DateTime                   @default(now()) @map("created_at")
   updatedAt            DateTime                   @updatedAt @map("updated_at")

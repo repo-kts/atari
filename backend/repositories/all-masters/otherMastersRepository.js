@@ -135,6 +135,7 @@ const ENTITY_CONFIG = {
         model: 'assetFundingSourceMaster',
         idField: 'assetFundingSourceId',
         nameField: 'name',
+        extraFields: ['isOther'],
         allowDeleteWithDependents: true, // onDelete: SetNull configured
         includes: {
             _count: {
@@ -150,12 +151,27 @@ const ENTITY_CONFIG = {
         model: 'equipmentTypeMaster',
         idField: 'equipmentTypeId',
         nameField: 'name',
+        extraFields: ['isOther'],
         allowDeleteWithDependents: true, // onDelete: SetNull on equipments; Cascade on child equipmentMasters
         includes: {
             _count: {
                 select: {
                     equipments: true,
                     equipmentMasters: true,
+                },
+            },
+        },
+    },
+    'vehicle-type': {
+        model: 'vehicleTypeMaster',
+        idField: 'vehicleTypeId',
+        nameField: 'name',
+        extraFields: ['isOther'],
+        allowDeleteWithDependents: true,
+        includes: {
+            _count: {
+                select: {
+                    vehicles: true,
                 },
             },
         },

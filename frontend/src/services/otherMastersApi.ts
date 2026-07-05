@@ -90,9 +90,19 @@ export interface AssetFundingSource {
 export interface EquipmentTypeEntry {
     equipmentTypeId: number;
     name: string;
+    isOther?: boolean;
     _count?: {
         equipments: number;
         equipmentMasters: number;
+    };
+}
+
+export interface VehicleTypeEntry {
+    vehicleTypeId: number;
+    name: string;
+    isOther?: boolean;
+    _count?: {
+        vehicles: number;
     };
 }
 
@@ -107,6 +117,11 @@ export interface EquipmentMasterEntry {
 }
 
 export interface EquipmentTypeFormData {
+    name: string;
+    isOther?: boolean;
+}
+
+export interface VehicleTypeFormData {
     name: string;
     isOther?: boolean;
 }
@@ -624,6 +639,17 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type/${id}`, data),
     deleteEquipmentType: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-type/${id}`),
+
+    getVehicleTypes: () =>
+        apiClient.get<PaginatedResponse<VehicleTypeEntry>>(`${BASE_URL}/vehicle-type`),
+    getVehicleTypeById: (id: number) =>
+        apiClient.get<ApiResponse<VehicleTypeEntry>>(`${BASE_URL}/vehicle-type/${id}`),
+    createVehicleType: (data: VehicleTypeFormData) =>
+        apiClient.post<ApiResponse<VehicleTypeEntry>>(`${BASE_URL}/vehicle-type`, data),
+    updateVehicleType: (id: number, data: Partial<VehicleTypeFormData>) =>
+        apiClient.put<ApiResponse<VehicleTypeEntry>>(`${BASE_URL}/vehicle-type/${id}`, data),
+    deleteVehicleType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/vehicle-type/${id}`),
 
     getEquipmentMasters: (params?: { page?: number; limit?: number; search?: string }) => {
         const qs = new URLSearchParams()

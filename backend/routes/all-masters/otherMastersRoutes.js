@@ -108,6 +108,12 @@ router.post('/equipment-type',    requirePermission('all_masters_equipment_type_
 router.put('/equipment-type/:id', requirePermission('all_masters_equipment_type_master', 'EDIT'),   otherMastersController.updateEquipmentType);
 router.delete('/equipment-type/:id', requirePermission('all_masters_equipment_type_master', 'DELETE'), otherMastersController.deleteEquipmentType);
 
+router.get('/vehicle-type',     otherMastersController.getAllVehicleTypes);
+router.get('/vehicle-type/:id', otherMastersController.getVehicleTypeById);
+router.post('/vehicle-type',    requirePermission('all_masters_equipment_type_master', 'ADD'),    otherMastersController.createVehicleType);
+router.put('/vehicle-type/:id', requirePermission('all_masters_equipment_type_master', 'EDIT'),   otherMastersController.updateVehicleType);
+router.delete('/vehicle-type/:id', requirePermission('all_masters_equipment_type_master', 'DELETE'), otherMastersController.deleteVehicleType);
+
 router.get('/equipment-master',     otherMastersController.getAllEquipmentMasters);
 router.get('/equipment-master/:id', otherMastersController.getEquipmentMasterById);
 router.post('/equipment-master',    requirePermission('all_masters_equipment_master', 'ADD'),    otherMastersController.createEquipmentMaster);

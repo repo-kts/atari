@@ -54,6 +54,7 @@ import {
     usePayLevels,
     usePayScales,
     useAssetFundingSources,
+    useVehicleTypes,
     useEquipmentTypes,
     useEquipmentMastersPaginated,
     useDisciplines,
@@ -161,6 +162,7 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.PAY_LEVEL]: () => usePayLevels(),
     [ENTITY_TYPES.PAY_SCALE]: () => usePayScales(),
     [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: () => useAssetFundingSources(),
+    [ENTITY_TYPES.VEHICLE_TYPE]: () => useVehicleTypes(),
     [ENTITY_TYPES.EQUIPMENT_TYPE]: () => useEquipmentTypes(),
     [ENTITY_TYPES.EQUIPMENT_MASTER]: (params) => useEquipmentMastersPaginated(params),
     [ENTITY_TYPES.DISCIPLINE]: () => useDisciplines(),
@@ -357,7 +359,7 @@ export function useEntityHook(entityType: ExtendedEntityType | null, paginationP
     // Use a stable default entity type if not an About KVK entity
     const aboutKvkEntityType = (entityType && isAboutKvkEntity)
         ? (entityType as AboutKvkEntity)
-        : (ABOUT_KVK_ENTITIES[0] as AboutKvkEntity) // Default to first About KVK entity
+        : null
     const aboutKvkHookResult = useAboutKvkData(aboutKvkEntityType)
     const aboutKvkHook = isAboutKvkEntity ? aboutKvkHookResult : null
 

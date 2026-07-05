@@ -44,6 +44,7 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.PAY_LEVEL]: 'payLevelId',
     [ENTITY_TYPES.PAY_SCALE]: 'payScaleId',
     [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: 'assetFundingSourceId',
+    [ENTITY_TYPES.VEHICLE_TYPE]: 'vehicleTypeId',
     [ENTITY_TYPES.EQUIPMENT_TYPE]: 'equipmentTypeId',
     [ENTITY_TYPES.EQUIPMENT_MASTER]: 'equipmentMasterId',
     [ENTITY_TYPES.DISCIPLINE]: 'disciplineId',

@@ -127,6 +127,7 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
+            vehicleType: { select: { vehicleTypeId: true, name: true, isOther: true } },
         }
     },
     'kvk-vehicle-details': { // Alias for vehicles
@@ -135,7 +136,18 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
+            vehicle: {
+                select: {
+                    vehicleId: true,
+                    vehicleName: true,
+                    registrationNo: true,
+                    yearOfPurchase: true,
+                    totalCost: true,
+                    vehicleTypeId: true,
+                    vehicleTypeOther: true,
+                    vehicleType: { select: { vehicleTypeId: true, name: true, isOther: true } },
+                },
+            },
             vehicleStatus: { select: { vehicleStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
             assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
         }
@@ -160,11 +172,8 @@ const ENTITY_CONFIG = {
             equipment: {
                 select: {
                     equipmentId: true, equipmentName: true, companyBrandModel: true, identifierCode: true,
-                    yearOfPurchase: true, totalCost: true, equipmentTypeId: true, equipmentMasterId: true,
-                    assetFundingSourceId: true,
-                    equipmentMaster: { select: { equipmentMasterId: true, name: true } },
+                    yearOfPurchase: true, totalCost: true, equipmentTypeId: true,
                     equipmentType: { select: { equipmentTypeId: true, name: true } },
-                    assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
                 }
             },
             equipmentStatus: { select: { equipmentStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
@@ -891,6 +900,8 @@ function sanitizeData(entityName, data) {
     if (entityName === 'kvk-vehicles') {
         const allowedFields = [
             'kvkId',
+            'vehicleTypeId',
+            'vehicleTypeOther',
             'vehicleName',
             'registrationNo',
             'yearOfPurchase',
@@ -902,6 +913,18 @@ function sanitizeData(entityName, data) {
                 delete sanitized[field];
             }
         });
+
+        if (sanitized.kvkId !== undefined) sanitized.kvkId = sanitizeInteger(sanitized.kvkId);
+        if (sanitized.vehicleTypeId !== undefined) {
+            sanitized.vehicleTypeId = sanitized.vehicleTypeId == null || sanitized.vehicleTypeId === ''
+                ? null
+                : sanitizeInteger(sanitized.vehicleTypeId);
+        }
+        if (sanitized.vehicleTypeOther !== undefined) {
+            sanitized.vehicleTypeOther = sanitizeString(sanitized.vehicleTypeOther, { allowEmpty: true });
+        }
+        if (sanitized.yearOfPurchase !== undefined) sanitized.yearOfPurchase = sanitizeInteger(sanitized.yearOfPurchase);
+        if (sanitized.totalCost !== undefined) sanitized.totalCost = Number(sanitized.totalCost);
     }
 
     if (entityName === 'kvk-equipments') {
@@ -909,14 +932,11 @@ function sanitizeData(entityName, data) {
             'kvkId',
             'equipmentTypeId',
             'equipmentTypeOther',
-            'equipmentMasterId',
             'equipmentName',
             'companyBrandModel',
             'identifierCode',
             'yearOfPurchase',
             'totalCost',
-            'assetFundingSourceId',
-            'assetFundingSourceOther',
         ];
 
         Object.keys(sanitized).forEach(field => {
@@ -924,6 +944,15 @@ function sanitizeData(entityName, data) {
                 delete sanitized[field];
             }
         });
+
+        if (sanitized.kvkId !== undefined) sanitized.kvkId = sanitizeInteger(sanitized.kvkId);
+        if (sanitized.equipmentTypeId !== undefined) {
+            sanitized.equipmentTypeId = sanitized.equipmentTypeId == null || sanitized.equipmentTypeId === ''
+                ? null
+                : sanitizeInteger(sanitized.equipmentTypeId);
+        }
+        if (sanitized.yearOfPurchase !== undefined) sanitized.yearOfPurchase = sanitizeInteger(sanitized.yearOfPurchase);
+        if (sanitized.totalCost !== undefined) sanitized.totalCost = Number(sanitized.totalCost);
     }
 
     if (entityName === 'kvk-bank-accounts') {
@@ -994,6 +1023,7 @@ function sanitizeData(entityName, data) {
             'totalRun',
             'repairingCost',
             'assetFundingSourceId',
+            'assetFundingSourceOther',
             'vehicleStatusId',
         ];
 
@@ -1010,6 +1040,7 @@ function sanitizeData(entityName, data) {
             'equipmentId',
             'reportingYear',
             'assetFundingSourceId',
+            'assetFundingSourceOther',
             'equipmentStatusId',
         ];
 
@@ -1081,6 +1112,7 @@ async function create(entityName, data) {
             assetFundingSourceId: sanitizedData.assetFundingSourceId != null
                 ? sanitizeInteger(sanitizedData.assetFundingSourceId)
                 : null,
+            assetFundingSourceOther: sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true }),
             vehicleStatusId: sanitizeInteger(sanitizedData.vehicleStatusId),
         };
 
@@ -1093,19 +1125,14 @@ async function create(entityName, data) {
         const parsedReportingYear = parseReportingYearDate(sanitizedData.reportingYear);
         ensureNotFutureDate(parsedReportingYear);
         const equipmentId = sanitizeInteger(sanitizedData.equipmentId);
-        // Funding source is never taken from the client — it always mirrors the
-        // parent equipment's source of funding.
-        const parentEquip = equipmentId != null
-            ? await prisma.kvkEquipment.findUnique({
-                where: { equipmentId },
-                select: { assetFundingSourceId: true },
-            })
-            : null;
         const finalData = {
             kvkId: sanitizeInteger(sanitizedData.kvkId),
             equipmentId,
             reportingYear: parsedReportingYear,
-            assetFundingSourceId: parentEquip?.assetFundingSourceId ?? null,
+            assetFundingSourceId: sanitizedData.assetFundingSourceId != null
+                ? sanitizeInteger(sanitizedData.assetFundingSourceId)
+                : null,
+            assetFundingSourceOther: sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true }),
             equipmentStatusId: sanitizeInteger(sanitizedData.equipmentStatusId),
         };
 
@@ -1222,6 +1249,9 @@ async function update(entityName, id, data) {
                 ? null
                 : sanitizeInteger(sanitizedData.assetFundingSourceId);
         }
+        if (sanitizedData.assetFundingSourceOther !== undefined) {
+            finalUpdateData.assetFundingSourceOther = sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true });
+        }
         if (sanitizedData.vehicleStatusId !== undefined) finalUpdateData.vehicleStatusId = sanitizeInteger(sanitizedData.vehicleStatusId);
 
         return executePrismaWrite(entityName, 'update', async () => {
@@ -1242,26 +1272,15 @@ async function update(entityName, id, data) {
             ensureNotFutureDate(parsedReportingYear);
             finalUpdateData.reportingYear = parsedReportingYear;
         }
+        if (sanitizedData.assetFundingSourceId !== undefined) {
+            finalUpdateData.assetFundingSourceId = sanitizedData.assetFundingSourceId == null
+                ? null
+                : sanitizeInteger(sanitizedData.assetFundingSourceId);
+        }
+        if (sanitizedData.assetFundingSourceOther !== undefined) {
+            finalUpdateData.assetFundingSourceOther = sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true });
+        }
         if (sanitizedData.equipmentStatusId !== undefined) finalUpdateData.equipmentStatusId = sanitizeInteger(sanitizedData.equipmentStatusId);
-
-        // Funding source is never taken from the client — it always mirrors the
-        // parent equipment. Recompute from the effective equipmentId (the updated
-        // one, or the existing record's if equipment isn't being changed).
-        let effectiveEquipmentId = finalUpdateData.equipmentId;
-        if (effectiveEquipmentId == null) {
-            const existing = await prisma.kvkEquipmentDetail.findUnique({
-                where: { [config.idField]: resolvedId },
-                select: { equipmentId: true },
-            });
-            effectiveEquipmentId = existing?.equipmentId ?? null;
-        }
-        if (effectiveEquipmentId != null) {
-            const parentEquip = await prisma.kvkEquipment.findUnique({
-                where: { equipmentId: effectiveEquipmentId },
-                select: { assetFundingSourceId: true },
-            });
-            finalUpdateData.assetFundingSourceId = parentEquip?.assetFundingSourceId ?? null;
-        }
 
         return executePrismaWrite(entityName, 'update', async () => {
             return await prisma[config.model].update({
@@ -1539,11 +1558,12 @@ async function getLastTransferRecord(staffId) {
 async function filterAssetsForReportingYear({ kvkId, reportingYear, assetType }) {
     const parsedKvkId = sanitizeInteger(kvkId);
     const targetYearDate = reportingYear ? parseReportingYearDate(reportingYear) : new Date();
+    const kvkFilter = parsedKvkId ? { kvkId: parsedKvkId } : {};
 
     if (assetType === 'vehicle') {
         const hiddenVehicleIds = await prisma.kvkVehicleDetail.findMany({
             where: {
-                kvkId: parsedKvkId,
+                ...kvkFilter,
                 reportingYear: { lt: targetYearDate },
                 vehicleStatus: { hideInNextYear: true },
             },
@@ -1559,7 +1579,7 @@ async function filterAssetsForReportingYear({ kvkId, reportingYear, assetType })
 
     const hiddenEquipmentIds = await prisma.kvkEquipmentDetail.findMany({
         where: {
-            kvkId: parsedKvkId,
+            ...kvkFilter,
             reportingYear: { lt: targetYearDate },
             equipmentStatus: { hideInNextYear: true },
         },
@@ -1583,10 +1603,17 @@ async function getVehiclesForDropdown(kvkId, reportingYear) {
 
     return prisma.kvkVehicle.findMany({
         where: {
-            kvkId: parsedKvkId,
+            ...(parsedKvkId ? { kvkId: parsedKvkId } : {}),
             ...(hiddenAssetIds.length ? { vehicleId: { notIn: hiddenAssetIds } } : {}),
         },
-        select: { vehicleId: true, vehicleName: true, registrationNo: true },
+        select: {
+            vehicleId: true,
+            vehicleName: true,
+            registrationNo: true,
+            vehicleTypeId: true,
+            vehicleTypeOther: true,
+            vehicleType: { select: { vehicleTypeId: true, name: true, isOther: true } },
+        },
         orderBy: { vehicleName: 'asc' },
     });
 }
@@ -1601,7 +1628,7 @@ async function getEquipmentsForDropdown(kvkId, reportingYear) {
 
     return prisma.kvkEquipment.findMany({
         where: {
-            kvkId: parsedKvkId,
+            ...(parsedKvkId ? { kvkId: parsedKvkId } : {}),
             ...(hiddenAssetIds.length ? { equipmentId: { notIn: hiddenAssetIds } } : {}),
         },
         select: {
@@ -1610,14 +1637,9 @@ async function getEquipmentsForDropdown(kvkId, reportingYear) {
             companyBrandModel: true,
             identifierCode: true,
             equipmentTypeId: true,
-            equipmentMasterId: true,
-            // Equipment Details inherits its funding source from the equipment.
-            assetFundingSourceId: true,
             equipmentType: { select: { equipmentTypeId: true, name: true } },
-            equipmentMaster: { select: { equipmentMasterId: true, name: true } },
-            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
         },
-        orderBy: [{ equipmentTypeId: 'asc' }, { equipmentMasterId: 'asc' }, { equipmentName: 'asc' }],
+        orderBy: [{ equipmentTypeId: 'asc' }, { equipmentName: 'asc' }],
     });
 }
 

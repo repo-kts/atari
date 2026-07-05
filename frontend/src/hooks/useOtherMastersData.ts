@@ -12,6 +12,7 @@ import type {
     PayScaleFormData,
     AssetFundingSourceFormData,
     EquipmentTypeFormData,
+    VehicleTypeFormData,
     EquipmentMasterFormData,
     DisciplineFormData,
     ExtensionActivityTypeFormData,
@@ -467,6 +468,50 @@ export function useEquipmentTypes() {
         mutationFn: (id: number) => otherMastersApi.deleteEquipmentType(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useVehicleTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['vehicle-types'],
+        queryFn: () => otherMastersApi.getVehicleTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: VehicleTypeFormData) => otherMastersApi.createVehicleType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.VEHICLE_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<VehicleTypeFormData> }) =>
+            otherMastersApi.updateVehicleType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.VEHICLE_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteVehicleType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.VEHICLE_TYPE);
         },
     });
 

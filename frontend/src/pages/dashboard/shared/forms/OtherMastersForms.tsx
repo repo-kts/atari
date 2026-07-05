@@ -91,16 +91,16 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                 </div>
             )}
 
-            {entityType === ENTITY_TYPES.EQUIPMENT_TYPE && (
+            {(entityType === ENTITY_TYPES.EQUIPMENT_TYPE || entityType === ENTITY_TYPES.VEHICLE_TYPE) && (
                 <div className="space-y-4">
                     <FormInput
-                        label="Type Name"
+                        label={entityType === ENTITY_TYPES.VEHICLE_TYPE ? 'Vehicle Type Name' : 'Type Name'}
                         required
                         value={formData.name ?? ''}
                         onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
                             setFormData((prev: any) => ({ ...prev, name: e.target.value }))
                         }, [setFormData])}
-                        placeholder="e.g. Tractor"
+                        placeholder={entityType === ENTITY_TYPES.VEHICLE_TYPE ? 'e.g. Tractor' : 'e.g. Lab Equipment'}
                     />
                     <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
                 </div>

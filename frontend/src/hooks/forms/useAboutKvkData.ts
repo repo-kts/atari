@@ -35,8 +35,8 @@ function useEntityMutation<TData>(
     const createMutation = useMutation({
         mutationFn: (data: TData) => apiCalls.create(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey });
-            relatedKeys.forEach(key => queryClient.invalidateQueries({ queryKey: key }));
+            queryClient.invalidateQueries({ queryKey: [queryKey[0]] });
+            relatedKeys.forEach(key => queryClient.invalidateQueries({ queryKey: [key[0]] }));
         },
     });
 
@@ -44,16 +44,16 @@ function useEntityMutation<TData>(
         mutationFn: ({ id, data }: { id: number; data: Partial<TData> }) =>
             apiCalls.update(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey });
-            relatedKeys.forEach(key => queryClient.invalidateQueries({ queryKey: key }));
+            queryClient.invalidateQueries({ queryKey: [queryKey[0]] });
+            relatedKeys.forEach(key => queryClient.invalidateQueries({ queryKey: [key[0]] }));
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => apiCalls.delete(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey });
-            relatedKeys.forEach(key => queryClient.invalidateQueries({ queryKey: key }));
+            queryClient.invalidateQueries({ queryKey: [queryKey[0]] });
+            relatedKeys.forEach(key => queryClient.invalidateQueries({ queryKey: [key[0]] }));
         },
     });
 
@@ -71,11 +71,12 @@ function useEntityMutation<TData>(
 // KVK Hooks
 // ============================================
 
-export function useKvks(params?: any) {
+export function useKvks(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const query = useQuery({
         queryKey: buildQueryKey('kvks', params, user),
         queryFn: () => aboutKvkApi.getKvks(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     const mutations = useEntityMutation<KvkFormData>(
@@ -115,11 +116,12 @@ export function useAllKvksForDropdown(params?: any) {
 // Bank Account Hooks
 // ============================================
 
-export function useKvkBankAccounts(params?: any) {
+export function useKvkBankAccounts(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-bank-accounts', params, user),
         queryFn: () => aboutKvkApi.getKvkBankAccounts(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     const mutations = useEntityMutation<KvkBankAccountFormData>(
@@ -143,11 +145,12 @@ export function useKvkBankAccounts(params?: any) {
 // Employee Hooks
 // ============================================
 
-export function useKvkEmployees(params?: any) {
+export function useKvkEmployees(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-employees', params, user),
         queryFn: () => aboutKvkApi.getKvkEmployees(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     const mutations = useEntityMutation<KvkEmployeeFormData>(
@@ -168,11 +171,12 @@ export function useKvkEmployees(params?: any) {
     };
 }
 
-export function useKvkStaffTransferred(params?: any) {
+export function useKvkStaffTransferred(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-staff-transferred', params, user),
         queryFn: () => aboutKvkApi.getKvkStaffTransferred(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     // Uses same mutations as employees really, but exposed via specific hooks if needed
@@ -198,11 +202,12 @@ export function useKvkStaffTransferred(params?: any) {
 // Infrastructure Hooks
 // ============================================
 
-export function useKvkInfrastructure(params?: any) {
+export function useKvkInfrastructure(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-infrastructure', params, user),
         queryFn: () => aboutKvkApi.getKvkInfrastructure(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     const mutations = useEntityMutation<KvkInfrastructureFormData>(
@@ -226,12 +231,13 @@ export function useKvkInfrastructure(params?: any) {
 // Vehicle Hooks
 // ============================================
 
-export function useKvkVehicles(params?: any) {
+export function useKvkVehicles(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-vehicles', params, user),
         queryFn: () => aboutKvkApi.getKvkVehicles(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     const baseMutations = useEntityMutation<KvkVehicleFormData>(
@@ -275,11 +281,12 @@ export function useKvkVehicles(params?: any) {
     };
 }
 
-export function useKvkVehicleDetails(params?: any) {
+export function useKvkVehicleDetails(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-vehicle-details', params, user),
         queryFn: () => aboutKvkApi.getKvkVehicleDetails(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     const mutations = useEntityMutation<KvkVehicleFormData>(
@@ -304,12 +311,13 @@ export function useKvkVehicleDetails(params?: any) {
 // Equipment Hooks
 // ============================================
 
-export function useKvkEquipments(params?: any) {
+export function useKvkEquipments(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-equipments', params, user),
         queryFn: () => aboutKvkApi.getKvkEquipments(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     const baseMutations = useEntityMutation<KvkEquipmentFormData>(
@@ -353,11 +361,12 @@ export function useKvkEquipments(params?: any) {
     };
 }
 
-export function useKvkEquipmentDetails(params?: any) {
+export function useKvkEquipmentDetails(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-equipment-details', params, user),
         queryFn: () => aboutKvkApi.getKvkEquipmentDetails(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     const mutations = useEntityMutation<KvkEquipmentFormData>(
@@ -378,11 +387,12 @@ export function useKvkEquipmentDetails(params?: any) {
     };
 }
 
-export function useKvkLandDetails(params?: any) {
+export function useKvkLandDetails(params?: any, options?: { enabled?: boolean }) {
     const { user } = useAuth();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-land-details', params, user),
         queryFn: () => aboutKvkApi.getKvkLandDetails(params).then(res => res.data),
+        enabled: options?.enabled ?? true,
     });
 
     const mutations = useEntityMutation<KvkLandDetailFormData>(
@@ -469,16 +479,17 @@ export function useAboutKvkData(entityType: AboutKvkEntity | null) {
     // hard cap (Math.min(limit, 10000)) so cross-KVK views (e.g. super-admin
     // seeing 1500+ equipments) aren't silently truncated to 100.
     const FULL = { limit: 10000 };
-    const kvks = useKvks(FULL);
-    const accounts = useKvkBankAccounts(FULL);
-    const employees = useKvkEmployees(FULL);
-    const transferred = useKvkStaffTransferred(FULL);
-    const infra = useKvkInfrastructure(FULL);
-    const landDetails = useKvkLandDetails(FULL);
-    const vehicles = useKvkVehicles(FULL);
-    const vehicleDetails = useKvkVehicleDetails(FULL);
-    const equipments = useKvkEquipments(FULL);
-    const equipmentDetails = useKvkEquipmentDetails(FULL);
+    const isActive = (target: AboutKvkEntity) => entityType === target;
+    const kvks = useKvks(FULL, { enabled: isActive(ENTITY_TYPES.KVKS) });
+    const accounts = useKvkBankAccounts(FULL, { enabled: isActive(ENTITY_TYPES.KVK_BANK_ACCOUNTS) });
+    const employees = useKvkEmployees(FULL, { enabled: isActive(ENTITY_TYPES.KVK_EMPLOYEES) });
+    const transferred = useKvkStaffTransferred(FULL, { enabled: isActive(ENTITY_TYPES.KVK_STAFF_TRANSFERRED) });
+    const infra = useKvkInfrastructure(FULL, { enabled: isActive(ENTITY_TYPES.KVK_INFRASTRUCTURE) });
+    const landDetails = useKvkLandDetails(FULL, { enabled: isActive(ENTITY_TYPES.KVK_LAND_DETAILS) });
+    const vehicles = useKvkVehicles(FULL, { enabled: isActive(ENTITY_TYPES.KVK_VEHICLES) });
+    const vehicleDetails = useKvkVehicleDetails(FULL, { enabled: isActive(ENTITY_TYPES.KVK_VEHICLE_DETAILS) });
+    const equipments = useKvkEquipments(FULL, { enabled: isActive(ENTITY_TYPES.KVK_EQUIPMENTS) });
+    const equipmentDetails = useKvkEquipmentDetails(FULL, { enabled: isActive(ENTITY_TYPES.KVK_EQUIPMENT_DETAILS) });
 
     if (!entityType) {
         return {
@@ -547,27 +558,27 @@ export function useInfraMasters() {
 }
 
 // Fetch Vehicles for dropdown (for vehicle details form)
-export function useKvkVehiclesForDropdown(kvkId?: number, reportingYear?: string) {
+export function useKvkVehiclesForDropdown(kvkId?: number, reportingYear?: string, options?: { enabled?: boolean }) {
     return useQuery({
         queryKey: ['kvk-vehicles-dropdown', kvkId, reportingYear],
         queryFn: async () => {
             const response = await aboutKvkApi.getVehiclesDropdown(kvkId, reportingYear);
             return response.data || []
         },
-        enabled: !!kvkId,
+        enabled: Boolean(options?.enabled) && (Boolean(kvkId) || Boolean(reportingYear)),
         staleTime: 2 * 60 * 1000,
     })
 }
 
 // Fetch Equipments for dropdown (for equipment details form)
-export function useKvkEquipmentsForDropdown(kvkId?: number, reportingYear?: string) {
+export function useKvkEquipmentsForDropdown(kvkId?: number, reportingYear?: string, options?: { enabled?: boolean }) {
     return useQuery({
         queryKey: ['kvk-equipments-dropdown', kvkId, reportingYear],
         queryFn: async () => {
             const response = await aboutKvkApi.getEquipmentsDropdown(kvkId, reportingYear);
             return response.data || []
         },
-        enabled: !!kvkId,
+        enabled: Boolean(options?.enabled) && (Boolean(kvkId) || Boolean(reportingYear)),
         staleTime: 2 * 60 * 1000,
     })
 }

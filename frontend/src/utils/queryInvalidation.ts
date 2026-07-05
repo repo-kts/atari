@@ -388,6 +388,7 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.PAY_LEVEL]: ['pay-levels'],
     [ENTITY_TYPES.PAY_SCALE]: ['pay-scales'],
     [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: ['asset-funding-sources'],
+    [ENTITY_TYPES.VEHICLE_TYPE]: ['vehicle-types'],
     [ENTITY_TYPES.EQUIPMENT_TYPE]: ['equipment-types'],
     [ENTITY_TYPES.EQUIPMENT_MASTER]: ['equipment-masters'],
     [ENTITY_TYPES.DISCIPLINE]: ['disciplines'],

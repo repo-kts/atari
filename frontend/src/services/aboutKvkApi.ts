@@ -46,19 +46,19 @@ const INFRASTRUCTURE_ALLOWED_KEYS = [
 ] as const;
 
 const VEHICLE_ALLOWED_KEYS = [
-    'kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost',
+    'kvkId', 'vehicleTypeId', 'vehicleTypeOther', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost',
 ] as const;
 
 const VEHICLE_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'assetFundingSourceId', 'vehicleStatusId',
+    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'assetFundingSourceId', 'assetFundingSourceOther', 'vehicleStatusId',
 ] as const;
 
 const EQUIPMENT_ALLOWED_KEYS = [
-    'kvkId', 'equipmentTypeId', 'equipmentMasterId', 'equipmentName', 'companyBrandModel', 'identifierCode', 'yearOfPurchase', 'totalCost', 'assetFundingSourceId',
+    'kvkId', 'equipmentTypeId', 'equipmentTypeOther', 'equipmentName', 'companyBrandModel', 'identifierCode', 'yearOfPurchase', 'totalCost',
 ] as const;
 
 const EQUIPMENT_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'equipmentId', 'reportingYear', 'assetFundingSourceId', 'equipmentStatusId',
+    'kvkId', 'equipmentId', 'reportingYear', 'assetFundingSourceId', 'assetFundingSourceOther', 'equipmentStatusId',
 ] as const;
 
 const LAND_DETAIL_ALLOWED_KEYS = [
@@ -271,14 +271,14 @@ export const aboutKvkApi = {
     getVehiclesDropdown: (kvkId?: number, reportingYear?: string) => {
         const url = buildUrlWithQuery(
             `${BASE_URL}/vehicles-dropdown`,
-            kvkId ? { kvkId, ...(reportingYear ? { reportingYear } : {}) } : undefined
+            { ...(kvkId ? { kvkId } : {}), ...(reportingYear ? { reportingYear } : {}) }
         );
         return apiClient.get<ApiResponse<any[]>>(url);
     },
     getEquipmentsDropdown: (kvkId?: number, reportingYear?: string) => {
         const url = buildUrlWithQuery(
             `${BASE_URL}/equipments-dropdown`,
-            kvkId ? { kvkId, ...(reportingYear ? { reportingYear } : {}) } : undefined
+            { ...(kvkId ? { kvkId } : {}), ...(reportingYear ? { reportingYear } : {}) }
         );
         return apiClient.get<ApiResponse<any[]>>(url);
     },

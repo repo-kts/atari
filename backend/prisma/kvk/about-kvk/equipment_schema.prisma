@@ -32,6 +32,7 @@ model KvkEquipmentDetail {
   equipmentId          Int                          @map("equipment_id")
   reportingYear        DateTime                     @map("reporting_year")
   assetFundingSourceId Int?                         @map("asset_funding_source_id")
+  assetFundingSourceOther String?                   @map("asset_funding_source_other")
   equipmentStatusId    Int                          @map("equipment_status_id")
   createdAt            DateTime                     @default(now()) @map("created_at")
   updatedAt            DateTime                     @updatedAt @map("updated_at")

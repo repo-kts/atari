@@ -213,6 +213,12 @@ exports.createEquipmentType = create('equipment-type');
 exports.updateEquipmentType = update('equipment-type');
 exports.deleteEquipmentType = deleteEntity('equipment-type');
 
+exports.getAllVehicleTypes = getAll('vehicle-type');
+exports.getVehicleTypeById = getById('vehicle-type');
+exports.createVehicleType = create('vehicle-type');
+exports.updateVehicleType = update('vehicle-type');
+exports.deleteVehicleType = deleteEntity('vehicle-type');
+
 exports.getAllEquipmentMasters = getAll('equipment-master');
 exports.getEquipmentMasterById = getById('equipment-master');
 exports.createEquipmentMaster = create('equipment-master');

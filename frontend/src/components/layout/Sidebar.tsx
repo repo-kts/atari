@@ -522,7 +522,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         // Staff Quarters lives under the performance URL tree but belongs to the About KVK group in the sidebar.
         { pattern: /^\/forms\/performance\/infrastructure\/staff-quarters/, parentPath: '/forms/about-kvk' },
         { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },
-        { pattern: /^\/all-master\/(staff-category|job-type|bank-account-type|pay-level|pay-scale|asset-funding-source|equipment-type|equipment-master|sanctioned-post|discipline|season|year|unit|crop-type|infrastructure-master|vehicle-present-status|equipment-present-status|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
+        { pattern: /^\/all-master\/(staff-category|job-type|bank-account-type|pay-level|pay-scale|asset-funding-source|vehicle-type|equipment-type|equipment-master|sanctioned-post|discipline|season|year|unit|crop-type|infrastructure-master|vehicle-present-status|equipment-present-status|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
         { pattern: /^\/all-master\/(nari-activity|nari-nutrition-garden-type|nari-crop-category)/, parentPath: '/all-master/other-masters' },
         { pattern: /^\/all-master\/(impact-specific-area|enterprise-type|account-type|programme-type|ppv-fra-training-type|dignitary-type|financial-project|funding-agency)/, parentPath: '/all-master/other-masters' },
     ]

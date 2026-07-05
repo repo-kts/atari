@@ -138,11 +138,14 @@ export interface KvkInfrastructure {
 export interface KvkVehicle {
     vehicleId: number;
     kvkId: number;
+    vehicleTypeId?: number | null;
+    vehicleTypeOther?: string | null;
     vehicleName: string;
     registrationNo: string;
     yearOfPurchase: number;
     totalCost: number;
     kvk?: { kvkId: number; kvkName: string };
+    vehicleType?: { vehicleTypeId: number; name: string; isOther?: boolean };
 }
 
 export interface KvkEquipment {
