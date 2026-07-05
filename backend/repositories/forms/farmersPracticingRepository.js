@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 const {
@@ -247,8 +248,9 @@ const farmersPracticingRepository = {
                 include: {
                     kvk: { select: { kvkName: true, stateId: true, state: { select: { stateName: true } } } },
                 },
-                orderBy: [{ reportingYear: 'desc' }, { farmersPracticingId: 'desc' }],
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'farmersPracticingId' }),
             });
+            sortFormListRows(records, user, { tiebreak: 'farmersPracticingId' });
             return records.map(mapDbRowToApi);
         } catch (e) {
             if (e instanceof UnauthorizedError) throw e;

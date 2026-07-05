@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { FLD_STATUS, normalizeFldStatus } = require('../../constants/fldStatus.js');
@@ -51,6 +52,15 @@ const FLD_CONFIG = {
         st_f: 'stF',
     },
 };
+
+async function getStaffNameSnapshot(staffId) {
+    if (!staffId) return null;
+    const staff = await prisma.kvkStaff.findUnique({
+        where: { kvkStaffId: Number(staffId) },
+        select: { staffName: true },
+    });
+    return staff?.staffName || null;
+}
 
 /**
  * Field definitions for create operation
@@ -324,14 +334,17 @@ const fldRepository = {
         })();
         const reportingYear = _parseReportingYearOrFallback(data.reportingYear, startDate);
 
+        const kvkStaffId = validateRequiredInteger(
+            data,
+            CREATE_FIELD_DEFINITIONS.kvkStaffId.fieldNames,
+            CREATE_FIELD_DEFINITIONS.kvkStaffId.errorMessage,
+            CREATE_FIELD_DEFINITIONS.kvkStaffId.errorField
+        );
+
         const createData = {
             kvkId,
-            kvkStaffId: validateRequiredInteger(
-                data,
-                CREATE_FIELD_DEFINITIONS.kvkStaffId.fieldNames,
-                CREATE_FIELD_DEFINITIONS.kvkStaffId.errorMessage,
-                CREATE_FIELD_DEFINITIONS.kvkStaffId.errorField
-            ),
+            kvkStaffId,
+            staffName: await getStaffNameSnapshot(kvkStaffId),
             expectedCompletionDate: (() => {
                 if (!data.expectedCompletionDate) return null;
                 const d = new Date(data.expectedCompletionDate);
@@ -521,8 +534,9 @@ const fldRepository = {
         const results = await prisma[FLD_CONFIG.model].findMany({
             where,
             include: FLD_CONFIG.includes,
-            orderBy: FLD_CONFIG.orderBy,
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'kvkFldId' }),
         });
+        sortFormListRows(results, user, { tiebreak: 'kvkFldId' });
 
         return results.map(_mapResponse);
     },
@@ -588,6 +602,9 @@ const fldRepository = {
 
         // Build update data using field definitions
         const updateData = buildUpdateData(updatePayload, UPDATE_FIELD_DEFINITIONS);
+        if (Object.prototype.hasOwnProperty.call(updateData, 'kvkStaffId')) {
+            updateData.staffName = await getStaffNameSnapshot(updateData.kvkStaffId);
+        }
         if (updatePayload.expectedCompletionDate !== undefined) {
             const d = updatePayload.expectedCompletionDate ? new Date(updatePayload.expectedCompletionDate) : null;
             updateData.expectedCompletionDate = d && !Number.isNaN(d.getTime()) ? d : null;
@@ -828,7 +845,7 @@ function _mapResponse(r) {
         kvkName: r.kvk?.kvkName,
         staffId: r.kvkStaffId,
         kvkStaffId: r.kvkStaffId,
-        staffName: r.kvkStaff?.staffName,
+        staffName: r.staffName || r.kvkStaff?.staffName,
         expectedCompletionDate: r.expectedCompletionDate ? r.expectedCompletionDate.toISOString().split('T')[0] : '',
         reportingYear: formatReportingYear(effectiveReportingYear),
         seasonId: r.seasonId,

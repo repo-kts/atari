@@ -38,6 +38,7 @@ model Kvkoft {
   kvkId                    Int
   seasonId                 Int?
   staffId                  Int
+  staffName                String?              @map("staff_name")
   oftSubjectId             Int?
   oftSubjectOther          String?              @map("oft_subject_other")
   oftThematicAreaId        Int?

@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const toIntOrNull = (value) => {
     if (value === undefined || value === null || value === '') return null;
     const n = parseInt(value, 10);
@@ -49,8 +50,9 @@ const seedHubRepository = {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } }
             },
-            orderBy: { seedHubId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'seedHubId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'seedHubId' });
 
         return results.map(_mapResponse);
     },

@@ -8,6 +8,7 @@ const {
 } = require('../../utils/repositoryHelpers.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 /**
  * Publication Details Repository
  * Handles all database operations for KVK Publication Details
@@ -238,8 +239,9 @@ const publicationDetailsRepository = {
                     kvk: { select: { kvkName: true } },
                     publication: { select: { publicationName: true } },
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'publicationDetailsId' }),
             });
+            sortFormListRows(records, user, { tiebreak: 'publicationDetailsId' });
 
             return records.map(_mapResponse);
         } catch (error) {

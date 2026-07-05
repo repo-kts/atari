@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 async function resolveNicraDignitaryTypeId(rawValue) {
     if (rawValue === undefined || rawValue === null || rawValue === '') return null;
     const parsedId = parseInt(rawValue, 10);
@@ -81,7 +82,7 @@ const nicraDignitariesRepository = {
                 kvk: { select: { kvkName: true } },
                 dignitaryType: true,
             },
-            orderBy: { nicraDignitariesVisitedId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'nicraDignitariesVisitedId' })
         });
         return results.map(r => nicraDignitariesRepository._mapResponse(r));
     },

@@ -8,6 +8,7 @@ const {
 } = require('../../utils/repositoryHelpers.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 /**
  * KVK Award Repository
  * Handles all database operations for KVK Awards
@@ -228,8 +229,9 @@ const kvkAwardRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'kvkAwardId' }),
             });
+            sortFormListRows(records, user, { tiebreak: 'kvkAwardId' });
 
             return records.map(_mapResponse);
         } catch (error) {

@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const techWeekRepository = {
     create: async (data, user) => {
         // Resolve kvkId: prioritized from user session (if linked to a KVK like Gaya), then from data.
@@ -43,7 +44,7 @@ const techWeekRepository = {
             include: {
                 kvk: { select: { kvkName: true } }
             },
-            orderBy: { techWeekId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'techWeekId' })
         });
 
         return activities.map(a => techWeekRepository._mapResponse(a));

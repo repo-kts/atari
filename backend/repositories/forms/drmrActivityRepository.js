@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const kvkRoles = ['kvk_admin', 'kvk_user'];
 
 const ACTIVITY_CONFIG = [
@@ -119,8 +120,9 @@ const drmrActivityRepository = {
                 kvk: { select: { kvkName: true } },
                 components: true,
             },
-            orderBy: { drmrActivityId: 'desc' },
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'drmrActivityId' }),
         });
+        sortFormListRows(results, user, { tiebreak: 'drmrActivityId' });
 
         return results.map(_mapResponse);
     },

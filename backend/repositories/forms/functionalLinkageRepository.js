@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const functionalLinkageRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -28,13 +29,14 @@ const functionalLinkageRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.functionalLinkage.findMany({
+        const _sortRows = await prisma.functionalLinkage.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'functionalLinkageId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'functionalLinkageId' });
     },
 
     findById: async (id, user) => {
