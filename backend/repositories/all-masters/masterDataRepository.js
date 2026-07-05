@@ -248,8 +248,8 @@ async function findAll(entityName, options = {}) {
     const page = Math.max(1, parseInt(options.page, 10) || 1);
     const limit = normalizeListLimit(options.limit, DEFAULT_MASTER_LIST_PAGE_SIZE);
 
-    // Use the entity's ID field as default sort if not provided
-    const actualSortBy = sortBy || config.idField;
+    // Use the entity's name field as default sort (A-Z) if not provided
+    const actualSortBy = sortBy || config.nameField;
 
     const skip = (page - 1) * limit;
     const take = limit;

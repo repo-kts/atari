@@ -629,7 +629,7 @@ export const allMastersRoutes: RouteConfig[] = [
     },
     {
         path: ENTITY_PATHS.VEHICLE_PRESENT_STATUS,
-        title: 'Vehicle Present Status',
+        title: 'Asset Status Master',
         category: 'All Masters',
         subcategory: 'Other Masters',
         parent: '/all-master',

@@ -533,7 +533,7 @@ function getEntityConfig(entityName) {
 const findAll = async (entityType, options = {}) => {
     const config = getEntityConfig(entityType);
 
-    const { page = 1, limit = 100, search = '', sortBy = 'id', sortOrder = 'asc' } = options;
+    const { page = 1, limit = 100, search = '', sortBy = 'name', sortOrder = 'asc' } = options;
     const skip = (page - 1) * limit;
     const take = parseInt(limit);
 

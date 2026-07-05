@@ -210,11 +210,13 @@ interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> 
     required?: boolean
     error?: string
     placeholder?: string
+    isLoading?: boolean
+    loadingMessage?: string
     // Keep the given option order (e.g. months Jan→Dec) instead of alphabetizing.
     preserveOrder?: boolean
 }
 
-export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required, error, placeholder, preserveOrder = false, className = '', ...props }) => {
+export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required, error, placeholder, isLoading = false, loadingMessage = 'Loading...', preserveOrder = false, className = '', ...props }) => {
     const displayLabel = formatFormLabel(label)
     const { labelRef, paddingTopPx } = useFloatingLabelPadding(displayLabel)
 
@@ -244,20 +246,30 @@ export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required
             <select
                 {...props}
                 required={required}
+                disabled={props.disabled || isLoading}
                 style={{
                     ...props.style,
                     paddingTop: paddingTopPx,
                     paddingBottom: 12,
                 }}
-                className={`w-full px-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white text-base min-h-[48px] h-auto ${className}`}
+                className={`w-full px-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base min-h-[48px] h-auto ${(props.disabled || isLoading) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`}
             >
-                <option value="">{placeholder || `Select`}</option>
-                {sortedOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                    </option>
-                ))}
+                {isLoading ? (
+                    <option value="">{loadingMessage}</option>
+                ) : (
+                    <>
+                        <option value="">{placeholder || `Select`}</option>
+                        {sortedOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </>
+                )}
             </select>
+            {isLoading && (
+                <div className="pointer-events-none absolute right-10 top-1/2 mt-1 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-[#487749]/25 border-t-[#487749]" />
+            )}
             {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
         </div>
     )

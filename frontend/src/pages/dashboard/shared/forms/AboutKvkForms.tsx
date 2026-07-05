@@ -67,7 +67,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: bankAccountTypes = [] } = useBankAccountTypes()
     const { data: jobTypes = [] } = useJobTypes()
     const shouldFetchLandItems = entityType === ENTITY_TYPES.KVK_LAND_DETAILS
-    const { data: landItemMasters = [] } = useLandItemMasters({ enabled: shouldFetchLandItems })
+    const { data: landItemMasters = [], isLoading: isLoadingLandItemMasters } = useLandItemMasters({ enabled: shouldFetchLandItems })
 
     const activeKvkId = user?.kvkId
         || formData.kvkId
@@ -1028,6 +1028,8 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 })
                             }}
                             placeholder="Select land item"
+                            isLoading={isLoadingLandItemMasters}
+                            loadingMessage="Loading land items..."
                             options={landItemMasterOptions}
                             preserveOrder
                         />
