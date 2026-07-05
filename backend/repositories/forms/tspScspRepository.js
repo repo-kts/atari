@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 function normalizeTspScspType(value) {
     const normalized = String(value || '').trim().toUpperCase();
     if (normalized === 'TSP' || normalized === 'SCSP') return normalized;
@@ -160,8 +161,9 @@ const tspScspRepository = {
                 activity: { select: { activityName: true } },
                 district: { select: { districtName: true } },
             },
-            orderBy: { tspScspId: 'desc' },
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'tspScspId' }),
         });
+        sortFormListRows(results, user, { tiebreak: 'tspScspId' });
         return results.map(_mapResponse);
     },
 

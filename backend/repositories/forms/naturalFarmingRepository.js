@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 
@@ -161,8 +162,9 @@ const geographicalInfoRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { geographicalInfoId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'geographicalInfoId' })
         });
+        sortFormListRows(records, user, { tiebreak: 'geographicalInfoId' });
 
         return records.map(r => ({
             ...r,
@@ -275,7 +277,7 @@ const physicalInfoRepository = {
                 },
                 activityMaster: true,
             },
-            orderBy: { physicalInfoId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'physicalInfoId' })
         });
 
         return records.map(r => ({
@@ -487,8 +489,9 @@ const demonstrationInfoRepository = {
                 season: true,
                 staffCategory: { select: { categoryName: true } },
             },
-            orderBy: { demonstrationInfoId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'demonstrationInfoId' })
         });
+        sortFormListRows(records, user, { tiebreak: 'demonstrationInfoId' });
 
         return records.map(r => ({
             ...r,
@@ -823,8 +826,9 @@ const beneficiariesRepository = {
         const records = await prisma.beneficiariesDetails.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
-            orderBy: { beneficiariesDetailsId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'beneficiariesDetailsId' })
         });
+        sortFormListRows(records, user, { tiebreak: 'beneficiariesDetailsId' });
 
         return records.map(r => ({
             ...r,
@@ -926,8 +930,9 @@ const soilDataRepository = {
                 season: true,
                 soilParameterMaster: true,
             },
-            orderBy: { soilDataInformationId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'soilDataInformationId' })
         });
+        sortFormListRows(records, user, { tiebreak: 'soilDataInformationId' });
 
         return records.map(r => ({
             ...r,
@@ -1077,8 +1082,9 @@ const financialInfoRepository = {
                 kvk: { select: { kvkName: true } },
                 activityMaster: true,
             },
-            orderBy: { financialInformationId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'financialInformationId' })
         });
+        sortFormListRows(records, user, { tiebreak: 'financialInformationId' });
 
         return records.map(r => ({
             ...r,

@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const kvkIncludeWithState = {
     kvk: {
         select: {
@@ -117,8 +118,9 @@ const nicraFarmImplementRepository = {
         const results = await prisma.nicraFarmImplement.findMany({
             where,
             include: kvkIncludeWithState,
-            orderBy: { nicraFarmImplementId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'nicraFarmImplementId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'nicraFarmImplementId' });
         return results.map(r => nicraFarmImplementRepository._mapResponse(r));
     },
 

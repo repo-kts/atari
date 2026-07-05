@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const craExtensionActivityRepository = {
     create: async (data, opts, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -51,7 +52,7 @@ const craExtensionActivityRepository = {
                 kvk: { select: { kvkName: true } },
                 activity: { select: { activityName: true } }
             },
-            orderBy: { craExtensionActivityId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'craExtensionActivityId' })
         });
         return results.map(_mapResponse);
     },

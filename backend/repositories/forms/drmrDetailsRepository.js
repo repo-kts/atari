@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const drmrDetailsRepository = {
     create: async (data, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : 1);
@@ -82,8 +83,9 @@ const drmrDetailsRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { drmrDetailsId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'drmrDetailsId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'drmrDetailsId' });
 
         return results.map(_mapResponse);
     },

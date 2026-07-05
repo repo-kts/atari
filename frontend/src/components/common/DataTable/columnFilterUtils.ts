@@ -5,9 +5,17 @@ export type ColumnFilters = Record<string, ColumnFilterState>
 
 const BLANK_TOKEN = '__blank__'
 
+function normalizeFilterValue(value: string): string {
+    return value.replace(/\s+/g, ' ').trim()
+}
+
+function filterKey(value: string): string {
+    return (value || BLANK_TOKEN).toLocaleLowerCase()
+}
+
 export function valueToString(value: unknown): string {
     if (value === null || value === undefined) return ''
-    if (typeof value === 'string') return value
+    if (typeof value === 'string') return normalizeFilterValue(value)
     if (typeof value === 'number' || typeof value === 'boolean') return String(value)
     if (value instanceof Date) return value.toISOString()
     if (typeof value === 'object') {
@@ -27,12 +35,13 @@ export function uniqueValuesForField(
     data: any[],
     field: string,
 ): string[] {
-    const set = new Set<string>()
+    const values = new Map<string, string>()
     for (const item of data) {
         const v = valueToString(getFieldValue(item, field))
-        set.add(v)
+        const key = filterKey(v)
+        if (!values.has(key)) values.set(key, v)
     }
-    return Array.from(set).sort((a, b) => {
+    return Array.from(values.values()).sort((a, b) => {
         if (a === '') return -1
         if (b === '') return 1
         const na = Number(a)
@@ -59,8 +68,9 @@ export function applyColumnFilters<T>(
             const raw = valueToString(getFieldValue(item, field))
             if (text && !raw.toLowerCase().includes(text)) return false
             if (hasExcluded) {
-                const key = raw || BLANK_TOKEN
-                if (f.excluded.has(key)) return false
+                const key = filterKey(raw)
+                const excluded = Array.from(f.excluded).some((value) => filterKey(value === BLANK_TOKEN ? '' : value) === key)
+                if (excluded) return false
             }
             return true
         })

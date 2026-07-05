@@ -2,6 +2,7 @@ const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const priorityThrustAreaRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -30,13 +31,14 @@ const priorityThrustAreaRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.priorityThrustArea.findMany({
+        const _sortRows = await prisma.priorityThrustArea.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'priorityThrustAreaId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'priorityThrustAreaId' });
     },
 
     findById: async (id, user) => {

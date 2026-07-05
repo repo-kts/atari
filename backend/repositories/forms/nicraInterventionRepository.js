@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 async function resolveSeedBankFodderBankId(rawValue) {
     if (rawValue === undefined || rawValue === null || rawValue === '') return null;
 
@@ -79,7 +80,7 @@ const nicraInterventionRepository = {
                 kvk: { select: { kvkName: true } },
                 seedBankFodderBank: true,
             },
-            orderBy: { nicraInterventionId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'nicraInterventionId' })
         });
         return results.map(r => nicraInterventionRepository._mapResponse(r));
     },

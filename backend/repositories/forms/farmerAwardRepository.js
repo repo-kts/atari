@@ -9,6 +9,7 @@ const {
 const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 /**
  * Farmer Award Repository
  * Handles all database operations for Farmer Awards
@@ -257,8 +258,9 @@ const farmerAwardRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'farmerAwardId' }),
             });
+            sortFormListRows(records, user, { tiebreak: 'farmerAwardId' });
 
             return records.map(_mapResponse);
         } catch (error) {

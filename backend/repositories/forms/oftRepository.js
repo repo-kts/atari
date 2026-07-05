@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { sanitizeString, sanitizeInteger, sanitizeNumber, sanitizeDate, safeGet, removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { OFT_STATUS, normalizeOftStatus } = require('../../constants/oftStatus.js');
@@ -41,6 +42,15 @@ const OFT_INCLUDE = {
     },
 };
 
+async function getStaffNameSnapshot(staffId) {
+    if (!staffId) return null;
+    const staff = await prisma.kvkStaff.findUnique({
+        where: { kvkStaffId: Number(staffId) },
+        select: { staffName: true },
+    });
+    return staff?.staffName || null;
+}
+
 const oftRepository = {
     create: async (data, user) => {
         // Validate input
@@ -61,7 +71,7 @@ const oftRepository = {
         }
 
         const technologiesData = await _buildTechnologiesCreateData(data);
-        const createData = _buildOftCreateData(data, kvkId);
+        const createData = await _buildOftCreateData(data, kvkId);
 
         // Add technologies if any
         if (technologiesData.length > 0) {
@@ -128,8 +138,9 @@ const oftRepository = {
         const results = await prisma.kvkoft.findMany({
             where,
             include: OFT_INCLUDE,
-            orderBy: [{ reportingYear: 'desc' }, { kvkOftId: 'desc' }]
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'kvkOftId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'kvkOftId' });
 
         return results.map(_mapOftResponse);
     },
@@ -158,7 +169,7 @@ const oftRepository = {
         const existing = await prisma.kvkoft.findFirst({ where });
         if (!existing) throw new Error("Record not found or unauthorized");
 
-        const updateData = _buildOftUpdateData(data, existing);
+        const updateData = await _buildOftUpdateData(data, existing);
 
         // Handle technology options update
         if (data.hasTechnologiesUpdate || Array.isArray(data.technologyOptions) || Object.keys(data).some(k => k.startsWith('tech_'))) {
@@ -381,7 +392,7 @@ const oftRepository = {
     }
 };
 
-function _buildOftCreateData(data, kvkId) {
+async function _buildOftCreateData(data, kvkId) {
     const expectedCompletionDate = sanitizeDate(safeGet(data, 'expectedCompletionDate'));
     const oftStartDate = sanitizeDate(safeGet(data, 'oftStartDate') || safeGet(data, 'duration')) || new Date();
     const reportingYear = _parseReportingYearOrFallback(safeGet(data, 'reportingYear'), oftStartDate);
@@ -402,6 +413,7 @@ function _buildOftCreateData(data, kvkId) {
         expectedCompletionDate,
         seasonId,
         staffId,
+        staffName: await getStaffNameSnapshot(staffId),
         oftSubjectId,
         oftThematicAreaId,
         // "Other" free-text: only meaningful when the chosen master row is flagged isOther.
@@ -436,7 +448,7 @@ function _buildOftCreateData(data, kvkId) {
     };
 }
 
-function _buildOftUpdateData(data, existing) {
+async function _buildOftUpdateData(data, existing) {
     const updateData = {};
     if (data.expectedCompletionDate !== undefined) {
         updateData.expectedCompletionDate = sanitizeDate(data.expectedCompletionDate);
@@ -445,7 +457,10 @@ function _buildOftUpdateData(data, existing) {
         updateData.reportingYear = _parseReportingYearOrFallback(data.reportingYear, existing.reportingYear || existing.oftStartDate);
     }
     if (data.seasonId !== undefined) updateData.seasonId = sanitizeInteger(data.seasonId);
-    if (data.staffId !== undefined || data.staffName !== undefined) updateData.staffId = sanitizeInteger(data.staffId || data.staffName);
+    if (data.staffId !== undefined || data.staffName !== undefined) {
+        updateData.staffId = sanitizeInteger(data.staffId || data.staffName);
+        updateData.staffName = await getStaffNameSnapshot(updateData.staffId);
+    }
     if (data.oftSubjectId !== undefined) updateData.oftSubjectId = sanitizeInteger(data.oftSubjectId);
     if (data.oftSubjectOther !== undefined) updateData.oftSubjectOther = sanitizeString(data.oftSubjectOther, { allowEmpty: true }) || null;
     if (data.oftThematicAreaId !== undefined || data.thematicArea !== undefined) updateData.oftThematicAreaId = sanitizeInteger(data.oftThematicAreaId || data.thematicArea);
@@ -510,7 +525,7 @@ function _mapOftResponse(r) {
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
         staffId: r.staffId,
-        staffName: r.staff ? r.staff.staffName : undefined,
+        staffName: r.staffName || (r.staff ? r.staff.staffName : undefined),
         oftSubjectId: r.oftSubjectId,
         // Prefer the typed "Other" text over the generic master name so lists show the real value.
         subjectName: r.oftSubjectOther || (r.oftSubject ? r.oftSubject.subjectName : undefined),

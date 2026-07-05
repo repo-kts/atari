@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const parseDateOrNow = (dateStr) => {
@@ -34,7 +35,7 @@ const swachhtaBharatRepository = {
             const data = await prisma.swachhtaHiSewa.findMany({
                 where,
                 include: { kvk: { select: { kvkName: true } } },
-                orderBy: { swachhtaHiSewaId: 'desc' }
+                orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'swachhtaHiSewaId' })
             });
 
             return data.map(item => ({
@@ -133,7 +134,7 @@ const swachhtaBharatRepository = {
             const data = await prisma.swachhtaPakhwada.findMany({
                 where,
                 include: { kvk: { select: { kvkName: true } } },
-                orderBy: { swachhtaPakhwadaId: 'desc' }
+                orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'swachhtaPakhwadaId' })
             });
 
             return data.map(item => ({
@@ -238,8 +239,9 @@ const swachhtaBharatRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                 },
-                orderBy: { swachhQuarterlyExpenditureId: 'desc' }
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'swachhQuarterlyExpenditureId' })
             });
+            sortFormListRows(data, user, { tiebreak: 'swachhQuarterlyExpenditureId' });
 
             return data.map(item => ({
                 ...item,

@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 function normalizeCampusType(value) {
     const normalized = String(value || 'ON_CAMPUS').trim().toUpperCase().replace(/\s+/g, '_');
     if (normalized === 'ON_CAMPUS' || normalized === 'OFF_CAMPUS') return normalized;
@@ -80,8 +81,9 @@ const nariTrainingProgrammeRepository = {
                 kvk: { select: { kvkName: true } },
                 activity: { select: { activityName: true } },
             },
-            orderBy: { nariTrainingProgrammeId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'nariTrainingProgrammeId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'nariTrainingProgrammeId' });
         return results.map(_mapResponse);
     },
 

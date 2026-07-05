@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const nariTrainingRepository = {
     create: async (data, user) => {
         const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
@@ -86,8 +87,9 @@ const nariTrainingRepository = {
                 kvk: { select: { kvkName: true } },
                 activity: { select: { activityName: true } },
             },
-            orderBy: { nariTrainingProgrammeId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'nariTrainingProgrammeId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'nariTrainingProgrammeId' });
         return results.map(_mapResponse);
     },
 

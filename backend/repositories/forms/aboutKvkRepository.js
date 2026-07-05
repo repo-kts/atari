@@ -340,6 +340,10 @@ async function findAll(entityName, options = {}, user = null) {
     const skip = (page - 1) * limit;
     const take = Math.min(limit, 10000);
 
+    if (entityName === 'kvk-staff-transferred') {
+        return findTransferredStaffHistoryRows({ filters, search, sortBy, sortOrder, skip, take });
+    }
+
     let where = {};
 
     // Entity specific filtering - build where clause from scratch for transfer history
@@ -390,33 +394,8 @@ async function findAll(entityName, options = {}, user = null) {
         }
 
         // Entity-specific filtering for other entities
-        if (entityName === 'kvk-staff-transferred') {
-            // For Staff Transferred: Only show TRANSFERRED employees
-            where.transferStatus = 'TRANSFERRED';
-
-            // Filter by sourceKvkIds if provided (for tracking transfer chain)
-            // This allows KVK admins to see employees they transferred
-            if (filters.sourceKvkIds) {
-                const sourceKvkId = filters.sourceKvkIds;
-                // Remove sourceKvkIds from where as we'll handle it differently
-                delete where.sourceKvkIds;
-
-                // Use Prisma's JSON array contains filter
-                // For PostgreSQL, we can use array_contains or path query
-                where.sourceKvkIds = {
-                    array_contains: sourceKvkId
-                };
-            }
-        } else if (entityName === 'kvk-employees') {
-            // For Employee Details: Show all employees that belong to the current KVK
-            // This includes both ACTIVE and TRANSFERRED employees that belong to this KVK
-            // We explicitly remove transferStatus filter to show all employees for the KVK
-            // The kvkId filter (set in service layer) will ensure we only see employees belonging to this KVK
-            // This allows the target KVK to see employees that were transferred to them
-            // IMPORTANT: Remove transferStatus from where clause to show all employees (ACTIVE and TRANSFERRED)
-            if ('transferStatus' in where) {
-                delete where.transferStatus;
-            }
+        if (entityName === 'kvk-employees') {
+            where.transferStatus = 'ACTIVE';
         }
     }
 
@@ -514,6 +493,98 @@ function compareStaffRows(a, b, sortBy, sortOrder, entityName) {
     const nameCompare = String(a?.staffName || '').localeCompare(String(b?.staffName || ''));
     if (nameCompare !== 0) return nameCompare;
     return Number(a?.kvkStaffId || 0) - Number(b?.kvkStaffId || 0);
+}
+
+function parseKvkIdFilter(value) {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function mapTransferHistoryToStaffRow(row) {
+    return {
+        ...row,
+        id: row.transferId,
+        transferId: row.transferId,
+        kvkStaffId: row.kvkStaffId,
+        staffName: row.staff?.staffName || '',
+        kvkId: row.toKvkId,
+        originalKvkId: row.fromKvkId,
+        kvk: row.toKvk,
+        originalKvk: row.fromKvk,
+        transferStatus: row.isReversal ? 'ACTIVE' : 'TRANSFERRED',
+        transferDate: row.transferDate,
+        lastTransferDate: row.transferDate,
+        transferReason: row.transferReason,
+        notes: row.notes,
+        transferCount: row.staff?.transferCount || 0,
+        transferredByUser: row.transferredByUser,
+    };
+}
+
+async function findTransferredStaffHistoryRows({ filters = {}, search = '', sortBy, sortOrder = 'asc', skip = 0, take = 10000 }) {
+    const where = {};
+    const involvedKvkId = parseKvkIdFilter(filters.sourceKvkIds || filters.kvkId || filters.involvedKvkId);
+
+    if (involvedKvkId) {
+        where.OR = [
+            { fromKvkId: involvedKvkId },
+            { toKvkId: involvedKvkId },
+        ];
+    }
+    if (filters.staffId) {
+        where.kvkStaffId = Number(filters.staffId);
+    }
+    if (filters.dateFrom || filters.dateTo) {
+        where.transferDate = {};
+        if (filters.dateFrom) where.transferDate.gte = new Date(filters.dateFrom);
+        if (filters.dateTo) where.transferDate.lte = new Date(filters.dateTo);
+    }
+
+    const rows = await prisma.staffTransferHistory.findMany({
+        where,
+        include: {
+            staff: {
+                select: {
+                    kvkStaffId: true,
+                    staffName: true,
+                    transferCount: true,
+                    sanctionedPost: { select: { sanctionedPostId: true, postName: true } },
+                    discipline: { select: { disciplineId: true, disciplineName: true } },
+                },
+            },
+            fromKvk: { select: { kvkId: true, kvkName: true } },
+            toKvk: { select: { kvkId: true, kvkName: true } },
+            transferredByUser: { select: { userId: true, name: true, email: true } },
+        },
+        orderBy: [{ transferDate: 'desc' }, { transferId: 'desc' }],
+    });
+
+    const term = String(search || '').trim().toLowerCase();
+    const mapped = rows
+        .map(mapTransferHistoryToStaffRow)
+        .filter((row) => {
+            if (!term) return true;
+            return [
+                row.staffName,
+                row.kvk?.kvkName,
+                row.originalKvk?.kvkName,
+                row.transferReason,
+                row.notes,
+            ].some((value) => String(value || '').toLowerCase().includes(term));
+        })
+        .sort((a, b) => {
+            if (!sortBy) return 0;
+            const aVal = a?.[sortBy];
+            const bVal = b?.[sortBy];
+            if (aVal === bVal) return 0;
+            if (sortOrder === 'asc') return aVal > bVal ? 1 : -1;
+            return aVal < bVal ? 1 : -1;
+        });
+
+    return {
+        data: mapped.slice(skip, skip + take),
+        total: mapped.length,
+    };
 }
 
 async function findById(entityName, id) {

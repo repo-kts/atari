@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const hostelUtilizationRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -30,13 +31,14 @@ const hostelUtilizationRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.hostelUtilization.findMany({
+        const _sortRows = await prisma.hostelUtilization.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'hostelUtilizationId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'hostelUtilizationId' });
     },
 
     findById: async (id, user) => {

@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const nariValueAdditionRepository = {
@@ -75,8 +76,9 @@ const nariValueAdditionRepository = {
                 activity: { select: { activityName: true } },
                 results: { orderBy: { nariValueAdditionResultId: 'asc' } },
             },
-            orderBy: { nariValueAdditionId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'nariValueAdditionId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'nariValueAdditionId' });
         return results.map(_mapResponse);
     },
 

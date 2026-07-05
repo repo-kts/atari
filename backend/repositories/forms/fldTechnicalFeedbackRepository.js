@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
@@ -194,8 +195,9 @@ const fldTechnicalFeedbackRepository = {
         const results = await prisma[FLD_TECHNICAL_FEEDBACK_CONFIG.model].findMany({
             where,
             include: FLD_TECHNICAL_FEEDBACK_CONFIG.includes,
-            orderBy: FLD_TECHNICAL_FEEDBACK_CONFIG.orderBy,
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'feedbackId' }),
         });
+        sortFormListRows(results, user, { tiebreak: 'feedbackId' });
 
         return results.map(_mapResponse);
     },
