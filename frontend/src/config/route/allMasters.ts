@@ -22,6 +22,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
         fields: FIELD_GROUPS.ZONE_MASTER,
+        defaultSortFields: [FIELD_NAMES.ZONE_NAME],
         moduleCode: 'all_masters_zone_master',
     },
     {
@@ -33,6 +34,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
         fields: FIELD_GROUPS.STATE_MASTER,
+        defaultSortFields: [FIELD_NAMES.ZONE_NAME, FIELD_NAMES.STATE_NAME],
         moduleCode: 'all_masters_states_master',
     },
     {
@@ -95,6 +97,11 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.BASIC_MASTERS,
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
         fields: FIELD_GROUPS.DISTRICT_MASTER,
+        defaultSortFields: [
+            FIELD_NAMES.ZONE_NAME,
+            FIELD_NAMES.STATE_NAME,
+            FIELD_NAMES.DISTRICT_NAME,
+        ],
         moduleCode: 'all_masters_districts_master',
     },
 
@@ -863,6 +870,7 @@ export const allMasters1Routes: RouteConfig[] = [
         subcategoryPath: '/all-master-1/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
         fields: FIELD_GROUPS.ZONE_MASTER,
+        defaultSortFields: [FIELD_NAMES.ZONE_NAME],
         moduleCode: 'all_masters_zone_master',
     },
     {
@@ -874,6 +882,7 @@ export const allMasters1Routes: RouteConfig[] = [
         subcategoryPath: '/all-master-1/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
         fields: FIELD_GROUPS.STATE_MASTER,
+        defaultSortFields: [FIELD_NAMES.ZONE_NAME, FIELD_NAMES.STATE_NAME],
         moduleCode: 'all_masters_states_master',
     },
     {
@@ -885,6 +894,11 @@ export const allMasters1Routes: RouteConfig[] = [
         subcategoryPath: '/all-master-1/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
         fields: FIELD_GROUPS.DISTRICT_MASTER,
+        defaultSortFields: [
+            FIELD_NAMES.ZONE_NAME,
+            FIELD_NAMES.STATE_NAME,
+            FIELD_NAMES.DISTRICT_NAME,
+        ],
         moduleCode: 'all_masters_districts_master',
     },
     {
@@ -896,6 +910,12 @@ export const allMasters1Routes: RouteConfig[] = [
         subcategoryPath: '/all-master-1/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
         fields: FIELD_GROUPS.ORGANIZATION_MASTER,
+        defaultSortFields: [
+            FIELD_NAMES.ZONE_NAME,
+            FIELD_NAMES.STATE_NAME,
+            FIELD_NAMES.DISTRICT_NAME,
+            FIELD_NAMES.ORG_NAME,
+        ],
         moduleCode: 'all_masters_organization_master',
     },
     {
@@ -931,6 +951,13 @@ export const allMasters1Routes: RouteConfig[] = [
         subcategoryPath: '/all-master-1/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
         fields: FIELD_GROUPS.VIEW_KVKS,
+        defaultSortFields: [
+            FIELD_NAMES.ZONE_NAME,
+            FIELD_NAMES.STATE_NAME,
+            FIELD_NAMES.DISTRICT_NAME,
+            FIELD_NAMES.HOST_ORG,
+            FIELD_NAMES.KVK_NAME,
+        ],
         moduleCode: 'all_masters_kvks',
         canCreate: ['super_admin'],
     },
