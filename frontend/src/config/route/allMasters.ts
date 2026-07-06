@@ -48,6 +48,7 @@ export const allMastersRoutes: RouteConfig[] = [
         // entityType-driven, so it still collects every field. Full-column copy
         // lives at /all-master-1/organizations (see allMasters1Routes).
         fields: [FIELD_NAMES.ORG_NAME],
+        defaultSortFields: [FIELD_NAMES.ORG_NAME],
         uniqueByField: FIELD_NAMES.ORG_NAME,
         moduleCode: 'all_masters_organization_master',
     },
@@ -62,6 +63,7 @@ export const allMastersRoutes: RouteConfig[] = [
         // Table shows only the unique host name; the Institute column is dropped
         // here (kept in the form/backend and in the /all-master-1 copy).
         fields: [FIELD_NAMES.UNIVERSITY_NAME],
+        defaultSortFields: [FIELD_NAMES.UNIVERSITY_NAME],
         uniqueByField: FIELD_NAMES.UNIVERSITY_NAME,
         moduleCode: 'all_masters_university_master',
     },
@@ -74,6 +76,13 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
         fields: FIELD_GROUPS.VIEW_KVKS,
+        defaultSortFields: [
+            FIELD_NAMES.ZONE_NAME,
+            FIELD_NAMES.STATE_NAME,
+            FIELD_NAMES.DISTRICT_NAME,
+            FIELD_NAMES.HOST_ORG,
+            FIELD_NAMES.KVK_NAME,
+        ],
         moduleCode: 'all_masters_kvks',
         canCreate: ['super_admin'],
     },
@@ -110,6 +119,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: MASTER_SIBLING_GROUPS.OFT_MASTERS,
         fields: FIELD_GROUPS.OFT_THEMATIC_AREA_MASTER,
+        defaultSortFields: [FIELD_NAMES.SUBJECT_NAME, FIELD_NAMES.THEMATIC_AREA_NAME],
         moduleCode: 'all_masters_oft_master',
     },
 
@@ -134,6 +144,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
         fields: FIELD_GROUPS.FLD_THEMATIC_AREA_MASTER,
+        defaultSortFields: [FIELD_NAMES.SECTOR_NAME, FIELD_NAMES.THEMATIC_AREA_NAME],
         moduleCode: 'all_masters_fld_master',
     },
     {
@@ -145,6 +156,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
         fields: FIELD_GROUPS.FLD_CATEGORY_MASTER,
+        defaultSortFields: [FIELD_NAMES.SECTOR_NAME, FIELD_NAMES.CATEGORY_NAME],
         moduleCode: 'all_masters_fld_master',
     },
     {
@@ -156,6 +168,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
         fields: FIELD_GROUPS.FLD_SUBCATEGORY_MASTER,
+        defaultSortFields: [FIELD_NAMES.SECTOR_NAME, FIELD_NAMES.CATEGORY_NAME, FIELD_NAMES.SUB_CATEGORY_NAME],
         moduleCode: 'all_masters_fld_master',
     },
     {
@@ -167,6 +180,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
         fields: FIELD_GROUPS.FLD_CROP_MASTER,
+        defaultSortFields: [FIELD_NAMES.CATEGORY_NAME, FIELD_NAMES.SUB_CATEGORY_NAME, FIELD_NAMES.CROP_NAME],
         moduleCode: 'all_masters_fld_master',
     },
     {
@@ -526,6 +540,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: MASTER_SIBLING_GROUPS.RESOURCE_MASTERS,
         fields: FIELD_GROUPS.EQUIPMENT_MASTER_MASTER,
+        defaultSortFields: [FIELD_NAMES.EQUIPMENT_TYPE_NAME, FIELD_NAMES.NAME],
         moduleCode: 'all_masters_equipment_master',
     },
     {
@@ -702,6 +717,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/other-masters',
         siblings: MASTER_SIBLING_GROUPS.NICRA_MASTERS,
         fields: FIELD_GROUPS.NICRA_SUB_CATEGORY_MASTER,
+        defaultSortFields: [FIELD_NAMES.CATEGORY_NAME, FIELD_NAMES.SUB_CATEGORY_NAME],
         moduleCode: 'all_masters_nicra_master',
     },
     {
@@ -812,6 +828,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/other-masters',
         siblings: MASTER_SIBLING_GROUPS.PROJECT_BUDGET_MASTERS,
         fields: FIELD_GROUPS.FINANCIAL_PROJECT_MASTER,
+        defaultSortFields: [FIELD_NAMES.FUNDING_AGENCY_NAME, FIELD_NAMES.PROJECT_NAME],
         moduleCode: 'all_masters_financial_project_master',
     },
     {

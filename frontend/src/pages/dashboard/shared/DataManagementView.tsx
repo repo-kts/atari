@@ -108,6 +108,47 @@ interface DataManagementViewProps {
     fields?: readonly string[] | string[]
 }
 
+const normalizeSortValue = (value: unknown): string => {
+    const text = valueToString(value)
+    return text === '-' ? '' : text
+}
+
+const compareSortValues = (a: string, b: string): number => {
+    if (a === b) return 0
+    if (a === '') return 1
+    if (b === '') return -1
+    const na = Number(a)
+    const nb = Number(b)
+    if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb
+    return a.localeCompare(b, undefined, {
+        sensitivity: 'base',
+        numeric: true,
+    })
+}
+
+const sortByDisplayFields = <T,>(data: T[], sortFields: readonly string[]): T[] => {
+    if (data.length < 2 || sortFields.length === 0) return data
+    return [...data].sort((a, b) => {
+        for (const field of sortFields) {
+            const av = normalizeSortValue(getFieldValue(a, field))
+            const bv = normalizeSortValue(getFieldValue(b, field))
+            const cmp = compareSortValues(av, bv)
+            if (cmp !== 0) return cmp
+        }
+        return 0
+    })
+}
+
+const getAllMasterDefaultSortFields = (
+    routeConfig: ReturnType<typeof getRouteConfig> | null | undefined,
+    fields: readonly string[]
+): string[] | null => {
+    if (routeConfig?.category !== 'All Masters') return null
+    const configured = routeConfig.defaultSortFields
+    const source = configured && configured.length > 0 ? configured : fields
+    return Array.from(new Set(source.filter(Boolean).map(String)))
+}
+
 export const DataManagementView: React.FC<DataManagementViewProps> = ({
     title,
     description = `Manage and view all ${title.toLowerCase()} in the system`,
@@ -449,6 +490,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     )
     const itemsPerPage = 10
 
+    const defaultSortFields = useMemo(
+        () => getAllMasterDefaultSortFields(routeConfig, fields),
+        [routeConfig, fields]
+    )
+
+    const orderedBaseItems = useMemo(() => {
+        if (!defaultSortFields) return dedupedBaseItems
+        return sortByDisplayFields(dedupedBaseItems, defaultSortFields)
+    }, [dedupedBaseItems, defaultSortFields])
+
     // Reset pagination/search when route changes (tab switch)
     useEffect(() => {
         setSearchQuery('')
@@ -516,7 +567,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     ? rawToDate
                     : rawFromDate
                 : rawToDate
-        const yearFiltered = dedupedBaseItems.filter((item: any) =>
+        const yearFiltered = orderedBaseItems.filter((item: any) =>
             itemMatchesDateRangeFilter(item, fromDate, toDate)
         )
 
@@ -529,7 +580,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 return value && String(value).toLowerCase().includes(query)
             })
         })
-    }, [dedupedBaseItems, items, debouncedSearch, fields, reportingYearFrom, reportingYearTo, useServerPaging])
+    }, [orderedBaseItems, items, debouncedSearch, fields, reportingYearFrom, reportingYearTo, useServerPaging])
 
     // Apply per-column filters (Excel-style: sort + text + multi-select) on top
     // of the search/year-filtered set. The column-filter dropdown's unique-value
@@ -545,6 +596,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             (f: any) => f?.sort,
         )
         if (hasActiveSort || result.length < 2) return result
+        if (defaultSortFields) {
+            return sortByDisplayFields(result, defaultSortFields)
+        }
         const staffPositionOf = (item: any): number => {
             const raw = item?.positionOrder ?? item?.position
             const parsed = Number(raw)
@@ -615,6 +669,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         useServerPaging,
         items,
         isStaffTable,
+        defaultSortFields,
         user?.role,
     ])
 

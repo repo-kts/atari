@@ -21,6 +21,9 @@ export interface RouteConfig {
     siblings?: readonly string[] | string[]
     // Optional field configuration for generic master views
     fields?: readonly string[] | string[]
+    // Optional frontend-only default sort order. Use dependency fields first,
+    // then the master field, while keeping the visible table columns unchanged.
+    defaultSortFields?: readonly string[] | string[]
     // Optional: dedupe the table to one row per distinct value of this field
     // (table display only; form/backend unaffected). Used by Institute/Host masters.
     uniqueByField?: string

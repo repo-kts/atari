@@ -180,6 +180,7 @@ export const FIELD_NAMES = {
     STATUS_LABEL: 'statusLabel',
     HIDE_IN_NEXT_YEAR: 'hideInNextYear',
     IS_ACTIVE: 'isActive',
+    IS_OTHER: 'isOther',
 
     // Problem Fields
     PROBLEM_DIAGNOSED: 'problemDiagnosed',
