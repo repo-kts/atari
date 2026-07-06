@@ -30,6 +30,11 @@ const ENTITY_CONFIG = {
         model: 'oftThematicArea',
         idField: 'oftThematicAreaId',
         nameField: 'thematicAreaName',
+        defaultOrderBy: [
+            { subject: { subjectName: 'asc' } },
+            { thematicAreaName: 'asc' },
+            { oftThematicAreaId: 'asc' },
+        ],
         tableName: 'oft_thematic_area',
         idColumn: 'oft_thematic_area_id',
         requiredFields: ['oftSubjectId', 'thematicAreaName'],
@@ -64,6 +69,11 @@ const ENTITY_CONFIG = {
         model: 'fldThematicArea',
         idField: 'thematicAreaId',
         nameField: 'thematicAreaName',
+        defaultOrderBy: [
+            { sector: { sectorName: 'asc' } },
+            { thematicAreaName: 'asc' },
+            { thematicAreaId: 'asc' },
+        ],
         tableName: 'thematic_area',
         idColumn: 'thematic_area_id',
         requiredFields: ['sectorId', 'thematicAreaName'],
@@ -80,6 +90,11 @@ const ENTITY_CONFIG = {
         model: 'fldCategory',
         idField: 'categoryId',
         nameField: 'categoryName',
+        defaultOrderBy: [
+            { sector: { sectorName: 'asc' } },
+            { categoryName: 'asc' },
+            { categoryId: 'asc' },
+        ],
         tableName: 'category',
         idColumn: 'category_id',
         requiredFields: ['sectorId', 'categoryName'],
@@ -101,6 +116,12 @@ const ENTITY_CONFIG = {
         model: 'fldSubcategory',
         idField: 'subCategoryId',
         nameField: 'subCategoryName',
+        defaultOrderBy: [
+            { sector: { sectorName: 'asc' } },
+            { category: { categoryName: 'asc' } },
+            { subCategoryName: 'asc' },
+            { subCategoryId: 'asc' },
+        ],
         tableName: 'sub_category',
         idColumn: 'sub_category_id',
         requiredFields: ['categoryId', 'sectorId', 'subCategoryName'],
@@ -128,6 +149,12 @@ const ENTITY_CONFIG = {
         model: 'fldCrop',
         idField: 'cropId',
         nameField: 'cropName',
+        defaultOrderBy: [
+            { category: { categoryName: 'asc' } },
+            { subCategory: { subCategoryName: 'asc' } },
+            { cropName: 'asc' },
+            { cropId: 'asc' },
+        ],
         tableName: 'crop',
         idColumn: 'crop_id',
         requiredFields: ['subCategoryId', 'categoryId', 'cropName'],
@@ -197,6 +224,12 @@ const ENTITY_CONFIG = {
         model: 'fLDCropMaster',
         idField: 'cfldId',
         nameField: 'cropName',
+        defaultOrderBy: [
+            { season: { seasonName: 'asc' } },
+            { cropType: { typeName: 'asc' } },
+            { cropName: 'asc' },
+            { cfldId: 'asc' },
+        ],
         tableName: 'fld_crop_master',
         idColumn: 'cfld_id',
         requiredFields: ['seasonId', 'typeId', 'cropName'],
@@ -235,6 +268,15 @@ function getEntityConfig(entityName) {
     return config;
 }
 
+function getOrderBy(config, sortBy, sortOrder = 'asc') {
+    const direction = sortOrder === 'desc' ? 'desc' : 'asc';
+    if (sortBy) {
+        return [{ [sortBy]: direction }, { [config.idField]: 'asc' }];
+    }
+    if (config.defaultOrderBy) return config.defaultOrderBy;
+    return [{ [config.nameField]: direction }, { [config.idField]: 'asc' }];
+}
+
 /**
  * Find all entities with pagination, filtering, and sorting
  * @param {string} entityName - Entity name
@@ -252,7 +294,7 @@ async function findAll(entityName, options = {}) {
 
     const page = Math.max(1, parseInt(options.page, 10) || 1);
     const limit = normalizeListLimit(options.limit, DEFAULT_MASTER_LIST_PAGE_SIZE);
-    const actualSortBy = sortBy || config.nameField;
+    const orderBy = getOrderBy(config, sortBy, sortOrder);
     const skip = (page - 1) * limit;
     const take = limit;
 
@@ -274,9 +316,7 @@ async function findAll(entityName, options = {}) {
             include: config.includes,
             skip,
             take,
-            orderBy: {
-                [actualSortBy]: sortOrder,
-            },
+            orderBy,
         }),
         prisma[config.model].count({ where }),
     ]);

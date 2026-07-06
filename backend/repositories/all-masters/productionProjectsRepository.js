@@ -28,6 +28,11 @@ const ENTITY_CONFIG = {
         model: 'productType',
         idField: 'productTypeId',
         nameField: 'productCategoryType',
+        defaultOrderBy: [
+            { productCategory: { productCategoryName: 'asc' } },
+            { productCategoryType: 'asc' },
+            { productTypeId: 'asc' },
+        ],
         tableName: 'product_type',
         idColumn: 'product_type_id',
         includes: {
@@ -48,6 +53,12 @@ const ENTITY_CONFIG = {
         model: 'product',
         idField: 'productId',
         nameField: 'productName',
+        defaultOrderBy: [
+            { productCategory: { productCategoryName: 'asc' } },
+            { productType: { productCategoryType: 'asc' } },
+            { productName: 'asc' },
+            { productId: 'asc' },
+        ],
         tableName: 'product',
         idColumn: 'product_id',
         includes: {
@@ -187,6 +198,15 @@ function getEntityConfig(entityName) {
     return config;
 }
 
+function getOrderBy(config, sortBy, sortOrder = 'asc') {
+    const direction = sortOrder === 'desc' ? 'desc' : 'asc';
+    if (sortBy) {
+        return [{ [sortBy]: direction }, { [config.idField]: 'asc' }];
+    }
+    if (config.defaultOrderBy) return config.defaultOrderBy;
+    return [{ [config.nameField]: direction }, { [config.idField]: 'asc' }];
+}
+
 /**
  * Find all entities with pagination, filtering, and sorting
  * @param {string} entityName - Entity name
@@ -204,7 +224,7 @@ async function findAll(entityName, options = {}) {
 
     const page = Math.max(1, parseInt(options.page, 10) || 1);
     const limit = normalizeListLimit(options.limit, DEFAULT_MASTER_LIST_PAGE_SIZE);
-    const actualSortBy = sortBy || config.nameField;
+    const orderBy = getOrderBy(config, sortBy, sortOrder);
     const skip = (page - 1) * limit;
     const take = limit;
 
@@ -226,9 +246,7 @@ async function findAll(entityName, options = {}) {
             include: config.includes,
             skip,
             take,
-            orderBy: {
-                [actualSortBy]: sortOrder,
-            },
+            orderBy,
         }),
         prisma[config.model].count({ where }),
     ]);

@@ -181,6 +181,11 @@ const ENTITY_CONFIG = {
         idField: 'equipmentMasterId',
         nameField: 'name',
         parentField: 'equipmentTypeId',
+        defaultOrderBy: [
+            { equipmentType: { name: 'asc' } },
+            { name: 'asc' },
+            { equipmentMasterId: 'asc' },
+        ],
         allowDeleteWithDependents: true, // onDelete: SetNull on equipments
         includes: {
             equipmentType: { select: { equipmentTypeId: true, name: true } },
@@ -209,13 +214,7 @@ const ENTITY_CONFIG = {
         model: 'otherExtensionActivityType',
         idField: 'activityTypeId',
         nameField: 'activityName',
-        includes: {
-            _count: {
-                select: {
-                    otherExtensionActivities: true,
-                },
-            },
-        },
+        includes: {},
     },
     'important-day': {
         model: 'importantDay',
@@ -382,6 +381,11 @@ const ENTITY_CONFIG = {
         model: 'nicraSubCategory',
         idField: 'nicraSubCategoryId',
         nameField: 'subCategoryName',
+        defaultOrderBy: [
+            { category: { categoryName: 'asc' } },
+            { subCategoryName: 'asc' },
+            { nicraSubCategoryId: 'asc' },
+        ],
         allowDeleteWithDependents: true, // onDelete: SetNull configured on nicra_details
         parentField: 'nicraCategoryId',
         includes: {
@@ -463,6 +467,11 @@ const ENTITY_CONFIG = {
         model: 'financialProject',
         idField: 'financialProjectId',
         nameField: 'projectName',
+        defaultOrderBy: [
+            { fundingAgency: { agencyName: 'asc' } },
+            { projectName: 'asc' },
+            { financialProjectId: 'asc' },
+        ],
         includes: {
             fundingAgency: {
                 select: {
@@ -527,6 +536,23 @@ function getEntityConfig(entityName) {
     return config;
 }
 
+function getOrderBy(config, sortBy, sortOrder = 'asc') {
+    const direction = sortOrder === 'desc' ? 'desc' : 'asc';
+    if (sortBy && sortBy !== 'name' && sortBy !== 'id') {
+        return [{ [sortBy]: direction }, { [config.idField]: 'asc' }];
+    }
+    if (sortBy === 'id') {
+        return [{ [config.idField]: direction }];
+    }
+    if (!sortBy || sortBy === 'name') {
+        return config.defaultOrderBy || [
+            { [config.nameField]: direction },
+            { [config.idField]: 'asc' },
+        ];
+    }
+    return [{ [config.nameField]: direction }, { [config.idField]: 'asc' }];
+}
+
 /**
  * Generic find all method with pagination, sorting and filtering
  */
@@ -546,10 +572,7 @@ const findAll = async (entityType, options = {}) => {
         };
     }
 
-    // Build sorting
-    let actualSortBy = sortBy;
-    if (sortBy === 'id') actualSortBy = config.idField;
-    if (sortBy === 'name') actualSortBy = config.nameField;
+    const orderBy = getOrderBy(config, sortBy, sortOrder);
 
     try {
         const [data, total] = await Promise.all([
@@ -558,9 +581,7 @@ const findAll = async (entityType, options = {}) => {
                 include: config.includes,
                 skip,
                 take,
-                orderBy: {
-                    [actualSortBy]: sortOrder,
-                },
+                orderBy,
             }),
             prisma[config.model].count({ where }),
         ]);

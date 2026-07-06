@@ -675,25 +675,32 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
+        const displayData = defaultSortFields
+            ? sortByDisplayFields(columnFilteredData, defaultSortFields)
+            : columnFilteredData
+
         if (useServerPaging && serverPagination) {
+            const serverItems = defaultSortFields
+                ? sortByDisplayFields(items, defaultSortFields)
+                : items
             const totalPages = serverPagination.totalPages || 1
             const safePage = Math.min(currentPage, totalPages)
             const startIndex = (safePage - 1) * itemsPerPage
-            const endIndex = startIndex + items.length
-            return { totalPages, safePage, startIndex, endIndex, paginatedData: items }
+            const endIndex = startIndex + serverItems.length
+            return { totalPages, safePage, startIndex, endIndex, paginatedData: serverItems }
         }
         const totalPages = Math.max(
             1,
-            Math.ceil(columnFilteredData.length / itemsPerPage)
+            Math.ceil(displayData.length / itemsPerPage)
         )
         // Clamp currentPage so it never points beyond the last page (e.g. after a search narrows results)
         const safePage = Math.min(currentPage, totalPages)
         const startIndex = (safePage - 1) * itemsPerPage
         const endIndex = startIndex + itemsPerPage
-        const paginatedData = columnFilteredData.slice(startIndex, endIndex)
+        const paginatedData = displayData.slice(startIndex, endIndex)
 
         return { totalPages, safePage, startIndex, endIndex, paginatedData }
-    }, [columnFilteredData, currentPage, itemsPerPage, useServerPaging, serverPagination, items])
+    }, [columnFilteredData, currentPage, itemsPerPage, useServerPaging, serverPagination, items, defaultSortFields])
 
     const { totalPages, safePage, startIndex, endIndex, paginatedData } =
         paginationData

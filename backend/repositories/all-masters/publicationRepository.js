@@ -18,6 +18,15 @@ const ENTITY_CONFIG = {
     },
 };
 
+function getOrderBy(config, sortBy = 'name', sortOrder = 'asc') {
+    const direction = sortOrder === 'desc' ? 'desc' : 'asc';
+    if (sortBy === 'id') return [{ [config.idField]: direction }];
+    if (sortBy === 'name' || !sortBy) {
+        return [{ [config.nameField]: direction }, { [config.idField]: 'asc' }];
+    }
+    return [{ [sortBy]: direction }, { [config.idField]: 'asc' }];
+}
+
 /**
  * Generic find all method with pagination, sorting and filtering
  */
@@ -40,10 +49,7 @@ const findAll = async (entityType, options = {}) => {
         };
     }
 
-    // Build sorting
-    let actualSortBy = sortBy;
-    if (sortBy === 'id') actualSortBy = config.idField;
-    if (sortBy === 'name') actualSortBy = config.nameField;
+    const orderBy = getOrderBy(config, sortBy, sortOrder);
 
     try {
         const [data, total] = await Promise.all([
@@ -52,9 +58,7 @@ const findAll = async (entityType, options = {}) => {
                 include: config.includes,
                 skip,
                 take,
-                orderBy: {
-                    [actualSortBy]: sortOrder,
-                },
+                orderBy,
             }),
             prisma[config.model].count({ where }),
         ]);
