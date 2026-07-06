@@ -230,6 +230,47 @@ function parseRequiredEntityId(id, idField, action = 'process') {
     return parsedId;
 }
 
+function getDefaultOrderBy(entityName, config, sortOrder = 'asc') {
+    const direction = sortOrder === 'desc' ? 'desc' : 'asc';
+
+    switch (entityName) {
+        case 'zones':
+            return [{ zoneName: direction }, { zoneId: 'asc' }];
+        case 'states':
+            return [
+                { zone: { zoneName: direction } },
+                { stateName: direction },
+                { stateId: 'asc' },
+            ];
+        case 'districts':
+            return [
+                { zone: { zoneName: direction } },
+                { state: { stateName: direction } },
+                { districtName: direction },
+                { districtId: 'asc' },
+            ];
+        case 'organizations':
+            return [
+                { district: { zone: { zoneName: direction } } },
+                { district: { state: { stateName: direction } } },
+                { district: { districtName: direction } },
+                { orgName: direction },
+                { orgId: 'asc' },
+            ];
+        case 'universities':
+            return [
+                { organization: { district: { zone: { zoneName: direction } } } },
+                { organization: { district: { state: { stateName: direction } } } },
+                { organization: { district: { districtName: direction } } },
+                { organization: { orgName: direction } },
+                { universityName: direction },
+                { universityId: 'asc' },
+            ];
+        default:
+            return [{ [config.nameField]: direction }, { [config.idField]: 'asc' }];
+    }
+}
+
 /**
  * Find all entities with pagination, filtering, and sorting
  * @param {string} entityName - Entity name
@@ -248,8 +289,9 @@ async function findAll(entityName, options = {}) {
     const page = Math.max(1, parseInt(options.page, 10) || 1);
     const limit = normalizeListLimit(options.limit, DEFAULT_MASTER_LIST_PAGE_SIZE);
 
-    // Use the entity's name field as default sort (A-Z) if not provided
-    const actualSortBy = sortBy || config.nameField;
+    const orderBy = sortBy
+        ? [{ [sortBy]: sortOrder === 'desc' ? 'desc' : 'asc' }, { [config.idField]: 'asc' }]
+        : getDefaultOrderBy(entityName, config, sortOrder);
 
     const skip = (page - 1) * limit;
     const take = limit;
@@ -273,9 +315,7 @@ async function findAll(entityName, options = {}) {
                 include: config.includes,
                 skip,
                 take,
-                orderBy: {
-                    [actualSortBy]: sortOrder,
-                },
+                orderBy,
             }),
             prisma[config.model].count({ where }),
         ]);
