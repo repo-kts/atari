@@ -254,6 +254,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             if (item.zone?.zoneName) return item.zone.zoneName;
             if (item.district?.state?.zone?.zoneName) return item.district.state.zone.zoneName;
+            if (item.organization?.district?.state?.zone?.zoneName) return item.organization.district.state.zone.zoneName;
             if (item.state?.zone?.zoneName) return item.state.zone.zoneName; // Legacy
             return null;
         },
@@ -263,6 +264,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             if (item.state?.stateName) return item.state.stateName;
             if (item.district?.state?.stateName) return item.district.state.stateName;
+            if (item.organization?.district?.state?.stateName) return item.organization.district.state.stateName;
             return null;
         },
         priority: 7,
@@ -272,6 +274,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             const val = item.district || item.districtName || item.District || item.DistrictName || item.district_name;
             if (typeof val === 'string') return val;
             if (val && typeof val === 'object' && val.districtName) return val.districtName;
+            if (item.organization?.district?.districtName) return item.organization.district.districtName;
             if (item.kvk?.district?.districtName) return item.kvk.district.districtName;
             return null;
         },

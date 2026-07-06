@@ -906,7 +906,20 @@ export const allMasters1Routes: RouteConfig[] = [
         parent: '/all-master-1',
         subcategoryPath: '/all-master-1/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS_1,
-        fields: FIELD_GROUPS.UNIVERSITY_MASTER,
+        fields: [
+            FIELD_NAMES.ZONE_NAME,
+            FIELD_NAMES.STATE_NAME,
+            FIELD_NAMES.DISTRICT_NAME,
+            FIELD_NAMES.ORGANIZATION_ORG_NAME,
+            FIELD_NAMES.UNIVERSITY_NAME,
+        ],
+        defaultSortFields: [
+            FIELD_NAMES.ZONE_NAME,
+            FIELD_NAMES.STATE_NAME,
+            FIELD_NAMES.DISTRICT_NAME,
+            FIELD_NAMES.ORGANIZATION_ORG_NAME,
+            FIELD_NAMES.UNIVERSITY_NAME,
+        ],
         moduleCode: 'all_masters_university_master',
     },
     {
