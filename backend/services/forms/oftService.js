@@ -29,6 +29,7 @@ const oftService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _syncReportingYearFromStartDate(payload);
         _assertExpectedCompletionDate(payload);
         const created = await oftRepository.create(payload, user);
         await _invalidateOftReports(created?.kvkId ?? user?.kvkId);
@@ -47,6 +48,7 @@ const oftService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _syncReportingYearFromStartDate(payload);
         _assertExpectedCompletionDate(payload);
         const updated = await oftRepository.update(id, payload, user);
         await _invalidateOftReports(updated?.kvkId ?? user?.kvkId);
@@ -205,6 +207,15 @@ const oftService = {
         return result;
     },
 };
+
+// Reporting year is derived from the OFT start date, never entered by the user
+// (the form field is hidden). Mirror it whenever a start date is supplied so
+// editing the start date always moves the record's reporting year with it.
+function _syncReportingYearFromStartDate(payload) {
+    if (payload && payload.oftStartDate) {
+        payload.reportingYear = payload.oftStartDate;
+    }
+}
 
 function _assertExpectedCompletionDate(payload) {
     const raw = payload ? payload.expectedCompletionDate : null;
