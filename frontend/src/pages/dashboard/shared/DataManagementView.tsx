@@ -55,6 +55,7 @@ import { useAlert } from '@/hooks/useAlert'
 import { useDeleteHandler } from '@/hooks/useDeleteHandler'
 import { useEditHandler } from '@/hooks/useEditHandler'
 import { useExportHandler } from '@/hooks/useExportHandler'
+import { exportApi } from '@/services/exportApi'
 import { useToast } from '@/hooks/useToast'
 import { wipeKvkModule, WIPEABLE_ENTITY_TYPES } from '@/services/maintenanceApi'
 import {
@@ -1923,12 +1924,21 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         // only the filtered rows — not the full dataset.
         const exportDataSource = columnFilteredData
 
+        // Trainings can hold thousands of rows; uploading them all breaks on
+        // serverless (request/response size limits). Instead, let the server
+        // fetch the data itself and stream/return the file.
+        const useServerExport =
+            entityType === ENTITY_TYPES.ACHIEVEMENT_TRAINING && format !== 'csv'
+
         await handleExportData(format, {
             title,
             fields,
             data: exportDataSource,
             pathname: location.pathname,
             templateKey,
+            ...(useServerExport
+                ? { serverFetch: (f) => exportApi.exportTrainings(f) }
+                : {}),
             ...(templateKey === 'world-soil-day-page-report'
                 ? {
                     isAggregatedReport:
