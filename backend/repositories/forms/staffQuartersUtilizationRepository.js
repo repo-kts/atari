@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const staffQuartersUtilizationRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -31,7 +32,7 @@ const staffQuartersUtilizationRepository = {
             include: {
                 kvk: { select: { kvkName: true } }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'staffQuartersUtilizationId' })
         });
     },
 

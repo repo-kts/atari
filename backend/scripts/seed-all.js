@@ -84,7 +84,6 @@ async function run() {
             stateId: states[0].stateId,
             districtId: districts[0].districtId,
             orgId: orgs[0].orgId,
-            hostOrg: 'Sample Host Organization',
             mobile: '9876543210',
             email: 'sample@kvk.gov.in',
             address: 'Sample Address',

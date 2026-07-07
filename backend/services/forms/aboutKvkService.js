@@ -384,7 +384,7 @@ class AboutKvkService {
      */
     validateRequiredFields(entityName, data) {
         const requiredFields = {
-            'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
+            'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId', 'mobile', 'email', 'address', 'yearOfSanction'],
             // Note: universityId is required as per the newest form requirements
             // *Other free-text fields are conditional (only when the chosen master isOther) — enforced on the frontend, not required here.
             'kvk-bank-accounts': ['kvkId', 'bankAccountTypeMasterId', 'accountName', 'bankName', 'location', 'accountNumber'],
@@ -569,7 +569,7 @@ class AboutKvkService {
                 where: { kvkStaffId: employeeId },
                 data: {
                     kvkId: targetKvkId,
-                    transferStatus: 'TRANSFERRED',
+                    transferStatus: 'ACTIVE',
                     sourceKvkIds: sourceKvkIds,
                     originalKvkId: originalKvkId,
                     transferCount: (employee.transferCount || 0) + 1,
@@ -745,7 +745,7 @@ class AboutKvkService {
                 where: { kvkStaffId: staffId },
                 data: {
                     kvkId: revertToKvkId,
-                    transferStatus: revertToKvkId === employee.originalKvkId ? 'ACTIVE' : 'TRANSFERRED',
+                    transferStatus: 'ACTIVE',
                     lastTransferDate: parsedTransferDate,
                 },
                 include: {

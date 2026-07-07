@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const nicraConvergenceRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -43,7 +44,7 @@ const nicraConvergenceRepository = {
             include: {
                 kvk: { select: { kvkName: true } }
             },
-            orderBy: { nicraConvergenceProgrammeId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'nicraConvergenceProgrammeId' })
         });
         return results.map(r => nicraConvergenceRepository._mapResponse(r));
     },

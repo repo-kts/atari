@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const cfldExtensionActivityRepository = {
     getActivityTypes: async () => {
         const rows = await prisma.$queryRawUnsafe(
@@ -73,7 +74,7 @@ const cfldExtensionActivityRepository = {
                 season: { select: { seasonName: true } },
                 extensionActivity: { select: { extensionName: true } },
             },
-            orderBy: { organizedId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'organizedId' })
         });
         return results.map(_mapResponse);
     },

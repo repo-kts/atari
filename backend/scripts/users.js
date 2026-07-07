@@ -61,7 +61,7 @@ async function seedKvkUser() {
     kvk = await prisma.kvk.create({
       data: {
         kvkName, zoneId: zone.zoneId, stateId: state.stateId, districtId: district.districtId, orgId: org.orgId,
-        hostOrg: 'Test Host Org', mobile: '9876543210', email: 'testkvk@atari.gov.in', address: 'Test Address', yearOfSanction: 2024,
+        mobile: '9876543210', email: 'testkvk@atari.gov.in', address: 'Test Address', yearOfSanction: 2024,
       },
     });
   }

@@ -13,6 +13,7 @@ import {
   useModuleImages,
 } from '@/hooks/useModuleImages'
 import { API_BASE_URL } from '@/config/api'
+import { validateImageFile } from '@/utils/imageValidation'
 
 const PAGE_SIZE = 10
 
@@ -158,8 +159,9 @@ export const ModuleImages: React.FC = () => {
         alert({ title: 'Unsupported File', message: `${file.name} is not an image.`, variant: 'error' })
         continue
       }
-      if (file.size > 5 * 1024 * 1024) {
-        alert({ title: 'File Too Large', message: `File ${file.name} is larger than 5MB.`, variant: 'error' })
+      const imageError = validateImageFile(file)
+      if (imageError) {
+        alert({ title: 'Invalid Image Size', message: imageError, variant: 'error' })
         continue
       }
       try {

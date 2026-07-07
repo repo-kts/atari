@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const parseDateOrNow = (dateStr) => {
@@ -37,7 +38,7 @@ const meetingsRepository = {
             const data = await prisma.sacMeeting.findMany({
                 where,
                 include: { kvk: { select: { kvkName: true } } },
-                orderBy: { sacMeetingId: 'desc' }
+                orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'sacMeetingId' })
             });
 
             return data.map(item => ({
@@ -126,13 +127,14 @@ const meetingsRepository = {
             } else if (filters.kvkId) {
                 where.kvkId = parseInt(filters.kvkId);
             }
-            return await prisma.atariMeeting.findMany({
+            const _sortRows = await prisma.atariMeeting.findMany({
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
                 },
-                orderBy: { atariMeetingId: 'desc' }
+                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'atariMeetingId' })
             });
+            return sortFormListRows(_sortRows, user, { tiebreak: 'atariMeetingId' });
         },
         findById: async (id, user) => {
             const where = { atariMeetingId: parseInt(id) };

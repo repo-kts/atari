@@ -809,7 +809,7 @@ class ReportDataService {
             district: kvk.district?.districtName || '',
             organization: kvk.org?.orgName || '',
             university: kvk.university?.universityName || null,
-            hostOrg: kvk.hostOrg,
+            hostOrg: kvk.university?.universityName || null,
             yearOfSanction: kvk.yearOfSanction,
         };
 

@@ -219,7 +219,9 @@ function buildKvkGroupedPagePayload(records) {
 
     const byKvk = new Map();
     for (const r of list) {
-        const k = (r.kvkName && String(r.kvkName).trim()) || 'Unknown KVK';
+        const k = (r.kvkName && String(r.kvkName).trim())
+            || (r.kvk && r.kvk.kvkName && String(r.kvk.kvkName).trim())
+            || 'Unknown KVK';
         if (!byKvk.has(k)) byKvk.set(k, []);
         byKvk.get(k).push(r);
     }
@@ -248,6 +250,7 @@ function mapPrismaRowToReportRow(r) {
     return {
         ...r,
         id: r.productionSupplyId,
+        kvkName: r.kvk?.kvkName || '',
         reportingYear,
         productCategory: r.productCategoryOther || r.productCategory?.productCategoryName,
         productType: r.productTypeOther || r.productType?.productCategoryType,

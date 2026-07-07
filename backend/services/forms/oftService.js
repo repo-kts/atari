@@ -1,7 +1,7 @@
 const oftRepository = require('../../repositories/forms/oftRepository.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
 const { OFT_STATUS, normalizeOftStatus, canTransition } = require('../../constants/oftStatus.js');
-const { validateFileSize } = require('../../utils/fileValidation.js');
+const { validateFileSize, validateImageSize } = require('../../utils/fileValidation.js');
 const { createAttachmentBinding } = require('./formAttachmentBinding.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
@@ -29,6 +29,7 @@ const oftService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _syncReportingYearFromStartDate(payload);
         _assertExpectedCompletionDate(payload);
         const created = await oftRepository.create(payload, user);
         await _invalidateOftReports(created?.kvkId ?? user?.kvkId);
@@ -47,6 +48,7 @@ const oftService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _syncReportingYearFromStartDate(payload);
         _assertExpectedCompletionDate(payload);
         const updated = await oftRepository.update(id, payload, user);
         await _invalidateOftReports(updated?.kvkId ?? user?.kvkId);
@@ -206,6 +208,15 @@ const oftService = {
     },
 };
 
+// Reporting year is derived from the OFT start date, never entered by the user
+// (the form field is hidden). Mirror it whenever a start date is supplied so
+// editing the start date always moves the record's reporting year with it.
+function _syncReportingYearFromStartDate(payload) {
+    if (payload && payload.oftStartDate) {
+        payload.reportingYear = payload.oftStartDate;
+    }
+}
+
 function _assertExpectedCompletionDate(payload) {
     const raw = payload ? payload.expectedCompletionDate : null;
     const date = raw ? new Date(raw) : null;
@@ -250,7 +261,7 @@ function _validateResultPayload(payload, sourceRows = []) {
     });
 
     validateFileSize({ size: payload.supplementaryDatasheetSize }, 5 * 1024 * 1024, 'Supplementary Datasheet');
-    validateFileSize({ size: payload.photographSize }, 5 * 1024 * 1024, 'Photograph');
+    validateImageSize({ size: payload.photographSize }, 'Photograph');
 }
 
 function _mapResultReportForForm(result, source) {

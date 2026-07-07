@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 function isKvkUser(user) {
     return user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
 }
@@ -88,8 +89,9 @@ const agriDroneDemonstrationRepository = {
                 district: { select: { districtId: true, districtName: true } },
                 demonstrationsOn: { select: { agriDroneDemonstrationsOnId: true, demonstrationsOnName: true } },
             },
-            orderBy: { agriDroneDemonstrationId: 'desc' },
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'agriDroneDemonstrationId' }),
         });
+        sortFormListRows(records, user, { tiebreak: 'agriDroneDemonstrationId' });
         return records.map(r => agriDroneDemonstrationRepository._mapResponse(r));
     },
 

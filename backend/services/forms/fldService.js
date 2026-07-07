@@ -26,6 +26,7 @@ const fldService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _syncReportingYearFromStartDate(payload);
         _assertExpectedCompletionDate(payload);
         const result = await fldRepository.create(payload, user);
         await invalidateFldStateCategoryReport(result?.kvkId || user?.kvkId);
@@ -63,6 +64,7 @@ const fldService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _syncReportingYearFromStartDate(payload);
         _assertExpectedCompletionDate(payload);
         const result = await fldRepository.update(id, payload, user);
         await invalidateFldStateCategoryReport(result?.kvkId ?? user?.kvkId);
@@ -203,6 +205,15 @@ const fldService = {
         return result;
     },
 };
+
+// Reporting year is derived from the start date, never entered by the user
+// (the form field is hidden). Mirror it whenever a start date is supplied so
+// editing the start date always moves the record's reporting year with it.
+function _syncReportingYearFromStartDate(payload) {
+    if (payload && payload.startDate) {
+        payload.reportingYear = payload.startDate;
+    }
+}
 
 function _assertExpectedCompletionDate(payload) {
     const raw = payload ? payload.expectedCompletionDate : null;

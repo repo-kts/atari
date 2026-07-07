@@ -109,9 +109,14 @@ function parseImageDataUrl(imageBase64) {
     throw new Error('Invalid image data');
   }
 
-  const maxBytes = 10 * 1024 * 1024; // 10MB
+  // Images are bounded to 200KB–2MB.
+  const minBytes = 200 * 1024;
+  const maxBytes = 2 * 1024 * 1024;
+  if (imageData.length < minBytes) {
+    throw new Error('Image must be at least 200KB');
+  }
   if (imageData.length > maxBytes) {
-    throw new Error('Image size must be 10MB or less');
+    throw new Error('Image must not exceed 2MB');
   }
 
   return { mimeType, imageData };

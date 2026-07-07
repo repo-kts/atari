@@ -132,6 +132,45 @@ function sortStr(a, b) {
     return a.localeCompare(b, undefined, { sensitivity: 'base' });
 }
 
+// Canonical display order for thematic areas in the training report (matches the
+// ATARI reporting format). Rows sort by this index; anything not listed falls to
+// the end, alphabetically. Names must match the thematic-area master exactly.
+const THEMATIC_AREA_ORDER = [
+    'Crop Production',
+    'Horticulture (Vegetable Crops)',
+    'Horticulture (Fruits)',
+    'Horticulture (Ornamental Plants)',
+    'Horticulture (Plantation Crops)',
+    'Horticulture (Tuber Crops)',
+    'Horticulture (Spices)',
+    'Horticulture (Medicinal And Aromatic Plants)',
+    'Soil Health and Fertility Management',
+    'Livestock Production and Management',
+    'Home Science/Women Empowerment',
+    'Agril. Engineering',
+    'Plant Protection',
+    'Fisheries',
+    'Production of Inputs at Site',
+    'Capacity Building and Group Dynamics',
+    'Rural Youth',
+    'Extension Personnel',
+    'Agro forestry',
+];
+const THEMATIC_AREA_RANK = new Map(
+    THEMATIC_AREA_ORDER.map((name, i) => [name.toLowerCase(), i]),
+);
+function thematicRank(name) {
+    const r = THEMATIC_AREA_RANK.get(String(name || '').trim().toLowerCase());
+    return r === undefined ? Number.MAX_SAFE_INTEGER : r;
+}
+// Canonical thematic order, then alphabetical for any unlisted names.
+function sortThematic(a, b) {
+    const ra = thematicRank(a);
+    const rb = thematicRank(b);
+    if (ra !== rb) return ra - rb;
+    return sortStr(a, b);
+}
+
 /** Primary section key: **training type** (`trainingTypeId` → superadmin `TrainingType`). Campus is never used for A/B. */
 function primarySectionKey(r) {
     if (r.trainingTypeId != null) return `tid:${r.trainingTypeId}`;
@@ -260,7 +299,7 @@ function buildPayloadFromRecords(records, filters = {}) {
                 addRowToAgg(thematicMap.get(tk).agg, r);
             }
             const thOrder = [...thematicMap.keys()].sort((a, b) =>
-                sortStr(thematicMap.get(a).thematicAreaName, thematicMap.get(b).thematicAreaName),
+                sortThematic(thematicMap.get(a).thematicAreaName, thematicMap.get(b).thematicAreaName),
             );
             const detailRows = thOrder.map((tk) => {
                 const e = thematicMap.get(tk);

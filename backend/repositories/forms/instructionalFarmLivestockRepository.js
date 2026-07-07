@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const instructionalFarmLivestockRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -33,13 +34,14 @@ const instructionalFarmLivestockRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.instructionalFarmLivestock.findMany({
+        const _sortRows = await prisma.instructionalFarmLivestock.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'instructionalFarmLivestockId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'instructionalFarmLivestockId' });
     },
 
     findById: async (id, user) => {

@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
+const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const nicraTrainingRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -56,7 +57,7 @@ const nicraTrainingRepository = {
         const items = await prisma.nicraTraining.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
-            orderBy: { nicraTrainingId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'nicraTrainingId' })
         });
         return items.map(nicraTrainingRepository._mapResponse);
     },

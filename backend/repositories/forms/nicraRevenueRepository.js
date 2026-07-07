@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const nicraRevenueRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -47,13 +48,14 @@ const nicraRevenueRepository = {
             }
         }
 
-        return await prisma.nicraRevenueGenerated.findMany({
+        const _sortRows = await prisma.nicraRevenueGenerated.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { nicraRevenueGeneratedId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'nicraRevenueGeneratedId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'nicraRevenueGeneratedId' });
     },
 
     findById: async (id, user) => {

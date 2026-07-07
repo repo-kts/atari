@@ -779,12 +779,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 const next = e.target.value
                                 const expected = formData.expectedCompletionDate
                                 const expectedInvalid = expected && next && expected < next
-                                const shouldSeedReportingYear = !formData.id && !formData.kvkOftId && !formData.reportingYear
+                                // Reporting year is derived from the start date
+                                // (field hidden; backend is authoritative). Mirror
+                                // it so client-side year filters stay in sync.
                                 setFormData({
                                     ...formData,
                                     duration: next,
                                     oftStartDate: next,
-                                    ...(shouldSeedReportingYear ? { reportingYear: next } : {}),
+                                    reportingYear: next,
                                     ...(expectedInvalid ? { expectedCompletionDate: '' } : {}),
                                 })
                             }}
@@ -1139,21 +1141,16 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 const next = e.target.value
                                 const expected = formData.expectedCompletionDate
                                 const expectedInvalid = expected && next && expected < next
-                                const shouldSeedReportingYear = !formData.id && !formData.kvkFldId && !formData.reportingYear
+                                // Reporting year is derived from the start date
+                                // (field hidden; backend is authoritative). Mirror
+                                // it so client-side year filters stay in sync.
                                 setFormData({
                                     ...formData,
                                     startDate: next,
-                                    ...(shouldSeedReportingYear ? { reportingYear: next } : {}),
+                                    reportingYear: next,
                                     ...(expectedInvalid ? { expectedCompletionDate: '' } : {}),
                                 })
                             }}
-                        />
-                        <FormInput
-                            label="Reporting Year"
-                            required
-                            type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Expected Completion Date"
@@ -1352,7 +1349,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
                         {/* Crop - Dependent on Subcategory */}
                         <DependentDropdown
-                            label="Crop"
+                            label="Crop/Animal/Enterprise"
                             required
                             value={formData.cropId ?? ''}
                             onChange={(value) => {
@@ -1397,7 +1394,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
                         {isOtherCrop && (
                             <SpecifyOtherInput
-                                label="Please specify other crop"
+                                label="Please specify other crop/animal/enterprise"
                                 required
                                 value={formData.cropOther}
                                 onChange={(e) => setFormData({ ...formData, cropOther: e.target.value })}
@@ -1437,7 +1434,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                         label="Unit"
                                         value={masterUnit}
                                         disabled
-                                        onChange={() => {}}
+                                        onChange={() => { }}
                                         placeholder={formData.cropId ? '' : 'Select crop'}
                                     />
                                     {dataType === 'boolean' ? (

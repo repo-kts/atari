@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const aryaPrevYearRepository = {
     create: async (data, user) => {
         const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
@@ -102,8 +103,9 @@ const aryaPrevYearRepository = {
                 kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
                 enterprise: { select: { enterpriseName: true } },
             },
-            orderBy: { aryaPrevYearId: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'aryaPrevYearId' })
         });
+        sortFormListRows(results, user, { tiebreak: 'aryaPrevYearId' });
 
         return results.map(_mapResponse);
     },

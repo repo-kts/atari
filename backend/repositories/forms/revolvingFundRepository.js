@@ -2,6 +2,7 @@ const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
+const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const revolvingFundRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -33,13 +34,14 @@ const revolvingFundRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.revolvingFund.findMany({
+        const _sortRows = await prisma.revolvingFund.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'revolvingFundId' })
         });
+        return sortFormListRows(_sortRows, user, { tiebreak: 'revolvingFundId' });
     },
 
     findById: async (id, user) => {

@@ -45,6 +45,15 @@ function validateUploadInput({ fileName, mimeType, size }) {
     if (num > MAX_BYTES) {
         throw new ValidationError(`File exceeds max size ${(MAX_BYTES / (1024 * 1024)).toFixed(0)}MB`);
     }
+    // Images are bounded to 200KB–2MB.
+    if (mimeType.toLowerCase().startsWith('image/')) {
+        if (num < 200 * 1024) {
+            throw new ValidationError('Image must be at least 200KB');
+        }
+        if (num > 2 * 1024 * 1024) {
+            throw new ValidationError('Image must not exceed 2MB');
+        }
+    }
 }
 
 async function decorate(row) {
