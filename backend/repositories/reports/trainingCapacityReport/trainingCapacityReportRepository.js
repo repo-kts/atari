@@ -287,9 +287,14 @@ function buildPayloadFromRecords(records, filters = {}) {
             }
             addRowToAgg(areaMap.get(ak).agg, r);
         }
-        const areaOrder = [...areaMap.keys()].sort((a, b) =>
-            sortTrainingArea(areaMap.get(a).trainingAreaName, areaMap.get(b).trainingAreaName),
-        );
+        // Drop the "Not specified" bucket (records with no Training Area linked -
+        // a data-entry gap). It must not appear as a row, and the summary total is
+        // computed from the shown areas only so rows still add up.
+        const areaOrder = [...areaMap.keys()]
+            .filter((ak) => ak !== 'aid:none' && areaMap.get(ak).trainingAreaName !== 'Not specified')
+            .sort((a, b) =>
+                sortTrainingArea(areaMap.get(a).trainingAreaName, areaMap.get(b).trainingAreaName),
+            );
         const trainingAreaSummary = areaOrder.map((ak) => {
             const entry = areaMap.get(ak);
             return {
@@ -298,7 +303,18 @@ function buildPayloadFromRecords(records, filters = {}) {
             };
         });
         let areaSummaryGrand = emptyParticipantAgg();
-        for (const r of typeRows) addRowToAgg(areaSummaryGrand, r);
+        for (const ak of areaOrder) {
+            const a = areaMap.get(ak).agg;
+            areaSummaryGrand.courses += a.courses;
+            areaSummaryGrand.generalM += a.generalM;
+            areaSummaryGrand.generalF += a.generalF;
+            areaSummaryGrand.obcM += a.obcM;
+            areaSummaryGrand.obcF += a.obcF;
+            areaSummaryGrand.scM += a.scM;
+            areaSummaryGrand.scF += a.scF;
+            areaSummaryGrand.stM += a.stM;
+            areaSummaryGrand.stF += a.stF;
+        }
         areaSummaryGrand = withTotals(areaSummaryGrand);
 
         const thematicDetailBlocks = [];
@@ -313,15 +329,23 @@ function buildPayloadFromRecords(records, filters = {}) {
                 const tk = r.thematicAreaId != null ? `thid:${r.thematicAreaId}` : 'thid:none';
                 if (!thematicMap.has(tk)) {
                     thematicMap.set(tk, {
+                        thematicAreaId: r.thematicAreaId != null ? Number(r.thematicAreaId) : null,
                         thematicAreaName: r.thematicAreaName || '—',
                         agg: emptyParticipantAgg(),
                     });
                 }
                 addRowToAgg(thematicMap.get(tk).agg, r);
             }
-            const thOrder = [...thematicMap.keys()].sort((a, b) =>
-                sortStr(thematicMap.get(a).thematicAreaName, thematicMap.get(b).thematicAreaName),
-            );
+            // Thematic sub-topics follow the master's authored order. The seed file
+            // lists them in reverse, so higher ids display earlier; null ids go last.
+            const thOrder = [...thematicMap.keys()].sort((a, b) => {
+                const ida = thematicMap.get(a).thematicAreaId;
+                const idb = thematicMap.get(b).thematicAreaId;
+                if (ida == null && idb == null) return sortStr(thematicMap.get(a).thematicAreaName, thematicMap.get(b).thematicAreaName);
+                if (ida == null) return 1;
+                if (idb == null) return -1;
+                return idb - ida;
+            });
             const detailRows = thOrder.map((tk) => {
                 const e = thematicMap.get(tk);
                 return {
