@@ -333,9 +333,22 @@ function buildPayloadFromRecords(records, filters = {}) {
         });
     });
 
+    // Flat per-thematic-area summary aggregated across ALL records (every
+    // training type / area / state), ordered by the canonical thematic order.
+    // Drives the simplified report: one block per thematic area.
+    const thematicMap = new Map();
+    for (const r of norm) {
+        const name = r.thematicAreaName || '—';
+        if (!thematicMap.has(name)) thematicMap.set(name, emptyParticipantAgg());
+        addRowToAgg(thematicMap.get(name), r);
+    }
+    const thematicSummary = [...thematicMap.keys()]
+        .sort(sortThematic)
+        .map((name) => ({ thematicAreaName: name, ...withTotals(thematicMap.get(name)) }));
+
     debugLog('buildPayloadFromRecords: done', { yearLabel, sectionCount: sections.length });
 
-    return { yearLabel, sections };
+    return { yearLabel, sections, thematicSummary };
 }
 
 async function fetchTrainingAchievements(kvkId, filters = {}) {
