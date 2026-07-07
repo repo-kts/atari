@@ -132,10 +132,11 @@ function sortStr(a, b) {
     return a.localeCompare(b, undefined, { sensitivity: 'base' });
 }
 
-// Canonical display order for thematic areas in the training report (matches the
-// ATARI reporting format). Rows sort by this index; anything not listed falls to
-// the end, alphabetically. Names must match the thematic-area master exactly.
-const THEMATIC_AREA_ORDER = [
+// Canonical display order for TRAINING AREAS in the training report (matches the
+// ATARI reporting format — the training-area summary rows and the per-area detail
+// blocks follow this order). Anything not listed falls to the end, alphabetically.
+// Names must match the training-area master exactly.
+const TRAINING_AREA_ORDER = [
     'Crop Production',
     'Horticulture (Vegetable Crops)',
     'Horticulture (Fruits)',
@@ -156,17 +157,37 @@ const THEMATIC_AREA_ORDER = [
     'Extension Personnel',
     'Agro forestry',
 ];
-const THEMATIC_AREA_RANK = new Map(
-    THEMATIC_AREA_ORDER.map((name, i) => [name.toLowerCase(), i]),
+const TRAINING_AREA_RANK = new Map(
+    TRAINING_AREA_ORDER.map((name, i) => [name.toLowerCase(), i]),
 );
-function thematicRank(name) {
-    const r = THEMATIC_AREA_RANK.get(String(name || '').trim().toLowerCase());
+function trainingAreaRank(name) {
+    const r = TRAINING_AREA_RANK.get(String(name || '').trim().toLowerCase());
     return r === undefined ? Number.MAX_SAFE_INTEGER : r;
 }
-// Canonical thematic order, then alphabetical for any unlisted names.
-function sortThematic(a, b) {
-    const ra = thematicRank(a);
-    const rb = thematicRank(b);
+// Canonical training-area order, then alphabetical for any unlisted names.
+function sortTrainingArea(a, b) {
+    const ra = trainingAreaRank(a);
+    const rb = trainingAreaRank(b);
+    if (ra !== rb) return ra - rb;
+    return sortStr(a, b);
+}
+
+// Fixed section order — training types A/B/C in ATARI reporting order.
+const TRAINING_TYPE_ORDER = [
+    'Farmers and Farm Women',
+    'Rural Youth',
+    'Extension Personnel',
+];
+const TRAINING_TYPE_RANK = new Map(
+    TRAINING_TYPE_ORDER.map((name, i) => [name.toLowerCase(), i]),
+);
+function sortTrainingType(a, b) {
+    const ra = TRAINING_TYPE_RANK.has(String(a || '').trim().toLowerCase())
+        ? TRAINING_TYPE_RANK.get(String(a || '').trim().toLowerCase())
+        : Number.MAX_SAFE_INTEGER;
+    const rb = TRAINING_TYPE_RANK.has(String(b || '').trim().toLowerCase())
+        ? TRAINING_TYPE_RANK.get(String(b || '').trim().toLowerCase())
+        : Number.MAX_SAFE_INTEGER;
     if (ra !== rb) return ra - rb;
     return sortStr(a, b);
 }
@@ -228,7 +249,7 @@ function buildPayloadFromRecords(records, filters = {}) {
     const sectionKeys = [...bySection.keys()].sort((ka, kb) => {
         const a = sectionTitleFromRows(bySection.get(ka) || []);
         const b = sectionTitleFromRows(bySection.get(kb) || []);
-        return sortStr(a, b);
+        return sortTrainingType(a, b);
     });
 
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -267,7 +288,7 @@ function buildPayloadFromRecords(records, filters = {}) {
             addRowToAgg(areaMap.get(ak).agg, r);
         }
         const areaOrder = [...areaMap.keys()].sort((a, b) =>
-            sortStr(areaMap.get(a).trainingAreaName, areaMap.get(b).trainingAreaName),
+            sortTrainingArea(areaMap.get(a).trainingAreaName, areaMap.get(b).trainingAreaName),
         );
         const trainingAreaSummary = areaOrder.map((ak) => {
             const entry = areaMap.get(ak);
@@ -299,7 +320,7 @@ function buildPayloadFromRecords(records, filters = {}) {
                 addRowToAgg(thematicMap.get(tk).agg, r);
             }
             const thOrder = [...thematicMap.keys()].sort((a, b) =>
-                sortThematic(thematicMap.get(a).thematicAreaName, thematicMap.get(b).thematicAreaName),
+                sortStr(thematicMap.get(a).thematicAreaName, thematicMap.get(b).thematicAreaName),
             );
             const detailRows = thOrder.map((tk) => {
                 const e = thematicMap.get(tk);
@@ -333,22 +354,25 @@ function buildPayloadFromRecords(records, filters = {}) {
         });
     });
 
-    // Flat per-thematic-area summary aggregated across ALL records (every
-    // training type / area / state), ordered by the canonical thematic order.
-    // Drives the simplified report: one block per thematic area.
-    const thematicMap = new Map();
+    // Global state-wise summary — aggregated across ALL training types. Rendered
+    // once at the top of the report, before the per-training-type sections.
+    const globalStateMap = new Map();
     for (const r of norm) {
-        const name = r.thematicAreaName || '—';
-        if (!thematicMap.has(name)) thematicMap.set(name, emptyParticipantAgg());
-        addRowToAgg(thematicMap.get(name), r);
+        const st = r.stateName || 'Unknown';
+        if (!globalStateMap.has(st)) globalStateMap.set(st, emptyParticipantAgg());
+        addRowToAgg(globalStateMap.get(st), r);
     }
-    const thematicSummary = [...thematicMap.keys()]
-        .sort(sortThematic)
-        .map((name) => ({ thematicAreaName: name, ...withTotals(thematicMap.get(name)) }));
+    const stateSummaryRows = [...globalStateMap.keys()]
+        .sort(sortStr)
+        .map((st) => ({ stateName: st, ...withTotals(globalStateMap.get(st)) }));
+    let stateSummaryGrand = emptyParticipantAgg();
+    for (const r of norm) addRowToAgg(stateSummaryGrand, r);
+    stateSummaryGrand = withTotals(stateSummaryGrand);
+    const stateSummary = { rows: stateSummaryRows, grandTotal: stateSummaryGrand };
 
     debugLog('buildPayloadFromRecords: done', { yearLabel, sectionCount: sections.length });
 
-    return { yearLabel, sections, thematicSummary };
+    return { yearLabel, stateSummary, sections };
 }
 
 async function fetchTrainingAchievements(kvkId, filters = {}) {
