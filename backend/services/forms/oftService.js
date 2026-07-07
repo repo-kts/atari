@@ -1,7 +1,7 @@
 const oftRepository = require('../../repositories/forms/oftRepository.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
 const { OFT_STATUS, normalizeOftStatus, canTransition } = require('../../constants/oftStatus.js');
-const { validateFileSize } = require('../../utils/fileValidation.js');
+const { validateFileSize, validateImageSize } = require('../../utils/fileValidation.js');
 const { createAttachmentBinding } = require('./formAttachmentBinding.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
@@ -261,7 +261,7 @@ function _validateResultPayload(payload, sourceRows = []) {
     });
 
     validateFileSize({ size: payload.supplementaryDatasheetSize }, 5 * 1024 * 1024, 'Supplementary Datasheet');
-    validateFileSize({ size: payload.photographSize }, 5 * 1024 * 1024, 'Photograph');
+    validateImageSize({ size: payload.photographSize }, 'Photograph');
 }
 
 function _mapResultReportForForm(result, source) {

@@ -9,6 +9,7 @@ import {
     type FormAttachmentRow,
 } from '@/services/formAttachmentsApi'
 import { ApiError } from '@/services/api'
+import { validateImageFile } from '@/utils/imageValidation'
 
 const PHOTO_ACCEPT = 'image/*'
 const DATASHEET_ACCEPT = [
@@ -140,6 +141,13 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
             const oversized = list.find((f) => f.size > maxBytes)
             if (oversized) {
                 setError(`"${oversized.name}" exceeds max size ${(maxBytes / (1024 * 1024)).toFixed(0)} MB`)
+                if (fileInputRef.current) fileInputRef.current.value = ''
+                return
+            }
+            // Images are bounded to 200KB–2MB regardless of the kind's maxBytes.
+            const imageError = list.map((f) => validateImageFile(f)).find(Boolean)
+            if (imageError) {
+                setError(imageError)
                 if (fileInputRef.current) fileInputRef.current.value = ''
                 return
             }

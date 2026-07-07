@@ -40,6 +40,10 @@ const MAX_BYTES = {
     DOCUMENT: 25 * 1024 * 1024,
 };
 
+// Image files (any kind) must fall within this range: min 200KB, max 2MB.
+const IMAGE_MIN_BYTES = 200 * 1024;
+const IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+
 const ALLOWED_MIME_PREFIXES = {
     PHOTO: ['image/'],
     DATASHEET: [
@@ -98,6 +102,15 @@ function validateUploadInput({ kind, fileName, mimeType, size }) {
     }
     if (size > max) {
         throw new ValidationError(`File exceeds max size ${(max / (1024 * 1024)).toFixed(0)}MB for ${kind}`);
+    }
+    // Images are bounded to 200KB–2MB regardless of attachment kind.
+    if (mimeType.toLowerCase().startsWith('image/')) {
+        if (size < IMAGE_MIN_BYTES) {
+            throw new ValidationError('Image must be at least 200KB');
+        }
+        if (size > IMAGE_MAX_BYTES) {
+            throw new ValidationError('Image must not exceed 2MB');
+        }
     }
     if (!fileName || typeof fileName !== 'string' || fileName.length > 255) {
         throw new ValidationError('fileName is required and must be < 255 chars');
