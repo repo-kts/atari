@@ -13,6 +13,7 @@ import {
   useRecipientUsers,
 } from '@/hooks/useNotifications'
 import { useAlert } from '@/hooks/useAlert'
+import { validateImageFile } from '@/utils/imageValidation'
 import {
   notificationApi,
   type NotificationAttachment,
@@ -208,6 +209,13 @@ export const Notifications: React.FC = () => {
     const oversized = accepted.find((f) => f.size > MAX_ATTACHMENT_BYTES)
     if (oversized) {
       setAttachmentError(`"${oversized.name}" exceeds max size 25 MB`)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+    // Images are bounded to 200KB–2MB (non-image attachments keep the 25MB cap).
+    const imageError = accepted.map((f) => validateImageFile(f)).find(Boolean)
+    if (imageError) {
+      setAttachmentError(imageError)
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
