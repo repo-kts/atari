@@ -1352,7 +1352,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
                         {/* Crop - Dependent on Subcategory */}
                         <DependentDropdown
-                            label="Crop"
+                            label="Crop/Animal/Enterprise"
                             required
                             value={formData.cropId ?? ''}
                             onChange={(value) => {
@@ -1397,7 +1397,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
                         {isOtherCrop && (
                             <SpecifyOtherInput
-                                label="Please specify other crop"
+                                label="Please specify other crop/animal/enterprise"
                                 required
                                 value={formData.cropOther}
                                 onChange={(e) => setFormData({ ...formData, cropOther: e.target.value })}
@@ -1437,7 +1437,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                         label="Unit"
                                         value={masterUnit}
                                         disabled
-                                        onChange={() => {}}
+                                        onChange={() => { }}
                                         placeholder={formData.cropId ? '' : 'Select crop'}
                                     />
                                     {dataType === 'boolean' ? (
