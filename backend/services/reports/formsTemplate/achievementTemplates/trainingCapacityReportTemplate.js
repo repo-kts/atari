@@ -6,6 +6,10 @@ function esc(t) {
     return String(t).replace(/[&<>"']/g, (c) => m[c]);
 }
 
+function sectionLabel(block) {
+    return block.sectionTitle || block.trainingTypeName || '';
+}
+
 function fmtInt(v) {
     if (v === null || v === undefined || v === '') return '—';
     const n = Number(v);
@@ -49,11 +53,27 @@ function participantCells(row) {
         <td>${fmtInt(row.grandT)}</td>`;
 }
 
-// One block per thematic area: a heading + a single-row participant table.
-function thematicTableHead() {
+// Global state-wise summary (all training types combined), rendered once on top.
+function renderGlobalStateTable(stateSummary, y) {
+    const rows = (stateSummary && stateSummary.rows) || [];
+    const gt = (stateSummary && stateSummary.grandTotal) || {};
+    if (rows.length === 0) return '';
+    const body = rows.map((r) => `
+      <tr>
+        <td class="l">${esc(r.stateName)}</td>
+        ${participantCells(r)}
+      </tr>`).join('');
+    const grandRow = `
+      <tr class="grand">
+        <td class="l">${esc('Total')}</td>
+        ${participantCells(gt)}
+      </tr>`;
     return `
+  <div class="tcap-sub">State-wise details of training programme${y ? ` for ${esc(y)}` : ''}</div>
+  <table class="tcap-tbl">
     <thead>
       <tr>
+        <th rowspan="3" class="l">State</th>
         <th rowspan="3">No. of Courses</th>
         <th colspan="12">No. of Participants</th>
         <th colspan="3">Grand Total</th>
@@ -73,24 +93,117 @@ function thematicTableHead() {
         <th>M</th><th>F</th><th>T</th>
         <th>M</th><th>F</th><th>T</th>
       </tr>
-    </thead>`;
+    </thead>
+    <tbody>${body}${grandRow}</tbody>
+  </table>`;
 }
 
-function renderThematicBlock(row) {
+function renderTrainingAreaSummaryTable(block, y) {
+    const rows = block.trainingAreaSummary || [];
+    const gt = block.trainingAreaSummaryGrand || {};
+    const body = rows.map((r) => `
+      <tr>
+        <td class="l">${esc(r.trainingAreaName)}</td>
+        ${participantCells(r)}
+      </tr>`).join('');
+    const grandRow = `
+      <tr class="grand">
+        <td class="l">${esc('Total')}</td>
+        ${participantCells(gt)}
+      </tr>`;
     return `
-  <div class="tcap-block-title">Details of training program for ${esc(row.thematicAreaName)}</div>
+  <div class="tcap-sub">Training area wise details of training programs of ${esc(sectionLabel(block))}${y ? ` for ${esc(y)}` : ''}</div>
   <table class="tcap-tbl">
-    ${thematicTableHead()}
-    <tbody>
-      <tr>${participantCells(row)}</tr>
-    </tbody>
+    <thead>
+      <tr>
+        <th rowspan="3" class="l">Training Area</th>
+        <th rowspan="3">No. of Courses</th>
+        <th colspan="12">No. of Participants</th>
+        <th colspan="3">Grand Total</th>
+      </tr>
+      <tr>
+        <th colspan="3">General</th>
+        <th colspan="3">OBC</th>
+        <th colspan="3">SC</th>
+        <th colspan="3">ST</th>
+        <th rowspan="2">M</th>
+        <th rowspan="2">F</th>
+        <th rowspan="2">T</th>
+      </tr>
+      <tr>
+        <th>M</th><th>F</th><th>T</th>
+        <th>M</th><th>F</th><th>T</th>
+        <th>M</th><th>F</th><th>T</th>
+        <th>M</th><th>F</th><th>T</th>
+      </tr>
+    </thead>
+    <tbody>${body}${grandRow}</tbody>
   </table>`;
+}
+
+function renderThematicDetailTable(blockTitle, detailRows, grandTotal) {
+    const body = (detailRows || []).map((r) => `
+      <tr>
+        <td class="l">${esc(r.thematicAreaName)}</td>
+        ${participantCells(r)}
+      </tr>`).join('');
+    const gt = grandTotal || {};
+    const grandRow = `
+      <tr class="grand">
+        <td class="l">${esc('Total')}</td>
+        ${participantCells(gt)}
+      </tr>`;
+    return `
+  <div class="tcap-block-title">Details of training program for ${esc(blockTitle)}</div>
+  <table class="tcap-tbl">
+    <thead>
+      <tr>
+        <th rowspan="3" class="l">Thematic Area</th>
+        <th rowspan="3">No. of Courses</th>
+        <th colspan="12">No. of Participants</th>
+        <th colspan="3">Grand Total</th>
+      </tr>
+      <tr>
+        <th colspan="3">General</th>
+        <th colspan="3">OBC</th>
+        <th colspan="3">SC</th>
+        <th colspan="3">ST</th>
+        <th rowspan="2">M</th>
+        <th rowspan="2">F</th>
+        <th rowspan="2">T</th>
+      </tr>
+      <tr>
+        <th>M</th><th>F</th><th>T</th>
+        <th>M</th><th>F</th><th>T</th>
+        <th>M</th><th>F</th><th>T</th>
+        <th>M</th><th>F</th><th>T</th>
+      </tr>
+    </thead>
+    <tbody>${body}${grandRow}</tbody>
+  </table>`;
+}
+
+function renderTrainingTypeBlock(block, y) {
+    // No state table here — the state-wise summary is rendered once, globally,
+    // above all sections. Each section: training-area summary, then per-area
+    // thematic detail tables.
+    let html = `
+  <div class="tcap-type-wrap">
+    <div class="tcap-type-heading">Section ${esc(block.letter)} — ${esc(sectionLabel(block))}</div>`;
+    html += renderTrainingAreaSummaryTable(block, y);
+    const blocks = block.thematicDetailBlocks || [];
+    for (const b of blocks) {
+        html += renderThematicDetailTable(b.trainingAreaName, b.rows, b.grandTotal);
+    }
+    html += `
+  </div>`;
+    return html;
 }
 
 function renderTrainingCapacityReportSection(section, data, sectionId, isFirstSection) {
     const payload = resolveTrainingCapacityPayload(data);
-    const summary = payload.thematicSummary || [];
-    const hasData = summary.length > 0;
+    const hasData = payload.sections && payload.sections.length > 0;
+    const y = payload.yearLabel || '';
 
     if (!hasData) {
         return `
@@ -100,14 +213,16 @@ function renderTrainingCapacityReportSection(section, data, sectionId, isFirstSe
 </div>`;
     }
 
-    // One block per thematic area, in canonical order (from the repository).
-    const blocksHtml = summary.map((row) => renderThematicBlock(row)).join('');
+    // Global state-wise summary first (once), then the per-training-type sections.
+    const stateTable = renderGlobalStateTable(payload.stateSummary, y);
+    const blocksHtml = (payload.sections || []).map((b) => renderTrainingTypeBlock(b, y)).join('');
 
     return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="tcap-wrap">
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+    ${stateTable}
     ${blocksHtml}
   </div>
 </div>`;
