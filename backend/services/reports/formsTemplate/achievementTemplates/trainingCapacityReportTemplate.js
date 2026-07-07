@@ -53,9 +53,11 @@ function participantCells(row) {
         <td>${fmtInt(row.grandT)}</td>`;
 }
 
-function renderStateTable(block, y) {
-    const rows = block.stateRows || [];
-    const gt = block.stateGrandTotal || {};
+// Global state-wise summary (all training types combined), rendered once on top.
+function renderGlobalStateTable(stateSummary, y) {
+    const rows = (stateSummary && stateSummary.rows) || [];
+    const gt = (stateSummary && stateSummary.grandTotal) || {};
+    if (rows.length === 0) return '';
     const body = rows.map((r) => `
       <tr>
         <td class="l">${esc(r.stateName)}</td>
@@ -67,7 +69,7 @@ function renderStateTable(block, y) {
         ${participantCells(gt)}
       </tr>`;
     return `
-  <div class="tcap-sub">${esc(block.letter)}. State-wise details of training programme for ${esc(sectionLabel(block))}${y ? ` for ${esc(y)}` : ''}</div>
+  <div class="tcap-sub">State-wise details of training programme${y ? ` for ${esc(y)}` : ''}</div>
   <table class="tcap-tbl">
     <thead>
       <tr>
@@ -182,10 +184,12 @@ function renderThematicDetailTable(blockTitle, detailRows, grandTotal) {
 }
 
 function renderTrainingTypeBlock(block, y) {
+    // No state table here — the state-wise summary is rendered once, globally,
+    // above all sections. Each section: training-area summary, then per-area
+    // thematic detail tables.
     let html = `
   <div class="tcap-type-wrap">
     <div class="tcap-type-heading">Section ${esc(block.letter)} — ${esc(sectionLabel(block))}</div>`;
-    html += renderStateTable(block, y);
     html += renderTrainingAreaSummaryTable(block, y);
     const blocks = block.thematicDetailBlocks || [];
     for (const b of blocks) {
@@ -209,6 +213,8 @@ function renderTrainingCapacityReportSection(section, data, sectionId, isFirstSe
 </div>`;
     }
 
+    // Global state-wise summary first (once), then the per-training-type sections.
+    const stateTable = renderGlobalStateTable(payload.stateSummary, y);
     const blocksHtml = (payload.sections || []).map((b) => renderTrainingTypeBlock(b, y)).join('');
 
     return `
@@ -216,6 +222,7 @@ function renderTrainingCapacityReportSection(section, data, sectionId, isFirstSe
   <style>${tableCss()}</style>
   <div class="tcap-wrap">
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+    ${stateTable}
     ${blocksHtml}
   </div>
 </div>`;

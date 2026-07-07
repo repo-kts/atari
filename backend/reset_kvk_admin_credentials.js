@@ -1,13 +1,16 @@
 /**
  * One-off: reset credentials for every kvk_admin user.
  *
- *   - password  -> "Atari@32"
- *   - email     -> kvk<first two words of the KVK name>@atariams.org
- *                  e.g. KVK "KVK Patna" -> kvkpatna@atariams.org
+ *   - password  -> NEW_PASSWORD below
+ *   - email     -> kvk<district slug>@atariams.org, where the district slug is
+ *                  the KVK name with the leading "KVK"/"RPCAU-KVK" marker
+ *                  removed and the rest lowercased/stripped to [a-z0-9].
+ *                  e.g. "KVK Patna" -> kvkpatna, "KVK East Champaran-II"
+ *                  -> kvkeastchamparanii, "RPCAU-KVK Saran" -> kvksaran
  *
- * Email is globally unique, so collisions (two KVKs with the same first two
- * words, or a name already taken by another user) get a numeric suffix:
- *   kvkpatna@atariams.org, kvkpatna2@atariams.org, kvkpatna3@atariams.org, ...
+ * Email is globally unique, so collisions (two admins on the same KVK, or a
+ * name already taken by another user) get a numeric suffix:
+ *   kvkkoderma@atariams.org, kvkkoderma2@atariams.org, ...
  *
  * SAFETY: dry-run by default — it only PRINTS the planned changes. Pass
  * `--apply` to actually write. Run from the backend/ directory:
@@ -19,21 +22,24 @@
 const prisma = require('./config/prisma.js');
 const { hashPassword } = require('./utils/password.js');
 
-const NEW_PASSWORD = 'Atari@32';
+const NEW_PASSWORD = 'Atari@321';
 const EMAIL_DOMAIN = 'atariams.org';
 const TARGET_ROLE = 'kvk_admin';
 const APPLY = process.argv.includes('--apply');
 
-// Local part = first two words of the KVK name, lowercased, non-alphanumerics
-// stripped. "KVK Patna" -> "kvkpatna"; "K.V.K. Gaya-II" -> "kvkgaya".
+// Local part = "kvk" + district slug. Drop the leading "KVK"/"RPCAU-KVK" marker,
+// then lowercase the remaining district name and strip to [a-z0-9]:
+//   "KVK Patna"             -> "kvkpatna"
+//   "KVK East Champaran-II" -> "kvkeastchamparanii"
+//   "RPCAU-KVK Saran"       -> "kvksaran"
 function baseLocalPart(kvkName) {
-    const words = String(kvkName || '')
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .join(' ');
-    return words.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const raw = String(kvkName || '').trim();
+    // Remove everything up to and including the leading "KVK" marker. If the
+    // name has no "KVK" at all, fall back to the whole name.
+    const stripped = raw.replace(/^.*?kvk/i, '');
+    const district = stripped === raw ? raw : stripped;
+    const slug = district.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return slug ? `kvk${slug}` : '';
 }
 
 async function main() {
@@ -87,7 +93,7 @@ async function main() {
         });
     }
 
-    console.log('Planned changes (password -> "Atari@32" for all):\n');
+    console.log(`Planned changes (password -> "${NEW_PASSWORD}" for all):\n`);
     for (const p of plan) {
         const changed = p.oldEmail !== p.newEmail ? '' : '  (email unchanged)';
         console.log(`  user #${p.userId}  [${p.kvkName}]`);
