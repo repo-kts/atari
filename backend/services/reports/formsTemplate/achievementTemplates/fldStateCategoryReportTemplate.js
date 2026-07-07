@@ -66,29 +66,79 @@ function renderSummary(ctx, sectionA) {
 }
 
 // ── B. State wise details (sectors as column groups) ─────────────────
+// Per-sector sub-columns for the state-wise table. Each entry maps a cell field
+// ({ farmers, demos, area }) to a display label — some sectors relabel a field
+// (Livestock "Unit", Other Enterprises / Women Empowerment "No. of Implements")
+// and some show only two columns. Sectors not listed fall back to the default
+// farmers / demo / area trio.
+const DEFAULT_SECTOR_COLUMNS = [
+    { key: 'farmers', label: 'No. of farmers' },
+    { key: 'demos', label: 'No. of demo' },
+    { key: 'area', label: 'Area (ha)' },
+];
+const SECTOR_COLUMNS = {
+    'Crop Production': DEFAULT_SECTOR_COLUMNS,
+    'Horticultural Crops': DEFAULT_SECTOR_COLUMNS,
+    'Livestock & Fisheries': [
+        { key: 'farmers', label: 'No. of farmers' },
+        { key: 'demos', label: 'No. of demo' },
+        { key: 'area', label: 'Unit' },
+    ],
+    'Other Enterprises': [
+        { key: 'farmers', label: 'No. of farmers' },
+        { key: 'demos', label: 'No. of Implements' },
+    ],
+    'Women Empowerment': [
+        { key: 'farmers', label: 'No. of farmers' },
+        { key: 'demos', label: 'No. of Implements' },
+    ],
+    'Farm Implements and Machinery': DEFAULT_SECTOR_COLUMNS,
+    'Crop Hybrid Varieties': DEFAULT_SECTOR_COLUMNS,
+};
+const TOTAL_COLUMNS = DEFAULT_SECTOR_COLUMNS;
+
+function sectorColumns(sectorName) {
+    return SECTOR_COLUMNS[sectorName] || DEFAULT_SECTOR_COLUMNS;
+}
+
 function renderStateWise(ctx, sectionA, yearLabel) {
     const esc = (v) => ctx._escapeHtml(v);
     const sectors = (sectionA && sectionA.sectors) || [];
     if (sectors.length === 0) return '<p class="no-data">No data.</p>';
 
-    const groups = sectors.length + 1; // sectors + Total
-    const fs = fitFont(1 + groups * 3);
+    // Total sub-column count drives the fit-font (States + every sector's cols + Total group).
+    const subColCount = sectors.reduce((n, s) => n + sectorColumns(s).length, 0)
+        + TOTAL_COLUMNS.length;
+    const fs = fitFont(1 + subColCount);
 
-    // Header: 2 rows — group names, then 3 sub-cols each.
+    // Header row 1: group names (colspan = that sector's column count).
     let head = `<tr><th rowspan="2" style="vertical-align:middle;">States</th>`;
-    for (const s of sectors) head += `<th colspan="3" style="text-align:center;">${esc(s)}</th>`;
-    head += `<th colspan="3" style="text-align:center;">Total</th></tr><tr>`;
-    for (let i = 0; i <= sectors.length; i++) {
-        head += `<th style="text-align:center;">No. of demo</th><th style="text-align:center;">Area (ha)</th><th style="text-align:center;">No. of farmers</th>`;
+    for (const s of sectors) {
+        head += `<th colspan="${sectorColumns(s).length}" style="text-align:center;">${esc(s)}</th>`;
+    }
+    head += `<th colspan="${TOTAL_COLUMNS.length}" style="text-align:center;">Total</th></tr><tr>`;
+    // Header row 2: per-sector sub-column labels, then the Total group's labels.
+    for (const s of sectors) {
+        for (const col of sectorColumns(s)) {
+            head += `<th style="text-align:center;">${esc(col.label)}</th>`;
+        }
+    }
+    for (const col of TOTAL_COLUMNS) {
+        head += `<th style="text-align:center;">${esc(col.label)}</th>`;
     }
     head += `</tr>`;
 
-    const cellTrio = (c) => `<td style="text-align:center;">${fmtInt(c.demos)}</td><td style="text-align:center;">${fmtNum(c.area, 2)}</td><td style="text-align:center;">${fmtInt(c.farmers)}</td>`;
+    const fmtField = (c, key) => (key === 'area' ? fmtNum(c.area, 2) : fmtInt(c[key]));
+    const cellsFor = (c, cols) => cols
+        .map((col) => `<td style="text-align:center;">${fmtField(c, col.key)}</td>`)
+        .join('');
 
     const rowHtml = (row, bold) => {
         let h = `<tr${bold ? ' style="font-weight:bold;"' : ''}><td>${esc(row.stateName)}</td>`;
-        for (const c of row.cells) h += cellTrio(c);
-        h += cellTrio(row.total);
+        row.cells.forEach((c, i) => {
+            h += cellsFor(c, sectorColumns(sectors[i]));
+        });
+        h += cellsFor(row.total, TOTAL_COLUMNS);
         return h + '</tr>';
     };
 
