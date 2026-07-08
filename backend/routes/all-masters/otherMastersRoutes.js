@@ -206,6 +206,11 @@ router.delete('/soil-water-analysis/:id', requirePermission('all_masters_soil_wa
 // ============================================
 
 router.get('/nari-crop-category', otherMastersController.getAllNariCropCategories);
+router.get('/nari-crop-category/:id', otherMastersController.getNariCropCategoryById);
+router.post('/nari-crop-category', requirePermission('all_masters_nari_activity_master', 'ADD'), otherMastersController.createNariCropCategory);
+router.put('/nari-crop-category/:id', requirePermission('all_masters_nari_activity_master', 'EDIT'), otherMastersController.updateNariCropCategory);
+router.delete('/nari-crop-category/:id', requirePermission('all_masters_nari_activity_master', 'DELETE'), otherMastersController.deleteNariCropCategory);
+
 router.get('/nari-activity', otherMastersController.getAllNariActivities);
 router.get('/nari-activity/:id', otherMastersController.getNariActivityById);
 router.post('/nari-activity', requirePermission('all_masters_nari_activity_master', 'ADD'), otherMastersController.createNariActivity);

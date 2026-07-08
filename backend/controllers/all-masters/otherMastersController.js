@@ -306,6 +306,11 @@ exports.deleteSoilWaterAnalysis = deleteEntity('soil-water-analysis');
 // ============================================
 
 exports.getAllNariCropCategories = getAll('nari-crop-category');
+exports.getNariCropCategoryById = getById('nari-crop-category');
+exports.createNariCropCategory = create('nari-crop-category');
+exports.updateNariCropCategory = update('nari-crop-category');
+exports.deleteNariCropCategory = deleteEntity('nari-crop-category');
+
 exports.getAllNariActivities = getAll('nari-activity');
 exports.getNariActivityById = getById('nari-activity');
 exports.createNariActivity = create('nari-activity');
