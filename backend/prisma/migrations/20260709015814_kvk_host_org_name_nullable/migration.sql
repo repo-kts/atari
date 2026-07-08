@@ -1,0 +1,2 @@
+ALTER TABLE "kvk"
+ALTER COLUMN "host_org_name" DROP NOT NULL;
