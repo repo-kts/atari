@@ -17,6 +17,7 @@ const ENTITY_CONFIG = {
         tableName: 'training_type',
         idColumn: 'training_type_id',
         requiredFields: ['trainingTypeName'],
+        writableFields: ['trainingTypeName', 'isOther'],
         includes: {
             _count: {
                 select: {
@@ -37,6 +38,7 @@ const ENTITY_CONFIG = {
         tableName: 'training_area',
         idColumn: 'training_area_id',
         requiredFields: ['trainingTypeId', 'trainingAreaName'],
+        writableFields: ['trainingTypeId', 'trainingAreaName', 'isOther'],
         includes: {
             trainingType: {
                 select: {
@@ -64,6 +66,7 @@ const ENTITY_CONFIG = {
         tableName: 'training_thematic_area',
         idColumn: 'training_thematic_area_id',
         requiredFields: ['trainingAreaId', 'trainingThematicAreaName'],
+        writableFields: ['trainingAreaId', 'trainingThematicAreaName', 'isOther'],
         includes: {
             trainingArea: {
                 select: {
@@ -88,6 +91,7 @@ const ENTITY_CONFIG = {
         tableName: 'extension_activity',
         idColumn: 'extension_activity_id',
         requiredFields: ['extensionName'],
+        writableFields: ['extensionName', 'isOther'],
         includes: {},
     },
     'other-extension-activities': {
@@ -97,6 +101,7 @@ const ENTITY_CONFIG = {
         tableName: 'other_extension_activity',
         idColumn: 'other_extension_activity_id',
         requiredFields: ['otherExtensionName'],
+        writableFields: ['otherExtensionName', 'isOther'],
         includes: {},
     },
 
@@ -108,6 +113,7 @@ const ENTITY_CONFIG = {
         tableName: 'event',
         idColumn: 'event_id',
         requiredFields: ['eventName'],
+        writableFields: ['eventName'],
         includes: {},
     },
 };
@@ -262,6 +268,7 @@ function sanitizeData(config, data) {
         if (key === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
         if (key === 'createdAt' || key === 'updatedAt') continue;
         if (excludeFields.includes(key)) continue; // Exclude kvkId for master data entities
+        if (config.writableFields && !config.writableFields.includes(key)) continue;
         if (value !== null && typeof value === 'object') continue;
         if (value === undefined) continue;
 
@@ -291,6 +298,32 @@ function sanitizeData(config, data) {
         }
     }
     return sanitized;
+}
+
+/**
+ * Convert validated foreign key fields into Prisma relation writes.
+ * Some generated Prisma clients reject direct relation scalar writes in create/update data.
+ */
+function buildWriteData(entityName, data) {
+    const writeData = { ...data };
+
+    if (entityName === 'training-areas' && writeData.trainingTypeId !== undefined) {
+        const trainingTypeId = writeData.trainingTypeId;
+        delete writeData.trainingTypeId;
+        writeData.trainingType = {
+            connect: { trainingTypeId },
+        };
+    }
+
+    if (entityName === 'training-thematic-areas' && writeData.trainingAreaId !== undefined) {
+        const trainingAreaId = writeData.trainingAreaId;
+        delete writeData.trainingAreaId;
+        writeData.trainingArea = {
+            connect: { trainingAreaId },
+        };
+    }
+
+    return writeData;
 }
 
 /**
@@ -330,10 +363,11 @@ async function create(entityName, data) {
     }
 
     const sanitized = sanitizeData(config, data);
+    const writeData = buildWriteData(entityName, sanitized);
 
     try {
         return await prisma[config.model].create({
-            data: sanitized,
+            data: writeData,
             include: config.includes,
         });
     } catch (error) {
@@ -345,7 +379,7 @@ async function create(entityName, data) {
                 const fixed = await fixSequence(config);
                 if (fixed !== null) {
                     return await prisma[config.model].create({
-                        data: sanitized,
+                        data: writeData,
                         include: config.includes,
                     });
                 }
@@ -397,11 +431,12 @@ async function update(entityName, id, data) {
     }
 
     const sanitized = sanitizeData(config, data);
+    const writeData = buildWriteData(entityName, sanitized);
 
     try {
         return await prisma[config.model].update({
             where: { [config.idField]: parsedId },
-            data: sanitized,
+            data: writeData,
             include: config.includes,
         });
     } catch (error) {
