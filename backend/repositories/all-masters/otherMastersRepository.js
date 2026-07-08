@@ -467,6 +467,9 @@ const ENTITY_CONFIG = {
         model: 'financialProject',
         idField: 'financialProjectId',
         nameField: 'projectName',
+        parentField: 'fundingAgencyId',
+        relationField: 'fundingAgency',
+        relationIdField: 'fundingAgencyId',
         defaultOrderBy: [
             { fundingAgency: { agencyName: 'asc' } },
             { projectName: 'asc' },
@@ -653,6 +656,20 @@ const fixSequence = async (modelName, idField, tableName, columnName) => {
     }
 };
 
+const buildWriteData = (config, data) => {
+    const writeData = { ...data };
+
+    if (config.relationField && config.relationIdField && writeData[config.relationIdField] !== undefined) {
+        const relationId = writeData[config.relationIdField];
+        delete writeData[config.relationIdField];
+        writeData[config.relationField] = {
+            connect: { [config.relationIdField]: relationId },
+        };
+    }
+
+    return writeData;
+};
+
 /**
  * Generic create
  */
@@ -766,6 +783,8 @@ const create = async (entityType, data) => {
         }
     }
     
+    const writeData = buildWriteData(config, sanitizedData);
+
     try {
         // Verify the model exists in Prisma client
         if (!prisma[config.model]) {
@@ -773,7 +792,7 @@ const create = async (entityType, data) => {
         }
         
         return await prisma[config.model].create({
-            data: sanitizedData,
+            data: writeData,
         });
     } catch (error) {
         // If it's a unique constraint error, provide better message
@@ -821,7 +840,7 @@ const create = async (entityType, data) => {
                         console.log(`Sequence fixed to ${fixed}, retrying create operation...`);
                         try {
                             return await prisma[config.model].create({
-                                data: sanitizedData,
+                                data: writeData,
                             });
                         } catch (retryError) {
                             // If retry still fails, provide a more specific error
@@ -937,9 +956,11 @@ const update = async (entityType, id, data) => {
     }
     
     try {
+        const writeData = buildWriteData(config, sanitizedData);
+
         return await prisma[config.model].update({
             where: { [config.idField]: numericId },
-            data: sanitizedData,
+            data: writeData,
             include: config.includes,
         });
     } catch (error) {
