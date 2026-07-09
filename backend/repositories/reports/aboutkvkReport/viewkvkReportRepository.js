@@ -17,7 +17,15 @@ async function getKvkBasicInfo(kvkId) {
                 select: { orgId: true, orgName: true },
             },
             university: {
-                select: { universityId: true, universityName: true },
+                select: {
+                    universityId: true,
+                    universityName: true,
+                    hostAddress: true,
+                    hostMobile: true,
+                    hostLandline: true,
+                    hostFax: true,
+                    hostEmail: true,
+                },
             },
             landDetails: {
                 select: { landId: true, item: true, areaHa: true },

@@ -56,13 +56,18 @@ export function resolveTableFields(
 // ============================================
 
 /**
- * Normalize a name to a comparison key: drop any trailing location/branch suffix
- * (everything after the first comma, parenthesis, slash, or hyphen — e.g.
- * "...University, Ranchi" / "...University-Kanke"), then lowercase + keep only
- * alphanumerics. Collapses the core institution name across its variants.
+ * Normalize a name to a comparison key: drop any trailing location suffix
+ * (everything after the first comma, parenthesis, or slash — e.g.
+ * "...University, Ranchi"), then lowercase + keep only alphanumerics. Collapses
+ * the core institution name across its variants.
+ *
+ * NOTE: hyphens are intentionally NOT split on — they are part of many distinct
+ * institution names (e.g. "ICAR-NISA" vs "ICAR-Research Complex ..."). Splitting
+ * on "-" truncated both to "ICAR" and wrongly merged two different host orgs.
+ * Branch suffixes that matter still collapse via the prefix/levenshtein match.
  */
 const normalizeNameKey = (s: string): string => {
-    const core = (s || '').split(/[,(/\-–—]/)[0]
+    const core = (s || '').split(/[,(/]/)[0]
     return core.toLowerCase().replace(/[^a-z0-9]+/g, '')
 }
 
