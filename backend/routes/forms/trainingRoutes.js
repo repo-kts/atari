@@ -26,6 +26,14 @@ router.post('/', requireRole([...kvkRoles, 'super_admin']), ensureBody(), traini
 router.get('/', requireRole(allRoles), trainingController.getAll);
 
 /**
+ * @route   GET /api/forms/achievements/trainings/export
+ * @desc    Export ALL trainings (scoped) as pdf|excel|word — server fetches the
+ *          data itself. MUST be declared before '/:id' so it isn't treated as an id.
+ * @access  Authenticated
+ */
+router.get('/export', requireRole(allRoles), trainingController.exportAll);
+
+/**
  * @route   GET /api/forms/achievements/trainings/:id
  * @desc    Get Training Achievement by ID
  * @access  Authenticated
