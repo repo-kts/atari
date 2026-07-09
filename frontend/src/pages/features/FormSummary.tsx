@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
     Loader2,
@@ -11,6 +11,7 @@ import {
     ArrowUpRight,
     LayoutGrid,
     Table as TableIcon,
+    SlidersHorizontal,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useFormSummary } from '../../hooks/useFormSummary'
@@ -23,6 +24,8 @@ import {
     type AllKvkFormSummary,
     type FormStatus,
 } from '../../types/formSummary'
+import { ColumnFilter, EMPTY_FILTER, type ColumnFilterState } from '../../components/common/DataTable/ColumnFilter'
+import { applyColumnFilters, uniqueValuesForField } from '../../components/common/DataTable/columnFilterUtils'
 
 const THEME = {
     primary: '#487749',
@@ -76,6 +79,107 @@ function StatusPill({ status, count }: { status: FormStatus; count: number }) {
             <Circle className="w-3 h-3" />
             Not started
         </span>
+    )
+}
+
+const PROGRESS_BUCKETS = [
+    { key: '0-20', label: '0–20%', min: 0, max: 20 },
+    { key: '20-40', label: '20–40%', min: 20, max: 40 },
+    { key: '40-60', label: '40–60%', min: 40, max: 60 },
+    { key: '60-80', label: '60–80%', min: 60, max: 80 },
+    { key: '80-100', label: '80–100%', min: 80, max: 100 },
+] as const
+
+function inProgressBucket(progress: number, bucketKey: string): boolean {
+    const bucket = PROGRESS_BUCKETS.find(b => b.key === bucketKey)
+    if (!bucket) return true
+    if (bucket.max === 100) return progress >= bucket.min && progress <= 100
+    return progress >= bucket.min && progress < bucket.max
+}
+
+function ProgressRangeFilter({
+    selected,
+    onChange,
+}: {
+    selected: Set<string>
+    onChange: (next: Set<string>) => void
+}) {
+    const [open, setOpen] = useState(false)
+    const ref = useRef<HTMLDivElement | null>(null)
+
+    useEffect(() => {
+        if (!open) return
+        const onClickOutside = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+        }
+        document.addEventListener('mousedown', onClickOutside)
+        return () => document.removeEventListener('mousedown', onClickOutside)
+    }, [open])
+
+    const toggle = (key: string) => {
+        const next = new Set(selected)
+        if (next.has(key)) next.delete(key)
+        else next.add(key)
+        onChange(next)
+    }
+
+    const active = selected.size > 0
+
+    return (
+        <div className="relative" ref={ref}>
+            <button
+                type="button"
+                onClick={() => setOpen(o => !o)}
+                className="h-9 inline-flex items-center gap-1.5 px-3 text-sm font-medium rounded-lg border transition-colors"
+                style={{
+                    borderColor: active ? THEME.primary : THEME.border,
+                    backgroundColor: active ? THEME.primarySoft : 'white',
+                    color: active ? THEME.primary : '#2c2c2c',
+                }}
+            >
+                <SlidersHorizontal className="w-4 h-4" />
+                Progress
+                {active && (
+                    <span
+                        className="inline-flex items-center justify-center min-w-4 h-4 px-1 rounded-full text-[10px] font-semibold"
+                        style={{ backgroundColor: THEME.primary, color: 'white' }}
+                    >
+                        {selected.size}
+                    </span>
+                )}
+            </button>
+            {open && (
+                <div
+                    className="absolute z-20 mt-1 w-44 rounded-lg shadow-lg bg-white border overflow-hidden"
+                    style={{ borderColor: THEME.border }}
+                >
+                    {PROGRESS_BUCKETS.map(b => (
+                        <label
+                            key={b.key}
+                            className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-[#F5F5F5]"
+                        >
+                            <input
+                                type="checkbox"
+                                checked={selected.has(b.key)}
+                                onChange={() => toggle(b.key)}
+                                className="accent-[#487749]"
+                            />
+                            {b.label}
+                        </label>
+                    ))}
+                    {active && (
+                        <button
+                            type="button"
+                            onClick={() => onChange(new Set())}
+                            className="w-full text-left px-3 py-2 text-xs border-t"
+                            style={{ color: THEME.primary, borderColor: THEME.border }}
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+            )}
+        </div>
     )
 }
 
@@ -289,12 +393,30 @@ function AllKvkView({ data }: { data: AllKvkFormSummary }) {
     const [view, setView] = useState<SuperAdminView>('by_kvk')
     const [expandedKvkId, setExpandedKvkId] = useState<number | null>(null)
     const [query, setQuery] = useState('')
+    const [progressFilter, setProgressFilter] = useState<Set<string>>(new Set())
+    const [formNameFilter, setFormNameFilter] = useState<ColumnFilterState>(EMPTY_FILTER)
+    const [kvkNameFilter, setKvkNameFilter] = useState<ColumnFilterState>(EMPTY_FILTER)
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase()
-        if (!q) return data.kvks
-        return data.kvks.filter(k => k.kvkName.toLowerCase().includes(q))
-    }, [data.kvks, query])
+        let rows = data.kvks
+        if (q) rows = rows.filter(k => k.kvkName.toLowerCase().includes(q))
+        if (progressFilter.size > 0) {
+            rows = rows.filter(k =>
+                Array.from(progressFilter).some(bucket => inProgressBucket(k.progress, bucket)),
+            )
+        }
+        rows = applyColumnFilters(rows, ['kvkName'], { kvkName: kvkNameFilter })
+        return rows
+    }, [data.kvks, query, progressFilter, kvkNameFilter])
+
+    const moduleTitles = useMemo(() => uniqueValuesForField(data.modules, 'title'), [data.modules])
+    const kvkNameOptions = useMemo(() => uniqueValuesForField(data.kvks, 'kvkName'), [data.kvks])
+
+    const visibleModules = useMemo(
+        () => applyColumnFilters(data.modules, ['title'], { title: formNameFilter }),
+        [data.modules, formNameFilter],
+    )
 
     const overall = useMemo(() => {
         const total = data.kvks.reduce((s, k) => s + k.total, 0)
@@ -336,39 +458,48 @@ function AllKvkView({ data }: { data: AllKvkFormSummary }) {
             {/* View toggle + search */}
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <ViewToggle value={view} onChange={setView} />
-                <div className="relative flex-1 max-w-sm min-w-[220px]">
-                    <Search
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                        style={{ color: THEME.mutedText }}
-                    />
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={e => setQuery(e.target.value)}
-                        placeholder={view === 'matrix' ? 'Filter KVKs (columns)…' : 'Filter KVKs…'}
-                        className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-white border focus:outline-none focus:ring-2"
-                        style={{
-                            borderColor: THEME.border,
-                            // @ts-expect-error — CSS custom property
-                            '--tw-ring-color': THEME.primary,
-                        }}
-                    />
+                <div className="flex items-center gap-2 flex-1 justify-end min-w-[220px]">
+                    <ProgressRangeFilter selected={progressFilter} onChange={setProgressFilter} />
+                    <div className="relative flex-1 max-w-sm">
+                        <Search
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                            style={{ color: THEME.mutedText }}
+                        />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
+                            placeholder={view === 'matrix' ? 'Filter KVKs (columns)…' : 'Filter KVKs…'}
+                            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-white border focus:outline-none focus:ring-2"
+                            style={{
+                                borderColor: THEME.border,
+                                // @ts-expect-error — CSS custom property
+                                '--tw-ring-color': THEME.primary,
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
 
             {view === 'matrix' ? (
                 <MatrixView
-                    modules={data.modules}
+                    modules={visibleModules}
                     kvks={filtered}
                     categoryOrder={data.categoryOrder}
+                    moduleTitles={moduleTitles}
+                    formNameFilter={formNameFilter}
+                    onFormNameFilterChange={setFormNameFilter}
                 />
             ) : (
                 <ByKvkList
                     filtered={filtered}
-                    modules={data.modules}
+                    modules={visibleModules}
                     categoryOrder={data.categoryOrder}
                     expandedKvkId={expandedKvkId}
                     setExpandedKvkId={setExpandedKvkId}
+                    kvkNameOptions={kvkNameOptions}
+                    kvkNameFilter={kvkNameFilter}
+                    onKvkNameFilterChange={setKvkNameFilter}
                 />
             )}
         </div>
@@ -381,12 +512,18 @@ function ByKvkList({
     categoryOrder,
     expandedKvkId,
     setExpandedKvkId,
+    kvkNameOptions,
+    kvkNameFilter,
+    onKvkNameFilterChange,
 }: {
     filtered: AllKvkFormSummary['kvks']
     modules: FormModuleMeta[]
     categoryOrder: string[]
     expandedKvkId: number | null
     setExpandedKvkId: (id: number | null) => void
+    kvkNameOptions: string[]
+    kvkNameFilter: ColumnFilterState
+    onKvkNameFilterChange: (next: ColumnFilterState) => void
 }) {
     return (
         <>
@@ -399,7 +536,17 @@ function ByKvkList({
                     className="grid grid-cols-[minmax(0,1fr)_100px_minmax(0,1.3fr)_90px] md:grid-cols-[minmax(0,2fr)_120px_minmax(0,2fr)_100px] gap-4 px-5 py-3 text-[11px] font-semibold uppercase tracking-wider"
                     style={{ color: THEME.mutedText, borderBottom: `1px solid ${THEME.border}` }}
                 >
-                    <div>KVK</div>
+                    <div className="flex items-center">
+                        <span>KVK</span>
+                        <ColumnFilter
+                            field="kvkName"
+                            label="KVK"
+                            uniqueValues={kvkNameOptions}
+                            state={kvkNameFilter}
+                            onChange={onKvkNameFilterChange}
+                            onClear={() => onKvkNameFilterChange(EMPTY_FILTER)}
+                        />
+                    </div>
                     <div className="text-right">Filled</div>
                     <div>Progress</div>
                     <div className="text-right">%</div>
@@ -501,10 +648,16 @@ function MatrixView({
     modules,
     kvks,
     categoryOrder,
+    moduleTitles,
+    formNameFilter,
+    onFormNameFilterChange,
 }: {
     modules: FormModuleMeta[]
     kvks: AllKvkFormSummary['kvks']
     categoryOrder: string[]
+    moduleTitles: string[]
+    formNameFilter: ColumnFilterState
+    onFormNameFilterChange: (next: ColumnFilterState) => void
 }) {
     // Sort modules so they group visually by category (matching the byKvk view order).
     const orderedModules = useMemo(() => {
@@ -588,7 +741,17 @@ function MatrixView({
                                     borderRight: `2px solid ${THEME.border}`,
                                 }}
                             >
-                                Form name
+                                <div className="flex items-center">
+                                    <span>Form name</span>
+                                    <ColumnFilter
+                                        field="title"
+                                        label="Form name"
+                                        uniqueValues={moduleTitles}
+                                        state={formNameFilter}
+                                        onChange={onFormNameFilterChange}
+                                        onClear={() => onFormNameFilterChange(EMPTY_FILTER)}
+                                    />
+                                </div>
                             </th>
                             {kvks.map(kvk => (
                                 <th
@@ -880,7 +1043,8 @@ function ErrorState({ error, isSuperAdmin }: { error: unknown; isSuperAdmin: boo
 
 export const FormSummary: React.FC = () => {
     const { user } = useAuth()
-    const [year, setYear] = useState<number | undefined>(undefined)
+    // Default to the latest (current) reporting year rather than "All years".
+    const [year, setYear] = useState<number | undefined>(() => new Date().getFullYear())
     const { data, isPending, isFetching, isError, error } = useFormSummary(
         undefined,
         year,

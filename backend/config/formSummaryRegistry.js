@@ -24,8 +24,10 @@ const REGISTRY = [
   { key: 'about_kvk.employees', title: 'Employee Details', category: 'About KVK', moduleCode: 'about_kvks_employee_details', model: 'kvkStaff', where: { transferStatus: 'ACTIVE' }, path: '/forms/about-kvk/employee-details' },
   { key: 'about_kvk.staff_transferred', title: 'Staff Transferred', category: 'About KVK', moduleCode: 'about_kvks_staff_details', model: 'kvkStaff', where: { NOT: { transferStatus: 'ACTIVE' } }, path: '/forms/about-kvk/staff-transferred' },
   { key: 'about_kvk.infrastructure', title: 'Infrastructure Details', category: 'About KVK', moduleCode: 'about_kvks_infrastructure_details', model: 'kvkInfrastructure', path: '/forms/about-kvk/infrastructure' },
-  { key: 'about_kvk.vehicles', title: 'Vehicle Details', category: 'About KVK', moduleCode: 'about_kvks_vehicle_details', model: 'kvkVehicle', path: '/forms/about-kvk/vehicles' },
-  { key: 'about_kvk.equipments', title: 'Equipment Details', category: 'About KVK', moduleCode: 'about_kvks_equipment_details', model: 'kvkEquipment', path: '/forms/about-kvk/equipments' },
+  { key: 'about_kvk.vehicles', title: 'View Vehicles', category: 'About KVK', moduleCode: 'about_kvks_vehicle_details', model: 'kvkVehicle', path: '/forms/about-kvk/vehicles' },
+  { key: 'about_kvk.vehicle_details', title: 'Vehicle Details', category: 'About KVK', moduleCode: 'about_kvks_vehicle_details', model: 'kvkVehicleDetail', path: '/forms/about-kvk/vehicle-details' },
+  { key: 'about_kvk.equipments', title: 'View Equipments', category: 'About KVK', moduleCode: 'about_kvks_equipment_details', model: 'kvkEquipment', path: '/forms/about-kvk/equipments' },
+  { key: 'about_kvk.equipment_details', title: 'Equipment Details', category: 'About KVK', moduleCode: 'about_kvks_equipment_details', model: 'kvkEquipmentDetail', path: '/forms/about-kvk/equipment-details' },
 
   // ── Achievements ─────────────────────────────────────────────────────────
   { key: 'achievements.oft', title: 'On Farm Trials (OFT)', category: 'Achievements', moduleCode: 'achievements_oft', model: 'kvkoft', path: '/forms/achievements/oft' },
