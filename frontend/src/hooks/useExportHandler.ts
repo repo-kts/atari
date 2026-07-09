@@ -31,6 +31,14 @@ export interface ExportOptions {
     templateKey?: string;
     /** When true, World Soil Day (and similar) exports use aggregated/state-wise layout */
     isAggregatedReport?: boolean;
+    /**
+     * When provided, the export is generated server-side (the server fetches the
+     * data itself) instead of uploading all rows. Returns either a Blob (streamed)
+     * or a download URL (large files handed off via S3).
+     */
+    serverFetch?: (
+        format: 'pdf' | 'excel' | 'word',
+    ) => Promise<{ blob?: Blob; url?: string; fileName: string }>;
 }
 
 /**
@@ -69,11 +77,40 @@ export function useExportHandler(): UseExportHandlerReturn {
      */
     const handleServerExport = useCallback(
         async (format: ExportFormat, options: ExportOptions) => {
-            const { title, fields, data, pathname, templateKey, isAggregatedReport } = options;
-            const headerLabels = fields.map(formatHeaderLabel);
-            const rows = data.map(item => fields.map(field => getFieldValue(item, field)));
+            const { title, fields, data, pathname, templateKey, isAggregatedReport, serverFetch } = options;
 
             try {
+                // Server-side generation: the server fetches the data itself, so we
+                // upload nothing. Handles both a streamed Blob and an S3 URL.
+                if (serverFetch && format !== 'csv') {
+                    const { blob, url, fileName } = await serverFetch(
+                        format as 'pdf' | 'excel' | 'word',
+                    );
+                    if (url) {
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;
+                        a.target = '_blank';
+                        a.rel = 'noopener';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                    } else if (blob) {
+                        downloadFile(blob, fileName);
+                    }
+                    alert({
+                        title: 'Success',
+                        message: 'Export completed successfully.',
+                        variant: 'success',
+                        autoClose: true,
+                        autoCloseDelay: 2000,
+                    });
+                    return;
+                }
+
+                const headerLabels = fields.map(formatHeaderLabel);
+                const rows = data.map(item => fields.map(field => getFieldValue(item, field)));
+
                 const blob = await exportApi.exportData(
                     {
                         title,

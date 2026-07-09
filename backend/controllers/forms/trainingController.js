@@ -1,5 +1,10 @@
 const trainingService = require('../../services/forms/trainingService.js');
 const { asyncHandler } = require('../../utils/errorHandler.js');
+const { resolveTrainingsPageReportPayload } = require('../../repositories/reports/trainingsPageReport/trainingsPageReportPayload.js');
+const { generateTrainingsPageExcelBuffer, generateTrainingsPageWordBuffer } = require('../../utils/trainingsPageExport.js');
+const exportHelper = require('../../utils/exportHelper.js');
+const reportTemplateService = require('../../services/reports/reportTemplateService.js');
+const { deliverReport } = require('../../utils/reportDelivery.js');
 
 /**
  * Training Controller
@@ -57,6 +62,51 @@ const trainingController = {
             data: result,
             timestamp: new Date().toISOString(),
         });
+    }),
+
+    /**
+     * Export ALL Training Achievements (scoped to the user) as PDF / Excel / Word.
+     * The server fetches the data itself instead of the browser uploading thousands
+     * of rows — this keeps the request/response small enough for serverless, and
+     * large PDFs are handed off via S3 (see deliverReport).
+     * @route GET /api/forms/achievements/trainings/export?format=excel|word|pdf
+     */
+    exportAll: asyncHandler(async (req, res) => {
+        const format = String(req.query.format || 'excel').toLowerCase();
+        const title = 'Trainings';
+
+        // Same scoped data the list returns — no giant upload from the browser.
+        // Pass empty filters (not req.query) so the `format` param isn't spread
+        // into the Prisma where-clause; role scoping still applies inside findAll.
+        const data = await trainingService.getAllTrainings({}, req.user);
+
+        const stamp = new Date().toISOString().slice(0, 10);
+        let buffer;
+        let ext;
+
+        if (format === 'excel') {
+            buffer = await generateTrainingsPageExcelBuffer(title, resolveTrainingsPageReportPayload(data));
+            ext = 'xlsx';
+        } else if (format === 'word') {
+            buffer = await generateTrainingsPageWordBuffer(title, resolveTrainingsPageReportPayload(data));
+            ext = 'docx';
+        } else if (format === 'pdf') {
+            const html = await reportTemplateService.generateStandaloneCustomTemplateHTML(
+                'trainings-page-report',
+                data,
+                { sectionId: 'trainings-page', title },
+            );
+            buffer = await exportHelper.generatePDF(html);
+            ext = 'pdf';
+        } else {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Invalid format. Use excel, word or pdf.', code: 'VALIDATION_ERROR' },
+                timestamp: new Date().toISOString(),
+            });
+        }
+
+        return deliverReport(res, { buffer, ext, fileName: `trainings-report-${stamp}.${ext}` });
     }),
 
     /**

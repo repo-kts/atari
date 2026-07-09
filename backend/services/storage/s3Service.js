@@ -62,6 +62,21 @@ function buildNotificationAttachmentKey({ fileName, mimeType }) {
     return `notifications/${id}.${ext}`;
 }
 
+/**
+ * Server-side upload of a Buffer (e.g. a generated report) straight to S3.
+ * Used for large exports that would otherwise exceed the serverless
+ * request/response body limits if streamed through the function.
+ */
+async function putObject({ key, body, mimeType }) {
+    await client().send(new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body: body,
+        ContentType: mimeType || 'application/octet-stream',
+    }));
+    return key;
+}
+
 async function presignPut({ key, mimeType, expiresIn = PUT_TTL_SECONDS }) {
     const cmd = new PutObjectCommand({
         Bucket: BUCKET,
@@ -104,6 +119,7 @@ function isConfigured() {
 module.exports = {
     buildAttachmentKey,
     buildNotificationAttachmentKey,
+    putObject,
     presignPut,
     presignGet,
     deleteOne,
