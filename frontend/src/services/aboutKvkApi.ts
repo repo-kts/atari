@@ -124,9 +124,9 @@ function normalizeCommonStringFields(payload: Record<string, unknown>): Record<s
  * Creates a generic GET endpoint for paginated responses
  */
 function createGetEndpoint<T>(path: string) {
-    return (params?: QueryParams) => {
+    return (params?: QueryParams, signal?: AbortSignal) => {
         const url = buildUrlWithQuery(`${BASE_URL}${path}`, params);
-        return apiClient.get<PaginatedResponse<T>>(url);
+        return apiClient.get<PaginatedResponse<T>>(url, { signal });
     };
 }
 
