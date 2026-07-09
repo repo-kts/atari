@@ -477,6 +477,11 @@ class ReportDataService {
 
         // OFT sections pass raw data to templates (complex nested structures)
         const skipTransform = dataSource === 'oftSummary'
+            // About-KVK basic info (section 1.1): the custom template reads nested
+            // relations (university host-master contact fields, landDetails) that the
+            // flat field-mapping transform drops. Pass the raw record through — the
+            // template already resolves both raw and display-name keys.
+            || dataSource === 'kvk'
             || dataSource === 'oftDetailCards'
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'

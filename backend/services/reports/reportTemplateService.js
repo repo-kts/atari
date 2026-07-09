@@ -993,7 +993,9 @@ class ReportTemplateService {
 </div>`;
     }
 
-    _renderContactTable({ rows, nameColumnLabel, includeSanctionYear = false }) {
+    _renderContactTable({ rows, nameColumnLabel, includeSanctionYear = false, includeMobile = false }) {
+        // Telephone spans Office (+ optional Mobile) + FAX sub-columns.
+        const telephoneSpan = includeMobile ? 3 : 2;
         const bodyRows = (rows && rows.length > 0 ? rows : [{}])
             .map((row, index) => `
             <tr>
@@ -1001,6 +1003,7 @@ class ReportTemplateService {
                 <td>${this._escapeHtml(this._toDisplayValue(row.name))}</td>
                 <td>${this._escapeHtml(this._toDisplayValue(row.address))}</td>
                 <td>${this._escapeHtml(this._toDisplayValue(row.officePhone))}</td>
+                ${includeMobile ? `<td>${this._escapeHtml(this._toDisplayValue(row.mobile))}</td>` : ''}
                 <td>${this._escapeHtml(this._toDisplayValue(row.fax))}</td>
                 <td>${this._escapeHtml(this._toDisplayValue(row.email))}</td>
                 ${includeSanctionYear ? `<td>${this._escapeHtml(this._toDisplayValue(row.sanctionYear))}</td>` : ''}
@@ -1014,12 +1017,13 @@ class ReportTemplateService {
                 <th rowspan="2" class="serial-col">S.No.</th>
                 <th rowspan="2" class="name-col">${this._escapeHtml(nameColumnLabel)}</th>
                 <th rowspan="2" class="address-col">Address</th>
-                <th colspan="2" class="phone-col">Telephone</th>
+                <th colspan="${telephoneSpan}" class="phone-col">Telephone</th>
                 <th rowspan="2" class="email-col">E-Mail</th>
                 ${includeSanctionYear ? '<th rowspan="2" class="year-col">Sanction Year</th>' : ''}
             </tr>
             <tr>
                 <th class="office-col">Office</th>
+                ${includeMobile ? '<th class="mobile-col">Mobile</th>' : ''}
                 <th class="fax-col">FAX</th>
             </tr>
         </thead>
