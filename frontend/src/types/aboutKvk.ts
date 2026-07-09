@@ -23,6 +23,7 @@ export interface Kvk {
     stateId: number;
     districtId: number;
     orgId: number;
+    universityId: number | null;
     hostOrg: string;
     mobile: string;
     email: string;
@@ -31,7 +32,16 @@ export interface Kvk {
     zone?: { zoneId: number; zoneName: string };
     state?: { stateId: number; stateName: string };
     district?: { districtId: number; districtName: string };
-    org?: { orgId: number; uniName: string };
+    org?: { orgId: number; orgName: string };
+    university?: {
+        universityId: number;
+        universityName: string;
+        hostAddress?: string | null;
+        hostMobile?: string | null;
+        hostLandline?: string | null;
+        hostFax?: string | null;
+        hostEmail?: string | null;
+    };
 }
 
 export interface KvkBankAccount {

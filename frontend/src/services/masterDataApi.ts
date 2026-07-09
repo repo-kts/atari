@@ -51,9 +51,9 @@ class MasterDataApi {
     /**
      * Get all zones
      */
-    async getZones(params?: QueryParams): Promise<ApiResponse<Zone[]>> {
+    async getZones(params?: QueryParams, signal?: AbortSignal): Promise<ApiResponse<Zone[]>> {
         const queryString = this.buildQueryString(params);
-        return apiClient.get<ApiResponse<Zone[]>>(`${this.baseUrl}/zones${queryString}`);
+        return apiClient.get<ApiResponse<Zone[]>>(`${this.baseUrl}/zones${queryString}`, { signal });
     }
 
     /**
@@ -92,9 +92,9 @@ class MasterDataApi {
     /**
      * Get all states
      */
-    async getStates(params?: QueryParams): Promise<ApiResponse<State[]>> {
+    async getStates(params?: QueryParams, signal?: AbortSignal): Promise<ApiResponse<State[]>> {
         const queryString = this.buildQueryString(params);
-        return apiClient.get<ApiResponse<State[]>>(`${this.baseUrl}/states${queryString}`);
+        return apiClient.get<ApiResponse<State[]>>(`${this.baseUrl}/states${queryString}`, { signal });
     }
 
     /**
@@ -137,9 +137,9 @@ class MasterDataApi {
     /**
      * Get all districts
      */
-    async getDistricts(params?: QueryParams): Promise<ApiResponse<District[]>> {
+    async getDistricts(params?: QueryParams, signal?: AbortSignal): Promise<ApiResponse<District[]>> {
         const queryString = this.buildQueryString(params);
-        return apiClient.get<ApiResponse<District[]>>(`${this.baseUrl}/districts${queryString}`);
+        return apiClient.get<ApiResponse<District[]>>(`${this.baseUrl}/districts${queryString}`, { signal });
     }
 
     /**
@@ -182,9 +182,9 @@ class MasterDataApi {
     /**
      * Get all organizations
      */
-    async getOrganizations(params?: QueryParams): Promise<ApiResponse<Organization[]>> {
+    async getOrganizations(params?: QueryParams, signal?: AbortSignal): Promise<ApiResponse<Organization[]>> {
         const queryString = this.buildQueryString(params);
-        return apiClient.get<ApiResponse<Organization[]>>(`${this.baseUrl}/organizations${queryString}`);
+        return apiClient.get<ApiResponse<Organization[]>>(`${this.baseUrl}/organizations${queryString}`, { signal });
     }
 
     /**

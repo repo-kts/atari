@@ -257,6 +257,21 @@ async function findAll(entityName, options = {}) {
     // Build where clause
     const where = { ...filters };
 
+    // orgMaster has no denormalized stateId/zoneId columns — only districtId — so
+    // `stateId`/`zoneId` are never valid flat where-fields for this model. When no
+    // districtId was given (e.g. a zone_admin or state_admin searching for an
+    // Institute), translate them into a nested filter on the district relation instead.
+    if (entityName === 'organizations' && (where.stateId !== undefined || where.zoneId !== undefined)) {
+        if (!where.districtId) {
+            where.district = {
+                ...(where.stateId ? { stateId: where.stateId } : {}),
+                ...(where.zoneId ? { state: { zoneId: where.zoneId } } : {}),
+            };
+        }
+        delete where.stateId;
+        delete where.zoneId;
+    }
+
     // Add search filter
     if (search) {
         where[config.nameField] = {
