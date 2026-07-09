@@ -9,11 +9,14 @@ import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
 import { LoadingButton } from '../common/LoadingButton'
 import { DependentDropdown } from '../common/DependentDropdown'
-import { buildKvkFilters } from '../../utils/kvkFilterUtils'
+import { EntitySearchSelect } from '../common/EntitySearchSelect'
+import {
+    useUserHierarchyPicker,
+    ROLE_TARGET_ENTITY,
+    joinSublabel,
+    type DerivedHierarchy,
+} from '../../hooks/useUserHierarchyPicker'
 import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
-import type { Zone, State, District, Organization } from '../../types/masterData'
-import type { Kvk } from '../../types/aboutKvk'
-import { useMasterData } from '../../hooks/useMasterData'
 import { useRoles } from '../../hooks/useUserManagement'
 import type { RoleInfo } from '../../services/userApi'
 import { cleanIndianMobileInput, indianMobileFieldError } from '../../utils/indianPhone'
@@ -98,6 +101,21 @@ const emptyForm: FormData = {
     permissions: [],
 }
 
+function toFormFields(h: DerivedHierarchy) {
+    return {
+        zoneId: h.zoneId ?? '',
+        stateId: h.stateId ?? '',
+        districtId: h.districtId ?? '',
+        orgId: h.orgId ?? '',
+        kvkId: h.kvkId ?? '',
+    } as const
+}
+
+interface EntityInfo {
+    label: string
+    sublabel?: string
+}
+
 export const EditUserModal: React.FC<EditUserModalProps> = ({
     isOpen,
     onClose,
@@ -110,6 +128,9 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
     // Untouched checkboxes produce no writes — the matrix's per-module
     // distribution stays intact.
     const [initialPermissions, setInitialPermissions] = useState<PermissionAction[]>([])
+    // The currently-assigned entity's name/context, resolved via a single
+    // by-id lookup on open — the user list API only returns raw ids.
+    const [initialEntityInfo, setInitialEntityInfo] = useState<EntityInfo | null>(null)
     const { user: currentUser } = useAuth()
 
     const [errors, setErrors] = useState<FormErrors>({})
@@ -135,34 +156,21 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         ? allRoles.find((r: RoleInfo) => r.roleId === formData.roleId)?.roleName ?? null
         : null
 
-    // Which hierarchy fields the selected role requires (full cascade)
-    const zoneRequired = selectedRole === 'zone_admin' ||
-        selectedRole === 'state_admin' || selectedRole === 'state_user' ||
-        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
-    const stateRequired = selectedRole === 'state_admin' || selectedRole === 'state_user' ||
-        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
-    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
-    const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
-    const kvkRequired = selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
+    const hierarchyPicker = useUserHierarchyPicker({
+        selectedRole,
+        isSubAdmin,
+        actorLevel: editorLevel,
+        currentUser,
+        isKvkAdminActor: isKvkAdminEditing,
+    })
 
-    const showZoneField = zoneRequired
-    const showStateField = stateRequired
-    const showDistrictField = districtRequired
-    const showOrgField = orgRequired
-
-    const { data: zones = [] } = useMasterData<Zone>('zones', { enabled: !isSubAdmin && showZoneField })
-
-    // Sub-admin: only show dropdowns for levels STRICTLY BELOW the editor's own level
-    const needsStateLevel = ['state_admin', 'state_user', 'district_admin', 'district_user', 'org_admin', 'org_user', 'kvk_admin', 'kvk_user']
-    const needsDistrictLevel = ['district_admin', 'district_user', 'org_admin', 'org_user', 'kvk_admin', 'kvk_user']
-    const needsOrgLevel = ['org_admin', 'org_user', 'kvk_admin', 'kvk_user']
-
-    const showStateForSubAdmin = isSubAdmin && editorLevel < 2 && needsStateLevel.includes(selectedRole || '')
-    const showDistrictForSubAdmin = isSubAdmin && editorLevel < 3 && needsDistrictLevel.includes(selectedRole || '')
-    const showOrgForSubAdmin = isSubAdmin && editorLevel < 4 && needsOrgLevel.includes(selectedRole || '')
+    // Roles that fully inherit the editor's scope don't render a picker, so seed
+    // formData's hierarchy fields directly whenever that's the active case.
+    useEffect(() => {
+        if (!selectedRole || hierarchyPicker.showPicker) return
+        const derived = hierarchyPicker.resolveHierarchy(null)
+        setFormData(prev => ({ ...prev, ...toFormFields(derived) }))
+    }, [selectedRole, hierarchyPicker.showPicker])
 
     const isSelectedRoleUser = selectedRole !== null && NON_ADMIN_ROLES.includes(selectedRole)
     const showPermissionsSection = isSelectedRoleUser
@@ -193,6 +201,66 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             setSubmitError(null)
             setSubmitSuccess(false)
             setShowPassword(false)
+        }
+    }, [isOpen, user])
+
+    // Resolve the user's currently-assigned entity name for the search field's
+    // initial display, since GET /admin/users only returns raw ids.
+    useEffect(() => {
+        if (!isOpen || !user) {
+            setInitialEntityInfo(null)
+            return
+        }
+        let cancelled = false
+        const entity = ROLE_TARGET_ENTITY[user.roleName] ?? null
+
+        const load = async () => {
+            try {
+                if (entity === 'zone' && user.zoneId) {
+                    const res = await masterDataApi.getZoneById(user.zoneId)
+                    if (!cancelled) setInitialEntityInfo({ label: res.data.zoneName })
+                } else if (entity === 'state' && user.stateId) {
+                    const res = await masterDataApi.getStateById(user.stateId)
+                    if (!cancelled) {
+                        setInitialEntityInfo({
+                            label: res.data.stateName,
+                            sublabel: joinSublabel([res.data.zone?.zoneName ? `Zone: ${res.data.zone.zoneName}` : undefined]),
+                        })
+                    }
+                } else if (entity === 'district' && user.districtId) {
+                    const res = await masterDataApi.getDistrictById(user.districtId)
+                    if (!cancelled) {
+                        setInitialEntityInfo({
+                            label: res.data.districtName,
+                            sublabel: joinSublabel([res.data.state?.stateName, res.data.zone?.zoneName]),
+                        })
+                    }
+                } else if (entity === 'org' && user.orgId) {
+                    const res = await masterDataApi.getOrganizationById(user.orgId)
+                    if (!cancelled) {
+                        setInitialEntityInfo({
+                            label: res.data.orgName,
+                            sublabel: joinSublabel([res.data.district?.districtName, res.data.district?.state?.stateName]),
+                        })
+                    }
+                } else if (entity === 'kvk' && user.kvkId) {
+                    const res = await aboutKvkApi.getKvkById(user.kvkId)
+                    if (!cancelled) {
+                        setInitialEntityInfo({
+                            label: res.data.kvkName,
+                            sublabel: joinSublabel([res.data.org?.orgName, res.data.district?.districtName, res.data.state?.stateName]),
+                        })
+                    }
+                } else if (!cancelled) {
+                    setInitialEntityInfo(null)
+                }
+            } catch {
+                if (!cancelled) setInitialEntityInfo(null)
+            }
+        }
+        load()
+        return () => {
+            cancelled = true
         }
     }, [isOpen, user])
 
@@ -244,32 +312,8 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             newErrors.roleId = 'Role is required'
         }
 
-        if (!isSubAdmin) {
-            if (zoneRequired && !formData.zoneId) {
-                newErrors.zoneId = 'Zone is required'
-            }
-            if (stateRequired && !formData.stateId) {
-                newErrors.stateId = 'State is required'
-            }
-            if (districtRequired && !formData.districtId) {
-                newErrors.districtId = 'District is required'
-            }
-            if (orgRequired && !formData.orgId) {
-                newErrors.orgId = 'Institute is required'
-            }
-        } else {
-            if (showStateForSubAdmin && stateRequired && !formData.stateId) {
-                newErrors.stateId = 'State is required for this role'
-            }
-            if (showDistrictForSubAdmin && districtRequired && !formData.districtId) {
-                newErrors.districtId = 'District is required for this role'
-            }
-            if (showOrgForSubAdmin && orgRequired && !formData.orgId) {
-                newErrors.orgId = 'Institute is required for this role'
-            }
-        }
-        if (kvkRequired && !isKvkAdminEditing && !formData.kvkId) {
-            newErrors.kvkId = 'KVK is required for this role'
+        if (hierarchyPicker.showPicker && hierarchyPicker.targetField && !formData[hierarchyPicker.targetField as keyof FormData]) {
+            newErrors[hierarchyPicker.targetField as keyof FormErrors] = `${hierarchyPicker.entityLabel} is required`
         }
 
         if (showPermissionsSection && (!formData.permissions || formData.permissions.length === 0)) {
@@ -316,23 +360,11 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
 
             if (formData.password) updateData.password = formData.password
 
-            // Resolve the hierarchy the same way the create form does:
-            // sub-admins inherit their own scope for levels at/above theirs.
-            const nextZoneId = isSubAdmin
-                ? (currentUser?.zoneId ?? null)
-                : (formData.zoneId ? Number(formData.zoneId) : null)
-            const nextStateId = isSubAdmin
-                ? (showStateForSubAdmin ? (formData.stateId ? Number(formData.stateId) : null) : (currentUser?.stateId ?? null))
-                : (formData.stateId ? Number(formData.stateId) : null)
-            const nextDistrictId = isSubAdmin
-                ? (showDistrictForSubAdmin ? (formData.districtId ? Number(formData.districtId) : null) : (currentUser?.districtId ?? null))
-                : (formData.districtId ? Number(formData.districtId) : null)
-            const nextOrgId = isSubAdmin
-                ? (showOrgForSubAdmin ? (formData.orgId ? Number(formData.orgId) : null) : (currentUser?.orgId ?? null))
-                : (formData.orgId ? Number(formData.orgId) : null)
-            const nextKvkId = kvkRequired
-                ? (isKvkAdminEditing ? (currentUser?.kvkId ?? null) : (formData.kvkId ? Number(formData.kvkId) : null))
-                : null
+            const nextZoneId = formData.zoneId ? Number(formData.zoneId) : null
+            const nextStateId = formData.stateId ? Number(formData.stateId) : null
+            const nextDistrictId = formData.districtId ? Number(formData.districtId) : null
+            const nextOrgId = formData.orgId ? Number(formData.orgId) : null
+            const nextKvkId = formData.kvkId ? Number(formData.kvkId) : null
 
             const roleChanged = formData.roleId !== user.roleId
             const hierarchyChanged =
@@ -574,323 +606,43 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                     </div>
                 )}
 
-                {/* Hierarchy info for sub-admins */}
-                {isSubAdmin && !showStateForSubAdmin && !showDistrictForSubAdmin && !showOrgForSubAdmin && selectedRole !== 'kvk_admin' && selectedRole !== 'kvk_user' && (
+                {/* Inherited scope info — shown whenever the role doesn't need a direct pick */}
+                {selectedRole && !hierarchyPicker.showPicker && (
                     <p className="text-sm text-[#757575]">
-                        The user will inherit your <strong className="text-[#212121]">Zone, State, District &amp; Institute</strong>.
+                        {isKvkAdminEditing
+                            ? <>This user will be assigned to your own <strong className="text-[#212121]">KVK</strong>.</>
+                            : <>This user will inherit your own <strong className="text-[#212121]">{hierarchyPicker.entityLabel}</strong> (and everything above it).</>}
                     </p>
                 )}
 
-                {/* Sub-admin: State dropdown */}
-                {showStateForSubAdmin && (
-                    <DependentDropdown
-                        label="State"
-                        required={stateRequired}
-                        value={formData.stateId || ''}
-                        onChange={(value) => {
-                            const stateId = value ? Number(value) : ''
-                            setFormData(prev => ({
-                                ...prev,
-                                stateId: stateId as number | '',
-                                districtId: '',
-                                orgId: '',
-                                kvkId: '',
-                            }))
-                            if (errors.stateId) setErrors(prev => ({ ...prev, stateId: undefined }))
+                {/* Direct search-and-select for whichever entity this role targets */}
+                {selectedRole && hierarchyPicker.showPicker && hierarchyPicker.targetField && (
+                    <EntitySearchSelect
+                        label={hierarchyPicker.entityLabel}
+                        required
+                        value={formData[hierarchyPicker.targetField as keyof FormData] as number | ''}
+                        onSelect={(option) => {
+                            const derived = hierarchyPicker.resolveHierarchy(option ? option.record : null)
+                            setFormData(prev => ({ ...prev, ...toFormFields(derived) }))
+                            const field = hierarchyPicker.targetField as keyof FormErrors
+                            if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }))
                             setSubmitError(null)
                         }}
-                        dependsOn={{
-                            value: currentUser?.zoneId,
-                            field: 'zoneId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (zoneId, signal) => {
-                            const response = await masterDataApi.getStatesByZone(zoneId as number, signal)
-                            return response.data.map((s: State) => ({
-                                value: s.stateId,
-                                label: s.stateName
-                            }))
-                        }}
-                        cacheKey="states-by-zone"
-                        emptyMessage="No states available for this zone"
-                        loadingMessage="Loading states..."
-                        error={errors.stateId}
+                        search={hierarchyPicker.search}
+                        placeholder={hierarchyPicker.placeholder}
+                        emptyMessage={hierarchyPicker.emptyMessage}
+                        error={hierarchyPicker.targetField ? errors[hierarchyPicker.targetField as keyof FormErrors] : undefined}
                         disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {/* Sub-admin: District dropdown */}
-                {showDistrictForSubAdmin && (
-                    <DependentDropdown
-                        label="District"
-                        required={districtRequired}
-                        value={formData.districtId || ''}
-                        onChange={(value) => {
-                            const districtId = value ? Number(value) : ''
-                            setFormData(prev => ({
-                                ...prev,
-                                districtId: districtId as number | '',
-                                orgId: '',
-                                kvkId: '',
-                            }))
-                            if (errors.districtId) setErrors(prev => ({ ...prev, districtId: undefined }))
-                            setSubmitError(null)
-                        }}
-                        dependsOn={{
-                            value: showStateForSubAdmin ? formData.stateId : currentUser?.stateId,
-                            field: 'stateId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (stateId, signal) => {
-                            const response = await masterDataApi.getDistrictsByState(stateId as number, signal)
-                            return response.data.map((d: District) => ({
-                                value: d.districtId,
-                                label: d.districtName
-                            }))
-                        }}
-                        cacheKey="districts-by-state"
-                        emptyMessage="No districts available for this state"
-                        loadingMessage="Loading districts..."
-                        error={errors.districtId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {/* Sub-admin: Organization dropdown */}
-                {showOrgForSubAdmin && (
-                    <DependentDropdown
-                        label="Institute"
-                        required={orgRequired}
-                        value={formData.orgId || ''}
-                        onChange={(value) => {
-                            const orgId = value ? Number(value) : ''
-                            setFormData(prev => ({
-                                ...prev,
-                                orgId: orgId as number | '',
-                                kvkId: '',
-                            }))
-                            if (errors.orgId) setErrors(prev => ({ ...prev, orgId: undefined }))
-                            setSubmitError(null)
-                        }}
-                        dependsOn={{
-                            value: showDistrictForSubAdmin ? formData.districtId : (showStateForSubAdmin ? formData.stateId : currentUser?.districtId),
-                            field: showDistrictForSubAdmin ? 'districtId' : (showStateForSubAdmin ? 'stateId' : 'districtId')
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (depValue, signal) => {
-                            if (showDistrictForSubAdmin) {
-                                const response = await masterDataApi.getOrganizationsByDistrict(depValue as number, signal)
-                                return response.data.map((org: Organization) => ({
-                                    value: org.orgId,
-                                    label: org.orgName
-                                }))
-                            } else {
-                                const response = await masterDataApi.getOrganizations()
-                                const filtered = response.data.filter((org: Organization) =>
-                                    org.district?.state?.stateId === depValue
-                                )
-                                return filtered.map((org: Organization) => ({
-                                    value: org.orgId,
-                                    label: org.orgName
-                                }))
-                            }
-                        }}
-                        cacheKey="organizations-by-district"
-                        emptyMessage="No organizations available"
-                        loadingMessage="Loading organizations..."
-                        error={errors.orgId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {/* Super Admin hierarchy dropdowns */}
-                {!isSubAdmin && showZoneField && (showStateField || showDistrictField || showOrgField) && (
-                    <p className="text-xs text-[#757575]">
-                        Select <strong>Zone → State → District → Institute → KVK</strong> in order. Higher-level selections filter the options below.
-                    </p>
-                )}
-
-                {!isSubAdmin && showZoneField && (
-                    <DependentDropdown
-                        label="Zone"
-                        required={zoneRequired}
-                        value={formData.zoneId || ''}
-                        onChange={(value) => {
-                            const zoneId = value ? Number(value) : ''
-                            setFormData(prev => ({
-                                ...prev,
-                                zoneId: zoneId as number | '',
-                                stateId: '',
-                                districtId: '',
-                                orgId: '',
-                                kvkId: '',
-                            }))
-                            if (errors.zoneId) setErrors(prev => ({ ...prev, zoneId: undefined }))
-                            setSubmitError(null)
-                        }}
-                        options={zones.map(z => ({ value: z.zoneId, label: z.zoneName }))}
-                        emptyMessage="No zones available"
-                        error={errors.zoneId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {!isSubAdmin && showStateField && (
-                    <DependentDropdown
-                        label="State"
-                        required={stateRequired}
-                        value={formData.stateId || ''}
-                        onChange={(value) => {
-                            const stateId = value ? Number(value) : ''
-                            setFormData(prev => ({
-                                ...prev,
-                                stateId: stateId as number | '',
-                                districtId: '',
-                                orgId: '',
-                                kvkId: '',
-                            }))
-                            if (errors.stateId) setErrors(prev => ({ ...prev, stateId: undefined }))
-                            setSubmitError(null)
-                        }}
-                        dependsOn={{
-                            value: showZoneField ? formData.zoneId : undefined,
-                            field: 'zoneId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (zoneId, signal) => {
-                            const response = await masterDataApi.getStatesByZone(zoneId as number, signal)
-                            return response.data.map((s: State) => ({
-                                value: s.stateId,
-                                label: s.stateName
-                            }))
-                        }}
-                        cacheKey="states-by-zone"
-                        emptyMessage="No states available for this zone"
-                        loadingMessage="Loading states..."
-                        error={errors.stateId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {!isSubAdmin && showDistrictField && (
-                    <DependentDropdown
-                        label="District"
-                        required={districtRequired}
-                        value={formData.districtId || ''}
-                        onChange={(value) => {
-                            const districtId = value ? Number(value) : ''
-                            setFormData(prev => ({
-                                ...prev,
-                                districtId: districtId as number | '',
-                                orgId: '',
-                                kvkId: '',
-                            }))
-                            if (errors.districtId) setErrors(prev => ({ ...prev, districtId: undefined }))
-                            setSubmitError(null)
-                        }}
-                        dependsOn={{
-                            value: showStateField ? formData.stateId : undefined,
-                            field: 'stateId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (stateId, signal) => {
-                            const response = await masterDataApi.getDistrictsByState(stateId as number, signal)
-                            return response.data.map((d: District) => ({
-                                value: d.districtId,
-                                label: d.districtName
-                            }))
-                        }}
-                        cacheKey="districts-by-state"
-                        emptyMessage="No districts available for this state"
-                        loadingMessage="Loading districts..."
-                        error={errors.districtId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {!isSubAdmin && showOrgField && (
-                    <DependentDropdown
-                        label="Institute"
-                        required={orgRequired}
-                        value={formData.orgId || ''}
-                        onChange={(value) => {
-                            const orgId = value ? Number(value) : ''
-                            setFormData(prev => ({
-                                ...prev,
-                                orgId: orgId as number | '',
-                                kvkId: '',
-                            }))
-                            if (errors.orgId) setErrors(prev => ({ ...prev, orgId: undefined }))
-                            setSubmitError(null)
-                        }}
-                        dependsOn={{
-                            value: showDistrictField ? formData.districtId : (showStateField ? formData.stateId : undefined),
-                            field: showDistrictField ? 'districtId' : 'stateId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (depValue, signal) => {
-                            if (showDistrictField) {
-                                const response = await masterDataApi.getOrganizationsByDistrict(depValue as number, signal)
-                                return response.data.map((org: Organization) => ({
-                                    value: org.orgId,
-                                    label: org.orgName
-                                }))
-                            } else {
-                                const response = await masterDataApi.getOrganizations()
-                                const filtered = response.data.filter((org: Organization) =>
-                                    org.district?.state?.stateId === depValue
-                                )
-                                return filtered.map((org: Organization) => ({
-                                    value: org.orgId,
-                                    label: org.orgName
-                                }))
-                            }
-                        }}
-                        cacheKey="organizations-by-district"
-                        emptyMessage="No organizations available"
-                        loadingMessage="Loading organizations..."
-                        error={errors.orgId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {/* KVK dropdown — loads from the selected Institute (no Host step needed on edit) */}
-                {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && !isKvkAdminEditing && (
-                    <DependentDropdown
-                        label="KVK"
-                        required={kvkRequired}
-                        value={formData.kvkId || ''}
-                        onChange={(value) => {
-                            const kvkId = value ? Number(value) : ''
-                            handleChange('kvkId', kvkId)
-                        }}
-                        dependsOn={{
-                            value: (!isSubAdmin || showOrgForSubAdmin) ? formData.orgId : (currentUser?.orgId ?? currentUser?.districtId ?? currentUser?.stateId ?? currentUser?.zoneId),
-                            field: 'orgId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (_orgId, _signal) => {
-                            const params = buildKvkFilters({
-                                isSubAdmin,
-                                currentUser,
-                                formData,
-                                showStateForSubAdmin,
-                                showDistrictForSubAdmin,
-                                showOrgForSubAdmin,
-                            })
-                            const response = await aboutKvkApi.getKvks(params)
-                            return response.data.map((kvk: Kvk) => ({
-                                value: kvk.kvkId,
-                                label: kvk.kvkName
-                            }))
-                        }}
-                        emptyMessage={isSubAdmin
-                            ? 'No KVKs available for your location'
-                            : 'No KVKs found. Please select Zone, State, District and Institute first.'}
-                        loadingMessage="Loading KVKs..."
-                        cacheKey="kvks-by-org-edit"
-                        error={errors.kvkId}
-                        disabled={isSubmitting || submitSuccess}
+                        initialLabel={
+                            ROLE_TARGET_ENTITY[user.roleName] === hierarchyPicker.targetEntity
+                                ? initialEntityInfo?.label
+                                : undefined
+                        }
+                        initialSublabel={
+                            ROLE_TARGET_ENTITY[user.roleName] === hierarchyPicker.targetEntity
+                                ? initialEntityInfo?.sublabel
+                                : undefined
+                        }
                     />
                 )}
 
