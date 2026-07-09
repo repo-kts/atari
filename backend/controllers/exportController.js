@@ -309,6 +309,46 @@ function enrichEquipmentDetailsExport(rawData) {
     }));
 }
 
+// Module (View KVK) exports post the list rows, whose `university` may carry only
+// id/name (or no host fields at all). Section 1.1.2 needs the host organization's
+// contact details, which live on the host master (UniversityMaster). Re-attach the
+// linked host master by kvkId (always present on the list rows) so the module
+// export matches the all-report export, regardless of the posted row shape.
+async function enrichAboutKvkHostMaster(rawData) {
+    const prisma = require('../config/prisma.js');
+    const records = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const kvkIds = [...new Set(
+        records.map((r) => r?.kvkId).filter((v) => v != null).map(Number)
+    )];
+    if (kvkIds.length === 0) return rawData;
+
+    const kvks = await prisma.kvk.findMany({
+        where: { kvkId: { in: kvkIds } },
+        select: {
+            kvkId: true,
+            university: {
+                select: {
+                    universityId: true,
+                    universityName: true,
+                    hostAddress: true,
+                    hostMobile: true,
+                    hostLandline: true,
+                    hostFax: true,
+                    hostEmail: true,
+                },
+            },
+        },
+    });
+    const byKvkId = new Map(kvks.map((k) => [k.kvkId, k.university]));
+
+    const enriched = records.map((r) => {
+        const university = byKvkId.get(Number(r?.kvkId));
+        if (!university) return r;
+        return { ...r, university: { ...(r.university || {}), ...university } };
+    });
+    return Array.isArray(rawData) ? enriched : enriched[0];
+}
+
 const exportData = async (req, res) => {
     try {
         const {
@@ -330,6 +370,9 @@ const exportData = async (req, res) => {
         let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}`;
 
         let effectiveRawData = rawData;
+        if (templateKey === 'about-kvk-view' && rawData) {
+            effectiveRawData = await enrichAboutKvkHostMaster(rawData);
+        }
         if (templateKey === 'about-kvk-employees-full' && rawData) {
             effectiveRawData = enrichEmployeesExport(rawData);
         }
@@ -486,7 +529,12 @@ const exportData = async (req, res) => {
                 fileName += '.pdf';
                 break;
             case 'excel':
-                if (templateKey === 'oft-combined' && rawData) {
+                if (templateKey === 'about-kvk-view' && rawData) {
+                    const aboutKvkHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    // Ordered path so the .1/.2/.3 sub-section headings sit above
+                    // their tables (the generic export drops h4 sub-headings).
+                    buffer = await reportExcelService.generateCfldExcelFromHtml(title, aboutKvkHtml);
+                } else if (templateKey === 'oft-combined' && rawData) {
                     // Build from the SAME HTML the PDF uses so Excel matches exactly.
                     const oftHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportExcelService.generateStandaloneExcelFromHtml(title, oftHtml);
@@ -635,7 +683,12 @@ const exportData = async (req, res) => {
                 fileName += '.xlsx';
                 break;
             case 'word':
-                if (templateKey === 'oft-combined' && rawData) {
+                if (templateKey === 'about-kvk-view' && rawData) {
+                    const aboutKvkHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    // Ordered path so the .1/.2/.3 sub-section headings sit above
+                    // their tables (the generic export drops h4 sub-headings).
+                    buffer = await reportWordService.generateCfldWordFromHtml(title, aboutKvkHtmlW);
+                } else if (templateKey === 'oft-combined' && rawData) {
                     const oftHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
                     buffer = await reportWordService.generateStandaloneWordFromHtml(title, oftHtmlW);
                 } else if ((templateKey === 'cfld-combined' || templateKey === 'cfld-budget-utilization' || templateKey === 'nicra-details' || templateKey === 'nicra-extension' || templateKey === 'nicra-convergence' || templateKey === 'arya-current' || templateKey === 'arya-prev-year' || templateKey === 'natural-farming-physical' || templateKey === 'nf-soil-data-information') && rawData) {

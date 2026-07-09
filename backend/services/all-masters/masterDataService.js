@@ -1,6 +1,39 @@
 const masterDataRepository = require('../../repositories/all-masters/masterDataRepository.js');
 const prisma = require('../../config/prisma.js');
 const { normalizeListLimit, DEFAULT_MASTER_LIST_PAGE_SIZE } = require('../../constants/masterListPagination.js');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
+const reportDataService = require('../reports/reportDataService.js');
+
+/**
+ * A master edit (zone/state/district/org/university name, host contact details…)
+ * changes what the KVK report renders, because getKvkBasicInfo / kvkInfo embed
+ * those names. The report caches section + header data (up to 60 min), so without
+ * this the report keeps showing the old value after a master is renamed. Invalidate
+ * the cached report data for every KVK linked to the edited master.
+ */
+async function invalidateReportCacheForMaster(entityName, id) {
+    try {
+        const config = ENTITY_CONFIG[entityName];
+        const kvkField = config && config.kvkField;
+        const entityId = parseInt(id);
+        if (!kvkField || Number.isNaN(entityId)) {
+            return;
+        }
+        const kvks = await prisma.kvk.findMany({
+            where: { [kvkField]: entityId },
+            select: { kvkId: true },
+        });
+        await Promise.all(
+            kvks.map(async ({ kvkId }) => {
+                await reportCacheInvalidationService.invalidateDataSourceForKvk('kvk', kvkId);
+                await reportDataService.invalidateKvkInfoCache(kvkId);
+            })
+        );
+    } catch (error) {
+        // Cache invalidation is best-effort; never fail the master write over it.
+        console.error(`Report cache invalidation failed for ${entityName}:${id}:`, error);
+    }
+}
 
 /**
  * Generic Master Data Service
@@ -341,7 +374,9 @@ async function updateEntity(entityName, id, data, userId) {
             }
         }
 
-        return await masterDataRepository.update(entityName, id, data);
+        const updated = await masterDataRepository.update(entityName, id, data);
+        await invalidateReportCacheForMaster(entityName, id);
+        return updated;
     } catch (error) {
         console.error(`Error updating ${entityName}:`, error);
         throw error;
@@ -667,6 +702,9 @@ async function deleteEntity(entityName, id, userId, cascade = false) {
         if (hasDependents || shouldCascade) {
             await cascadeDeleteEntity(entityName, entityId);
         }
+
+        // Clear cached report data for linked KVKs before the FK links vanish.
+        await invalidateReportCacheForMaster(entityName, entityId);
 
         // Delete the entity itself
         try {
