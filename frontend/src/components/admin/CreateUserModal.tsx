@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { userApi, CreateUserData, PermissionAction, getRoleLabel } from '../../services/userApi'
-import { masterDataApi } from '../../services/masterDataApi'
-import { aboutKvkApi } from '../../services/aboutKvkApi'
 import { useAuth } from '../../contexts/AuthContext'
 import { getRoleLevel, getCreatableRoles } from '../../constants/roleHierarchy'
 import { Button } from '../ui/button'
@@ -9,11 +7,9 @@ import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
 import { LoadingButton } from '../common/LoadingButton'
 import { DependentDropdown } from '../common/DependentDropdown'
-import { buildKvkFilters } from '../../utils/kvkFilterUtils'
+import { EntitySearchSelect } from '../common/EntitySearchSelect'
+import { useUserHierarchyPicker, type DerivedHierarchy } from '../../hooks/useUserHierarchyPicker'
 import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
-import type { Zone, State, District, Organization, University } from '../../types/masterData'
-import type { Kvk } from '../../types/aboutKvk'
-import { useMasterData } from '../../hooks/useMasterData'
 import { useRoles } from '../../hooks/useUserManagement'
 import type { RoleInfo } from '../../services/userApi'
 import { cleanIndianMobileInput, indianMobileFieldError } from '../../utils/indianPhone'
@@ -30,7 +26,6 @@ const NON_ADMIN_ROLES_WITH_ADD = ['kvk_user']
 
 /** Non-admin roles that require custom permissions */
 const NON_ADMIN_ROLES = ['kvk_user', 'state_user', 'district_user', 'org_user']
-
 
 interface CreateUserModalProps {
     isOpen: boolean
@@ -70,26 +65,39 @@ interface FormErrors {
     permissions?: string
 }
 
+const emptyForm: FormData = {
+    name: '',
+    email: '',
+    phoneNumber: '',
+    password: '',
+    confirmPassword: '',
+    roleId: '',
+    zoneId: '',
+    stateId: '',
+    districtId: '',
+    orgId: '',
+    universityId: '',
+    kvkId: '',
+    permissions: [],
+}
+
+function toFormFields(h: DerivedHierarchy) {
+    return {
+        zoneId: h.zoneId ?? '',
+        stateId: h.stateId ?? '',
+        districtId: h.districtId ?? '',
+        orgId: h.orgId ?? '',
+        universityId: h.universityId ?? '',
+        kvkId: h.kvkId ?? '',
+    } as const
+}
+
 export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     isOpen,
     onClose,
     onSuccess,
 }) => {
-    const [formData, setFormData] = useState<FormData>({
-        name: '',
-        email: '',
-        phoneNumber: '',
-        password: '',
-        confirmPassword: '',
-        roleId: '',
-        zoneId: '',
-        stateId: '',
-        districtId: '',
-        orgId: '',
-        universityId: '',
-        kvkId: '',
-        permissions: [],
-    })
+    const [formData, setFormData] = useState<FormData>(emptyForm)
     const { user: currentUser } = useAuth()
 
     const [errors, setErrors] = useState<FormErrors>({})
@@ -115,65 +123,31 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         ? allRoles.find((r: RoleInfo) => r.roleId === formData.roleId)?.roleName ?? null
         : null
 
-    // Determine which hierarchy fields are required (full cascade: each level needs all parents)
-    const zoneRequired = selectedRole === 'zone_admin' ||
-        selectedRole === 'state_admin' || selectedRole === 'state_user' ||
-        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
-    const stateRequired = selectedRole === 'state_admin' || selectedRole === 'state_user' ||
-        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
-    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
-    const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
-    const kvkRequired = selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
+    const hierarchyPicker = useUserHierarchyPicker({
+        selectedRole,
+        isSubAdmin,
+        actorLevel: creatorLevel,
+        currentUser,
+        isKvkAdminActor: isKvkAdminCreating,
+    })
 
-    // Show hierarchy fields that are required — ensures every required field has a visible dropdown
-    const showZoneField = zoneRequired
-    const showStateField = stateRequired
-    const showDistrictField = districtRequired
-    const showOrgField = orgRequired
-
-    // Fetch zones using hooks
-    const { data: zones = [] } = useMasterData<Zone>('zones', { enabled: !isSubAdmin && showZoneField })
-
-    // Sub-admin hierarchy dropdowns: only show dropdowns for levels STRICTLY BELOW the creator's own level
-    // Hierarchy levels: zone=1, state=2, district=3, org=4
-    // e.g. district_admin (level 3) should NOT see State (level 2) or District (level 3) dropdowns - those are inherited
-    const needsStateLevel = ['state_admin', 'state_user', 'district_admin', 'district_user', 'org_admin', 'org_user', 'kvk_admin', 'kvk_user']
-    const needsDistrictLevel = ['district_admin', 'district_user', 'org_admin', 'org_user', 'kvk_admin', 'kvk_user']
-    const needsOrgLevel = ['org_admin', 'org_user', 'kvk_admin', 'kvk_user']
-
-    const showStateForSubAdmin = isSubAdmin && creatorLevel < 2 && needsStateLevel.includes(selectedRole || '')
-    const showDistrictForSubAdmin = isSubAdmin && creatorLevel < 3 && needsDistrictLevel.includes(selectedRole || '')
-    const showOrgForSubAdmin = isSubAdmin && creatorLevel < 4 && needsOrgLevel.includes(selectedRole || '')
+    // Roles that fully inherit the creator's scope don't render a picker, so seed
+    // formData's hierarchy fields directly whenever that's the active case.
+    useEffect(() => {
+        if (!selectedRole || hierarchyPicker.showPicker) return
+        const derived = hierarchyPicker.resolveHierarchy(null)
+        setFormData(prev => ({ ...prev, ...toFormFields(derived) }))
+    }, [selectedRole, hierarchyPicker.showPicker])
 
     // Show permissions section only for _user roles (they use intersection pattern).
     // Admin roles get permissions from their role assignment, not user-level permissions.
     const isSelectedRoleUser = selectedRole !== null && NON_ADMIN_ROLES.includes(selectedRole)
     const showPermissionsSection = isSelectedRoleUser
 
-    // Note: All dropdown data is now loaded dynamically via DependentDropdown components
-    // No need for manual state management or useEffect hooks for fetching dropdown data
-
     // Reset form when modal closes
     useEffect(() => {
         if (!isOpen) {
-            setFormData({
-                name: '',
-                email: '',
-                phoneNumber: '',
-                password: '',
-                confirmPassword: '',
-                roleId: '',
-                zoneId: '',
-                stateId: '',
-                districtId: '',
-                orgId: '',
-                universityId: '',
-                kvkId: '',
-                permissions: [],
-            })
+            setFormData(emptyForm)
             setErrors({})
             setSubmitError(null)
             setSubmitSuccess(false)
@@ -235,36 +209,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             newErrors.roleId = 'Role is required'
         }
 
-        // Hierarchy validation (full cascade: Zone → State → District → Org → KVK)
-        if (!isSubAdmin) {
-            // Super Admin must provide full hierarchy from form
-            if (zoneRequired && !formData.zoneId) {
-                newErrors.zoneId = 'Zone is required'
-            }
-            if (stateRequired && !formData.stateId) {
-                newErrors.stateId = 'State is required'
-            }
-            if (districtRequired && !formData.districtId) {
-                newErrors.districtId = 'District is required'
-            }
-            if (orgRequired && !formData.orgId) {
-                newErrors.orgId = 'Institute is required'
-            }
-        } else {
-            // Sub-admin: validate form-selected hierarchy fields below their level
-            if (showStateForSubAdmin && stateRequired && !formData.stateId) {
-                newErrors.stateId = 'State is required for this role'
-            }
-            if (showDistrictForSubAdmin && districtRequired && !formData.districtId) {
-                newErrors.districtId = 'District is required for this role'
-            }
-            if (showOrgForSubAdmin && orgRequired && !formData.orgId) {
-                newErrors.orgId = 'Institute is required for this role'
-            }
-        }
-        // KVK validation — skip when kvk_admin (auto-inherited)
-        if (kvkRequired && !isKvkAdminCreating && !formData.kvkId) {
-            newErrors.kvkId = 'KVK is required for KVK user'
+        // Target entity validation — only when a picker is actually shown for this role
+        if (hierarchyPicker.showPicker && hierarchyPicker.targetField && !formData[hierarchyPicker.targetField as keyof FormData]) {
+            newErrors[hierarchyPicker.targetField as keyof FormErrors] = `${hierarchyPicker.entityLabel} is required`
         }
 
         if (showPermissionsSection && (!formData.permissions || formData.permissions.length === 0)) {
@@ -307,7 +254,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         setIsSubmitting(true)
 
         try {
-            // Prepare user data
             const effectiveRoleId = formData.roleId as number
             const userData: CreateUserData = {
                 name: formData.name.trim(),
@@ -315,24 +261,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 phoneNumber: cleanIndianMobileInput(formData.phoneNumber) || null,
                 password: formData.password,
                 roleId: effectiveRoleId,
-                // Sub-admins: inherit fields at their level, use form selections for levels below
-                // Super Admin: uses form data for everything
-                zoneId: isSubAdmin
-                    ? (currentUser?.zoneId ?? null)
-                    : (formData.zoneId ? (formData.zoneId as number) : null),
-                stateId: isSubAdmin
-                    ? (showStateForSubAdmin ? (formData.stateId ? Number(formData.stateId) : null) : (currentUser?.stateId ?? null))
-                    : (formData.stateId ? (formData.stateId as number) : null),
-                districtId: isSubAdmin
-                    ? (showDistrictForSubAdmin ? (formData.districtId ? Number(formData.districtId) : null) : (currentUser?.districtId ?? null))
-                    : (formData.districtId ? (formData.districtId as number) : null),
-                orgId: isSubAdmin
-                    ? (showOrgForSubAdmin ? (formData.orgId ? Number(formData.orgId) : null) : (currentUser?.orgId ?? null))
-                    : (formData.orgId ? (formData.orgId as number) : null),
-                universityId: (selectedRole === 'kvk_admin' || selectedRole === 'kvk_user')
-                    ? (isKvkAdminCreating ? ((currentUser as any)?.universityId ?? null) : (formData.universityId ? (formData.universityId as number) : null))
-                    : null,
-                kvkId: isKvkAdminCreating ? (currentUser?.kvkId ?? null) : (formData.kvkId ? (formData.kvkId as number) : null),
+                zoneId: formData.zoneId ? Number(formData.zoneId) : null,
+                stateId: formData.stateId ? Number(formData.stateId) : null,
+                districtId: formData.districtId ? Number(formData.districtId) : null,
+                orgId: formData.orgId ? Number(formData.orgId) : null,
+                universityId: formData.universityId ? Number(formData.universityId) : null,
+                kvkId: formData.kvkId ? Number(formData.kvkId) : null,
             }
             if (showPermissionsSection && formData.permissions.length > 0) {
                 userData.permissions = formData.permissions
@@ -466,7 +400,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     value={formData.roleId || ''}
                     onChange={(value) => {
                         const roleId = value ? Number(value) : ''
-                        handleChange('roleId', roleId)
                         setFormData(prev => ({
                             ...prev,
                             roleId: roleId as number | '',
@@ -477,11 +410,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                             universityId: '',
                             kvkId: '',
                         }))
+                        if (errors.roleId) setErrors(prev => ({ ...prev, roleId: undefined }))
+                        setSubmitError(null)
                     }}
-                        options={(isSubAdmin ? allowedRolesForDropdown : allRoles).map((role: RoleInfo) => ({
-                            value: role.roleId,
-                            label: getRoleLabel(role.roleName)
-                        }))}
+                    options={(isSubAdmin ? allowedRolesForDropdown : allRoles).map((role: RoleInfo) => ({
+                        value: role.roleId,
+                        label: getRoleLabel(role.roleName)
+                    }))}
                     emptyMessage="No roles available"
                     error={errors.roleId}
                     disabled={isSubmitting || submitSuccess}
@@ -537,359 +472,32 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     </div>
                 )}
 
-                {/* Hierarchy info for sub-admins */}
-                {isSubAdmin && !showStateForSubAdmin && !showDistrictForSubAdmin && !showOrgForSubAdmin && selectedRole !== 'kvk_admin' && selectedRole !== 'kvk_user' && (
+                {/* Inherited scope info — shown whenever the role doesn't need a direct pick */}
+                {selectedRole && !hierarchyPicker.showPicker && (
                     <p className="text-sm text-[#757575]">
-                        New user will inherit your <strong className="text-[#212121]">Zone, State, District &amp; Institute</strong>.
+                        {isKvkAdminCreating
+                            ? <>New user will be assigned to your own <strong className="text-[#212121]">KVK</strong>.</>
+                            : <>New user will inherit your own <strong className="text-[#212121]">{hierarchyPicker.entityLabel}</strong> (and everything above it).</>}
                     </p>
                 )}
 
-                {/* Sub-admin: State dropdown (e.g., zone_admin creating state_user) */}
-                {showStateForSubAdmin && (
-                    <DependentDropdown
-                        label="State"
-                        required={stateRequired}
-                        value={formData.stateId || ''}
-                        onChange={(value) => {
-                            const stateId = value ? Number(value) : ''
-                            handleChange('stateId', stateId)
-                            setFormData(prev => ({
-                                ...prev,
-                                stateId: stateId as number | '',
-                                districtId: '',
-                                orgId: '',
-                                universityId: '',
-                                kvkId: '',
-                            }))
+                {/* Direct search-and-select for whichever entity this role targets */}
+                {selectedRole && hierarchyPicker.showPicker && hierarchyPicker.targetField && (
+                    <EntitySearchSelect
+                        label={hierarchyPicker.entityLabel}
+                        required
+                        value={formData[hierarchyPicker.targetField as keyof FormData] as number | ''}
+                        onSelect={(option) => {
+                            const derived = hierarchyPicker.resolveHierarchy(option ? option.record : null)
+                            setFormData(prev => ({ ...prev, ...toFormFields(derived) }))
+                            const field = hierarchyPicker.targetField as keyof FormErrors
+                            if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }))
+                            setSubmitError(null)
                         }}
-                        dependsOn={{
-                            value: currentUser?.zoneId,
-                            field: 'zoneId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (zoneId, signal) => {
-                            const response = await masterDataApi.getStatesByZone(zoneId as number, signal)
-                            return response.data.map((s: State) => ({
-                                value: s.stateId,
-                                label: s.stateName
-                            }))
-                        }}
-                        cacheKey="states-by-zone"
-                        emptyMessage="No states available for this zone"
-                        loadingMessage="Loading states..."
-                        error={errors.stateId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {/* Sub-admin: District dropdown */}
-                {showDistrictForSubAdmin && (
-                    <DependentDropdown
-                        label="District"
-                        required={districtRequired}
-                        value={formData.districtId || ''}
-                        onChange={(value) => {
-                            const districtId = value ? Number(value) : ''
-                            handleChange('districtId', districtId)
-                            setFormData(prev => ({
-                                ...prev,
-                                districtId: districtId as number | '',
-                                orgId: '',
-                                universityId: '',
-                                kvkId: '',
-                            }))
-                        }}
-                        dependsOn={{
-                            value: showStateForSubAdmin ? formData.stateId : currentUser?.stateId,
-                            field: 'stateId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (stateId, signal) => {
-                            const response = await masterDataApi.getDistrictsByState(stateId as number, signal)
-                            return response.data.map((d: District) => ({
-                                value: d.districtId,
-                                label: d.districtName
-                            }))
-                        }}
-                        cacheKey="districts-by-state"
-                        emptyMessage="No districts available for this state"
-                        loadingMessage="Loading districts..."
-                        error={errors.districtId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {/* Sub-admin: Organization dropdown */}
-                {showOrgForSubAdmin && (
-                    <DependentDropdown
-                        label="Institute"
-                        required={orgRequired}
-                        value={formData.orgId || ''}
-                        onChange={(value) => {
-                            const orgId = value ? Number(value) : ''
-                            handleChange('orgId', orgId)
-                            setFormData(prev => ({
-                                ...prev,
-                                orgId: orgId as number | '',
-                                universityId: '',
-                                kvkId: '',
-                            }))
-                        }}
-                        dependsOn={{
-                            value: showDistrictForSubAdmin ? formData.districtId : (showStateForSubAdmin ? formData.stateId : currentUser?.districtId),
-                            field: showDistrictForSubAdmin ? 'districtId' : (showStateForSubAdmin ? 'stateId' : 'districtId')
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (depValue, signal) => {
-                            if (showDistrictForSubAdmin) {
-                                const response = await masterDataApi.getOrganizationsByDistrict(depValue as number, signal)
-                                return response.data.map((org: Organization) => ({
-                                    value: org.orgId,
-                                    label: org.orgName
-                                }))
-                            } else {
-                                // Filter by state
-                                const response = await masterDataApi.getOrganizations()
-                                const filtered = response.data.filter((org: Organization) =>
-                                    org.district?.state?.stateId === depValue
-                                )
-                                return filtered.map((org: Organization) => ({
-                                    value: org.orgId,
-                                    label: org.orgName
-                                }))
-                            }
-                        }}
-                        cacheKey="organizations-by-district"
-                        emptyMessage="No organizations available"
-                        loadingMessage="Loading organizations..."
-                        error={errors.orgId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {/* Super Admin hierarchy dropdowns */}
-                {!isSubAdmin && showZoneField && (showStateField || showDistrictField || showOrgField) && (
-                    <p className="text-xs text-[#757575]">
-                        Select <strong>Zone → State → District → Institute → KVK</strong> in order. Higher-level selections filter the options below.
-                    </p>
-                )}
-
-                {/* Super Admin: Zone → State → District cascade - select in order */}
-                {!isSubAdmin && showZoneField && (
-                    <DependentDropdown
-                        label="Zone"
-                        required={zoneRequired}
-                        value={formData.zoneId || ''}
-                        onChange={(value) => {
-                            const zoneId = value ? Number(value) : ''
-                            handleChange('zoneId', zoneId)
-                            setFormData(prev => ({
-                                ...prev,
-                                zoneId: zoneId as number | '',
-                                stateId: '',
-                                districtId: '',
-                                orgId: '',
-                                universityId: '',
-                                kvkId: '',
-                            }))
-                        }}
-                        options={zones.map(z => ({ value: z.zoneId, label: z.zoneName }))}
-                        emptyMessage="No zones available"
-                        error={errors.zoneId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {!isSubAdmin && showStateField && (
-                    <DependentDropdown
-                        label="State"
-                        required={stateRequired}
-                        value={formData.stateId || ''}
-                        onChange={(value) => {
-                            const stateId = value ? Number(value) : ''
-                            handleChange('stateId', stateId)
-                            setFormData(prev => ({
-                                ...prev,
-                                stateId: stateId as number | '',
-                                districtId: '',
-                                orgId: '',
-                                universityId: '',
-                                kvkId: '',
-                            }))
-                        }}
-                        dependsOn={{
-                            value: showZoneField ? formData.zoneId : undefined,
-                            field: 'zoneId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (zoneId, signal) => {
-                            const response = await masterDataApi.getStatesByZone(zoneId as number, signal)
-                            return response.data.map((s: State) => ({
-                                value: s.stateId,
-                                label: s.stateName
-                            }))
-                        }}
-                        cacheKey="states-by-zone"
-                        emptyMessage="No states available for this zone"
-                        loadingMessage="Loading states..."
-                        error={errors.stateId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {!isSubAdmin && showDistrictField && (
-                    <DependentDropdown
-                        label="District"
-                        required={districtRequired}
-                        value={formData.districtId || ''}
-                        onChange={(value) => {
-                            const districtId = value ? Number(value) : ''
-                            handleChange('districtId', districtId)
-                            setFormData(prev => ({
-                                ...prev,
-                                districtId: districtId as number | '',
-                                orgId: '',
-                                universityId: '',
-                                kvkId: '',
-                            }))
-                        }}
-                        dependsOn={{
-                            value: showStateField ? formData.stateId : undefined,
-                            field: 'stateId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (stateId, signal) => {
-                            const response = await masterDataApi.getDistrictsByState(stateId as number, signal)
-                            return response.data.map((d: District) => ({
-                                value: d.districtId,
-                                label: d.districtName
-                            }))
-                        }}
-                        cacheKey="districts-by-state"
-                        emptyMessage="No districts available for this state"
-                        loadingMessage="Loading districts..."
-                        error={errors.districtId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {!isSubAdmin && showOrgField && (
-                    <DependentDropdown
-                        label="Institute"
-                        required={orgRequired}
-                        value={formData.orgId || ''}
-                        onChange={(value) => {
-                            const orgId = value ? Number(value) : ''
-                            handleChange('orgId', orgId)
-                            setFormData(prev => ({
-                                ...prev,
-                                orgId: orgId as number | '',
-                                universityId: '',
-                                kvkId: '',
-                            }))
-                        }}
-                        dependsOn={{
-                            value: showDistrictField ? formData.districtId : (showStateField ? formData.stateId : undefined),
-                            field: showDistrictField ? 'districtId' : 'stateId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (depValue, signal) => {
-                            if (showDistrictField) {
-                                const response = await masterDataApi.getOrganizationsByDistrict(depValue as number, signal)
-                                return response.data.map((org: Organization) => ({
-                                    value: org.orgId,
-                                    label: org.orgName
-                                }))
-                            } else {
-                                // Filter by state
-                                const response = await masterDataApi.getOrganizations()
-                                const filtered = response.data.filter((org: Organization) =>
-                                    org.district?.state?.stateId === depValue
-                                )
-                                return filtered.map((org: Organization) => ({
-                                    value: org.orgId,
-                                    label: org.orgName
-                                }))
-                            }
-                        }}
-                        cacheKey="organizations-by-district"
-                        emptyMessage="No organizations available"
-                        loadingMessage="Loading organizations..."
-                        error={errors.orgId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {/* University dropdown - only shown for KVK-level roles that need it */}
-                {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && !isKvkAdminCreating && ((!isSubAdmin && showOrgField) || showOrgForSubAdmin) && (
-                    <DependentDropdown
-                        label="Host"
-                        value={formData.universityId || ''}
-                        onChange={(value) => {
-                            const universityId = value ? Number(value) : ''
-                            handleChange('universityId', universityId)
-                            setFormData(prev => ({
-                                ...prev,
-                                universityId: universityId as number | '',
-                                kvkId: '',
-                            }))
-                        }}
-                        dependsOn={{
-                            value: formData.orgId,
-                            field: 'orgId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (orgId, signal) => {
-                            const response = await masterDataApi.getUniversitiesByOrganization(orgId as number, signal)
-                            return response.data.map((u: University) => ({
-                                value: u.universityId,
-                                label: u.universityName
-                            }))
-                        }}
-                        cacheKey="universities-by-org"
-                        emptyMessage="No universities available for this organization"
-                        loadingMessage="Loading universities..."
-                        error={errors.universityId}
-                        disabled={isSubmitting || submitSuccess}
-                    />
-                )}
-
-                {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && !isKvkAdminCreating && (
-                    <DependentDropdown
-                        label={`KVK ${kvkRequired ? '*' : ''}`}
-                        value={formData.kvkId || ''}
-                        onChange={(value) => {
-                            const kvkId = value ? Number(value) : ''
-                            handleChange('kvkId', kvkId)
-                        }}
-                        dependsOn={{
-                            value: !isSubAdmin ? formData.universityId : (showOrgForSubAdmin ? formData.universityId : (currentUser as any)?.universityId),
-                            field: 'universityId'
-                        }}
-                        options={[]}
-                        onOptionsLoad={async (universityId, _signal) => {
-                            const params = buildKvkFilters({
-                                isSubAdmin,
-                                currentUser,
-                                formData,
-                                showStateForSubAdmin,
-                                showDistrictForSubAdmin,
-                                showOrgForSubAdmin,
-                                universityId: universityId, // Pass the selected universityId
-                            });
-                            const response = await aboutKvkApi.getKvks(params)
-                            return response.data.map((kvk: Kvk) => ({
-                                value: kvk.kvkId,
-                                label: kvk.kvkName
-                            }))
-                        }}
-                        emptyMessage={isSubAdmin
-                            ? 'No KVKs available for your location'
-                            : 'No KVKs found. Please select Zone, State, District, Institute and Host first.'}
-                        loadingMessage="Loading KVKs..."
-                        cacheKey="kvks-by-university"
-                        required={kvkRequired}
-                        error={errors.kvkId}
+                        search={hierarchyPicker.search}
+                        placeholder={hierarchyPicker.placeholder}
+                        emptyMessage={hierarchyPicker.emptyMessage}
+                        error={hierarchyPicker.targetField ? errors[hierarchyPicker.targetField as keyof FormErrors] : undefined}
                         disabled={isSubmitting || submitSuccess}
                     />
                 )}

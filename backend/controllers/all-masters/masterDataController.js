@@ -326,6 +326,8 @@ async function getAllOrganizations(req, res) {
     try {
         const filters = {};
         if (req.query.districtId) filters.districtId = parseInt(req.query.districtId);
+        if (req.query.stateId) filters.stateId = parseInt(req.query.stateId);
+        if (req.query.zoneId) filters.zoneId = parseInt(req.query.zoneId);
 
         const options = {
             page: req.query.page,
