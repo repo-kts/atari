@@ -51,7 +51,7 @@ function extractHeadings(cleanHtml) {
         if (t && !headings.includes(t)) headings.push(t);
     };
     let m;
-    const headingRe = /<(h1|h2|h3)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+    const headingRe = /<(h1|h2|h3|h4)\b[^>]*>([\s\S]*?)<\/\1>/gi;
     while ((m = headingRe.exec(cleanHtml))) push(m[2]);
     // Descriptive sub-titles/captions templates render as <div>/<p>.
     const subRe = /<(div|p)\b[^>]*class="[^"]*(?:subtitle|sub-title|caption|page-sub|page-sec|nbf-subtitle)[^"]*"[^>]*>([\s\S]*?)<\/\1>/gi;
@@ -140,7 +140,7 @@ function parseSectionHtml(html) {
 function parseOrderedBlocks(html) {
     const clean = String(html || '').replace(/<style[\s\S]*?<\/style>/gi, '');
     const blocks = [];
-    const re = /<(h1|h2|h3)\b[^>]*>([\s\S]*?)<\/\1>|<table\b[^>]*>([\s\S]*?)<\/table>/gi;
+    const re = /<(h1|h2|h3|h4)\b[^>]*>([\s\S]*?)<\/\1>|<table\b[^>]*>([\s\S]*?)<\/table>/gi;
     let m;
     while ((m = re.exec(clean))) {
         if (m[1]) {
