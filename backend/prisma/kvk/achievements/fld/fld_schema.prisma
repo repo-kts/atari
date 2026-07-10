@@ -61,6 +61,7 @@ model KvkFldIntroduction {
   transferredToChildren       KvkFldIntroduction[]        @relation("FldTransferChain")
 
   @@index([kvkId])
+  @@index([kvkId, ongoingCompleted, expectedCompletionDate])
   @@index([seasonId])
   @@index([sectorId])
   @@index([thematicAreaId])

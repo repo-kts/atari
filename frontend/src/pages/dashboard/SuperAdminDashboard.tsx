@@ -274,6 +274,7 @@ export const SuperAdminDashboard: React.FC = () => {
                             mode="pair"
                             primaryLabel="completed"
                             secondaryLabel="created"
+                            detailHref={canPickKvk ? '/dashboard/analytics/oft' : undefined}
                             rows={data.perKvk.map(r => ({
                                 id: r.kvkId,
                                 name: r.kvkName,
@@ -289,6 +290,7 @@ export const SuperAdminDashboard: React.FC = () => {
                             mode="pair"
                             primaryLabel="completed"
                             secondaryLabel="created"
+                            detailHref={canPickKvk ? '/dashboard/analytics/fld' : undefined}
                             rows={data.perKvk.map(r => ({
                                 id: r.kvkId,
                                 name: r.kvkName,
@@ -304,6 +306,7 @@ export const SuperAdminDashboard: React.FC = () => {
                             mode="count"
                             primaryLabel="sessions"
                             unit="sessions"
+                            detailHref={canPickKvk ? '/dashboard/analytics/training' : undefined}
                             rows={data.perKvk.map(r => ({
                                 id: r.kvkId,
                                 name: r.kvkName,
@@ -318,6 +321,7 @@ export const SuperAdminDashboard: React.FC = () => {
                             mode="count"
                             primaryLabel="activities"
                             unit="activities"
+                            detailHref={canPickKvk ? '/dashboard/analytics/extension' : undefined}
                             rows={data.perKvk.map(r => ({
                                 id: r.kvkId,
                                 name: r.kvkName,
