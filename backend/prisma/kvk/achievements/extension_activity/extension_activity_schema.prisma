@@ -33,6 +33,7 @@ model KvkExtensionActivity {
   fldActivity         FldActivity?        @relation(fields: [activityId], references: [activityId], map: "fld_act_relation_fkey")
 
   @@index([kvkId])
+  @@index([kvkId, startDate])
   @@index([fldId])
   @@index([staffId])
   @@index([activityId])

@@ -10,6 +10,7 @@ const moduleImageController = require('../controllers/moduleImageController.js')
 const targetController = require('../controllers/targetController.js');
 const technicalAchievementSummaryController = require('../controllers/technicalAchievementSummaryController.js');
 const dashboardController = require('../controllers/dashboardController.js');
+const analyticsController = require('../controllers/analyticsController.js');
 const prisma = require('../config/prisma.js');
 const { authenticateToken, requirePermission } = require('../middleware/auth.js');
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
@@ -32,6 +33,12 @@ router.use(authenticateToken);
 
 // Dashboard metrics (scoped by role; any authenticated user)
 router.get('/dashboard', apiRateLimiter, dashboardController.getDashboard);
+
+// Detailed analytics (super admin only; the controller enforces the role).
+// The literal `/filters` path must be declared before the `:metric` param
+// route, or Express matches "filters" as a metric name.
+router.get('/dashboard/analytics/filters', apiRateLimiter, analyticsController.getFilterOptions);
+router.get('/dashboard/analytics/:metric', apiRateLimiter, analyticsController.getMetricAnalytics);
 
 // List users (with filters) – requires VIEW
 router.get('/users', apiRateLimiter, requirePermission(USER_MANAGEMENT_MODULE, 'VIEW'), userManagementController.getUsers);

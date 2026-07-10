@@ -87,6 +87,7 @@ model Kvkoft {
   transferredToChildren    Kvkoft[]             @relation("OftTransferChain")
 
   @@index([kvkId])
+  @@index([kvkId, status, expectedCompletionDate])
   @@index([seasonId])
   @@index([staffId])
   @@index([disciplineId])

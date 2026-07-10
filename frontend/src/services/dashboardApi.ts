@@ -5,7 +5,9 @@ export interface DashboardKvkOption {
   kvkName: string
 }
 
-export interface DashboardSegments {
+// A type alias, not an interface: only aliases get an implicit index signature,
+// which is what lets these flow into StatChartPanel's Record<string, number>.
+export type DashboardSegments = {
   ongoing: number
   completed: number
   notStarted: number

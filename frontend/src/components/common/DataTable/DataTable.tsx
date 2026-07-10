@@ -11,7 +11,12 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { TableCell } from './TableCell'
 import { TableActions } from './TableActions'
 import { ColumnFilter, EMPTY_FILTER, type ColumnFilterState } from './ColumnFilter'
-import { uniqueValuesForField, type ColumnFilters } from './columnFilterUtils'
+import {
+    getUniqueCount,
+    uniqueValuesForField,
+    valueCountsForField,
+    type ColumnFilters,
+} from './columnFilterUtils'
 
 interface DataTableProps {
     fields: readonly string[] | string[]
@@ -80,6 +85,15 @@ export const DataTable: React.FC<DataTableProps> = ({
         return map
     }, [filtersEnabled, fields, filterSource])
 
+    const valueCountsByField = React.useMemo(() => {
+        if (!filtersEnabled) return {} as Record<string, Map<string, number>>
+        const map: Record<string, Map<string, number>> = {}
+        for (const field of fields) {
+            map[field] = valueCountsForField(filterSource, field)
+        }
+        return map
+    }, [filtersEnabled, fields, filterSource])
+
     const updateColumnFilter = (field: string, next: ColumnFilterState) => {
         if (!onColumnFiltersChange) return
         const current = columnFilters ?? {}
@@ -128,6 +142,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                                                     field={field}
                                                     label={label}
                                                     uniqueValues={uniqueValuesByField[field] || []}
+                                                    valueCounts={valueCountsByField[field]}
                                                     state={state}
                                                     onChange={(s) => updateColumnFilter(field, s)}
                                                     onClear={() => clearColumnFilter(field)}
@@ -160,9 +175,17 @@ export const DataTable: React.FC<DataTableProps> = ({
                                         </td>
                                         {fields.map((field, fieldIdx) => {
                                             const fieldValue = getFieldValue(item, field)
+                                            const uniqueCount = getUniqueCount(item, field)
                                             return (
 												<td key={fieldIdx} className="px-6 py-4 text-sm text-[#212121] whitespace-nowrap border-r border-b border-[#E0E0E0]">
-                                                    <TableCell field={field} value={fieldValue} item={item} />
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <TableCell field={field} value={fieldValue} item={item} />
+                                                        {uniqueCount !== undefined && (
+                                                            <span className="text-xs text-[#757575]">
+                                                                ({uniqueCount})
+                                                            </span>
+                                                        )}
+                                                    </span>
                                                 </td>
                                             )
                                         })}
