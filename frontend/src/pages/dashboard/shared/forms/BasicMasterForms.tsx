@@ -3,7 +3,8 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea } from './shared/FormComponents'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
-import { Zone, State, District, Organization } from '@/types/masterData'
+import { EntitySearchSelect } from '@/components/common/EntitySearchSelect'
+import { Zone, State, Organization } from '@/types/masterData'
 import { useMasterData } from '@/hooks/useMasterData'
 import { masterDataApi } from '@/services/masterDataApi'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
@@ -23,38 +24,9 @@ interface BasicMasterFormsProps {
 function extractNestedIds(prev: any, entityType: ExtendedEntityType): any {
     const updates: any = {}
 
-    if (entityType === ENTITY_TYPES.ORGANIZATIONS) {
-        // Extract zoneId from nested zone object (organization -> district -> state -> zone)
-        if (!prev.zoneId) {
-            updates.zoneId = prev.district?.state?.zone?.zoneId || prev.district?.zone?.zoneId || prev.zone?.zoneId
-        }
-        // Extract stateId from nested state object
-        if (!prev.stateId) {
-            updates.stateId = prev.district?.state?.stateId || prev.state?.stateId
-        }
-        // Extract districtId from nested district object
-        if (!prev.districtId) {
-            updates.districtId = prev.district?.districtId
-        }
-    } else if (entityType === ENTITY_TYPES.UNIVERSITIES) {
-        // Extract zoneId from nested zone object (university -> organization -> district -> state -> zone)
-        if (!prev.zoneId) {
-            updates.zoneId = prev.organization?.district?.state?.zone?.zoneId ||
-                           prev.district?.state?.zone?.zoneId ||
-                           prev.district?.zone?.zoneId ||
-                           prev.zone?.zoneId
-        }
-        // Extract stateId from nested state object
-        if (!prev.stateId) {
-            updates.stateId = prev.organization?.district?.state?.stateId ||
-                            prev.district?.state?.stateId ||
-                            prev.state?.stateId
-        }
-        // Extract districtId from nested district object
-        if (!prev.districtId) {
-            updates.districtId = prev.organization?.district?.districtId || prev.district?.districtId
-        }
-        // Extract orgId from nested org object
+    if (entityType === ENTITY_TYPES.UNIVERSITIES) {
+        // Institute is an independent master now — Host only needs its own
+        // orgId (the absolute link to Institute), no geography to derive.
         if (!prev.orgId) {
             updates.orgId = prev.organization?.orgId || prev.org?.orgId
         }
@@ -83,11 +55,10 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
     formData,
     setFormData,
 }) => {
-    // Determine which data needs to be fetched
+    // Determine which data needs to be fetched. Institute/Host are
+    // independent masters now — they no longer need Zone options.
     const needsZones = entityType === ENTITY_TYPES.STATES ||
-                      entityType === ENTITY_TYPES.DISTRICTS ||
-                      entityType === ENTITY_TYPES.ORGANIZATIONS ||
-                      entityType === ENTITY_TYPES.UNIVERSITIES
+                      entityType === ENTITY_TYPES.DISTRICTS
 
     // Fetch master data - only zones needed as other data loads dynamically via DependentDropdown
     const { data: zones = [] } = useMasterData<Zone>('zones', { enabled: needsZones })
@@ -103,8 +74,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
 
     // Extract nested IDs from related objects when editing
     useEffect(() => {
-        if (entityType && (entityType === ENTITY_TYPES.ORGANIZATIONS ||
-                          entityType === ENTITY_TYPES.UNIVERSITIES ||
+        if (entityType && (entityType === ENTITY_TYPES.UNIVERSITIES ||
                           entityType === ENTITY_TYPES.DISTRICTS ||
                           entityType === ENTITY_TYPES.STATES)) {
             setFormData((prev: any) => extractNestedIds(prev, entityType))
@@ -199,78 +169,14 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
 
             {entityType === ENTITY_TYPES.ORGANIZATIONS && (
                 <div className="space-y-4">
-                    <FormSelect
+                    <FormInput
                         label="Institute Name"
                         required
                         value={formData.orgName ?? ''}
-                        onChange={(e) => setFormData((prev: any) => ({ ...prev, orgName: e.target.value }))}
-                        options={[
-                            { value: 'ICAR', label: 'ICAR' },
-                            { value: 'SAU', label: 'SAU' },
-                            { value: 'CAU', label: 'CAU' },
-                            { value: 'NGO', label: 'NGO' },
-                        ]}
-                    />
-                    <FormSelect
-                        label="Zone"
-                        required
-                        value={formData.zoneId ?? ''}
-                        onChange={(e) => {
-                            const zoneId = parseInt(e.target.value)
-                            setFormData((prev: any) => ({ ...prev, zoneId, stateId: '', districtId: '' }))
-                        }}
-                        options={zoneOptions}
-                    />
-                    <DependentDropdown
-                        label="State"
-                        required
-                        value={formData.stateId ?? ''}
-                        onChange={(value) => {
-                            setFormData((prev: any) => ({ ...prev, stateId: value, districtId: '' }))
-                        }}
-                        options={[]}
-                        dependsOn={{
-                            value: formData.zoneId,
-                            field: 'zoneId',
-                        }}
-                        onOptionsLoad={async (zoneId, signal) => {
-                            const response = await masterDataApi.getStatesByZone(zoneId as number, signal)
-                            return response.data.map((s: State) => ({
-                                value: s.stateId,
-                                label: s.stateName,
-                            }))
-                        }}
-                        cacheKey="states-by-zone"
-                        emptyMessage="No states available for this zone"
-                        loadingMessage="Loading states..."
-                    />
-                    <DependentDropdown
-                        label="District"
-                        required
-                        value={formData.districtId ?? ''}
-                        onChange={(value) => {
-                            setFormData((prev: any) => ({ ...prev, districtId: value }))
-                        }}
-                        options={[]}
-                        dependsOn={[
-                            { value: formData.zoneId, field: 'zoneId' },
-                            { value: formData.stateId, field: 'stateId' },
-                        ]}
-                        onOptionsLoad={async (dependencyValues: any, signal) => {
-                            const stateId = Number(
-                                typeof dependencyValues === 'object' && dependencyValues !== null
-                                    ? dependencyValues.stateId
-                                    : dependencyValues
-                            )
-                            const response = await masterDataApi.getDistrictsByState(stateId, signal)
-                            return response.data.map((d: District) => ({
-                                value: d.districtId,
-                                label: d.districtName,
-                            }))
-                        }}
-                        cacheKey="districts-by-state"
-                        emptyMessage="No districts available for this state"
-                        loadingMessage="Loading districts..."
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, orgName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter institute name"
                     />
                 </div>
             )}
@@ -286,95 +192,24 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         }, [setFormData])}
                         placeholder="Enter host name"
                     />
-                    <FormSelect
-                        label="Zone"
-                        required
-                        value={formData.zoneId ?? ''}
-                        onChange={(e) => {
-                            const zoneId = parseInt(e.target.value)
-                            setFormData((prev: any) => ({ ...prev, zoneId, stateId: '', districtId: '', orgId: '' }))
-                        }}
-                        options={zoneOptions}
-                    />
-                    <DependentDropdown
-                        label="State"
-                        required
-                        value={formData.stateId ?? ''}
-                        onChange={(value) => {
-                            setFormData((prev: any) => ({ ...prev, stateId: value, districtId: '', orgId: '' }))
-                        }}
-                        options={[]}
-                        dependsOn={{
-                            value: formData.zoneId,
-                            field: 'zoneId',
-                        }}
-                        onOptionsLoad={async (zoneId, signal) => {
-                            const response = await masterDataApi.getStatesByZone(zoneId as number, signal)
-                            return response.data.map((s: State) => ({
-                                value: s.stateId,
-                                label: s.stateName,
-                            }))
-                        }}
-                        cacheKey="states-by-zone"
-                        emptyMessage="No states available for this zone"
-                        loadingMessage="Loading states..."
-                    />
-                    <DependentDropdown
-                        label="District"
-                        required
-                        value={formData.districtId ?? ''}
-                        onChange={(value) => {
-                            setFormData((prev: any) => ({ ...prev, districtId: value, orgId: '' }))
-                        }}
-                        options={[]}
-                        dependsOn={[
-                            { value: formData.zoneId, field: 'zoneId' },
-                            { value: formData.stateId, field: 'stateId' },
-                        ]}
-                        onOptionsLoad={async (dependencyValues: any, signal) => {
-                            const stateId = Number(
-                                typeof dependencyValues === 'object' && dependencyValues !== null
-                                    ? dependencyValues.stateId
-                                    : dependencyValues
-                            )
-                            const response = await masterDataApi.getDistrictsByState(stateId, signal)
-                            return response.data.map((d: District) => ({
-                                value: d.districtId,
-                                label: d.districtName,
-                            }))
-                        }}
-                        cacheKey="districts-by-state"
-                        emptyMessage="No districts available for this state"
-                        loadingMessage="Loading districts..."
-                    />
-                    <DependentDropdown
+                    <EntitySearchSelect
                         label="Institute"
                         required
                         value={formData.orgId ?? ''}
-                        onChange={(value) => {
-                            setFormData((prev: any) => ({ ...prev, orgId: value }))
+                        onSelect={(option) => {
+                            setFormData((prev: any) => ({ ...prev, orgId: option ? option.value : '' }))
                         }}
-                        options={[]}
-                        dependsOn={[
-                            { value: formData.zoneId, field: 'zoneId' },
-                            { value: formData.stateId, field: 'stateId' },
-                            { value: formData.districtId, field: 'districtId' },
-                        ]}
-                        onOptionsLoad={async (dependencyValues: any, signal) => {
-                            const districtId = Number(
-                                typeof dependencyValues === 'object' && dependencyValues !== null
-                                    ? dependencyValues.districtId
-                                    : dependencyValues
-                            )
-                            const response = await masterDataApi.getOrganizationsByDistrict(districtId, signal)
+                        search={useCallback(async (query: string, signal?: AbortSignal) => {
+                            const response = await masterDataApi.getOrganizations({ search: query, limit: 20 }, signal)
                             return response.data.map((org: Organization) => ({
                                 value: org.orgId,
-                                label: org.orgName,
+                                label: org.orgName || 'Unknown',
+                                record: org,
                             }))
-                        }}
-                        cacheKey="organizations-by-district"
-                        emptyMessage="No institutes available for this district"
-                        loadingMessage="Loading institutes..."
+                        }, [])}
+                        placeholder="Search institute…"
+                        emptyMessage="No institutes found"
+                        initialLabel={formData.organization?.orgName || formData.org?.orgName}
                     />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
