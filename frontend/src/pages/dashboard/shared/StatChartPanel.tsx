@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useId, useMemo, useState } from 'react'
 import {
     Area,
     AreaChart,
@@ -10,20 +10,18 @@ import {
     XAxis,
     YAxis,
 } from 'recharts'
+import { Link } from 'react-router-dom'
 import {
     BarChart3,
     ChevronLeft,
     ChevronRight,
     LineChart as LineIcon,
     ListChecks,
+    Maximize2,
 } from 'lucide-react'
 import { Card, CardContent } from '../../../components/ui/Card'
 
-export type StatSegments = {
-    ongoing: number
-    completed: number
-    notStarted: number
-}
+export type StatSegments = Record<string, number>
 
 export type StatRow = {
     id: number | string
@@ -32,6 +30,13 @@ export type StatRow = {
     primary: number
     secondary?: number
     segments?: StatSegments
+}
+
+/** One stacked series. Defaults to ongoing/completed/notStarted. */
+export type SegmentDef = {
+    key: string
+    label: string
+    color: string
 }
 
 type Mode = 'pair' | 'count'
@@ -45,6 +50,12 @@ type Props = {
     primaryLabel: string
     secondaryLabel?: string
     unit?: string
+    /** Overrides the default status stack, e.g. gender or social category. */
+    segmentDefs?: SegmentDef[]
+    /** Renders a "Detailed" link in the header when set. */
+    detailHref?: string
+    /** Label for the grouped entity in the "N of M with entries" strip. */
+    entityLabel?: string
 }
 
 const STATUS_BADGE: Record<string, string> = {
@@ -69,16 +80,11 @@ const SEG_COLOR = {
     notStarted: '#BDBDBD',
 }
 
-const SEG_LABEL = {
-    completed: 'Completed',
-    ongoing: 'Ongoing',
-    notStarted: 'Not started',
-}
-
-const SEG_KEYS: Array<keyof StatSegments> = [
-    'ongoing',
-    'completed',
-    'notStarted',
+/** Status stack, used when the caller passes no segmentDefs. */
+const DEFAULT_SEGMENT_DEFS: SegmentDef[] = [
+    { key: 'ongoing', label: 'Ongoing', color: SEG_COLOR.ongoing },
+    { key: 'completed', label: 'Completed', color: SEG_COLOR.completed },
+    { key: 'notStarted', label: 'Not started', color: SEG_COLOR.notStarted },
 ]
 
 const COLOR_GRID = '#E0E0E0'
@@ -101,6 +107,7 @@ const ChartTooltip = ({
     active,
     payload,
     unit,
+    labels,
 }: {
     active?: boolean
     payload?: Array<{
@@ -110,6 +117,7 @@ const ChartTooltip = ({
         payload: { fullName?: string }
     }>
     unit?: string
+    labels: Record<string, string>
 }) => {
     if (!active || !payload || payload.length === 0) return null
     const fullName = payload[0]?.payload?.fullName ?? ''
@@ -132,8 +140,7 @@ const ChartTooltip = ({
                                 style={{ backgroundColor: p.color }}
                             />
                             <span className="text-[#757575] font-medium truncate">
-                                {SEG_LABEL[p.name as keyof typeof SEG_LABEL] ??
-                                    p.name}
+                                {labels[p.name] ?? p.name}
                             </span>
                         </div>
                         <span className="text-[#212121] font-bold shrink-0">
@@ -154,16 +161,16 @@ const ChartTooltip = ({
     )
 }
 
-const Legend: React.FC = () => (
+const Legend: React.FC<{ defs: SegmentDef[] }> = ({ defs }) => (
     <div className="flex items-center gap-3 flex-wrap">
-        {SEG_KEYS.map(k => (
-            <div key={k} className="flex items-center gap-1.5">
+        {defs.map(def => (
+            <div key={def.key} className="flex items-center gap-1.5">
                 <span
                     className="w-2.5 h-2.5 rounded-sm"
-                    style={{ backgroundColor: SEG_COLOR[k] }}
+                    style={{ backgroundColor: def.color }}
                 />
                 <span className="text-[10px] font-medium text-[#757575] uppercase tracking-wide">
-                    {SEG_LABEL[k]}
+                    {def.label}
                 </span>
             </div>
         ))}
@@ -229,9 +236,22 @@ export const StatChartPanel: React.FC<Props> = ({
     primaryLabel,
     secondaryLabel,
     unit,
+    segmentDefs,
+    detailHref,
+    entityLabel = 'KVKs',
 }) => {
     // #174: Bar is the default view (was 'progress').
     const [view, setView] = useState<View>('bar')
+
+    // useId emits colons, which are not valid inside an SVG url(#…) reference.
+    const gradientId = `grad-${useId().replace(/:/g, '')}`
+
+    const defs = segmentDefs ?? DEFAULT_SEGMENT_DEFS
+    const segKeys = useMemo(() => defs.map(d => d.key), [defs])
+    const segLabels = useMemo(
+        () => Object.fromEntries(defs.map(d => [d.key, d.label])),
+        [defs]
+    )
 
     // With 60+ KVKs most have no entries ("not started"), so the chart is a wall
     // of identical grey bars and the labels overlap into noise. Default to only
@@ -239,15 +259,18 @@ export const StatChartPanel: React.FC<Props> = ({
     // rest into a count the user can expand on demand.
     const [activeOnly, setActiveOnly] = useState(true)
 
+    // "notStarted" is a placeholder bar, not activity — excluding it is what
+    // makes the active-only filter mean anything.
     const rowActivity = (r: StatRow) =>
-        (r.segments?.completed ?? 0) +
-        (r.segments?.ongoing ?? 0) +
+        segKeys
+            .filter(k => k !== 'notStarted')
+            .reduce((sum, k) => sum + (r.segments?.[k] ?? 0), 0) +
         Math.max(r.primary ?? 0, 0)
     const rowHasEntries = (r: StatRow) => rowActivity(r) > 0
 
     const activeCount = useMemo(
         () => rows.filter(rowHasEntries).length,
-        [rows]
+        [rows, segKeys]
     )
     const emptyCount = rows.length - activeCount
 
@@ -255,7 +278,7 @@ export const StatChartPanel: React.FC<Props> = ({
         const base = activeOnly ? rows.filter(rowHasEntries) : rows
         // Busiest KVKs first so the meaningful bars cluster at the left.
         return [...base].sort((a, b) => rowActivity(b) - rowActivity(a))
-    }, [rows, activeOnly])
+    }, [rows, activeOnly, segKeys])
 
     // Page the sorted list into batches of PAGE_SIZE (top 10 first).
     const [page, setPage] = useState(0)
@@ -276,22 +299,24 @@ export const StatChartPanel: React.FC<Props> = ({
 
     const chartData = useMemo(
         () =>
-            visibleRows.map(r => ({
-                id: r.id,
-                name: truncate(r.name),
-                fullName: r.name,
-                primary: r.primary,
-                secondary: r.secondary ?? 0,
-                completed: r.segments?.completed ?? 0,
-                ongoing: r.segments?.ongoing ?? 0,
-                notStarted: r.segments?.notStarted ?? 0,
-                status: r.status,
-            })),
-        [visibleRows]
+            visibleRows.map(r => {
+                const segs: Record<string, number> = {}
+                for (const key of segKeys) segs[key] = r.segments?.[key] ?? 0
+                return {
+                    id: r.id,
+                    name: truncate(r.name),
+                    fullName: r.name,
+                    primary: r.primary,
+                    secondary: r.secondary ?? 0,
+                    status: r.status,
+                    ...segs,
+                }
+            }),
+        [visibleRows, segKeys]
     )
 
-    const showStacked = chartData.some(
-        d => d.completed + d.ongoing + d.notStarted > 0
+    const showStacked = chartData.some(d =>
+        segKeys.some(k => ((d as Record<string, unknown>)[k] as number) > 0)
     )
 
     return (
@@ -308,7 +333,18 @@ export const StatChartPanel: React.FC<Props> = ({
                             </p>
                         )}
                     </div>
-                    <ViewToggle view={view} onChange={setView} />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <ViewToggle view={view} onChange={setView} />
+                        {detailHref && (
+                            <Link
+                                to={detailHref}
+                                className="flex items-center gap-1 rounded-md border border-[#E0E0E0] bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[#487749] transition-colors hover:bg-[#F5F5F5]"
+                            >
+                                <Maximize2 className="w-3 h-3" />
+                                <span>Detailed</span>
+                            </Link>
+                        )}
+                    </div>
                 </div>
 
                 {emptyCount > 0 && (
@@ -317,7 +353,7 @@ export const StatChartPanel: React.FC<Props> = ({
                             <span className="font-bold text-[#212121]">
                                 {activeCount}
                             </span>{' '}
-                            of {rows.length} KVKs with entries
+                            of {rows.length} {entityLabel} with entries
                             <span className="text-[#9E9E9E]">
                                 {' '}
                                 · {emptyCount} not started
@@ -341,10 +377,10 @@ export const StatChartPanel: React.FC<Props> = ({
                 {view === 'progress' && (
                     <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto p-3">
                         {visibleRows.map(row => {
-                            const total =
-                                (row.segments?.completed ?? 0) +
-                                (row.segments?.ongoing ?? 0) +
-                                (row.segments?.notStarted ?? 0)
+                            const total = segKeys.reduce(
+                                (sum, k) => sum + (row.segments?.[k] ?? 0),
+                                0
+                            )
                             const useSegments = total > 0
                             const fallbackProgress =
                                 mode === 'pair'
@@ -359,29 +395,26 @@ export const StatChartPanel: React.FC<Props> = ({
                                         <div className="text-right shrink-0">
                                             {useSegments ? (
                                                 <div className="flex items-center gap-1.5">
-                                                    {SEG_KEYS.map(k => {
+                                                    {defs.map(def => {
                                                         const v =
-                                                            row.segments?.[k] ??
-                                                            0
+                                                            row.segments?.[
+                                                                def.key
+                                                            ] ?? 0
                                                         return (
                                                             <span
-                                                                key={k}
+                                                                key={def.key}
                                                                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold"
                                                                 style={{
-                                                                    backgroundColor: `${SEG_COLOR[k]}1A`,
-                                                                    color: SEG_COLOR[
-                                                                        k
-                                                                    ],
+                                                                    backgroundColor: `${def.color}1A`,
+                                                                    color: def.color,
                                                                 }}
-                                                                title={`${SEG_LABEL[k]}: ${v}`}
+                                                                title={`${def.label}: ${v}`}
                                                             >
                                                                 <span
                                                                     className="w-1.5 h-1.5 rounded-full"
                                                                     style={{
                                                                         backgroundColor:
-                                                                            SEG_COLOR[
-                                                                                k
-                                                                            ],
+                                                                            def.color,
                                                                     }}
                                                                 />
                                                                 {v}
@@ -413,20 +446,21 @@ export const StatChartPanel: React.FC<Props> = ({
                                     </div>
                                     {useSegments ? (
                                         <div className="w-full flex h-1.5 rounded-full overflow-hidden border border-[#E0E0E0]/50 bg-[#F5F5F5]">
-                                            {SEG_KEYS.map(k => {
-                                                const v = row.segments?.[k] ?? 0
+                                            {defs.map(def => {
+                                                const v =
+                                                    row.segments?.[def.key] ?? 0
                                                 if (v <= 0) return null
                                                 const w = (v / total) * 100
                                                 return (
                                                     <div
-                                                        key={k}
+                                                        key={def.key}
                                                         className="h-full transition-all duration-700 ease-out"
                                                         style={{
                                                             width: `${w}%`,
                                                             backgroundColor:
-                                                                SEG_COLOR[k],
+                                                                def.color,
                                                         }}
-                                                        title={`${SEG_LABEL[k]}: ${v}`}
+                                                        title={`${def.label}: ${v}`}
                                                     />
                                                 )
                                             })}
@@ -451,7 +485,7 @@ export const StatChartPanel: React.FC<Props> = ({
                     <div className="p-3">
                         {showStacked && (
                             <div className="mb-2 flex justify-end">
-                                <Legend />
+                                <Legend defs={defs} />
                             </div>
                         )}
                         <ResponsiveContainer width="100%" height={300}>
@@ -497,33 +531,30 @@ export const StatChartPanel: React.FC<Props> = ({
                                         fill: '#487749',
                                         fillOpacity: 0.06,
                                     }}
-                                    content={<ChartTooltip unit={unit} />}
+                                    content={
+                                        <ChartTooltip
+                                            unit={unit}
+                                            labels={segLabels}
+                                        />
+                                    }
                                 />
                                 {showStacked ? (
-                                    <>
+                                    defs.map((def, i) => (
                                         <Bar
-                                            dataKey="ongoing"
-                                            name="ongoing"
+                                            key={def.key}
+                                            dataKey={def.key}
+                                            name={def.key}
                                             stackId="seg"
-                                            fill={SEG_COLOR.ongoing}
+                                            fill={def.color}
+                                            // Only the top of the stack is rounded.
+                                            radius={
+                                                i === defs.length - 1
+                                                    ? [4, 4, 0, 0]
+                                                    : undefined
+                                            }
                                             maxBarSize={36}
                                         />
-                                        <Bar
-                                            dataKey="completed"
-                                            name="completed"
-                                            stackId="seg"
-                                            fill={SEG_COLOR.completed}
-                                            maxBarSize={36}
-                                        />
-                                        <Bar
-                                            dataKey="notStarted"
-                                            name="notStarted"
-                                            stackId="seg"
-                                            fill={SEG_COLOR.notStarted}
-                                            radius={[4, 4, 0, 0]}
-                                            maxBarSize={36}
-                                        />
-                                    </>
+                                    ))
                                 ) : (
                                     <Bar
                                         dataKey="primary"
@@ -554,20 +585,24 @@ export const StatChartPanel: React.FC<Props> = ({
                                 </div>
                                 {showStacked ? (
                                     <div className="flex flex-wrap gap-3">
-                                        {SEG_KEYS.map((k) => (
+                                        {defs.map((def) => (
                                             <div
-                                                key={k}
+                                                key={def.key}
                                                 className="flex items-center gap-2 rounded-lg bg-white border border-[#E0E0E0] px-3 py-1.5"
                                             >
                                                 <span
                                                     className="w-2.5 h-2.5 rounded-sm"
-                                                    style={{ backgroundColor: SEG_COLOR[k] }}
+                                                    style={{ backgroundColor: def.color }}
                                                 />
                                                 <span className="text-[11px] uppercase tracking-wide text-[#757575]">
-                                                    {SEG_LABEL[k]}
+                                                    {def.label}
                                                 </span>
                                                 <span className="text-sm font-bold text-[#212121]">
-                                                    {(chartData[0][k] as number).toLocaleString()}
+                                                    {(
+                                                        (chartData[0] as Record<string, unknown>)[
+                                                            def.key
+                                                        ] as number
+                                                    ).toLocaleString()}
                                                     {unit ? ` ${unit}` : ''}
                                                 </span>
                                             </div>
@@ -594,7 +629,7 @@ export const StatChartPanel: React.FC<Props> = ({
                     <div className="p-3">
                         {showStacked && (
                             <div className="mb-2 flex justify-end">
-                                <Legend />
+                                <Legend defs={defs} />
                             </div>
                         )}
                         <ResponsiveContainer width="100%" height={300}>
@@ -608,8 +643,31 @@ export const StatChartPanel: React.FC<Props> = ({
                                 }}
                             >
                                 <defs>
+                                    {/* Gradient ids are scoped per panel instance;
+                                        several panels share a page. */}
+                                    {defs.map(def => (
+                                        <linearGradient
+                                            key={def.key}
+                                            id={`${gradientId}-${def.key}`}
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="0%"
+                                                stopColor={def.color}
+                                                stopOpacity={0.55}
+                                            />
+                                            <stop
+                                                offset="100%"
+                                                stopColor={def.color}
+                                                stopOpacity={0.05}
+                                            />
+                                        </linearGradient>
+                                    ))}
                                     <linearGradient
-                                        id="gradCompleted"
+                                        id={`${gradientId}-primary`}
                                         x1="0"
                                         y1="0"
                                         x2="0"
@@ -623,42 +681,6 @@ export const StatChartPanel: React.FC<Props> = ({
                                         <stop
                                             offset="100%"
                                             stopColor={SEG_COLOR.completed}
-                                            stopOpacity={0.05}
-                                        />
-                                    </linearGradient>
-                                    <linearGradient
-                                        id="gradOngoing"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stopColor={SEG_COLOR.ongoing}
-                                            stopOpacity={0.5}
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stopColor={SEG_COLOR.ongoing}
-                                            stopOpacity={0.05}
-                                        />
-                                    </linearGradient>
-                                    <linearGradient
-                                        id="gradNotStarted"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stopColor={SEG_COLOR.notStarted}
-                                            stopOpacity={0.5}
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stopColor={SEG_COLOR.notStarted}
                                             stopOpacity={0.05}
                                         />
                                     </linearGradient>
@@ -696,53 +718,31 @@ export const StatChartPanel: React.FC<Props> = ({
                                         strokeOpacity: 0.4,
                                         strokeWidth: 1,
                                     }}
-                                    content={<ChartTooltip unit={unit} />}
+                                    content={
+                                        <ChartTooltip
+                                            unit={unit}
+                                            labels={segLabels}
+                                        />
+                                    }
                                 />
                                 {showStacked ? (
-                                    <>
+                                    defs.map(def => (
                                         <Area
+                                            key={def.key}
                                             type="monotone"
-                                            dataKey="ongoing"
-                                            name="ongoing"
+                                            dataKey={def.key}
+                                            name={def.key}
                                             stackId="seg"
-                                            stroke={SEG_COLOR.ongoing}
+                                            stroke={def.color}
                                             strokeWidth={2}
-                                            fill="url(#gradOngoing)"
+                                            fill={`url(#${gradientId}-${def.key})`}
                                             activeDot={{
                                                 r: 4,
                                                 stroke: '#fff',
                                                 strokeWidth: 2,
                                             }}
                                         />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="completed"
-                                            name="completed"
-                                            stackId="seg"
-                                            stroke={SEG_COLOR.completed}
-                                            strokeWidth={2}
-                                            fill="url(#gradCompleted)"
-                                            activeDot={{
-                                                r: 4,
-                                                stroke: '#fff',
-                                                strokeWidth: 2,
-                                            }}
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="notStarted"
-                                            name="notStarted"
-                                            stackId="seg"
-                                            stroke={SEG_COLOR.notStarted}
-                                            strokeWidth={2}
-                                            fill="url(#gradNotStarted)"
-                                            activeDot={{
-                                                r: 4,
-                                                stroke: '#fff',
-                                                strokeWidth: 2,
-                                            }}
-                                        />
-                                    </>
+                                    ))
                                 ) : (
                                     <Area
                                         type="monotone"
@@ -750,7 +750,7 @@ export const StatChartPanel: React.FC<Props> = ({
                                         name="primary"
                                         stroke={SEG_COLOR.completed}
                                         strokeWidth={2}
-                                        fill="url(#gradCompleted)"
+                                        fill={`url(#${gradientId}-primary)`}
                                         activeDot={{
                                             r: 4,
                                             stroke: '#fff',
