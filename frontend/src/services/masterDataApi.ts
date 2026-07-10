@@ -230,9 +230,9 @@ class MasterDataApi {
     /**
      * Get all universities
      */
-    async getUniversities(params?: QueryParams): Promise<ApiResponse<University[]>> {
+    async getUniversities(params?: QueryParams, signal?: AbortSignal): Promise<ApiResponse<University[]>> {
         const queryString = this.buildQueryString(params);
-        return apiClient.get<ApiResponse<University[]>>(`${this.baseUrl}/universities${queryString}`);
+        return apiClient.get<ApiResponse<University[]>>(`${this.baseUrl}/universities${queryString}`, { signal });
     }
 
     /**
