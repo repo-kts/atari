@@ -1,6 +1,6 @@
 const logHistoryRepository = require('../repositories/logHistoryRepository.js');
 
-const ADMIN_ROLES = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin'];
+const ADMIN_ROLES = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'host_admin', 'kvk_admin'];
 const ALLOWED_ACTIVITIES = ['LOGIN', 'LOGOUT'];
 const ALLOWED_SORT_FIELDS = new Set(['eventAt', 'kvkName', 'userName', 'activity', 'ipAddress']);
 
@@ -72,8 +72,9 @@ function buildScopeFilter(actor) {
     if (actor.orgId == null) throw new Error('Admin user is not assigned to an organization');
     return { orgId: actor.orgId };
   }
-  if (role === 'kvk_admin') {
-    // KVK admins see only their own activity, not the whole KVK.
+  if (role === 'host_admin' || role === 'kvk_admin') {
+    // Log history has no universityId column, and KVK admins already see
+    // only their own activity, not the whole KVK/Host.
     if (actor.userId == null) throw new Error('Admin user is not identified');
     return { userId: actor.userId };
   }

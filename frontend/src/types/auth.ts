@@ -4,6 +4,7 @@ export type UserRole =
     | 'state_admin'
     | 'district_admin'
     | 'org_admin'
+    | 'host_admin'
     | 'kvk_admin'
     | 'kvk_user'
     | 'state_user'
@@ -23,6 +24,7 @@ export interface User {
     stateId?: number | null
     districtId?: number | null
     orgId?: number | null
+    universityId?: number | null
     kvkId?: number | null
     createdAt?: string
     lastLoginAt?: string | null

@@ -60,17 +60,8 @@ async function deriveFullHierarchy({ zoneId = null, stateId = null, districtId =
     }
   }
 
-  // Org carries stateId; derive zoneId from its state
-  if (o && (!s || !z)) {
-    const org = await prisma.orgMaster.findUnique({ where: { orgId: o } });
-    if (org) {
-      s = s ?? org.stateId;
-      if (!z) {
-        const state = await prisma.stateMaster.findUnique({ where: { stateId: org.stateId ?? s } });
-        if (state) z = state.zoneId;
-      }
-    }
-  }
+  // Institute (Org) is an independent master now — it has no geography of
+  // its own to derive state/zone from.
 
   // State carries zoneId
   if (s && !z) {
@@ -198,11 +189,13 @@ const userManagementService = {
 
       // Geographic inheritance: inherit fields at or above creator's level, use form data below
       const creatorLevel = getRoleLevel(creatorRoleName);
-      // zone=1, state=2, district=3, org=4, kvk=5
+      // zone=1, state=2, district=3, org=4, host=5, kvk=6
       effectiveZoneId = creator.zoneId ?? null;
       effectiveStateId = creatorLevel < 2 ? (derived.stateId ?? null) : (creator.stateId ?? null);
       effectiveDistrictId = creatorLevel < 3 ? (derived.districtId ?? null) : (creator.districtId ?? null);
       effectiveOrgId = creatorLevel < 4 ? (derived.orgId ?? null) : (creator.orgId ?? null);
+      // Host (universityId) is independent of geography — a host_admin (or below)
+      // can only ever assign users to their own Host, never pick a different one.
       effectiveUniversityId = creatorLevel < 5 ? (userData.universityId || null) : (creator.universityId ?? null);
       effectiveKvkId = userData.kvkId ?? creator.kvkId ?? null;
 
@@ -211,6 +204,7 @@ const userManagementService = {
         stateId: effectiveStateId,
         districtId: effectiveDistrictId,
         orgId: effectiveOrgId,
+        universityId: effectiveUniversityId,
         kvkId: effectiveKvkId,
       };
       await userManagementService.validateCreatorHierarchyScope(createdBy, effectiveUserData);
@@ -221,6 +215,7 @@ const userManagementService = {
         effectiveStateId,
         effectiveDistrictId,
         effectiveOrgId,
+        effectiveUniversityId,
         effectiveKvkId
       );
     } else {
@@ -231,6 +226,7 @@ const userManagementService = {
         effectiveStateId,
         effectiveDistrictId,
         effectiveOrgId,
+        effectiveUniversityId,
         effectiveKvkId
       );
     }
@@ -312,6 +308,7 @@ const userManagementService = {
       stateId: user.stateId,
       districtId: user.districtId,
       orgId: user.orgId,
+      universityId: user.universityId,
       kvkId: user.kvkId,
       createdAt: user.createdAt,
       ...(permissionActions.length ? { permissions: permissionActions } : {}),
@@ -468,7 +465,7 @@ const userManagementService = {
   /**
    * Validate that the new user's hierarchy is within the creator's scope (for non–super_admin creators).
    * @param {number} creatorUserId - Creator user ID
-   * @param {object} userData - New user data (zoneId, stateId, districtId, orgId, kvkId)
+   * @param {object} userData - New user data (zoneId, stateId, districtId, orgId, universityId, kvkId)
    * @throws {Error} If new user is outside creator's scope
    */
   validateCreatorHierarchyScope: async (creatorUserId, userData) => {
@@ -499,16 +496,9 @@ const userManagementService = {
             throw new Error('You can only create users within your zone');
           }
         }
-        if (userData.orgId != null) {
-          const org = await prisma.orgMaster.findUnique({ where: { orgId: userData.orgId } });
-          if (!org) throw new Error('Invalid organization');
-          const district = await prisma.districtMaster.findUnique({ where: { districtId: org.districtId } });
-          if (!district) throw new Error('Invalid district');
-          const state = await prisma.stateMaster.findUnique({ where: { stateId: district.stateId } });
-          if (!state || Number(state.zoneId) !== creatorZoneId) {
-            throw new Error('You can only create users within your zone');
-          }
-        }
+        // Institute/Host are independent masters now (not scoped to a district) —
+        // orgId/universityId can't be geo-verified, so only the KVK-level check
+        // (which still carries real geography) applies here.
         if (userData.kvkId != null) {
           const kvk = await prisma.kvk.findUnique({ where: { kvkId: userData.kvkId } });
           if (!kvk || Number(kvk.zoneId) !== creatorZoneId) {
@@ -529,14 +519,6 @@ const userManagementService = {
             throw new Error('You can only create users within your state');
           }
         }
-        if (userData.orgId != null) {
-          const org = await prisma.orgMaster.findUnique({ where: { orgId: userData.orgId } });
-          if (!org) throw new Error('Invalid organization');
-          const district = await prisma.districtMaster.findUnique({ where: { districtId: org.districtId } });
-          if (!district || Number(district.stateId) !== creatorStateId) {
-            throw new Error('You can only create users within your state');
-          }
-        }
         if (userData.kvkId != null) {
           const kvk = await prisma.kvk.findUnique({ where: { kvkId: userData.kvkId } });
           if (!kvk || Number(kvk.stateId) !== creatorStateId) {
@@ -551,14 +533,6 @@ const userManagementService = {
         if (userData.districtId != null && Number(userData.districtId) !== creatorDistrictId) {
           throw new Error('You can only create users within your district');
         }
-        if (userData.orgId != null) {
-          const org = await prisma.orgMaster.findUnique({ where: { orgId: userData.orgId } });
-          if (!org) throw new Error('Invalid organization');
-          const creatorDistrict = await prisma.districtMaster.findUnique({ where: { districtId: creatorDistrictId } });
-          if (!creatorDistrict || Number(org.stateId) !== Number(creatorDistrict.stateId)) {
-            throw new Error('You can only create users within your district');
-          }
-        }
         if (userData.kvkId != null) {
           const kvk = await prisma.kvk.findUnique({ where: { kvkId: userData.kvkId } });
           if (!kvk || Number(kvk.districtId) !== creatorDistrictId) {
@@ -572,10 +546,27 @@ const userManagementService = {
         if (Number(userData.orgId) !== Number(creator.orgId)) {
           throw new Error('You can only create users within your organization');
         }
+        // Host is an independent master under one Institute — verify it belongs
+        // to this org_admin's Institute (the one geo-style check that still applies).
+        if (userData.universityId != null) {
+          const university = await prisma.universityMaster.findUnique({ where: { universityId: userData.universityId } });
+          if (!university || Number(university.orgId) !== Number(creator.orgId)) {
+            throw new Error('You can only create users within your organization');
+          }
+        }
         if (userData.kvkId != null) {
           const kvk = await prisma.kvk.findUnique({ where: { kvkId: userData.kvkId } });
           if (!kvk || Number(kvk.orgId) !== Number(creator.orgId)) {
             throw new Error('You can only create users within your organization');
+          }
+        }
+        break;
+      case 'host_admin':
+        if (creator.universityId == null) throw new Error('Creator must be assigned to a Host');
+        if (userData.kvkId != null) {
+          const kvk = await prisma.kvk.findUnique({ where: { kvkId: userData.kvkId } });
+          if (!kvk || Number(kvk.universityId) !== Number(creator.universityId)) {
+            throw new Error('You can only create users within your Host');
           }
         }
         break;
@@ -597,10 +588,11 @@ const userManagementService = {
    * @param {number|null} stateId - State ID
    * @param {number|null} districtId - District ID
    * @param {number|null} orgId - Organization ID
+   * @param {number|null} universityId - Host (University) ID
    * @param {number|null} kvkId - KVK ID
    * @throws {Error} If hierarchy assignment is invalid
    */
-  validateHierarchyAssignment: async (roleId, zoneId, stateId, districtId, orgId, kvkId) => {
+  validateHierarchyAssignment: async (roleId, zoneId, stateId, districtId, orgId, universityId, kvkId) => {
     // Get role name
     const role = await prisma.role.findUnique({
       where: { roleId },
@@ -662,6 +654,17 @@ const userManagementService = {
         const org = await prisma.orgMaster.findUnique({ where: { orgId } });
         if (!org) {
           throw new Error('Invalid organization ID');
+        }
+        break;
+      }
+
+      case 'host_admin': {
+        if (!universityId) {
+          throw new Error('Host admin must be assigned to a Host');
+        }
+        const university = await prisma.universityMaster.findUnique({ where: { universityId } });
+        if (!university) {
+          throw new Error('Invalid Host ID');
         }
         break;
       }
@@ -758,7 +761,7 @@ const userManagementService = {
     }
 
     const adminRole = adminUser.role.roleName;
-    const allowedRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin'];
+    const allowedRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'host_admin', 'kvk_admin'];
     if (!allowedRoles.includes(adminRole)) {
       throw new Error('User does not have permission to view users');
     }
@@ -778,6 +781,7 @@ const userManagementService = {
       state_admin: { field: 'stateId', label: 'state' },
       district_admin: { field: 'districtId', label: 'district' },
       org_admin: { field: 'orgId', label: 'organization' },
+      host_admin: { field: 'universityId', label: 'Host' },
       kvk_admin: { field: 'kvkId', label: 'KVK' },
     };
     const geo = geoMap[adminRole];
@@ -867,6 +871,8 @@ const userManagementService = {
     let nextDistrictId =
       userData.districtId !== undefined ? userData.districtId : existingUser.districtId;
     let nextOrgId = userData.orgId !== undefined ? userData.orgId : existingUser.orgId;
+    let nextUniversityId =
+      userData.universityId !== undefined ? userData.universityId : existingUser.universityId;
     let nextKvkId = userData.kvkId !== undefined ? userData.kvkId : existingUser.kvkId;
 
     // Derive full hierarchy from lower-level when missing
@@ -888,6 +894,7 @@ const userManagementService = {
       userData.stateId !== undefined ||
       userData.districtId !== undefined ||
       userData.orgId !== undefined ||
+      userData.universityId !== undefined ||
       userData.kvkId !== undefined;
 
     if (hierarchyChanged) {
@@ -900,6 +907,7 @@ const userManagementService = {
         nextStateId,
         nextDistrictId,
         nextOrgId,
+        nextUniversityId,
         nextKvkId
       );
 
@@ -922,6 +930,7 @@ const userManagementService = {
       sanitizedData.stateId = nextStateId ?? null;
       sanitizedData.districtId = nextDistrictId ?? null;
       sanitizedData.orgId = nextOrgId ?? null;
+      sanitizedData.universityId = nextUniversityId ?? null;
       sanitizedData.kvkId = nextKvkId ?? null;
     }
 
@@ -965,6 +974,7 @@ const userManagementService = {
       stateId: updatedUser.stateId,
       districtId: updatedUser.districtId,
       orgId: updatedUser.orgId,
+      universityId: updatedUser.universityId,
       kvkId: updatedUser.kvkId,
       updatedAt: updatedUser.updatedAt,
       ...(permissionActions.length ? { permissions: permissionActions } : {}),
