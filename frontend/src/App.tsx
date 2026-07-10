@@ -10,6 +10,7 @@ import { setOnSessionExpired } from './services/api'
 import { AuthProvider, getLogoutFunction } from './contexts/AuthContext'
 import { Layout } from './components/layout/Layout'
 import { Dashboard } from './pages/dashboard/Dashboard'
+import { AnalyticsDetail } from './pages/dashboard/AnalyticsDetail'
 import { Login } from './pages/auth/Login'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AllMasters } from './pages/dashboard/AllMasters'
@@ -75,6 +76,16 @@ function AppRoutes() {
                 >
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
+                    {/* Detailed analytics: cross-scope filters only make sense
+                        for a super admin — every other role has one fixed scope. */}
+                    <Route
+                        path="/dashboard/analytics/:metric"
+                        element={
+                            <ProtectedRoute requiredRole="super_admin">
+                                <AnalyticsDetail />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route
                         path="/form-summary"
                         element={
