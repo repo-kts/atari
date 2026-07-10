@@ -62,6 +62,7 @@ model OrgMaster {
   universities UniversityMaster[]
   users        User[]
 
+  @@unique([orgName])
   @@index([orgId])
   @@index([districtId])
   @@index([orgName])
@@ -84,6 +85,7 @@ model UniversityMaster {
   organization   OrgMaster @relation(fields: [orgId], references: [orgId])
   users          User[]
 
+  @@unique([universityName])
   @@index([universityId])
   @@index([orgId])
   @@index([universityName])

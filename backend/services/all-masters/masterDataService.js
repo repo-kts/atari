@@ -67,7 +67,8 @@ const ENTITY_CONFIG = {
         nameField: 'districtName',
         idField: 'districtId',
         singular: 'district',
-        children: ['organizations'],
+        // Institute is an independent master now — no longer a child of District.
+        children: [],
         kvkField: 'districtId',
         parentField: 'stateId',
     },
@@ -75,9 +76,12 @@ const ENTITY_CONFIG = {
         nameField: 'orgName',
         idField: 'orgId',
         singular: 'organization',
+        // Host still absolutely belongs to one Institute (unchanged).
         children: ['universities'],
         kvkField: 'orgId',
-        parentField: 'districtId',
+        // Institute is independent of District — name uniqueness is global
+        // (enforced by orgMaster_org_name_key), not scoped to a parent.
+        parentField: null,
     },
     universities: {
         nameField: 'universityName',
@@ -85,7 +89,9 @@ const ENTITY_CONFIG = {
         singular: 'university',
         children: [],
         kvkField: 'universityId',
-        parentField: 'orgId',
+        // Name uniqueness is global (universityMaster_university_name_key),
+        // not scoped to the owning Institute.
+        parentField: null,
     },
 };
 
@@ -109,7 +115,9 @@ const VALIDATION_RULES = {
         maxLength: { districtName: 100 },
     },
     organizations: {
-        required: ['orgName', 'districtId'],
+        // districtId dropped — Institute is an independent master, no longer
+        // scoped to a district.
+        required: ['orgName'],
         minLength: { orgName: 2 },
         maxLength: { orgName: 200 },
     },
@@ -496,74 +504,90 @@ async function nullifyUserField(field, value) {
 }
 
 /**
- * Cascade delete universities (children of organizations)
+ * Delete KVKs by an explicit list of ids (used when the set of KVKs to
+ * remove is computed from a union of conditions, e.g. cascading an
+ * Institute delete through both its own KVKs and its Hosts' KVKs).
+ * Mirrors deleteKvksByField's CASCADE-aware special-case handling.
+ */
+async function deleteKvksById(kvkIds) {
+    if (!kvkIds || kvkIds.length === 0) return;
+
+    await prisma.$transaction(async (tx) => {
+        await tx.kvkStaff.updateMany({
+            where: { originalKvkId: { in: kvkIds } },
+            data: { originalKvkId: null }
+        });
+        await tx.kvk.deleteMany({ where: { kvkId: { in: kvkIds } } });
+    }, {
+        timeout: 10000,
+        isolationLevel: 'ReadCommitted'
+    });
+}
+
+/**
+ * Cascade delete universities (Host) — Host is an independent master now;
+ * deleting one only needs to remove the KVKs directly under it. Only
+ * cleans up dependents (KVKs, user scope) — the Host row itself is deleted
+ * by the caller (matches every other cascadeDelete* function: this is the
+ * "clean up before the row is removed" step, not the removal itself).
  */
 async function cascadeDeleteUniversities(universityIds) {
     if (!universityIds || universityIds.length === 0) return;
 
-    // Delete KVKs and nullify users for each university
     await Promise.all(
         universityIds.map(async (universityId) => {
             await deleteKvksByField('universityId', universityId);
             await nullifyUserField('universityId', universityId);
         })
     );
-
-    // Delete universities
-    await prisma.universityMaster.deleteMany({
-        where: { universityId: { in: universityIds } }
-    });
 }
 
 /**
- * Cascade delete organizations (children of districts)
+ * Cascade delete organizations (Institute) — Host still absolutely belongs
+ * to one Institute, so deleting an Institute deletes its Hosts too. Also
+ * deletes any KVK whose own orgId points at this Institute directly (KVK
+ * carries orgId independently of universityId). District is never touched —
+ * Institute is no longer scoped to a district.
  */
 async function cascadeDeleteOrganizations(orgIds) {
     if (!orgIds || orgIds.length === 0) return;
 
-    // Get universities for these organizations
     const universities = await prisma.universityMaster.findMany({
         where: { orgId: { in: orgIds } },
         select: { universityId: true }
     });
     const universityIds = universities.map(u => u.universityId);
 
-    // Cascade delete universities
-    if (universityIds.length > 0) {
-        await cascadeDeleteUniversities(universityIds);
-    }
+    // Union: KVKs directly under this Institute + KVKs under any Host of
+    // this Institute. Delete once so a KVK matching both isn't double-deleted.
+    const kvks = await prisma.kvk.findMany({
+        where: {
+            OR: [
+                { orgId: { in: orgIds } },
+                ...(universityIds.length > 0 ? [{ universityId: { in: universityIds } }] : []),
+            ],
+        },
+        select: { kvkId: true },
+    });
+    await deleteKvksById(kvks.map(k => k.kvkId));
 
-    // Delete KVKs and nullify users for organizations
-    await Promise.all(
-        orgIds.map(async (orgId) => {
-            await deleteKvksByField('orgId', orgId);
-            await nullifyUserField('orgId', orgId);
-        })
-    );
+    await Promise.all(orgIds.map(orgId => nullifyUserField('orgId', orgId)));
+
+    if (universityIds.length > 0) {
+        await Promise.all(universityIds.map(id => nullifyUserField('universityId', id)));
+        await prisma.universityMaster.deleteMany({
+            where: { universityId: { in: universityIds } }
+        });
+    }
 }
 
 /**
- * Cascade delete districts (children of states)
+ * Cascade delete districts — Institute/Host are independent masters and are
+ * never touched; only the KVKs directly under this district are removed.
  */
 async function cascadeDeleteDistricts(districtIds) {
     if (!districtIds || districtIds.length === 0) return;
 
-    // Get organizations for these districts
-    const organizations = await prisma.orgMaster.findMany({
-        where: { districtId: { in: districtIds } },
-        select: { orgId: true }
-    });
-    const orgIds = organizations.map(o => o.orgId);
-
-    // Cascade delete organizations
-    if (orgIds.length > 0) {
-        await cascadeDeleteOrganizations(orgIds);
-        await prisma.orgMaster.deleteMany({
-            where: { orgId: { in: orgIds } }
-        });
-    }
-
-    // Delete KVKs and nullify users for districts
     await Promise.all(
         districtIds.map(async (districtId) => {
             await deleteKvksByField('districtId', districtId);
@@ -666,8 +690,7 @@ async function cascadeDeleteEntity(entityName, entityId) {
                 await cascadeDeleteOrganizations([id]);
                 break;
             case 'universities':
-                await deleteKvksByField('universityId', id);
-                await nullifyUserField('universityId', id);
+                await cascadeDeleteUniversities([id]);
                 break;
             default:
                 throw new Error(`Cascade delete not supported for ${entityName}`);
