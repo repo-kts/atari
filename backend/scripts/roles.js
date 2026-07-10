@@ -11,6 +11,7 @@ const ROLES = [
   { roleName: 'state_admin', description: 'State Administrator' },
   { roleName: 'district_admin', description: 'District Administrator' },
   { roleName: 'org_admin', description: 'Organization Administrator' },
+  { roleName: 'host_admin', description: 'Host Administrator - manages all KVKs under one Host institution' },
   { roleName: 'kvk_admin', description: 'KVK Administrator' },
   { roleName: 'kvk_user', description: 'KVK User - Access by custom permissions only' },
   { roleName: 'state_user', description: 'State-level user' },

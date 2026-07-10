@@ -23,11 +23,11 @@ const rolePermissionService = {
    * Create a new role (super_admin only).
    * @param {string} roleName - Role name (will be normalized to snake_case)
    * @param {string} [description] - Optional description
-   * @param {number} [hierarchyLevel] - Hierarchy level (0=highest, 9=lowest). Required for custom roles.
+   * @param {number} [hierarchyLevel] - Hierarchy level (0=highest, 10=lowest). Required for custom roles.
    * @returns {Promise<{ roleId: number; roleName: string; description: string | null }>}
    * @throws {Error} If validation fails or role already exists
    */
-  createRole: async (roleName, description = null, hierarchyLevel = 9) => {
+  createRole: async (roleName, description = null, hierarchyLevel = 10) => {
     const normalized = normalizeRoleName(roleName);
     if (!normalized) {
       throw new Error('Role name is required and cannot be empty');
@@ -41,8 +41,8 @@ const rolePermissionService = {
     }
 
     const level = Number(hierarchyLevel);
-    if (!Number.isInteger(level) || level < 0 || level > 9) {
-      throw new Error('Hierarchy level must be an integer between 0 (highest) and 9 (lowest)');
+    if (!Number.isInteger(level) || level < 0 || level > 10) {
+      throw new Error('Hierarchy level must be an integer between 0 (highest) and 10 (lowest)');
     }
 
     let role;

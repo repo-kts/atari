@@ -34,11 +34,20 @@ class ReportAggregationService {
         };
 
         // KVK Admin - can only access their KVK
-        if (roleLevel === 5) {
+        if (roleLevel === 6) {
             scope.canSelectKvks = false;
             scope.defaultKvkId = user.kvkId;
             if (user.kvkId) {
                 scope.availableKvks = [await this._getKvkInfo(user.kvkId)];
+            }
+            return scope;
+        }
+
+        // Host Admin - can select KVKs under their Host
+        if (roleLevel === 5) {
+            scope.canSelectKvks = true;
+            if (user.universityId) {
+                scope.availableKvks = await this._getKvksByUniversity(user.universityId);
             }
             return scope;
         }
@@ -113,7 +122,7 @@ class ReportAggregationService {
      * Get KVK IDs for a given scope
      */
     async getKvkIdsForScope(scope) {
-        const { zoneIds, stateIds, districtIds, orgIds, kvkIds } = scope;
+        const { zoneIds, stateIds, districtIds, orgIds, universityIds, kvkIds } = scope;
 
         if (kvkIds && kvkIds.length > 0) {
             return kvkIds;
@@ -134,10 +143,11 @@ class ReportAggregationService {
         }
 
         if (orgIds && orgIds.length > 0) {
-            // A selected org represents an org "type" (by name); include every
-            // org of that name, not just the picked representative row.
-            const names = await this._orgNamesForIds(orgIds);
-            if (names.length) where.org = { orgName: { in: names } };
+            where.orgId = { in: orgIds };
+        }
+
+        if (universityIds && universityIds.length > 0) {
+            where.universityId = { in: universityIds };
         }
 
         const kvks = await prisma.kvk.findMany({
@@ -146,16 +156,6 @@ class ReportAggregationService {
         });
 
         return kvks.map(k => k.kvkId);
-    }
-
-    /** Map selected org representative ids → the distinct org names they cover. */
-    async _orgNamesForIds(orgIds) {
-        if (!orgIds || orgIds.length === 0) return [];
-        const orgs = await prisma.orgMaster.findMany({
-            where: { orgId: { in: orgIds } },
-            select: { orgName: true },
-        });
-        return [...new Set(orgs.map(o => o.orgName).filter(Boolean))];
     }
 
     /**
@@ -569,6 +569,15 @@ class ReportAggregationService {
         return kvks.map(k => ({ id: k.kvkId, name: k.kvkName }));
     }
 
+    async _getKvksByUniversity(universityId) {
+        const kvks = await prisma.kvk.findMany({
+            where: { universityId },
+            select: { kvkId: true, kvkName: true },
+            orderBy: { kvkName: 'asc' },
+        });
+        return kvks.map(k => ({ id: k.kvkId, name: k.kvkName }));
+    }
+
     async _getKvksByDistrict(districtId) {
         const kvks = await prisma.kvk.findMany({
             where: { districtId },
@@ -597,64 +606,37 @@ class ReportAggregationService {
     }
 
     /**
-     * Collapse org rows to one option per distinct org name ("type").
-     * Orgs (ICAR, NGO, SAU, CAU) are stored once per district, so the same
-     * name repeats across the table. The kept row is the representative whose
-     * id expands back to every org of that name in scope→KVK resolution
-     * (see _orgNamesForIds / getKvkIdsForScope).
+     * Institute is an independent master now (not scoped to a district), so
+     * "orgs in this district/state/zone" can only be answered by asking which
+     * orgs are actually in use by KVKs there — not by querying orgMaster's
+     * (now-unused) districtId column directly.
      */
-    _dedupeOrgsByName(orgs) {
-        const seen = new Set();
-        const options = [];
-        for (const o of orgs) {
-            const name = o.orgName || 'Unknown';
-            if (seen.has(name)) continue;
-            seen.add(name);
-            options.push({ id: o.orgId, name });
-        }
-        return options;
+    async _getOrgsForKvkWhere(kvkWhere) {
+        const rows = await prisma.kvk.findMany({
+            where: kvkWhere,
+            select: { orgId: true },
+            distinct: ['orgId'],
+        });
+        const orgIds = rows.map(r => r.orgId);
+        if (orgIds.length === 0) return [];
+        const orgs = await prisma.orgMaster.findMany({
+            where: { orgId: { in: orgIds } },
+            select: { orgId: true, orgName: true },
+            orderBy: { orgName: 'asc' },
+        });
+        return orgs.map(o => ({ id: o.orgId, name: o.orgName || 'Unknown' }));
     }
 
     async _getOrgsByDistrict(districtId) {
-        const orgs = await prisma.orgMaster.findMany({
-            where: { districtId },
-            select: { orgId: true, orgName: true },
-            orderBy: { orgName: 'asc' },
-        });
-        return this._dedupeOrgsByName(orgs);
+        return this._getOrgsForKvkWhere({ districtId });
     }
 
     async _getOrgsByState(stateId) {
-        const districts = await prisma.districtMaster.findMany({
-            where: { stateId },
-            select: { districtId: true },
-        });
-        const districtIds = districts.map(d => d.districtId);
-        const orgs = await prisma.orgMaster.findMany({
-            where: { districtId: { in: districtIds } },
-            select: { orgId: true, orgName: true },
-            orderBy: { orgName: 'asc' },
-        });
-        return this._dedupeOrgsByName(orgs);
+        return this._getOrgsForKvkWhere({ stateId });
     }
 
     async _getOrgsByZone(zoneId) {
-        const states = await prisma.stateMaster.findMany({
-            where: { zoneId },
-            select: { stateId: true },
-        });
-        const stateIds = states.map(s => s.stateId);
-        const districts = await prisma.districtMaster.findMany({
-            where: { stateId: { in: stateIds } },
-            select: { districtId: true },
-        });
-        const districtIds = districts.map(d => d.districtId);
-        const orgs = await prisma.orgMaster.findMany({
-            where: { districtId: { in: districtIds } },
-            select: { orgId: true, orgName: true },
-            orderBy: { orgName: 'asc' },
-        });
-        return this._dedupeOrgsByName(orgs);
+        return this._getOrgsForKvkWhere({ zoneId });
     }
 
     async _getDistrictsByState(stateId) {
@@ -713,7 +695,7 @@ class ReportAggregationService {
             select: { orgId: true, orgName: true },
             orderBy: { orgName: 'asc' },
         });
-        return this._dedupeOrgsByName(orgs);
+        return orgs.map(o => ({ id: o.orgId, name: o.orgName || 'Unknown' }));
     }
 
     async _getAllKvks() {
@@ -752,24 +734,14 @@ class ReportAggregationService {
                 return districts.map(d => ({ id: d.districtId, name: d.districtName }));
 
             case 'districts': {
-                // Orgs are stored once per district, so the same org "type"
-                // (ICAR, NGO, SAU, CAU) repeats. Collapse to one option per name
-                // — selecting it expands to every org of that name (see
-                // _orgNamesForIds usage in scope→KVK resolution).
-                const orgs = await prisma.orgMaster.findMany({
-                    where: { districtId: { in: parentIds, not: null } },
-                    select: { orgId: true, orgName: true },
-                    orderBy: { orgName: 'asc' },
-                });
-                return this._dedupeOrgsByName(orgs);
+                // Institute is an independent master now — "orgs in these
+                // districts" means orgs actually used by KVKs in them.
+                return this._getOrgsForKvkWhere({ districtId: { in: parentIds } });
             }
 
             case 'orgs': {
-                // Selected org options are representatives of an org name; expand
-                // to every org of that name so all their KVKs are listed.
-                const names = await this._orgNamesForIds(parentIds);
                 const kvks = await prisma.kvk.findMany({
-                    where: names.length ? { org: { orgName: { in: names } } } : { orgId: { in: parentIds } },
+                    where: { orgId: { in: parentIds } },
                     select: { kvkId: true, kvkName: true },
                     orderBy: { kvkName: 'asc' },
                 });
@@ -827,8 +799,10 @@ class ReportAggregationService {
             where.districtId = { in: filters.districtIds };
         }
         if (filters.orgIds && filters.orgIds.length > 0) {
-            const names = await this._orgNamesForIds(filters.orgIds);
-            if (names.length) where.org = { orgName: { in: names } };
+            where.orgId = { in: filters.orgIds };
+        }
+        if (filters.universityIds && filters.universityIds.length > 0) {
+            where.universityId = { in: filters.universityIds };
         }
 
         const kvks = await prisma.kvk.findMany({

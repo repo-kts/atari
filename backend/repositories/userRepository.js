@@ -136,7 +136,7 @@ const userRepository = {
 
   /**
    * Find users by hierarchy (zone, state, district, org, kvk)
-   * @param {object} filters - { zoneId?, stateId?, districtId?, orgId?, kvkId? }
+   * @param {object} filters - { zoneId?, stateId?, districtId?, orgId?, universityId?, kvkId? }
    * @returns {Promise<array>} Array of users
    */
   findUsersByHierarchy: async (filters = {}) => {
@@ -155,6 +155,9 @@ const userRepository = {
     }
     if (filters.orgId !== undefined) {
       where.orgId = filters.orgId;
+    }
+    if (filters.universityId !== undefined) {
+      where.universityId = filters.universityId;
     }
     if (filters.kvkId !== undefined) {
       where.kvkId = filters.kvkId;

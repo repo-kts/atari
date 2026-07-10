@@ -3,18 +3,19 @@ import { Modal } from '../ui/Modal'
 import { Input } from '../ui/Input'
 import { LoadingButton } from '../common/LoadingButton'
 
-/** Hierarchy level options: 0=highest, 9=lowest */
+/** Hierarchy level options: 0=highest, 10=lowest */
 export const HIERARCHY_LEVEL_OPTIONS: { value: number; label: string }[] = [
     { value: 0, label: '0 - Super Admin (highest)' },
-    { value: 1, label: '1 - High-level Admin' },
+    { value: 1, label: '1 - Zone Admin' },
     { value: 2, label: '2 - State Admin' },
     { value: 3, label: '3 - District Admin' },
     { value: 4, label: '4 - Org Admin' },
-    { value: 5, label: '5 - KVK' },
-    { value: 6, label: '6 - State User' },
-    { value: 7, label: '7 - District User' },
-    { value: 8, label: '8 - Org User' },
-    { value: 9, label: '9 - Custom (lowest)' },
+    { value: 5, label: '5 - Host Admin' },
+    { value: 6, label: '6 - KVK Admin' },
+    { value: 7, label: '7 - KVK User' },
+    { value: 8, label: '8 - State User' },
+    { value: 9, label: '9 - District User' },
+    { value: 10, label: '10 - Custom (lowest)' },
 ]
 
 interface AddRoleModalProps {
@@ -36,7 +37,7 @@ export const AddRoleModal: React.FC<AddRoleModalProps> = ({
 }) => {
     const [roleName, setRoleName] = useState('')
     const [description, setDescription] = useState('')
-    const [hierarchyLevel, setHierarchyLevel] = useState(9)
+    const [hierarchyLevel, setHierarchyLevel] = useState(10)
     const [errors, setErrors] = useState<{ roleName?: string }>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [submitError, setSubmitError] = useState<string | null>(null)

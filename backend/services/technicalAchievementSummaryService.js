@@ -11,6 +11,7 @@ const ROLE_SCOPE_KEYS = {
   district_user: 'districtId',
   org_admin: 'orgId',
   org_user: 'orgId',
+  host_admin: 'universityId',
   kvk_admin: 'kvkId',
   kvk_user: 'kvkId',
 };
