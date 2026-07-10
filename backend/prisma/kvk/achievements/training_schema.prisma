@@ -46,6 +46,8 @@ model TrainingAchievement {
   trainingThematicArea  TrainingThematicArea    @relation(fields: [thematicAreaId], references: [trainingThematicAreaId], onDelete: Restrict)
   trainingType          TrainingType?           @relation(fields: [trainingTypeId], references: [trainingTypeId], onDelete: SetNull)
 
+  @@index([kvkId])
+  @@index([kvkId, startDate])
   @@map("training_achievement")
 }
 
