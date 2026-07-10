@@ -5,25 +5,27 @@ export type SortDir = 'asc' | 'desc' | null
 
 export interface ColumnFilterState {
     sort: SortDir
-    text: string
+    unique: boolean
     excluded: Set<string>
 }
 
 export const EMPTY_FILTER: ColumnFilterState = {
     sort: null,
-    text: '',
+    unique: false,
     excluded: new Set<string>(),
 }
 
 export function isFilterActive(state: ColumnFilterState | undefined): boolean {
     if (!state) return false
-    return Boolean(state.sort) || state.text.trim() !== '' || state.excluded.size > 0
+    return Boolean(state.sort) || state.unique || state.excluded.size > 0
 }
 
 interface Props {
     field: string
     label: string
     uniqueValues: string[]
+    /** Row count per value, keyed by the exact strings in `uniqueValues`. */
+    valueCounts?: Map<string, number>
     state: ColumnFilterState
     onChange: (next: ColumnFilterState) => void
     onClear: () => void
@@ -36,6 +38,7 @@ export const ColumnFilter: React.FC<Props> = ({
     field: _field,
     label,
     uniqueValues,
+    valueCounts,
     state,
     onChange,
     onClear,
@@ -272,16 +275,20 @@ export const ColumnFilter: React.FC<Props> = ({
                     </div>
 
                     <div className="px-3 py-2 border-b border-[#E0E0E0]">
-                        <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9E9E9E] mb-1">
-                            Contains
-                        </div>
-                        <input
-                            type="text"
-                            value={state.text}
-                            onChange={(e) => onChange({ ...state, text: e.target.value })}
-                            placeholder="Filter text..."
-                            className="w-full text-sm border border-[#E0E0E0] rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#487749] focus:border-[#487749]"
-                        />
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={state.unique}
+                                onChange={(e) => onChange({ ...state, unique: e.target.checked })}
+                                className="accent-[#487749] mt-0.5"
+                            />
+                            <span className="min-w-0">
+                                <span className="block text-xs font-medium">Unique values</span>
+                                <span className="block text-[10px] text-[#9E9E9E] leading-snug">
+                                    Show one row per distinct value, with its count
+                                </span>
+                            </span>
+                        </label>
                     </div>
 
                     <div className="px-3 py-2">
@@ -317,6 +324,7 @@ export const ColumnFilter: React.FC<Props> = ({
                                 filteredUniques.map((v) => {
                                     const key = v || BLANK_TOKEN
                                     const checked = !state.excluded.has(key)
+                                    const count = valueCounts?.get(v)
                                     return (
                                         <label
                                             key={key}
@@ -333,6 +341,11 @@ export const ColumnFilter: React.FC<Props> = ({
                                                     <em className="text-[#9E9E9E]">{BLANK_LABEL}</em>
                                                 )}
                                             </span>
+                                            {count !== undefined && (
+                                                <span className="ml-auto shrink-0 text-[#9E9E9E]">
+                                                    ({count})
+                                                </span>
+                                            )}
                                         </label>
                                     )
                                 })
