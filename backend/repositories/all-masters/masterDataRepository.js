@@ -26,6 +26,7 @@ const ENTITY_CONFIG = {
                     states: true,
                     districts: true,
                     users: true,
+                    kvks: true,
                 },
             },
         },
@@ -48,6 +49,7 @@ const ENTITY_CONFIG = {
                 select: {
                     districts: true,
                     users: true,
+                    kvks: true,
                 },
             },
         },
@@ -76,6 +78,7 @@ const ENTITY_CONFIG = {
                 select: {
                     users: true,
                     orgs: true,
+                    kvks: true,
                 },
             },
         },
