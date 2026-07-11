@@ -45,6 +45,7 @@ export interface EditUser {
     stateId?: number | null
     districtId?: number | null
     orgId?: number | null
+    universityId?: number | null
     kvkId?: number | null
     permissions?: PermissionAction[]
 }
@@ -67,6 +68,7 @@ interface FormData {
     stateId: number | ''
     districtId: number | ''
     orgId: number | ''
+    universityId: number | ''
     kvkId: number | ''
     permissions: PermissionAction[]
 }
@@ -82,6 +84,7 @@ interface FormErrors {
     stateId?: string
     districtId?: string
     orgId?: string
+    universityId?: string
     kvkId?: string
     permissions?: string
 }
@@ -97,6 +100,7 @@ const emptyForm: FormData = {
     stateId: '',
     districtId: '',
     orgId: '',
+    universityId: '',
     kvkId: '',
     permissions: [],
 }
@@ -107,6 +111,7 @@ function toFormFields(h: DerivedHierarchy) {
         stateId: h.stateId ?? '',
         districtId: h.districtId ?? '',
         orgId: h.orgId ?? '',
+        universityId: h.universityId ?? '',
         kvkId: h.kvkId ?? '',
     } as const
 }
@@ -193,6 +198,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 stateId: user.stateId ?? '',
                 districtId: user.districtId ?? '',
                 orgId: user.orgId ?? '',
+                universityId: user.universityId ?? '',
                 kvkId: user.kvkId ?? '',
                 permissions: seeded,
             })
@@ -241,6 +247,14 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                         setInitialEntityInfo({
                             label: res.data.orgName,
                             sublabel: joinSublabel([res.data.district?.districtName, res.data.district?.state?.stateName]),
+                        })
+                    }
+                } else if (entity === 'host' && user.universityId) {
+                    const res = await masterDataApi.getUniversityById(user.universityId)
+                    if (!cancelled) {
+                        setInitialEntityInfo({
+                            label: res.data.universityName,
+                            sublabel: joinSublabel([res.data.organization?.orgName]),
                         })
                     }
                 } else if (entity === 'kvk' && user.kvkId) {
@@ -364,6 +378,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             const nextStateId = formData.stateId ? Number(formData.stateId) : null
             const nextDistrictId = formData.districtId ? Number(formData.districtId) : null
             const nextOrgId = formData.orgId ? Number(formData.orgId) : null
+            const nextUniversityId = formData.universityId ? Number(formData.universityId) : null
             const nextKvkId = formData.kvkId ? Number(formData.kvkId) : null
 
             const roleChanged = formData.roleId !== user.roleId
@@ -373,6 +388,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 nextStateId !== (user.stateId ?? null) ||
                 nextDistrictId !== (user.districtId ?? null) ||
                 nextOrgId !== (user.orgId ?? null) ||
+                nextUniversityId !== (user.universityId ?? null) ||
                 nextKvkId !== (user.kvkId ?? null)
 
             if (hierarchyChanged) {
@@ -382,6 +398,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 updateData.stateId = nextStateId
                 updateData.districtId = nextDistrictId
                 updateData.orgId = nextOrgId
+                updateData.universityId = nextUniversityId
                 updateData.kvkId = nextKvkId
             }
 
@@ -541,6 +558,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                                 stateId: backToOriginal ? (user.stateId ?? '') : '',
                                 districtId: backToOriginal ? (user.districtId ?? '') : '',
                                 orgId: backToOriginal ? (user.orgId ?? '') : '',
+                                universityId: backToOriginal ? (user.universityId ?? '') : '',
                                 kvkId: backToOriginal ? (user.kvkId ?? '') : '',
                             }
                         })
