@@ -23,6 +23,10 @@ const GEO_DIMENSIONS = {
     district: { table: 'districtMaster', idCol: 'district_id', nameCol: 'district_name', kvkFk: 'districtId' },
     // Surfaced as "Institute" in the UI; the schema calls it orgMaster.
     org: { table: 'orgMaster', idCol: 'org_id', nameCol: 'org_name', kvkFk: 'org_id' },
+    // Surfaced as "Host" in the UI; the schema calls it universityMaster.
+    // kvk.university_id is nullable, so the INNER JOIN drops host-less KVKs from
+    // this grouping — the same tradeoff every geo dimension already makes.
+    host: { table: 'universityMaster', idCol: 'university_id', nameCol: 'university_name', kvkFk: 'university_id' },
     kvk: { table: 'kvk', idCol: 'kvk_id', nameCol: 'kvk_name', kvkFk: 'kvk_id' },
 };
 
@@ -32,6 +36,8 @@ const KVK_FILTERS = {
     stateId: 'stateId',
     districtId: 'districtId',
     orgId: 'org_id',
+    // Host = universityMaster; surfaced after Institute in the filter row.
+    hostId: 'university_id',
     kvkId: 'kvk_id',
 };
 

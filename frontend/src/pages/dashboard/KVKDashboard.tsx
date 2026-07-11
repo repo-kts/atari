@@ -232,6 +232,7 @@ export const KVKDashboard: React.FC = () => {
                     >
                         <StatChartPanel
                             title="OFT"
+                            showActiveToggle={false}
                             subtitle="Ongoing, completed; not started = no entries yet"
                             mode="pair"
                             primaryLabel="completed"
@@ -247,6 +248,7 @@ export const KVKDashboard: React.FC = () => {
                         />
                         <StatChartPanel
                             title="FLD"
+                            showActiveToggle={false}
                             subtitle="Ongoing, completed; not started = no entries yet"
                             mode="pair"
                             primaryLabel="completed"
@@ -262,6 +264,7 @@ export const KVKDashboard: React.FC = () => {
                         />
                         <StatChartPanel
                             title="Training"
+                            showActiveToggle={false}
                             subtitle="Ongoing, completed; not started = no entries yet"
                             mode="count"
                             primaryLabel="sessions"
@@ -276,6 +279,7 @@ export const KVKDashboard: React.FC = () => {
                         />
                         <StatChartPanel
                             title="Extension activity"
+                            showActiveToggle={false}
                             subtitle="Ongoing, completed; not started = no entries yet"
                             mode="count"
                             primaryLabel="activities"
