@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from 'react'
 import { masterDataApi } from '../services/masterDataApi'
 import { aboutKvkApi } from '../services/aboutKvkApi'
-import type { Zone, State, District, Organization } from '../types/masterData'
+import type { Zone, State, District, Organization, University } from '../types/masterData'
 import type { Kvk } from '../types/aboutKvk'
 import type { User } from '../types/auth'
 import type { EntitySearchOption } from '../components/common/EntitySearchSelect'
 
-export type HierarchyEntityType = 'zone' | 'state' | 'district' | 'org' | 'kvk'
+export type HierarchyEntityType = 'zone' | 'state' | 'district' | 'org' | 'host' | 'kvk'
 
 export interface DerivedHierarchy {
     zoneId: number | null
@@ -35,17 +35,23 @@ export const ROLE_TARGET_ENTITY: Record<string, HierarchyEntityType> = {
     district_user: 'district',
     org_admin: 'org',
     org_user: 'org',
+    host_admin: 'host',
     kvk_admin: 'kvk',
     kvk_user: 'kvk',
 }
 
-/** Hierarchy depth used to decide whether an actor's own scope already covers a level. */
+/**
+ * Hierarchy depth used to decide whether an actor's own scope already covers
+ * a level. Mirrors ROLE_HIERARCHY in constants/roleHierarchy.ts exactly
+ * (zone_admin..kvk_admin map 1:1 onto these five entity levels).
+ */
 const ENTITY_LEVEL: Record<HierarchyEntityType, number> = {
     zone: 1,
     state: 2,
     district: 3,
     org: 4,
-    kvk: 5,
+    host: 5,
+    kvk: 6,
 }
 
 export const ENTITY_LABEL: Record<HierarchyEntityType, string> = {
@@ -53,6 +59,7 @@ export const ENTITY_LABEL: Record<HierarchyEntityType, string> = {
     state: 'State',
     district: 'District',
     org: 'Institute',
+    host: 'Host',
     kvk: 'KVK',
 }
 
@@ -62,6 +69,7 @@ export const ENTITY_ID_FIELD: Record<HierarchyEntityType, keyof DerivedHierarchy
     state: 'stateId',
     district: 'districtId',
     org: 'orgId',
+    host: 'universityId',
     kvk: 'kvkId',
 }
 
@@ -87,14 +95,15 @@ function deriveFromRecord(targetEntity: HierarchyEntityType | null, record: unkn
             return { ...EMPTY_HIERARCHY, districtId: d.districtId, stateId: d.stateId, zoneId: d.zoneId }
         }
         case 'org': {
+            // Institute is an independent master now — no geography to derive.
             const o = record as Organization
-            return {
-                ...EMPTY_HIERARCHY,
-                orgId: o.orgId,
-                districtId: o.districtId ?? o.district?.districtId ?? null,
-                stateId: o.district?.state?.stateId ?? null,
-                zoneId: o.district?.state?.zone?.zoneId ?? null,
-            }
+            return { ...EMPTY_HIERARCHY, orgId: o.orgId }
+        }
+        case 'host': {
+            // Host absolutely belongs to one Institute (orgId) but, like
+            // Institute, has no geography of its own.
+            const u = record as University
+            return { ...EMPTY_HIERARCHY, universityId: u.universityId, orgId: u.orgId ?? null }
         }
         case 'kvk': {
             const k = record as Kvk
@@ -197,15 +206,33 @@ export function useUserHierarchyPicker({
                     }))
                 }
                 case 'org': {
+                    // Institute is a fully independent, global master now — no
+                    // zone/state/district of the actor's own restricts it.
                     const res = await masterDataApi.getOrganizations(
-                        { search: query, limit: SEARCH_PAGE_SIZE, ...actorScopeFilter },
+                        { search: query, limit: SEARCH_PAGE_SIZE },
                         signal,
                     )
                     return res.data.map(o => ({
                         value: o.orgId,
                         label: o.orgName,
-                        sublabel: joinSublabel([o.district?.districtName, o.district?.state?.stateName]),
                         record: o,
+                    }))
+                }
+                case 'host': {
+                    // Host absolutely belongs to one Institute — scope by the
+                    // actor's own orgId when they have one (e.g. an org_admin
+                    // creating a host_admin only sees Hosts under their Institute).
+                    // zoneId/stateId/districtId don't apply to Host at all.
+                    const hostScope = actorScopeFilter.orgId ? { orgId: actorScopeFilter.orgId } : {}
+                    const res = await masterDataApi.getUniversities(
+                        { search: query, limit: SEARCH_PAGE_SIZE, ...hostScope },
+                        signal,
+                    )
+                    return res.data.map(u => ({
+                        value: u.universityId,
+                        label: u.universityName,
+                        sublabel: joinSublabel([u.organization?.orgName]),
+                        record: u,
                     }))
                 }
                 case 'kvk': {
@@ -235,7 +262,7 @@ export function useUserHierarchyPicker({
             districtId: currentUser.districtId ?? null,
             orgId: currentUser.orgId ?? null,
             kvkId: isKvkAdminActor ? (currentUser.kvkId ?? null) : null,
-            universityId: isKvkAdminActor ? ((currentUser as User & { universityId?: number | null }).universityId ?? null) : null,
+            universityId: isKvkAdminActor ? (currentUser.universityId ?? null) : null,
         }
     }, [isSubAdmin, currentUser, isKvkAdminActor])
 
@@ -248,7 +275,7 @@ export function useUserHierarchyPicker({
                 stateId: actorLevel >= ENTITY_LEVEL.state ? (currentUser.stateId ?? null) : base.stateId,
                 districtId: actorLevel >= ENTITY_LEVEL.district ? (currentUser.districtId ?? null) : base.districtId,
                 orgId: actorLevel >= ENTITY_LEVEL.org ? (currentUser.orgId ?? null) : base.orgId,
-                universityId: base.universityId,
+                universityId: actorLevel >= ENTITY_LEVEL.host ? (currentUser.universityId ?? base.universityId) : base.universityId,
                 kvkId: base.kvkId,
             }
         },

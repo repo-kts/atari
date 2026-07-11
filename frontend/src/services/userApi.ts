@@ -41,6 +41,7 @@ export interface UpdateUserData {
   stateId?: number | null;
   districtId?: number | null;
   orgId?: number | null;
+  universityId?: number | null;
   kvkId?: number | null;
   permissionsDelta?: PermissionsDelta;
 }

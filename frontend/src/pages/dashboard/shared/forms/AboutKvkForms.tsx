@@ -2,8 +2,7 @@ import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
-import { State, District, Organization, University } from '@/types/masterData'
-import { useMasterData } from '@/hooks/useMasterData'
+import { District, Organization, University } from '@/types/masterData'
 import { useAuth } from '@/contexts/AuthContext'
 import {
     useSanctionedPosts,
@@ -15,6 +14,7 @@ import {
 } from '@/hooks/forms/useAboutKvkData'
 import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useEquipmentTypes, useEquipmentMasters, useBankAccountTypes, useJobTypes } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
+import { EntitySearchSelect } from '@/components/common/EntitySearchSelect'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
@@ -50,7 +50,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     setFormData,
 }) => {
 
-    const { data: zones = [] } = useMasterData('zones')
     const { user } = useAuth()
 
 
@@ -218,10 +217,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const equipmentStatusOptions = React.useMemo(
         () => toOptions(equipmentStatuses as any[], 'equipmentStatusId', 'statusLabel'),
         [equipmentStatuses],
-    )
-    const zoneOptions = React.useMemo(
-        () => toOptions(zones as any[], 'zoneId', 'zoneName'),
-        [zones],
     )
     const filteredEquipmentOptions = React.useMemo(() => {
         const typeFilter = formData._filterEquipmentTypeId
@@ -1131,131 +1126,87 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                            <FormSelect
-                                label="Zone"
-                                required
-                                value={formData.zoneId ?? ''}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    zoneId: parseInt(e.target.value),
-                                    stateId: '',
-                                    districtId: '',
-                                    orgId: '',
-                                    universityId: '',
-                                })}
-                                options={zoneOptions}
-                            />
-                            <DependentDropdown
-                                label="State"
-                                required
-                                value={formData.stateId ?? ''}
-                                onChange={(value) => setFormData({
-                                    ...formData,
-                                    stateId: value === '' ? '' : Number(value),
-                                    districtId: '',
-                                    orgId: '',
-                                    universityId: '',
-                                })}
-                                options={[]}
-                                dependsOn={{ value: formData.zoneId, field: 'zoneId' }}
-                                onOptionsLoad={async (zoneId, signal) => {
-                                    const response = await masterDataApi.getStatesByZone(Number(zoneId), signal)
-                                    return response.data.map((s: State) => ({
-                                        value: s.stateId,
-                                        label: s.stateName,
-                                    }))
-                                }}
-                                cacheKey="about-kvk-states-by-zone"
-                            />
-                            <DependentDropdown
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <EntitySearchSelect
                                 label="District"
                                 required
                                 value={formData.districtId ?? ''}
-                                onChange={(value) => {
-                                    const districtId = value === '' ? '' : Number(value)
-                                    setFormData({ ...formData, districtId, orgId: '', universityId: '' })
+                                onSelect={(option) => {
+                                    const d = option?.record as District | undefined
+                                    setFormData((prev: any) => ({
+                                        ...prev,
+                                        districtId: option ? option.value : '',
+                                        stateId: d?.stateId ?? '',
+                                        zoneId: d?.zoneId ?? '',
+                                    }))
                                 }}
-                                options={[]}
-                                dependsOn={[
-                                    { value: formData.zoneId, field: 'zoneId' },
-                                    { value: formData.stateId, field: 'stateId' },
-                                ]}
-                                onOptionsLoad={async (dependencyValues: any, signal) => {
-                                    const stateId = Number(dependencyValues?.stateId)
-                                    const response = await masterDataApi.getDistrictsByState(stateId, signal)
+                                search={React.useCallback(async (query: string, signal?: AbortSignal) => {
+                                    const response = await masterDataApi.getDistricts({ search: query, limit: 20 }, signal)
                                     return response.data.map((d: District) => ({
                                         value: d.districtId,
                                         label: d.districtName,
+                                        sublabel: [d.state?.stateName, d.zone?.zoneName].filter(Boolean).join(', ') || undefined,
+                                        record: d,
+                                    }))
+                                }, [])}
+                                placeholder="Search district…"
+                                emptyMessage="No districts found"
+                                initialLabel={formData.district?.districtName}
+                                initialSublabel={[formData.district?.state?.stateName, formData.district?.zone?.zoneName].filter(Boolean).join(', ') || undefined}
+                            />
+                            <EntitySearchSelect
+                                label="Institute"
+                                required
+                                value={formData.orgId ?? ''}
+                                onSelect={(option) => {
+                                    setFormData((prev: any) => ({
+                                        ...prev,
+                                        orgId: option ? option.value : '',
+                                        org: undefined,
+                                        universityId: '',
+                                        university: undefined,
                                     }))
                                 }}
-                                cacheKey="about-kvk-districts-by-zone-state"
+                                search={React.useCallback(async (query: string, signal?: AbortSignal) => {
+                                    const response = await masterDataApi.getOrganizations({ search: query, limit: 20 }, signal)
+                                    return response.data.map((org: Organization) => ({
+                                        value: org.orgId,
+                                        label: org.orgName || 'Unknown',
+                                        record: org,
+                                    }))
+                                }, [])}
+                                placeholder="Search institute…"
+                                emptyMessage="No institutes found"
+                                initialLabel={formData.org?.orgName}
                             />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <DependentDropdown
-                                label="Institute"
-                                required
-                                value={formData.orgId ?? ''}
-                                onChange={(value) => {
-                                    const orgId = value === '' ? '' : Number(value)
-                                    setFormData((prev: any) => ({
-                                        ...prev,
-                                        orgId,
-                                        org: undefined,
-                                        universityId: ''
-                                    }))
-                                }}
-                                options={
-                                    formData.orgId && formData.org?.orgName
-                                        ? [{ value: formData.orgId, label: formData.org.orgName }]
-                                        : []
-                                }
-                                dependsOn={[
-                                    { value: formData.zoneId, field: 'zoneId' },
-                                    { value: formData.stateId, field: 'stateId' },
-                                    { value: formData.districtId, field: 'districtId' },
-                                ]}
-                                onOptionsLoad={async (dependencyValues: any, signal) => {
-                                    const districtId = Number(dependencyValues?.districtId)
-                                    const response = await masterDataApi.getOrganizationsByDistrict(districtId, signal)
-                                    return response.data.map((org: Organization) => ({
-                                        value: org.orgId,
-                                        label: org.orgName,
-                                    }))
-                                }}
-                                cacheKey="about-kvk-organizations-by-zone-state-district"
-                            />
-                            <DependentDropdown
+                            <EntitySearchSelect
                                 label="Host"
                                 required
                                 value={formData.universityId ?? ''}
-                                onChange={(value) => setFormData((prev: any) => ({
+                                disabled={!formData.orgId}
+                                onSelect={(option) => setFormData((prev: any) => ({
                                     ...prev,
-                                    universityId: value === '' ? '' : Number(value),
-                                    university: undefined
+                                    universityId: option ? option.value : '',
+                                    university: undefined,
                                 }))}
-                                options={
-                                    formData.universityId && formData.university?.universityName
-                                        ? [{ value: formData.universityId, label: formData.university.universityName }]
-                                        : []
-                                }
-                                dependsOn={[
-                                    { value: formData.zoneId, field: 'zoneId' },
-                                    { value: formData.stateId, field: 'stateId' },
-                                    { value: formData.districtId, field: 'districtId' },
-                                    { value: formData.orgId, field: 'orgId' },
-                                ]}
-                                onOptionsLoad={async (dependencyValues: any, signal) => {
-                                    const orgId = Number(dependencyValues?.orgId)
-                                    const response = await masterDataApi.getUniversitiesByOrganization(orgId, signal)
+                                search={React.useCallback(async (query: string, signal?: AbortSignal) => {
+                                    if (!formData.orgId) return []
+                                    const response = await masterDataApi.getUniversities(
+                                        { search: query, limit: 20, orgId: formData.orgId },
+                                        signal,
+                                    )
                                     return response.data.map((u: University) => ({
                                         value: u.universityId,
                                         label: u.universityName,
+                                        record: u,
                                     }))
-                                }}
-                                cacheKey="about-kvk-universities-by-zone-state-district-org"
+                                }, [formData.orgId])}
+                                placeholder={formData.orgId ? 'Search host…' : 'Select an Institute first'}
+                                emptyMessage="No hosts found for this institute"
+                                initialLabel={formData.university?.universityName}
                             />
                         </div>
 

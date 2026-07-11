@@ -28,6 +28,7 @@ interface User {
     stateId?: number | null
     districtId?: number | null
     orgId?: number | null
+    universityId?: number | null
     kvkId?: number | null
     createdAt?: string
     lastLoginAt?: string | null
@@ -310,6 +311,7 @@ export const UserManagement: React.FC = () => {
                                                                             stateId: user.stateId,
                                                                             districtId: user.districtId,
                                                                             orgId: user.orgId,
+                                                                            universityId: user.universityId,
                                                                             kvkId: user.kvkId,
                                                                             permissions: user.permissions,
                                                                         })
