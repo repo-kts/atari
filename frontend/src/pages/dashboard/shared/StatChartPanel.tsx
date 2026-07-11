@@ -1,7 +1,5 @@
-import React, { useId, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
-    Area,
-    AreaChart,
     Bar,
     BarChart,
     CartesianGrid,
@@ -13,11 +11,12 @@ import {
 import { Link } from 'react-router-dom'
 import {
     BarChart3,
+    Building2,
     ChevronLeft,
     ChevronRight,
-    LineChart as LineIcon,
     ListChecks,
     Maximize2,
+    Search,
 } from 'lucide-react'
 import { Card, CardContent } from '../../../components/ui/Card'
 
@@ -30,6 +29,8 @@ export type StatRow = {
     primary: number
     secondary?: number
     segments?: StatSegments
+    /** Distinct KVKs contributing to this group; drives the KVK-wise summary. */
+    kvkCount?: number
 }
 
 /** One stacked series. Defaults to ongoing/completed/notStarted. */
@@ -40,7 +41,7 @@ export type SegmentDef = {
 }
 
 type Mode = 'pair' | 'count'
-type View = 'progress' | 'bar' | 'area'
+type View = 'progress' | 'bar' | 'kvk'
 
 type Props = {
     title: string
@@ -56,6 +57,12 @@ type Props = {
     detailHref?: string
     /** Label for the grouped entity in the "N of M with entries" strip. */
     entityLabel?: string
+    /** Renders the "Active only / Show all" toggle. Off on the dashboard. */
+    showActiveToggle?: boolean
+    /** Renders a name-search box that filters the charted rows. */
+    searchable?: boolean
+    /** When set, adds a "KVK-wise" tab that renders this node (e.g. a matrix). */
+    kvkView?: React.ReactNode
 }
 
 const STATUS_BADGE: Record<string, string> = {
@@ -177,11 +184,13 @@ const Legend: React.FC<{ defs: SegmentDef[] }> = ({ defs }) => (
     </div>
 )
 
-const ViewToggle: React.FC<{ view: View; onChange: (v: View) => void }> = ({
-    view,
-    onChange,
-}) => {
-    // #174: default tab order is Bar > List > Area, with Bar active by default.
+const ViewToggle: React.FC<{
+    view: View
+    onChange: (v: View) => void
+    showKvk: boolean
+}> = ({ view, onChange, showKvk }) => {
+    // Bar > List, then the KVK-wise summary where the data supports it. The Area
+    // view was dropped in favour of the KVK-wise breakdown.
     const items: Array<{ key: View; label: string; icon: React.ReactNode }> = [
         {
             key: 'bar',
@@ -193,11 +202,15 @@ const ViewToggle: React.FC<{ view: View; onChange: (v: View) => void }> = ({
             label: 'List',
             icon: <ListChecks className="w-3 h-3" />,
         },
-        {
-            key: 'area',
-            label: 'Area',
-            icon: <LineIcon className="w-3 h-3" />,
-        },
+        ...(showKvk
+            ? [
+                  {
+                      key: 'kvk' as View,
+                      label: 'KVK-wise',
+                      icon: <Building2 className="w-3 h-3" />,
+                  },
+              ]
+            : []),
     ]
     return (
         <div
@@ -239,12 +252,25 @@ export const StatChartPanel: React.FC<Props> = ({
     segmentDefs,
     detailHref,
     entityLabel = 'KVKs',
+    showActiveToggle = true,
+    searchable = false,
+    kvkView,
 }) => {
     // #174: Bar is the default view (was 'progress').
     const [view, setView] = useState<View>('bar')
 
-    // useId emits colons, which are not valid inside an SVG url(#…) reference.
-    const gradientId = `grad-${useId().replace(/:/g, '')}`
+    // Name search over the charted rows; only mounted when `searchable`.
+    const [search, setSearch] = useState('')
+    const searchedRows = useMemo(() => {
+        if (!searchable || !search.trim()) return rows
+        const q = search.trim().toLowerCase()
+        return rows.filter(r => r.name.toLowerCase().includes(q))
+    }, [rows, search, searchable])
+
+    // The KVK-wise tab exists only when the caller supplies its content.
+    const showKvk = kvkView != null
+    // Snap back to Bar if that tab isn't available on this panel.
+    if (view === 'kvk' && !showKvk) setView('bar')
 
     const defs = segmentDefs ?? DEFAULT_SEGMENT_DEFS
     const segKeys = useMemo(() => defs.map(d => d.key), [defs])
@@ -269,16 +295,18 @@ export const StatChartPanel: React.FC<Props> = ({
     const rowHasEntries = (r: StatRow) => rowActivity(r) > 0
 
     const activeCount = useMemo(
-        () => rows.filter(rowHasEntries).length,
-        [rows, segKeys]
+        () => searchedRows.filter(rowHasEntries).length,
+        [searchedRows, segKeys]
     )
-    const emptyCount = rows.length - activeCount
+    const emptyCount = searchedRows.length - activeCount
 
     const sortedRows = useMemo(() => {
-        const base = activeOnly ? rows.filter(rowHasEntries) : rows
+        const base = activeOnly
+            ? searchedRows.filter(rowHasEntries)
+            : searchedRows
         // Busiest KVKs first so the meaningful bars cluster at the left.
         return [...base].sort((a, b) => rowActivity(b) - rowActivity(a))
-    }, [rows, activeOnly, segKeys])
+    }, [searchedRows, activeOnly, segKeys])
 
     // Page the sorted list into batches of PAGE_SIZE (top 10 first).
     const [page, setPage] = useState(0)
@@ -334,7 +362,26 @@ export const StatChartPanel: React.FC<Props> = ({
                         )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                        <ViewToggle view={view} onChange={setView} />
+                        {searchable && (
+                            <div className="relative">
+                                <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-[#9E9E9E]" />
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={e => {
+                                        setSearch(e.target.value)
+                                        setPage(0)
+                                    }}
+                                    placeholder="Search…"
+                                    className="h-7 w-32 rounded-md border border-[#E0E0E0] bg-white pl-6 pr-2 text-[11px] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#487749]/30"
+                                />
+                            </div>
+                        )}
+                        <ViewToggle
+                            view={view}
+                            onChange={setView}
+                            showKvk={showKvk}
+                        />
                         {detailHref && (
                             <Link
                                 to={detailHref}
@@ -353,24 +400,26 @@ export const StatChartPanel: React.FC<Props> = ({
                             <span className="font-bold text-[#212121]">
                                 {activeCount}
                             </span>{' '}
-                            of {rows.length} {entityLabel} with entries
+                            of {searchedRows.length} {entityLabel} with entries
                             <span className="text-[#9E9E9E]">
                                 {' '}
                                 · {emptyCount} not started
                             </span>
                         </span>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setActiveOnly(v => !v)
-                                setPage(0)
-                            }}
-                            className="shrink-0 rounded-md border border-[#E0E0E0] px-2 py-0.5 text-[10px] font-semibold text-[#487749] hover:bg-[#F5F5F5] transition-colors"
-                        >
-                            {activeOnly
-                                ? `Show all (${rows.length})`
-                                : 'Active only'}
-                        </button>
+                        {showActiveToggle && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setActiveOnly(v => !v)
+                                    setPage(0)
+                                }}
+                                className="shrink-0 rounded-md border border-[#E0E0E0] px-2 py-0.5 text-[10px] font-semibold text-[#487749] hover:bg-[#F5F5F5] transition-colors"
+                            >
+                                {activeOnly
+                                    ? `Show all (${searchedRows.length})`
+                                    : 'Active only'}
+                            </button>
+                        )}
                     </div>
                 )}
 
@@ -569,201 +618,9 @@ export const StatChartPanel: React.FC<Props> = ({
                     </div>
                 )}
 
-                {view === 'area' && chartData.length < 2 && (
-                    <div className="p-6">
-                        {chartData.length === 0 ? (
-                            <div className="text-center text-[#757575] text-sm py-12">
-                                No data to chart yet.
-                            </div>
-                        ) : (
-                            <div className="rounded-xl border border-[#E0E0E0] bg-[#FAF9F6] p-5">
-                                <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9E9E9E] mb-2">
-                                    Single data point
-                                </div>
-                                <div className="text-base font-bold text-[#212121] mb-3">
-                                    {chartData[0].fullName}
-                                </div>
-                                {showStacked ? (
-                                    <div className="flex flex-wrap gap-3">
-                                        {defs.map((def) => (
-                                            <div
-                                                key={def.key}
-                                                className="flex items-center gap-2 rounded-lg bg-white border border-[#E0E0E0] px-3 py-1.5"
-                                            >
-                                                <span
-                                                    className="w-2.5 h-2.5 rounded-sm"
-                                                    style={{ backgroundColor: def.color }}
-                                                />
-                                                <span className="text-[11px] uppercase tracking-wide text-[#757575]">
-                                                    {def.label}
-                                                </span>
-                                                <span className="text-sm font-bold text-[#212121]">
-                                                    {(
-                                                        (chartData[0] as Record<string, unknown>)[
-                                                            def.key
-                                                        ] as number
-                                                    ).toLocaleString()}
-                                                    {unit ? ` ${unit}` : ''}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-3xl font-bold text-[#487749]">
-                                            {chartData[0].primary.toLocaleString()}
-                                        </span>
-                                        {unit && (
-                                            <span className="text-sm text-[#757575]">{unit}</span>
-                                        )}
-                                    </div>
-                                )}
-                                <div className="mt-3 text-xs text-[#9E9E9E]">
-                                    Area chart needs at least 2 entries — switch to Bar or List for single rows.
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-                {view === 'area' && chartData.length >= 2 && (
-                    <div className="p-3">
-                        {showStacked && (
-                            <div className="mb-2 flex justify-end">
-                                <Legend defs={defs} />
-                            </div>
-                        )}
-                        <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart
-                                data={chartData}
-                                margin={{
-                                    top: 8,
-                                    right: 8,
-                                    left: -16,
-                                    bottom: 8,
-                                }}
-                            >
-                                <defs>
-                                    {/* Gradient ids are scoped per panel instance;
-                                        several panels share a page. */}
-                                    {defs.map(def => (
-                                        <linearGradient
-                                            key={def.key}
-                                            id={`${gradientId}-${def.key}`}
-                                            x1="0"
-                                            y1="0"
-                                            x2="0"
-                                            y2="1"
-                                        >
-                                            <stop
-                                                offset="0%"
-                                                stopColor={def.color}
-                                                stopOpacity={0.55}
-                                            />
-                                            <stop
-                                                offset="100%"
-                                                stopColor={def.color}
-                                                stopOpacity={0.05}
-                                            />
-                                        </linearGradient>
-                                    ))}
-                                    <linearGradient
-                                        id={`${gradientId}-primary`}
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stopColor={SEG_COLOR.completed}
-                                            stopOpacity={0.55}
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stopColor={SEG_COLOR.completed}
-                                            stopOpacity={0.05}
-                                        />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    stroke={COLOR_GRID}
-                                    vertical={false}
-                                />
-                                <XAxis
-                                    dataKey="name"
-                                    tick={{
-                                        fontSize: 10,
-                                        fill: COLOR_AXIS,
-                                    }}
-                                    tickLine={false}
-                                    axisLine={{ stroke: COLOR_GRID }}
-                                    interval={0}
-                                    angle={-25}
-                                    textAnchor="end"
-                                    height={50}
-                                />
-                                <YAxis
-                                    tick={{
-                                        fontSize: 10,
-                                        fill: COLOR_AXIS,
-                                    }}
-                                    tickLine={false}
-                                    axisLine={{ stroke: COLOR_GRID }}
-                                    allowDecimals={false}
-                                />
-                                <Tooltip
-                                    cursor={{
-                                        stroke: '#487749',
-                                        strokeOpacity: 0.4,
-                                        strokeWidth: 1,
-                                    }}
-                                    content={
-                                        <ChartTooltip
-                                            unit={unit}
-                                            labels={segLabels}
-                                        />
-                                    }
-                                />
-                                {showStacked ? (
-                                    defs.map(def => (
-                                        <Area
-                                            key={def.key}
-                                            type="monotone"
-                                            dataKey={def.key}
-                                            name={def.key}
-                                            stackId="seg"
-                                            stroke={def.color}
-                                            strokeWidth={2}
-                                            fill={`url(#${gradientId}-${def.key})`}
-                                            activeDot={{
-                                                r: 4,
-                                                stroke: '#fff',
-                                                strokeWidth: 2,
-                                            }}
-                                        />
-                                    ))
-                                ) : (
-                                    <Area
-                                        type="monotone"
-                                        dataKey="primary"
-                                        name="primary"
-                                        stroke={SEG_COLOR.completed}
-                                        strokeWidth={2}
-                                        fill={`url(#${gradientId}-primary)`}
-                                        activeDot={{
-                                            r: 4,
-                                            stroke: '#fff',
-                                            strokeWidth: 2,
-                                        }}
-                                    />
-                                )}
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                )}
+                {view === 'kvk' && <div className="p-3">{kvkView}</div>}
 
-                {pageCount > 1 && (
+                {pageCount > 1 && view !== 'kvk' && (
                     <div className="flex items-center justify-between gap-2 border-t border-[#E0E0E0] px-3 py-1.5">
                         <span className="text-[10px] text-[#757575]">
                             Showing{' '}

@@ -2718,6 +2718,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         startIndex={startIndex}
                                         endIndex={endIndex}
                                         totalItems={useServerPaging && serverPagination ? serverPagination.total : columnFilteredData.length}
+                                        grandTotal={useServerPaging && serverPagination ? serverPagination.total : dedupedBaseItems.length}
                                         onPageChange={setCurrentPage}
                                     />
                                 </>
