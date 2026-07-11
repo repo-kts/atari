@@ -41,6 +41,16 @@ const analyticsController = {
             return handleError(res, error, 'analytics metric');
         }
     },
+
+    getMetricMatrix: async (req, res) => {
+        try {
+            requireSuperAdmin(req);
+            const data = await analyticsService.getMetricMatrix(req.params.metric, req.query);
+            return res.status(200).json(data);
+        } catch (error) {
+            return handleError(res, error, 'analytics matrix');
+        }
+    },
 };
 
 module.exports = analyticsController;

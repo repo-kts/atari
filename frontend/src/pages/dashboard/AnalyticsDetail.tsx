@@ -9,6 +9,7 @@ import {
     type AnalyticsKvkOption,
 } from '../../services/analyticsApi'
 import { StatChartPanel, type SegmentDef } from './shared/StatChartPanel'
+import { AnalyticsKvkMatrix } from './shared/AnalyticsKvkMatrix'
 import { DashboardPanelsSkeleton } from './shared/DashboardSkeletons'
 
 const METRIC_KEYS: AnalyticsMetricKey[] = ['oft', 'fld', 'training', 'extension']
@@ -63,6 +64,7 @@ type Filters = {
     stateId: string
     districtId: string
     orgId: string
+    hostId: string
     kvkId: string
 }
 
@@ -72,6 +74,7 @@ const EMPTY_FILTERS: Filters = {
     stateId: 'all',
     districtId: 'all',
     orgId: 'all',
+    hostId: 'all',
     kvkId: 'all',
 }
 
@@ -120,10 +123,24 @@ function distinctBy(
         .sort((a, b) => a.label.localeCompare(b.label))
 }
 
+/** Host options skip KVKs with no university, so no NaN id ever reaches the API. */
+function distinctHosts(kvks: AnalyticsKvkOption[]) {
+    const seen = new Map<string, string>()
+    for (const k of kvks) {
+        if (k.hostId == null) continue
+        seen.set(String(k.hostId), k.hostName)
+    }
+    return [...seen.entries()]
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label))
+}
+
 export const AnalyticsDetail: React.FC = () => {
     const { metric } = useParams<{ metric: string }>()
     const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
-    const [groupBy, setGroupBy] = useState('zone')
+    // KVK is the default grouping. Zone stays selectable but there is only one
+    // zone, so it makes a poor default.
+    const [groupBy, setGroupBy] = useState('kvk')
     const [breakdown, setBreakdown] = useState('status')
 
     const { data: filterOptions } = useQuery({
@@ -136,29 +153,33 @@ export const AnalyticsDetail: React.FC = () => {
 
     const valid = isMetricKey(metric)
 
+    // Shared by the chart and the KVK-wise matrix so both hit the same filters.
+    const analyticsQuery = useMemo(
+        () => ({
+            groupBy,
+            reportingYear:
+                filters.reportingYear === 'all'
+                    ? ('all' as const)
+                    : Number(filters.reportingYear),
+            zoneId: filters.zoneId === 'all' ? undefined : Number(filters.zoneId),
+            stateId:
+                filters.stateId === 'all' ? undefined : Number(filters.stateId),
+            districtId:
+                filters.districtId === 'all'
+                    ? undefined
+                    : Number(filters.districtId),
+            orgId: filters.orgId === 'all' ? undefined : Number(filters.orgId),
+            hostId: filters.hostId === 'all' ? undefined : Number(filters.hostId),
+            kvkId: filters.kvkId === 'all' ? undefined : Number(filters.kvkId),
+        }),
+        [groupBy, filters]
+    )
+
     const { data, isPending, isFetching, isError, error } = useQuery({
-        queryKey: ['analytics', metric, groupBy, filters],
+        queryKey: ['analytics', metric, analyticsQuery],
         enabled: valid,
         queryFn: () =>
-            analyticsApi.getMetric(metric as AnalyticsMetricKey, {
-                groupBy,
-                reportingYear:
-                    filters.reportingYear === 'all'
-                        ? 'all'
-                        : Number(filters.reportingYear),
-                zoneId:
-                    filters.zoneId === 'all' ? undefined : Number(filters.zoneId),
-                stateId:
-                    filters.stateId === 'all'
-                        ? undefined
-                        : Number(filters.stateId),
-                districtId:
-                    filters.districtId === 'all'
-                        ? undefined
-                        : Number(filters.districtId),
-                orgId: filters.orgId === 'all' ? undefined : Number(filters.orgId),
-                kvkId: filters.kvkId === 'all' ? undefined : Number(filters.kvkId),
-            }),
+            analyticsApi.getMetric(metric as AnalyticsMetricKey, analyticsQuery),
         placeholderData: previousData => previousData,
     })
 
@@ -166,10 +187,7 @@ export const AnalyticsDetail: React.FC = () => {
     // was fetched once. Changing a filter costs zero network calls.
     const kvks = filterOptions?.kvks ?? []
     const cascaded = useMemo(() => {
-        const byZone = kvks.filter(
-            k => filters.zoneId === 'all' || String(k.zoneId) === filters.zoneId
-        )
-        const byState = byZone.filter(
+        const byState = kvks.filter(
             k => filters.stateId === 'all' || String(k.stateId) === filters.stateId
         )
         const byDistrict = byState.filter(
@@ -177,32 +195,40 @@ export const AnalyticsDetail: React.FC = () => {
                 filters.districtId === 'all' ||
                 String(k.districtId) === filters.districtId
         )
-        const byOrg = byDistrict.filter(
+        // Institute (org) is independent — always the full list.
+        // Host is narrowed by Institute only.
+        const byOrg = kvks.filter(
             k => filters.orgId === 'all' || String(k.orgId) === filters.orgId
         )
+        // KVK reflects the state/district/institute/host that are set.
+        const forKvk = byDistrict
+            .filter(k => filters.orgId === 'all' || String(k.orgId) === filters.orgId)
+            .filter(
+                k => filters.hostId === 'all' || String(k.hostId) === filters.hostId
+            )
         return {
-            zones: distinctBy(kvks, 'zoneId', 'zoneName'),
-            states: distinctBy(byZone, 'stateId', 'stateName'),
+            states: distinctBy(kvks, 'stateId', 'stateName'),
             districts: distinctBy(byState, 'districtId', 'districtName'),
-            orgs: distinctBy(byDistrict, 'orgId', 'orgName'),
-            kvks: distinctBy(byOrg, 'kvkId', 'kvkName'),
+            orgs: distinctBy(kvks, 'orgId', 'orgName'),
+            hosts: distinctHosts(byOrg),
+            kvks: distinctBy(forKvk, 'kvkId', 'kvkName'),
         }
     }, [kvks, filters])
 
-    /** Clearing a parent must clear its children, or the query sends a contradiction. */
+    /** Clearing a parent clears only the children that actually depend on it. */
     const update = (key: keyof Filters, value: string) => {
         setFilters(prev => {
             const next = { ...prev, [key]: value }
-            const chain: Array<keyof Filters> = [
-                'zoneId',
-                'stateId',
-                'districtId',
-                'orgId',
-                'kvkId',
-            ]
-            const idx = chain.indexOf(key)
-            if (idx >= 0) {
-                for (const child of chain.slice(idx + 1)) next[child] = 'all'
+            if (key === 'stateId') {
+                next.districtId = 'all'
+                next.kvkId = 'all'
+            } else if (key === 'districtId') {
+                next.kvkId = 'all'
+            } else if (key === 'orgId') {
+                next.hostId = 'all'
+                next.kvkId = 'all'
+            } else if (key === 'hostId') {
+                next.kvkId = 'all'
             }
             return next
         })
@@ -228,6 +254,7 @@ export const AnalyticsDetail: React.FC = () => {
             status: row.status,
             primary: row.measures.records,
             secondary: row.measures.records,
+            kvkCount: row.measures.kvkCount ?? 0,
             segments: Object.fromEntries(
                 activeBreakdown.keys.map(k => [k, row.measures[k] ?? 0])
             ),
@@ -271,7 +298,7 @@ export const AnalyticsDetail: React.FC = () => {
                         {data?.label ?? 'Analytics'} — detailed analytics
                     </h1>
                     <p className="text-sm text-[#757575] font-medium">
-                        Filter by year, zone, state, district, institute and KVK
+                        Filter by year, state, district, institute, host and KVK
                     </p>
                 </div>
                 {isFetching && (
@@ -295,12 +322,6 @@ export const AnalyticsDetail: React.FC = () => {
                             }))}
                         />
                         <FilterSelect
-                            label="Zone"
-                            value={filters.zoneId}
-                            onChange={v => update('zoneId', v)}
-                            options={cascaded.zones}
-                        />
-                        <FilterSelect
                             label="State"
                             value={filters.stateId}
                             onChange={v => update('stateId', v)}
@@ -317,6 +338,12 @@ export const AnalyticsDetail: React.FC = () => {
                             value={filters.orgId}
                             onChange={v => update('orgId', v)}
                             options={cascaded.orgs}
+                        />
+                        <FilterSelect
+                            label="Host"
+                            value={filters.hostId}
+                            onChange={v => update('hostId', v)}
+                            options={cascaded.hosts}
                         />
                         <FilterSelect
                             label="KVK"
@@ -409,6 +436,14 @@ export const AnalyticsDetail: React.FC = () => {
                         rows={rows}
                         segmentDefs={segmentDefs}
                         entityLabel={groupByLabel ?? data.groupBy}
+                        searchable
+                        kvkView={
+                            <AnalyticsKvkMatrix
+                                metric={metric as AnalyticsMetricKey}
+                                query={analyticsQuery}
+                                groupByLabel={groupByLabel ?? data.groupBy}
+                            />
+                        }
                     />
                 </div>
             )}
