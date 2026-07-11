@@ -201,13 +201,13 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Achievements',
                 path: '/forms/achievements',
                 icon: <ClipboardList className="w-4 h-4" />,
-                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'misc_poshan_maah', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure'],
+                moduleCodes: ['achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'misc_poshan_maah', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure'],
             },
             {
                 label: 'Projects',
                 path: '/forms/achievements/projects',
                 icon: <Briefcase className="w-4 h-4" />,
-                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'misc_poshan_maah', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
+                moduleCodes: ['achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'misc_poshan_maah', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
                 moduleCode: 'achievements_projects',
             },
             {
