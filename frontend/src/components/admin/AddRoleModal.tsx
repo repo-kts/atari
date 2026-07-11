@@ -9,7 +9,7 @@ export const HIERARCHY_LEVEL_OPTIONS: { value: number; label: string }[] = [
     { value: 1, label: '1 - Zone Admin' },
     { value: 2, label: '2 - State Admin' },
     { value: 3, label: '3 - District Admin' },
-    { value: 4, label: '4 - Org Admin' },
+    { value: 4, label: '4 - Institute Admin' },
     { value: 5, label: '5 - Host Admin' },
     { value: 6, label: '6 - KVK Admin' },
     { value: 7, label: '7 - KVK User' },
