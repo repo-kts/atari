@@ -49,6 +49,31 @@ export interface AnalyticsResponse {
     breakdowns: AnalyticsBreakdown[]
 }
 
+export interface AnalyticsMatrixGroup {
+    id: string
+    name: string
+}
+
+export interface AnalyticsMatrixKvk {
+    id: string
+    name: string
+    total: number
+    /** Column's share of the whole matrix, as a whole-number percent. */
+    pct: number
+}
+
+export interface AnalyticsMatrixResponse {
+    metric: AnalyticsMetricKey
+    label: string
+    groupBy: string
+    reportingYear: number | 'all'
+    groups: AnalyticsMatrixGroup[]
+    kvks: AnalyticsMatrixKvk[]
+    /** cells[groupId][kvkId] = count; missing keys mean no entries. */
+    cells: Record<string, Record<string, number>>
+    grandTotal: number
+}
+
 /** One flat row per KVK; every dropdown is derived from this list client-side. */
 export interface AnalyticsKvkOption {
     kvkId: number
@@ -61,6 +86,9 @@ export interface AnalyticsKvkOption {
     districtName: string
     orgId: number
     orgName: string
+    /** Host = universityMaster; null when the KVK has no university assigned. */
+    hostId: number | null
+    hostName: string
 }
 
 export interface AnalyticsFilterOptions {
@@ -76,6 +104,7 @@ export interface AnalyticsQuery {
     stateId?: number
     districtId?: number
     orgId?: number
+    hostId?: number
     kvkId?: number
 }
 
@@ -118,6 +147,19 @@ export const analyticsApi = {
             )
         } catch (error) {
             unwrap(error, 'Failed to load analytics')
+        }
+    },
+
+    getMatrix: async (
+        metric: AnalyticsMetricKey,
+        query: AnalyticsQuery
+    ): Promise<AnalyticsMatrixResponse> => {
+        try {
+            return await apiClient.get<AnalyticsMatrixResponse>(
+                `/admin/dashboard/analytics/${metric}/matrix${buildQueryString(query)}`
+            )
+        } catch (error) {
+            unwrap(error, 'Failed to load KVK matrix')
         }
     },
 }

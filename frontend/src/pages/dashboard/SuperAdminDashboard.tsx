@@ -270,6 +270,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     >
                         <StatChartPanel
                             title="OFT progress"
+                            showActiveToggle={false}
                             subtitle="Ongoing, completed; not started = KVK with no entries"
                             mode="pair"
                             primaryLabel="completed"
@@ -286,6 +287,7 @@ export const SuperAdminDashboard: React.FC = () => {
                         />
                         <StatChartPanel
                             title="FLD progress"
+                            showActiveToggle={false}
                             subtitle="Ongoing, completed; not started = KVK with no entries"
                             mode="pair"
                             primaryLabel="completed"
@@ -302,6 +304,7 @@ export const SuperAdminDashboard: React.FC = () => {
                         />
                         <StatChartPanel
                             title="Training"
+                            showActiveToggle={false}
                             subtitle="Ongoing, completed; not started = KVK with no entries"
                             mode="count"
                             primaryLabel="sessions"
@@ -317,6 +320,7 @@ export const SuperAdminDashboard: React.FC = () => {
                         />
                         <StatChartPanel
                             title="Extension activities"
+                            showActiveToggle={false}
                             subtitle="Ongoing, completed; not started = KVK with no entries"
                             mode="count"
                             primaryLabel="activities"

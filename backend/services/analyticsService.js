@@ -8,7 +8,7 @@ const {
     groupByKeys,
 } = require('../constants/analyticsMetrics.js');
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_TTL_SECONDS = 120;
 const FILTERS_CACHE_TTL_SECONDS = 3600;
 
@@ -138,9 +138,16 @@ async function runGroupedQuery(metricKey, groupBy, filters) {
         .map(([key, expr]) => `${expr} AS "${key}"`)
         .join(',\n           ');
 
+    // Distinct KVKs contributing a metric row to this group — powers the
+    // "which group has how much KVK data" summary. m."kvkFk" is NULL for the
+    // zero-activity rows a LEFT JOIN keeps, so COUNT(DISTINCT ...) naturally
+    // counts only KVKs that actually have data.
+    const kvkCountSql = `COUNT(DISTINCT m."${metric.kvkFk}")::int AS "kvkCount"`;
+
     const sql = `
         SELECT ${grouping.idExpr} AS "groupId",
                ${grouping.nameExpr} AS "groupName",
+               ${kvkCountSql},
                ${measureSql}
         FROM "kvk" k
         ${grouping.kind === 'geo' ? grouping.joinSql : ''}
@@ -152,6 +159,98 @@ async function runGroupedQuery(metricKey, groupBy, filters) {
     `;
 
     return prisma.$queryRawUnsafe(sql, ...params);
+}
+
+/**
+ * Same joins as runGroupedQuery, but the SELECT/GROUP BY also carries the KVK
+ * so the result is a (group × KVK) pivot — one cell per group per KVK. Powers
+ * the KVK-wise matrix that mirrors the Form Summary layout.
+ */
+async function runMatrixQuery(metricKey, groupBy, filters) {
+    const metric = METRICS[metricKey];
+    const grouping = resolveGrouping(metricKey, groupBy);
+
+    const metricPredicates = [];
+    if (metric.basePredicate) metricPredicates.push(metric.basePredicate);
+
+    const params = [];
+    const bind = (value) => {
+        params.push(value);
+        return `$${params.length}`;
+    };
+
+    if (filters.reportingYear !== 'all') {
+        const { start, endExclusive } = fiscalRange(filters.reportingYear);
+        metricPredicates.push(metric.dateWindow(bind(start), bind(endExclusive)));
+    }
+
+    const kvkPredicates = [];
+    for (const [param, column] of Object.entries(KVK_FILTERS)) {
+        const value = filters[param];
+        if (value != null) {
+            kvkPredicates.push(`k."${column}" = ${bind(value)}`);
+        }
+    }
+
+    const metricOn = [`m."${metric.kvkFk}" = k."kvk_id"`, ...metricPredicates].join(' AND ');
+    const whereSql = kvkPredicates.length ? `WHERE ${kvkPredicates.join(' AND ')}` : '';
+
+    const sql = `
+        SELECT ${grouping.idExpr} AS "groupId",
+               ${grouping.nameExpr} AS "groupName",
+               k."kvk_id" AS "kvkId",
+               COALESCE(k."kvk_name"::text, 'Unnamed') AS "kvkName",
+               COUNT(m."${metric.pk}")::int AS "count"
+        FROM "kvk" k
+        ${grouping.kind === 'geo' ? grouping.joinSql : ''}
+        ${grouping.metricJoinType} "${metric.table}" m ON ${metricOn}
+        ${grouping.kind === 'geo' ? '' : grouping.joinSql}
+        ${whereSql}
+        GROUP BY 1, 2, 3, 4
+    `;
+
+    return prisma.$queryRawUnsafe(sql, ...params);
+}
+
+/** Fold the flat (group, kvk, count) rows into groups/kvks/cells + totals. */
+function toMatrix(raw) {
+    const groupMap = new Map();
+    const kvkMap = new Map();
+    const cells = {};
+    let grandTotal = 0;
+
+    for (const row of raw) {
+        const count = Number(row.count) || 0;
+        if (count <= 0) continue; // empty cells stay implicit ("—" on the client)
+
+        const groupId = String(row.groupId);
+        const kvkId = String(row.kvkId);
+
+        groupMap.set(groupId, row.groupName);
+        const totals = kvkMap.get(kvkId) || { name: row.kvkName, total: 0 };
+        totals.total += count;
+        kvkMap.set(kvkId, totals);
+
+        (cells[groupId] || (cells[groupId] = {}))[kvkId] = count;
+        grandTotal += count;
+    }
+
+    const groups = [...groupMap.entries()]
+        .map(([id, name]) => ({ id, name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const kvks = [...kvkMap.entries()]
+        .map(([id, { name, total }]) => ({
+            id,
+            name,
+            total,
+            // Column share of the whole matrix, matching the Form Summary's
+            // per-KVK percentage.
+            pct: grandTotal > 0 ? Math.round((total / grandTotal) * 100) : 0,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    return { groups, kvks, cells, grandTotal };
 }
 
 function statusFor(records, completed) {
@@ -171,6 +270,9 @@ function toRows(metricKey, raw) {
         for (const name of measureNames) {
             measures[name] = Number(row[name]) || 0;
         }
+        // Carried alongside the registry measures; the client's KVK-wise summary
+        // reads it, but it is not a metric measure so it stays out of measureMeta.
+        measures.kvkCount = Number(row.kvkCount) || 0;
         const records = measures.records;
         // A group with no rows is "not started" — one grey bar, matching the
         // existing dashboard's notStarted convention.
@@ -222,7 +324,7 @@ const analyticsService = {
             groupBy: groupByKeys(key).map((g) => ({
                 key: g,
                 label: GEO_DIMENSIONS[g]
-                    ? { zone: 'Zone', state: 'State', district: 'District', org: 'Institute', kvk: 'KVK' }[g]
+                    ? { zone: 'Zone', state: 'State', district: 'District', org: 'Institute', host: 'Host', kvk: 'KVK' }[g]
                     : m.dimensions[g].label,
             })),
         }));
@@ -244,10 +346,12 @@ const analyticsService = {
                         stateId: true,
                         districtId: true,
                         orgId: true,
+                        universityId: true,
                         zone: { select: { zoneName: true } },
                         state: { select: { stateName: true } },
                         district: { select: { districtName: true } },
                         org: { select: { orgName: true } },
+                        university: { select: { universityName: true } },
                     },
                     orderBy: [{ kvkName: 'asc' }],
                 });
@@ -268,6 +372,9 @@ const analyticsService = {
                         districtName: k.district?.districtName ?? 'Unnamed',
                         orgId: k.orgId,
                         orgName: k.org?.orgName ?? 'Unnamed',
+                        // Host = universityMaster; nullable on kvk.
+                        hostId: k.universityId ?? null,
+                        hostName: k.university?.universityName ?? 'Unassigned',
                     })),
                     metrics: analyticsService.listMetrics(),
                 };
@@ -292,6 +399,7 @@ const analyticsService = {
             stateId: parseId(query.stateId, 'stateId'),
             districtId: parseId(query.districtId, 'districtId'),
             orgId: parseId(query.orgId, 'orgId'),
+            hostId: parseId(query.hostId, 'hostId'),
             kvkId: parseId(query.kvkId, 'kvkId'),
         };
 
@@ -311,6 +419,47 @@ const analyticsService = {
                     totals: toTotals(rows),
                     measures: metric.measureMeta,
                     breakdowns: metric.breakdowns,
+                };
+            },
+            CACHE_TTL_SECONDS
+        );
+    },
+
+    async getMetricMatrix(metricKey, query) {
+        if (!Object.prototype.hasOwnProperty.call(METRICS, metricKey)) {
+            throw new AnalyticsError(`Unknown metric: ${metricKey}`, 404);
+        }
+
+        const groupBy = String(query.groupBy || 'kvk');
+        if (!groupByKeys(metricKey).includes(groupBy)) {
+            throw new AnalyticsError(`Invalid groupBy for metric ${metricKey}`);
+        }
+
+        const filters = {
+            reportingYear: parseYear(query.reportingYear),
+            zoneId: parseId(query.zoneId, 'zoneId'),
+            stateId: parseId(query.stateId, 'stateId'),
+            districtId: parseId(query.districtId, 'districtId'),
+            orgId: parseId(query.orgId, 'orgId'),
+            hostId: parseId(query.hostId, 'hostId'),
+            kvkId: parseId(query.kvkId, 'kvkId'),
+        };
+
+        return cache.getOrSet(
+            `${cacheKey(metricKey, groupBy, filters)}:matrix`,
+            async () => {
+                const raw = await runMatrixQuery(metricKey, groupBy, filters);
+                const metric = METRICS[metricKey];
+                const { groups, kvks, cells, grandTotal } = toMatrix(raw);
+                return {
+                    metric: metricKey,
+                    label: metric.label,
+                    groupBy,
+                    reportingYear: filters.reportingYear,
+                    groups,
+                    kvks,
+                    cells,
+                    grandTotal,
                 };
             },
             CACHE_TTL_SECONDS

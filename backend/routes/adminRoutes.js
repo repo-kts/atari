@@ -38,6 +38,8 @@ router.get('/dashboard', apiRateLimiter, dashboardController.getDashboard);
 // The literal `/filters` path must be declared before the `:metric` param
 // route, or Express matches "filters" as a metric name.
 router.get('/dashboard/analytics/filters', apiRateLimiter, analyticsController.getFilterOptions);
+// The `/matrix` suffix must precede the bare `:metric` route for the same reason.
+router.get('/dashboard/analytics/:metric/matrix', apiRateLimiter, analyticsController.getMetricMatrix);
 router.get('/dashboard/analytics/:metric', apiRateLimiter, analyticsController.getMetricAnalytics);
 
 // List users (with filters) – requires VIEW
