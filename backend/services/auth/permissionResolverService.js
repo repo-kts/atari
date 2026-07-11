@@ -15,6 +15,7 @@ const USER_PROFILE_FIELDS = {
   stateId: true,
   districtId: true,
   orgId: true,
+  universityId: true,
   kvkId: true,
   deletedAt: true,
 };

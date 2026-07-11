@@ -47,6 +47,7 @@ async function authenticateToken(req, res, next) {
       stateId: user.stateId,
       districtId: user.districtId,
       orgId: user.orgId,
+      universityId: user.universityId,
       kvkId: user.kvkId,
     };
 
