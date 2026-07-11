@@ -162,6 +162,12 @@ const ROLE_PERMISSIONS = {
       actions: ['VIEW', 'ADD', 'EDIT'],
     },
   },
+  host_admin: {
+    permissions: {
+      modules: ['all_masters_university_master', 'all_masters_kvks', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_employee_details', 'achievements_technical_achievement_summary', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+      actions: ['VIEW', 'ADD', 'EDIT'],
+    },
+  },
   kvk_admin: {
     permissions: {
       modules: [

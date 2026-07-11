@@ -652,6 +652,7 @@ class AboutKvkService {
             district_user: 'districtId',
             org_admin: 'orgId',
             org_user: 'orgId',
+            host_admin: 'universityId',
         };
 
         const field = ROLE_GEO_FIELD[user.roleName];

@@ -90,6 +90,13 @@ const userManagementController = {
         }
         filters.orgId = orgId;
       }
+      if (req.query.universityId) {
+        const universityId = Number(req.query.universityId);
+        if (!Number.isInteger(universityId)) {
+          return res.status(400).json({ error: 'Invalid universityId' });
+        }
+        filters.universityId = universityId;
+      }
       if (req.query.kvkId) {
         const kvkId = Number(req.query.kvkId);
         if (!Number.isInteger(kvkId)) {
@@ -118,6 +125,7 @@ const userManagementController = {
         stateId: u.stateId,
         districtId: u.districtId,
         orgId: u.orgId,
+        universityId: u.universityId,
         kvkId: u.kvkId,
         createdAt: u.createdAt,
         lastLoginAt: u.lastLoginAt,
@@ -163,6 +171,7 @@ const userManagementController = {
         stateId: user.stateId,
         districtId: user.districtId,
         orgId: user.orgId,
+        universityId: user.universityId,
         kvkId: user.kvkId,
         createdAt: user.createdAt,
         lastLoginAt: user.lastLoginAt,

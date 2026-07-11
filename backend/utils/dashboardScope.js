@@ -6,6 +6,7 @@ const ROLE_SCOPE_KEYS = {
   district_user: 'districtId',
   org_admin: 'orgId',
   org_user: 'orgId',
+  host_admin: 'universityId',
   kvk_admin: 'kvkId',
   kvk_user: 'kvkId',
 };
@@ -105,8 +106,9 @@ function buildLoginLogWhere(actor) {
     if (actor.orgId == null) return { userId: actor.userId };
     return { orgId: actor.orgId };
   }
-  if (role === 'kvk_admin' || role === 'kvk_user') {
-    // KVK-level users see only their own activity, not the whole KVK.
+  if (role === 'host_admin' || role === 'kvk_admin' || role === 'kvk_user') {
+    // UserLoginActivity has no universityId column, and KVK-level users
+    // already see only their own activity, not the whole KVK/Host.
     return { userId: actor.userId };
   }
   if (actor.kvkId != null) {

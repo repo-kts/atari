@@ -75,6 +75,7 @@ const ROLE_LABELS: Record<string, string> = {
   state_admin: 'State Admin',
   district_admin: 'District Admin',
   org_admin: 'Org Admin',
+  host_admin: 'Host Admin',
   kvk_admin: 'KVK Admin',
   kvk_user: 'KVK User',
   state_user: 'State User',
