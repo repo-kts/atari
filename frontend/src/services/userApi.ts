@@ -75,13 +75,13 @@ const ROLE_LABELS: Record<string, string> = {
   zone_admin: 'Zone Admin',
   state_admin: 'State Admin',
   district_admin: 'District Admin',
-  org_admin: 'Org Admin',
+  org_admin: 'Institute Admin',
   host_admin: 'Host Admin',
   kvk_admin: 'KVK Admin',
   kvk_user: 'KVK User',
   state_user: 'State User',
   district_user: 'District User',
-  org_user: 'Org User',
+  org_user: 'Institute User',
 };
 
 export const getRoleLabel = (roleName: string): string =>
