@@ -36,7 +36,10 @@ const MODULES = [
   { menuName: 'About KVKs', subMenuName: 'Employee Details', moduleCode: 'about_kvks_employee_details' },
   { menuName: 'About KVKs', subMenuName: 'Staff Details', moduleCode: 'about_kvks_staff_details' },
   { menuName: 'About KVKs', subMenuName: 'Infrastructure Details', moduleCode: 'about_kvks_infrastructure_details' },
+  { menuName: 'About KVKs', subMenuName: 'Land Details', moduleCode: 'about_kvks_land_details' },
+  { menuName: 'About KVKs', subMenuName: 'View Vehicles', moduleCode: 'about_kvks_view_vehicles' },
   { menuName: 'About KVKs', subMenuName: 'Vehicle Details', moduleCode: 'about_kvks_vehicle_details' },
+  { menuName: 'About KVKs', subMenuName: 'View Equipments', moduleCode: 'about_kvks_view_equipments' },
   { menuName: 'About KVKs', subMenuName: 'Equipment Details', moduleCode: 'about_kvks_equipment_details' },
   { menuName: 'Achievements', subMenuName: 'Technical Achievement Summary', moduleCode: 'achievements_technical_achievement_summary' },
   { menuName: 'Achievements', subMenuName: 'OFT', moduleCode: 'achievements_oft' },
@@ -49,16 +52,34 @@ const MODULES = [
   { menuName: 'Achievements', subMenuName: 'Technology Week Celebration', moduleCode: 'achievements_technology_week_celebration' },
   { menuName: 'Achievements', subMenuName: 'Celebration days', moduleCode: 'achievements_celebration_days' },
   { menuName: 'Achievements', subMenuName: 'Production and supply of Technological products', moduleCode: 'achievements_production_supply_tech_products' },
-  { menuName: 'Achievements', subMenuName: 'Soil and Water Testing', moduleCode: 'achievements_soil_water_testing' },
+  { menuName: 'Achievements', subMenuName: 'Soil, Water and Plant analysis', moduleCode: 'achievements_soil_water_testing' },
+  { menuName: 'Achievements', subMenuName: 'World Soil Day', moduleCode: 'achievements_world_soil_day' },
   { menuName: 'Achievements', subMenuName: 'Projects', moduleCode: 'achievements_projects' },
   { menuName: 'Achievements', subMenuName: 'Publications', moduleCode: 'achievements_publications' },
-  { menuName: 'Achievements', subMenuName: 'Award and Recognition', moduleCode: 'achievements_award_recognition' },
+  { menuName: 'Achievements', subMenuName: 'Awards (KVK)', moduleCode: 'achievements_award_recognition' },
+  { menuName: 'Achievements', subMenuName: 'Scientist Award', moduleCode: 'achievements_award_scientist' },
+  { menuName: 'Achievements', subMenuName: 'Farmer Award', moduleCode: 'achievements_award_farmer' },
   { menuName: 'Achievements', subMenuName: 'Human Resource Development', moduleCode: 'achievements_hrd' },
-  { menuName: 'Performance Indicators', subMenuName: 'Impact', moduleCode: 'performance_indicators_impact' },
-  { menuName: 'Performance Indicators', subMenuName: 'District and Village Performance', moduleCode: 'performance_indicators_district_village' },
-  { menuName: 'Performance Indicators', subMenuName: 'Infrastructure Performance', moduleCode: 'performance_indicators_infrastructure' },
-  { menuName: 'Performance Indicators', subMenuName: 'Financial Performance', moduleCode: 'performance_indicators_financial' },
-  { menuName: 'Performance Indicators', subMenuName: 'Linkages', moduleCode: 'performance_indicators_linkages' },
+  { menuName: 'Performance Indicators', subMenuName: 'Impact of KVK activities', moduleCode: 'performance_indicators_impact' },
+  { menuName: 'Performance Indicators', subMenuName: 'Entrepreneurship', moduleCode: 'performance_indicators_entrepreneurship' },
+  { menuName: 'Performance Indicators', subMenuName: 'Success Stories', moduleCode: 'performance_indicators_success_stories' },
+  { menuName: 'Performance Indicators', subMenuName: 'District Level Data', moduleCode: 'performance_indicators_district_level_data' },
+  { menuName: 'Performance Indicators', subMenuName: 'Operational Area Details', moduleCode: 'performance_indicators_operational_area' },
+  { menuName: 'Performance Indicators', subMenuName: 'Village Adoption Programme', moduleCode: 'performance_indicators_village_adoption' },
+  { menuName: 'Performance Indicators', subMenuName: 'Priority Thrust Area', moduleCode: 'performance_indicators_priority_thrust_area' },
+  { menuName: 'Performance Indicators', subMenuName: 'Demonstration Units', moduleCode: 'performance_indicators_demonstration_units' },
+  { menuName: 'Performance Indicators', subMenuName: 'Instructional Farm (crops)', moduleCode: 'performance_indicators_instructional_farm_crops' },
+  { menuName: 'Performance Indicators', subMenuName: 'Production Units', moduleCode: 'performance_indicators_production_units' },
+  { menuName: 'Performance Indicators', subMenuName: 'Instructional Farm (livestock)', moduleCode: 'performance_indicators_instructional_farm_livestock' },
+  { menuName: 'Performance Indicators', subMenuName: 'Hostel Facilities', moduleCode: 'performance_indicators_hostel_facilities' },
+  { menuName: 'Performance Indicators', subMenuName: 'Staff Quarters', moduleCode: 'performance_indicators_staff_quarters' },
+  { menuName: 'Performance Indicators', subMenuName: 'Rain Water Harvesting', moduleCode: 'performance_indicators_rainwater_harvesting' },
+  { menuName: 'Performance Indicators', subMenuName: 'Budget Details', moduleCode: 'performance_indicators_budget_details' },
+  { menuName: 'Performance Indicators', subMenuName: 'Project-wise Budget', moduleCode: 'performance_indicators_project_budget' },
+  { menuName: 'Performance Indicators', subMenuName: 'Revolving Fund Status', moduleCode: 'performance_indicators_revolving_fund' },
+  { menuName: 'Performance Indicators', subMenuName: 'Revenue generation', moduleCode: 'performance_indicators_revenue_generation' },
+  { menuName: 'Performance Indicators', subMenuName: 'Resource Generation', moduleCode: 'performance_indicators_resource_generation' },
+  { menuName: 'Performance Indicators', subMenuName: 'Functional Linkage', moduleCode: 'performance_indicators_linkages' },
   { menuName: 'Miscellaneous Information', subMenuName: 'Prevalent Diseases in Crops', moduleCode: 'misc_prevalent_diseases_crops' },
   { menuName: 'Miscellaneous Information', subMenuName: 'Prevalent Diseases in Livestock', moduleCode: 'misc_prevalent_diseases_livestock' },
   { menuName: 'Miscellaneous Information', subMenuName: 'Nehru Yuva Kendra (NYK) Training', moduleCode: 'misc_nyk_training' },
@@ -114,19 +135,30 @@ const MODULES = [
   { menuName: 'User Scope', subMenuName: 'User Actions', moduleCode: 'USER_SCOPE' },
 ];
 
+// The 20 granular Performance Indicator pages (replaces the old 5 umbrella
+// codes — each page now gets its own permission row, matching how every
+// other Form Management section already works).
+const PI_MODULE_CODES = [
+  'performance_indicators_impact', 'performance_indicators_entrepreneurship', 'performance_indicators_success_stories',
+  'performance_indicators_district_level_data', 'performance_indicators_operational_area', 'performance_indicators_village_adoption', 'performance_indicators_priority_thrust_area',
+  'performance_indicators_demonstration_units', 'performance_indicators_instructional_farm_crops', 'performance_indicators_production_units', 'performance_indicators_instructional_farm_livestock', 'performance_indicators_hostel_facilities', 'performance_indicators_staff_quarters', 'performance_indicators_rainwater_harvesting',
+  'performance_indicators_budget_details', 'performance_indicators_project_budget', 'performance_indicators_revolving_fund', 'performance_indicators_revenue_generation', 'performance_indicators_resource_generation',
+  'performance_indicators_linkages',
+];
+
 // Shared modules for _user roles (ceiling pattern). kvk_user gets these; other _user roles get these + 'reports'.
 const BASE_USER_MODULES = [
   'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details',
-  'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details',
-  'about_kvks_equipment_details',
+  'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_land_details',
+  'about_kvks_view_vehicles', 'about_kvks_vehicle_details',
+  'about_kvks_view_equipments', 'about_kvks_equipment_details',
   'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld',
   'achievements_fld_extension_training', 'achievements_fld_technical_feedback',
   'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities',
   'achievements_technology_week_celebration', 'achievements_celebration_days',
-  'achievements_production_supply_tech_products', 'achievements_soil_water_testing',
-  'achievements_projects', 'achievements_publications', 'achievements_award_recognition',
-  'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure',
-  'performance_indicators_financial', 'performance_indicators_linkages',
+  'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_world_soil_day',
+  'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_award_scientist', 'achievements_award_farmer',
+  'achievements_hrd', ...PI_MODULE_CODES,
   'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training',
   'misc_poshan_maah', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors',
   'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory',
@@ -138,29 +170,46 @@ const USER_ACTIONS = PERMISSION_ACTIONS;
 
 const ROLE_PERMISSIONS = {
   super_admin: { permissions: 'ALL' },
+  // zone/state/district/org admin: PI access today is VIEW-only in practice
+  // (performanceXRoutes.js gate GET behind `allRoles` but POST/PUT/DELETE
+  // behind kvk-only + super_admin — never behind this permissions config).
+  // Split into a full-CRUD block for what they actually manage, plus a
+  // VIEW-only block for PI so requirePermission matches real current access.
   zone_admin: {
-    permissions: {
-      modules: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'role_management_roles', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
-      actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
-    },
+    permissions: [
+      {
+        modules: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'role_management_roles', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_land_details', 'about_kvks_view_vehicles', 'about_kvks_vehicle_details', 'about_kvks_view_equipments', 'about_kvks_equipment_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+        actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
+      },
+      { modules: [...PI_MODULE_CODES], actions: ['VIEW'] },
+    ],
   },
   state_admin: {
-    permissions: {
-      modules: ['all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'performance_indicators_impact', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
-      actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
-    },
+    permissions: [
+      {
+        modules: ['all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+        actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
+      },
+      { modules: [...PI_MODULE_CODES], actions: ['VIEW'] },
+    ],
   },
   district_admin: {
-    permissions: {
-      modules: ['all_masters_districts_master', 'all_masters_kvks', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_employee_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
-      actions: ['VIEW', 'ADD', 'EDIT'],
-    },
+    permissions: [
+      {
+        modules: ['all_masters_districts_master', 'all_masters_kvks', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_employee_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+        actions: ['VIEW', 'ADD', 'EDIT'],
+      },
+      { modules: [...PI_MODULE_CODES], actions: ['VIEW'] },
+    ],
   },
   org_admin: {
-    permissions: {
-      modules: ['all_masters_organization_master', 'all_masters_kvks', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_employee_details', 'achievements_technical_achievement_summary', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
-      actions: ['VIEW', 'ADD', 'EDIT'],
-    },
+    permissions: [
+      {
+        modules: ['all_masters_organization_master', 'all_masters_kvks', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_employee_details', 'achievements_technical_achievement_summary', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+        actions: ['VIEW', 'ADD', 'EDIT'],
+      },
+      { modules: [...PI_MODULE_CODES], actions: ['VIEW'] },
+    ],
   },
   host_admin: {
     permissions: {
@@ -180,7 +229,7 @@ const ROLE_PERMISSIONS = {
         'all_masters_soil_water_analysis_master', 'all_masters_nari_activity_master', 'all_masters_nari_garden_type_master', 'all_masters_nicra_master',
         'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master',
         'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'all_masters_financial_project_master', 'all_masters_funding_agency_master',
-        'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_poshan_maah', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'
+        'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_land_details', 'about_kvks_view_vehicles', 'about_kvks_vehicle_details', 'about_kvks_view_equipments', 'about_kvks_equipment_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_world_soil_day', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_award_scientist', 'achievements_award_farmer', 'achievements_hrd', ...PI_MODULE_CODES, 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_poshan_maah', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'
       ],
       actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
     },
@@ -223,12 +272,20 @@ async function run() {
 
   // Step 1: Create modules
   console.log('   Creating modules...');
-  let createdModules = 0, createdPermissions = 0;
-  for (const { menuName, subMenuName, moduleCode } of MODULES) {
+  let createdModules = 0, createdPermissions = 0, reorderedModules = 0;
+  for (const [sortOrder, { menuName, subMenuName, moduleCode }] of MODULES.entries()) {
     let module = await prisma.module.findUnique({ where: { moduleCode } });
     if (!module) {
-      module = await prisma.module.create({ data: { menuName, subMenuName, moduleCode } });
+      module = await prisma.module.create({ data: { menuName, subMenuName, moduleCode, sortOrder } });
       createdModules++;
+    } else if (module.sortOrder !== sortOrder || module.menuName !== menuName || module.subMenuName !== subMenuName) {
+      // Keep display order AND label text in sync with this file even for
+      // modules created (possibly much) earlier — sortOrder reflects catalog
+      // position, not insertion time, so a re-run always realigns both with
+      // MODULES above (e.g. renaming a subMenuName here now actually takes
+      // effect on re-seed instead of only affecting brand-new rows).
+      module = await prisma.module.update({ where: { moduleId: module.moduleId }, data: { sortOrder, menuName, subMenuName } });
+      reorderedModules++;
     }
     // Create permissions for this module
     for (const action of PERMISSION_ACTIONS) {
@@ -239,7 +296,7 @@ async function run() {
       }
     }
   }
-  console.log(`   ✅ ${createdModules} new modules, ${createdPermissions} new permissions\n`);
+  console.log(`   ✅ ${createdModules} new modules, ${reorderedModules} reordered, ${createdPermissions} new permissions\n`);
 
   // Step 2: Assign permissions to roles
   console.log('   Assigning permissions to roles...');
@@ -261,24 +318,33 @@ async function run() {
       const all = await prisma.permission.findMany({ select: { permissionId: true } });
       permissionIds = all.map((p) => p.permissionId);
     } else {
-      // Get module IDs for the specified module codes
-      const moduleIds = config.permissions.modules
-        .map(code => moduleCodeToIdMap.get(code))
-        .filter(id => id !== undefined);
+      // `permissions` is either a single { modules, actions } block (legacy
+      // shorthand — every listed module gets the same action set) or an array
+      // of such blocks, letting a role get e.g. VIEW-only on one set of
+      // modules and full CRUD on another (mirrors what the old per-route
+      // requireRole([...]) hardcoded lists actually enforced — GET open to
+      // more roles than POST/PUT/DELETE).
+      const blocks = Array.isArray(config.permissions) ? config.permissions : [config.permissions];
+      const permissionIdSet = new Set();
 
-      if (moduleIds.length === 0) {
-        console.log(`   ⚠️  No matching modules found for ${roleName}, skipping`);
-        continue;
+      for (const block of blocks) {
+        const moduleIds = block.modules
+          .map(code => moduleCodeToIdMap.get(code))
+          .filter(id => id !== undefined);
+
+        if (moduleIds.length === 0) continue;
+
+        const perms = await prisma.permission.findMany({
+          where: {
+            moduleId: { in: moduleIds },
+            action: { in: block.actions },
+          },
+          select: { permissionId: true },
+        });
+        perms.forEach((p) => permissionIdSet.add(p.permissionId));
       }
 
-      const perms = await prisma.permission.findMany({
-        where: {
-          moduleId: { in: moduleIds },
-          action: { in: config.permissions.actions },
-        },
-        select: { permissionId: true },
-      });
-      permissionIds = perms.map((p) => p.permissionId);
+      permissionIds = [...permissionIdSet];
     }
 
     if (permissionIds.length === 0) {

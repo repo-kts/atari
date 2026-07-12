@@ -4,18 +4,15 @@ const kvkImpactActivityRepository = require('../../repositories/forms/kvkImpactA
 const entrepreneurshipRepository = require('../../repositories/forms/entrepreneurshipRepository.js');
 const successStoryRepository = require('../../repositories/forms/successStoryRepository.js');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
-const { authenticateToken, requireRole } = require('../../middleware/auth.js');
+const { authenticateToken, requirePermission } = require('../../middleware/auth.js');
 const { sendFormRouteError } = require('../../utils/errorHandler.js');
 
 // All routes require authentication
 router.use(authenticateToken);
 
-// Role groups
-const kvkRoles = ['kvk_admin', 'kvk_user'];
-const allRoles = [...kvkRoles, 'super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'];
 
 // 1. Impact of KVK Activities
-router.get('/kvk-activities', requireRole(allRoles), async (req, res) => {
+router.get('/kvk-activities', requirePermission('performance_indicators_impact', 'VIEW'), async (req, res) => {
     try {
         const data = await kvkImpactActivityRepository.findAll(req.query, req.user);
         res.json(data);
@@ -24,7 +21,7 @@ router.get('/kvk-activities', requireRole(allRoles), async (req, res) => {
     }
 });
 
-router.post('/kvk-activities', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
+router.post('/kvk-activities', requirePermission('performance_indicators_impact', 'ADD'), async (req, res) => {
     try {
         const data = await kvkImpactActivityRepository.create(req.body, req.user);
         await reportCacheInvalidationService.invalidateDataSourceForKvk('kvkImpactActivity', data?.kvkId || req.user?.kvkId);
@@ -43,10 +40,10 @@ const updateKvkActivities = async (req, res) => {
         sendFormRouteError(res, error);
     }
 };
-router.put('/kvk-activities/:id', requireRole([...kvkRoles, 'super_admin']), updateKvkActivities);
-router.patch('/kvk-activities/:id', requireRole([...kvkRoles, 'super_admin']), updateKvkActivities);
+router.put('/kvk-activities/:id', requirePermission('performance_indicators_impact', 'EDIT'), updateKvkActivities);
+router.patch('/kvk-activities/:id', requirePermission('performance_indicators_impact', 'EDIT'), updateKvkActivities);
 
-router.delete('/kvk-activities/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
+router.delete('/kvk-activities/:id', requirePermission('performance_indicators_impact', 'DELETE'), async (req, res) => {
     try {
         const existing = await kvkImpactActivityRepository.findById(req.params.id, req.user);
         await kvkImpactActivityRepository.delete(req.params.id, req.user);
@@ -58,7 +55,7 @@ router.delete('/kvk-activities/:id', requireRole([...kvkRoles, 'super_admin']), 
 });
 
 // 2. Entrepreneurship
-router.get('/entrepreneurship', requireRole(allRoles), async (req, res) => {
+router.get('/entrepreneurship', requirePermission('performance_indicators_entrepreneurship', 'VIEW'), async (req, res) => {
     try {
         const data = await entrepreneurshipRepository.findAll(req.query, req.user);
         res.json(data);
@@ -67,7 +64,7 @@ router.get('/entrepreneurship', requireRole(allRoles), async (req, res) => {
     }
 });
 
-router.post('/entrepreneurship', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
+router.post('/entrepreneurship', requirePermission('performance_indicators_entrepreneurship', 'ADD'), async (req, res) => {
     try {
         const data = await entrepreneurshipRepository.create(req.body, req.user);
         await reportCacheInvalidationService.invalidateDataSourceForKvk('entrepreneurship', data?.kvkId || req.user?.kvkId);
@@ -86,10 +83,10 @@ const updateEntrepreneurship = async (req, res) => {
         sendFormRouteError(res, error);
     }
 };
-router.put('/entrepreneurship/:id', requireRole([...kvkRoles, 'super_admin']), updateEntrepreneurship);
-router.patch('/entrepreneurship/:id', requireRole([...kvkRoles, 'super_admin']), updateEntrepreneurship);
+router.put('/entrepreneurship/:id', requirePermission('performance_indicators_entrepreneurship', 'EDIT'), updateEntrepreneurship);
+router.patch('/entrepreneurship/:id', requirePermission('performance_indicators_entrepreneurship', 'EDIT'), updateEntrepreneurship);
 
-router.delete('/entrepreneurship/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
+router.delete('/entrepreneurship/:id', requirePermission('performance_indicators_entrepreneurship', 'DELETE'), async (req, res) => {
     try {
         const existing = await entrepreneurshipRepository.findById(req.params.id, req.user);
         await entrepreneurshipRepository.delete(req.params.id, req.user);
@@ -101,7 +98,7 @@ router.delete('/entrepreneurship/:id', requireRole([...kvkRoles, 'super_admin'])
 });
 
 // 3. Success Stories
-router.get('/success-stories', requireRole(allRoles), async (req, res) => {
+router.get('/success-stories', requirePermission('performance_indicators_success_stories', 'VIEW'), async (req, res) => {
     try {
         const data = await successStoryRepository.findAll(req.query, req.user);
         res.json(data);
@@ -110,7 +107,7 @@ router.get('/success-stories', requireRole(allRoles), async (req, res) => {
     }
 });
 
-router.post('/success-stories', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
+router.post('/success-stories', requirePermission('performance_indicators_success_stories', 'ADD'), async (req, res) => {
     try {
         const data = await successStoryRepository.create(req.body, req.user);
         await reportCacheInvalidationService.invalidateDataSourceForKvk('successStory', data?.kvkId || req.user?.kvkId);
@@ -129,10 +126,10 @@ const updateSuccessStories = async (req, res) => {
         sendFormRouteError(res, error);
     }
 };
-router.put('/success-stories/:id', requireRole([...kvkRoles, 'super_admin']), updateSuccessStories);
-router.patch('/success-stories/:id', requireRole([...kvkRoles, 'super_admin']), updateSuccessStories);
+router.put('/success-stories/:id', requirePermission('performance_indicators_success_stories', 'EDIT'), updateSuccessStories);
+router.patch('/success-stories/:id', requirePermission('performance_indicators_success_stories', 'EDIT'), updateSuccessStories);
 
-router.delete('/success-stories/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
+router.delete('/success-stories/:id', requirePermission('performance_indicators_success_stories', 'DELETE'), async (req, res) => {
     try {
         const existing = await successStoryRepository.findById(req.params.id, req.user);
         await successStoryRepository.delete(req.params.id, req.user);

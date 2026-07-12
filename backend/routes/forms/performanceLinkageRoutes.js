@@ -1,18 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const functionalLinkageRepository = require('../../repositories/forms/functionalLinkageRepository.js');
-const { authenticateToken, requireRole } = require('../../middleware/auth.js');
+const { authenticateToken, requirePermission } = require('../../middleware/auth.js');
 
 // All routes require authentication
 router.use(authenticateToken);
 
-// Role groups
-const kvkRoles = ['kvk_admin', 'kvk_user'];
-const allRoles = [...kvkRoles, 'super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'];
-
 // Helper for route generation
-const createRoutes = (path, repository) => {
-    router.get(`/${path}`, requireRole(allRoles), async (req, res) => {
+const createRoutes = (path, repository, moduleCode) => {
+    router.get(`/${path}`, requirePermission(moduleCode, 'VIEW'), async (req, res) => {
         try {
             const data = await repository.findAll(req.query, req.user);
             res.json(data);
@@ -21,7 +17,7 @@ const createRoutes = (path, repository) => {
         }
     });
 
-    router.post(`/${path}`, requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
+    router.post(`/${path}`, requirePermission(moduleCode, 'ADD'), async (req, res) => {
         try {
             const data = await repository.create(req.body, req.user);
             res.status(201).json(data);
@@ -38,10 +34,10 @@ const createRoutes = (path, repository) => {
             res.status(500).json({ message: error.message });
         }
     };
-    router.put(`/${path}/:id`, requireRole([...kvkRoles, 'super_admin']), updateHandler);
-    router.patch(`/${path}/:id`, requireRole([...kvkRoles, 'super_admin']), updateHandler);
+    router.put(`/${path}/:id`, requirePermission(moduleCode, 'EDIT'), updateHandler);
+    router.patch(`/${path}/:id`, requirePermission(moduleCode, 'EDIT'), updateHandler);
 
-    router.delete(`/${path}/:id`, requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
+    router.delete(`/${path}/:id`, requirePermission(moduleCode, 'DELETE'), async (req, res) => {
         try {
             await repository.delete(req.params.id, req.user);
             res.json({ message: 'Deleted successfully' });
@@ -52,6 +48,6 @@ const createRoutes = (path, repository) => {
 };
 
 // 1. Functional Linkage
-createRoutes('functional-linkages', functionalLinkageRepository);
+createRoutes('functional-linkages', functionalLinkageRepository, 'performance_indicators_linkages');
 
 module.exports = router;

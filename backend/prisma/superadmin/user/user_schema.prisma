@@ -17,6 +17,10 @@ model Module {
   menuName    String       @map("menu_name")
   subMenuName String       @map("sub_menu_name")
   moduleCode  String       @unique @map("module_code")
+  // Position in the MODULES catalog (scripts/permissions.js) — drives display
+  // order in the Role Permissions UI. Not the same as moduleId/insertion time,
+  // since modules added later in real time can still belong earlier logically.
+  sortOrder   Int          @default(0) @map("sort_order")
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
   moduleImages ModuleImage[]

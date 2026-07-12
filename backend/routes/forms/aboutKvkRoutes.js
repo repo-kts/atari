@@ -66,24 +66,24 @@ router.put('/infrastructure/:id', requirePermission('about_kvks_infrastructure_d
 router.delete('/infrastructure/:id', requirePermission('about_kvks_infrastructure_details', 'DELETE'), aboutKvkController.deleteKvkInfrastructure);
 
 // ============================================
-// KVK Land Details Routes  (moduleCode: about_kvks_infrastructure_details)
+// KVK Land Details Routes  (moduleCode: about_kvks_land_details)
 // ============================================
 
-router.get('/land-details', requirePermission('about_kvks_infrastructure_details', 'VIEW'), aboutKvkController.getAllKvkLandDetails);
-router.get('/land-details/:id', requirePermission('about_kvks_infrastructure_details', 'VIEW'), aboutKvkController.getKvkLandDetailById);
-router.post('/land-details', requirePermission('about_kvks_infrastructure_details', 'ADD'), aboutKvkController.createKvkLandDetail);
-router.put('/land-details/:id', requirePermission('about_kvks_infrastructure_details', 'EDIT'), aboutKvkController.updateKvkLandDetail);
-router.delete('/land-details/:id', requirePermission('about_kvks_infrastructure_details', 'DELETE'), aboutKvkController.deleteKvkLandDetail);
+router.get('/land-details', requirePermission('about_kvks_land_details', 'VIEW'), aboutKvkController.getAllKvkLandDetails);
+router.get('/land-details/:id', requirePermission('about_kvks_land_details', 'VIEW'), aboutKvkController.getKvkLandDetailById);
+router.post('/land-details', requirePermission('about_kvks_land_details', 'ADD'), aboutKvkController.createKvkLandDetail);
+router.put('/land-details/:id', requirePermission('about_kvks_land_details', 'EDIT'), aboutKvkController.updateKvkLandDetail);
+router.delete('/land-details/:id', requirePermission('about_kvks_land_details', 'DELETE'), aboutKvkController.deleteKvkLandDetail);
 
 // ============================================
-// KVK Vehicle Routes  (moduleCode: about_kvks_vehicle_details)
+// KVK Vehicle Routes  (moduleCode: about_kvks_view_vehicles)
 // ============================================
 
-router.get('/vehicles', requirePermission('about_kvks_vehicle_details', 'VIEW'), aboutKvkController.getAllKvkVehicles);
-router.get('/vehicles/:id', requirePermission('about_kvks_vehicle_details', 'VIEW'), aboutKvkController.getKvkVehicleById);
-router.post('/vehicles', requirePermission('about_kvks_vehicle_details', 'ADD'), aboutKvkController.createKvkVehicle);
-router.put('/vehicles/:id', requirePermission('about_kvks_vehicle_details', 'EDIT'), aboutKvkController.updateKvkVehicle);
-router.delete('/vehicles/:id', requirePermission('about_kvks_vehicle_details', 'DELETE'), aboutKvkController.deleteKvkVehicle);
+router.get('/vehicles', requirePermission('about_kvks_view_vehicles', 'VIEW'), aboutKvkController.getAllKvkVehicles);
+router.get('/vehicles/:id', requirePermission('about_kvks_view_vehicles', 'VIEW'), aboutKvkController.getKvkVehicleById);
+router.post('/vehicles', requirePermission('about_kvks_view_vehicles', 'ADD'), aboutKvkController.createKvkVehicle);
+router.put('/vehicles/:id', requirePermission('about_kvks_view_vehicles', 'EDIT'), aboutKvkController.updateKvkVehicle);
+router.delete('/vehicles/:id', requirePermission('about_kvks_view_vehicles', 'DELETE'), aboutKvkController.deleteKvkVehicle);
 
 // Alias routes (vehicle-details)
 router.get('/vehicle-details', requirePermission('about_kvks_vehicle_details', 'VIEW'), aboutKvkController.getAllKvkVehicleDetails);
@@ -93,14 +93,14 @@ router.put('/vehicle-details/:id', requirePermission('about_kvks_vehicle_details
 router.delete('/vehicle-details/:id', requirePermission('about_kvks_vehicle_details', 'DELETE'), aboutKvkController.deleteKvkVehicleDetails);
 
 // ============================================
-// KVK Equipment Routes  (moduleCode: about_kvks_equipment_details)
+// KVK Equipment Routes  (moduleCode: about_kvks_view_equipments)
 // ============================================
 
-router.get('/equipments', requirePermission('about_kvks_equipment_details', 'VIEW'), aboutKvkController.getAllKvkEquipments);
-router.get('/equipments/:id', requirePermission('about_kvks_equipment_details', 'VIEW'), aboutKvkController.getKvkEquipmentById);
-router.post('/equipments', requirePermission('about_kvks_equipment_details', 'ADD'), aboutKvkController.createKvkEquipment);
-router.put('/equipments/:id', requirePermission('about_kvks_equipment_details', 'EDIT'), aboutKvkController.updateKvkEquipment);
-router.delete('/equipments/:id', requirePermission('about_kvks_equipment_details', 'DELETE'), aboutKvkController.deleteKvkEquipment);
+router.get('/equipments', requirePermission('about_kvks_view_equipments', 'VIEW'), aboutKvkController.getAllKvkEquipments);
+router.get('/equipments/:id', requirePermission('about_kvks_view_equipments', 'VIEW'), aboutKvkController.getKvkEquipmentById);
+router.post('/equipments', requirePermission('about_kvks_view_equipments', 'ADD'), aboutKvkController.createKvkEquipment);
+router.put('/equipments/:id', requirePermission('about_kvks_view_equipments', 'EDIT'), aboutKvkController.updateKvkEquipment);
+router.delete('/equipments/:id', requirePermission('about_kvks_view_equipments', 'DELETE'), aboutKvkController.deleteKvkEquipment);
 
 // Alias routes (equipment-details)
 router.get('/equipment-details', requirePermission('about_kvks_equipment_details', 'VIEW'), aboutKvkController.getAllKvkEquipmentDetails);

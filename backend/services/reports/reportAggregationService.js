@@ -17,6 +17,15 @@ class ReportAggregationService {
         const roleName = user.role?.roleName || user.roleName;
         const roleLevel = getRoleLevel(roleName);
 
+        // The read-only "_user" roles (kvk_user, state_user, district_user,
+        // org_user) sit at distinct hierarchy levels (7/8/9/10) from their
+        // "_admin" counterparts (6/2/3/4), but should see the exact same
+        // report scope — locked to their own zone/state/district/org, same as
+        // the admin. Normalize to the admin-equivalent level for this branch
+        // only; `scope.roleLevel` below still reports the user's real level.
+        const VIEWER_TO_ADMIN_LEVEL = { 7: 6, 8: 2, 9: 3, 10: 4 };
+        const effectiveLevel = VIEWER_TO_ADMIN_LEVEL[roleLevel] ?? roleLevel;
+
         const scope = {
             role: roleName,
             roleLevel,
@@ -33,8 +42,8 @@ class ReportAggregationService {
             availableKvks: [],
         };
 
-        // KVK Admin - can only access their KVK
-        if (roleLevel === 6) {
+        // KVK Admin (and KVK User) - can only access their KVK
+        if (effectiveLevel === 6) {
             scope.canSelectKvks = false;
             scope.defaultKvkId = user.kvkId;
             if (user.kvkId) {
@@ -52,8 +61,8 @@ class ReportAggregationService {
             return scope;
         }
 
-        // Organization Admin - can select KVKs in their org
-        if (roleLevel === 4) {
+        // Organization Admin (and Org User) - can select KVKs in their org
+        if (effectiveLevel === 4) {
             scope.canSelectKvks = true;
             if (user.orgId) {
                 scope.availableKvks = await this._getKvksByOrg(user.orgId);
@@ -61,8 +70,8 @@ class ReportAggregationService {
             return scope;
         }
 
-        // District Admin - can select orgs and KVKs in their district
-        if (roleLevel === 3) {
+        // District Admin (and District User) - can select orgs and KVKs in their district
+        if (effectiveLevel === 3) {
             scope.canSelectOrgs = true;
             scope.canSelectKvks = true;
             if (user.districtId) {
@@ -72,8 +81,8 @@ class ReportAggregationService {
             return scope;
         }
 
-        // State Admin - can select districts, orgs, and KVKs in their state
-        if (roleLevel === 2) {
+        // State Admin (and State User) - can select districts, orgs, and KVKs in their state
+        if (effectiveLevel === 2) {
             scope.canSelectDistricts = true;
             scope.canSelectOrgs = true;
             scope.canSelectKvks = true;

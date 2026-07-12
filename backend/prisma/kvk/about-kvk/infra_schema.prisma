@@ -11,6 +11,7 @@ model KvkInfrastructure {
   plinthAreaSqM        Float                   @default(0) @map("plinth_area_sqm")
   underUse             Boolean                 @map("under_use")
   sourceOfFunding      String                  @map("source_of_funding")
+  fundingAgencyName    String?                 @map("funding_agency_name")
   createdAt            DateTime                @default(now()) @map("created_at")
   updatedAt            DateTime                @updatedAt @map("updated_at")
   infraMaster          KvkInfrastructureMaster @relation(fields: [infraMasterId], references: [infraMasterId])

@@ -42,7 +42,7 @@ const STAFF_ALLOWED_KEYS = [
 
 const INFRASTRUCTURE_ALLOWED_KEYS = [
     'kvkId', 'infraMasterId', 'specifyName', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel',
-    'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding',
+    'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding', 'fundingAgencyName',
 ] as const;
 
 const VEHICLE_ALLOWED_KEYS = [
@@ -50,7 +50,7 @@ const VEHICLE_ALLOWED_KEYS = [
 ] as const;
 
 const VEHICLE_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'assetFundingSourceId', 'assetFundingSourceOther', 'vehicleStatusId',
+    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'assetFundingSourceId', 'assetFundingSourceOther', 'fundingAgencyName', 'vehicleStatusId',
 ] as const;
 
 const EQUIPMENT_ALLOWED_KEYS = [
@@ -58,7 +58,7 @@ const EQUIPMENT_ALLOWED_KEYS = [
 ] as const;
 
 const EQUIPMENT_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'equipmentId', 'reportingYear', 'assetFundingSourceId', 'assetFundingSourceOther', 'equipmentStatusId',
+    'kvkId', 'equipmentId', 'reportingYear', 'assetFundingSourceId', 'assetFundingSourceOther', 'fundingAgencyName', 'equipmentStatusId',
 ] as const;
 
 const LAND_DETAIL_ALLOWED_KEYS = [

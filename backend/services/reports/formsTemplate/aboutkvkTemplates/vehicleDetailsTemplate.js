@@ -46,6 +46,7 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection, r
                 <th>Present status</th>
                 <th>Repairing Cost</th>
                 <th>Funding Source</th>
+                <th>Funding Agency</th>
             </tr>
         </thead>
         <tbody>`
@@ -75,6 +76,7 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection, r
         const presentStatus = this._pickValue(row, ['Present status', 'presentStatus', 'vehicleStatus.statusLabel']) || '-'
         const repairingCost = dash(this._pickValue(row, ['Repairing Cost', 'repairingCost']))
         const fundingSource = this._pickValue(row, ['Funding Source', 'sourceOfFunding', 'assetFundingSource.name']) || '-'
+        const fundingAgency = this._pickValue(row, ['Funding Agency', 'fundingAgencyName']) || '-'
 
         html += `
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
@@ -89,6 +91,7 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection, r
                 <td>${this._escapeHtml(String(presentStatus))}</td>
                 <td>${this._escapeHtml(String(repairingCost))}</td>
                 <td>${this._escapeHtml(String(fundingSource))}</td>
+                <td>${this._escapeHtml(String(fundingAgency))}</td>
             </tr>`
     })
 

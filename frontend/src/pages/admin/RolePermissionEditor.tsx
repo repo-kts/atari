@@ -9,7 +9,7 @@ import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
 
-/** Display order of menus to match the design (Role Permissions UI) */
+/** Display order of menus, mirroring the sidebar's Form Management order exactly */
 const MENU_DISPLAY_ORDER = [
     'Form Summary',
     'All Masters',
@@ -18,16 +18,28 @@ const MENU_DISPLAY_ORDER = [
     'About KVKs',
     'Achievements',
     'Performance Indicators',
-    'Miscellaneous Information',
-    'Digital Information',
-    'Swachh Bharat Abhiyaan',
     'Meetings',
+    'Miscellaneous Information',
     'Module Images',
     'Targets',
     'Log History',
     'Notifications',
     'Reports',
 ]
+
+/**
+ * The sidebar visually nests these menus inside a parent (Swachh Bharat
+ * Abhiyaan's forms live under "Achievements", Digital Information's forms
+ * live under "Miscellaneous Information" — see Sidebar.tsx). The backend's
+ * permission catalog tags them with their own distinct menuName, so fold them
+ * into their sidebar parent here for display grouping only.
+ */
+const MENU_GROUP_ALIAS: Record<string, string> = {
+    'Swachh Bharat Abhiyaan': 'Achievements',
+    'Digital Information': 'Miscellaneous Information',
+}
+
+const displayMenuName = (menuName: string): string => MENU_GROUP_ALIAS[menuName] || menuName
 
 /** Checkbox that supports the indeterminate state (not natively supported by React) */
 const IndeterminateCheckbox: React.FC<
@@ -96,27 +108,25 @@ export const RolePermissionEditor: React.FC = () => {
         })
     }
 
-    // Filter out USER_SCOPE (internal module) and sort by design order
+    // Filter out USER_SCOPE (internal module) and sort by design order. Within
+    // a menu group, the API already returns modules in catalog declaration
+    // order (see rolePermissionRepository.js) which mirrors the sidebar's tile
+    // order — so this only needs a stable sort on the top-level group index.
     const orderedModules = useMemo(() => {
         if (!data?.modules) return []
         const list = data.modules.filter((m) => m.moduleCode !== 'USER_SCOPE')
         const orderIndex = (name: string) => {
-            const i = MENU_DISPLAY_ORDER.indexOf(name)
+            const i = MENU_DISPLAY_ORDER.indexOf(displayMenuName(name))
             return i === -1 ? MENU_DISPLAY_ORDER.length : i
         }
-        return [...list].sort((a, b) => {
-            const i = orderIndex(a.menuName)
-            const j = orderIndex(b.menuName)
-            if (i !== j) return i - j
-            return a.subMenuName.localeCompare(b.subMenuName)
-        })
+        return [...list].sort((a, b) => orderIndex(a.menuName) - orderIndex(b.menuName))
     }, [data?.modules])
 
-    // Group by menu in display order
+    // Group by menu in display order (folding aliased menus into their sidebar parent)
     const menuEntries = useMemo(() => {
         return MENU_DISPLAY_ORDER.map((menuName) => [
             menuName,
-            orderedModules.filter((m) => m.menuName === menuName),
+            orderedModules.filter((m) => displayMenuName(m.menuName) === menuName),
         ]).filter(([, mods]) => mods.length > 0) as [string, ModuleWithPermissions[]][]
     }, [orderedModules])
 

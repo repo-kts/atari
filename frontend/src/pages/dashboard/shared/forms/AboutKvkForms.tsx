@@ -726,6 +726,12 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
                             options={fundingSourceNameOptions}
                         />
+                        <FormInput
+                            label="Funding Agency Name"
+                            value={formData.fundingAgencyName ?? ''}
+                            onChange={(e) => setFormData({ ...formData, fundingAgencyName: e.target.value })}
+                            placeholder="Enter funding agency name"
+                        />
                     </div>
                 </div>
             )}
@@ -930,6 +936,13 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 disabled={!formData.reportingYear}
                             />
                         )}
+                        <FormInput
+                            label="Funding Agency Name"
+                            value={formData.fundingAgencyName ?? ''}
+                            onChange={(e) => setFormData({ ...formData, fundingAgencyName: e.target.value })}
+                            placeholder="Enter funding agency name"
+                            disabled={!formData.reportingYear}
+                        />
                     </div>
                 </div>
             )}
@@ -1001,6 +1014,12 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, assetFundingSourceOther: e.target.value })}
                         />
                     )}
+                    <FormInput
+                        label="Funding Agency Name"
+                        value={formData.fundingAgencyName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, fundingAgencyName: e.target.value })}
+                        placeholder="Enter funding agency name"
+                    />
                 </div>
             )}
 

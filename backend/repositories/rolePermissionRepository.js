@@ -96,7 +96,9 @@ const rolePermissionRepository = {
           orderBy: { action: 'asc' },
         },
       },
-      orderBy: [{ menuName: 'asc' }, { subMenuName: 'asc' }],
+      // Preserve the module catalog's declaration order (permissions.js) rather
+      // than alphabetizing — that order already mirrors the sidebar/tile order.
+      orderBy: { sortOrder: 'asc' },
     });
 
     // Get which permissions this role has

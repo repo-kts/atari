@@ -64,6 +64,7 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection,
                 <th>Year of purchase</th>
                 <th>Cost (Rs.)</th>
                 <th>Source of fund</th>
+                <th>Funding Agency</th>
                 <th>Present status</th>
             </tr>
         </thead>
@@ -76,6 +77,7 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection,
         const yearOfPurchase = normalizeDisplay(this._pickValue(row, ['Year of purchase', 'yearOfPurchase', 'equipment.yearOfPurchase']));
         const cost = normalizeDisplay(this._pickValue(row, ['Cost (Rs.)', 'totalCost', 'equipment.totalCost']));
         const sourceOfFund = normalizeDisplay(this._pickValue(row, ['Source of fund', 'sourceOfFunding', 'assetFundingSource.name', 'equipment.assetFundingSource.name']));
+        const fundingAgency = normalizeDisplay(this._pickValue(row, ['Funding Agency', 'fundingAgencyName']));
         const presentStatus = normalizeDisplay(this._pickValue(row, ['Present status', 'presentStatus', 'equipmentStatus.statusLabel']));
 
         html += `
@@ -87,6 +89,7 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection,
                 <td>${this._escapeHtml(yearOfPurchase)}</td>
                 <td>${this._escapeHtml(cost)}</td>
                 <td>${this._escapeHtml(sourceOfFund)}</td>
+                <td>${this._escapeHtml(fundingAgency)}</td>
                 <td>${this._escapeHtml(presentStatus)}</td>
             </tr>`;
     });

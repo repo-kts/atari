@@ -96,7 +96,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         siblings: ROUTE_SIBLING_GROUPS.ABOUT_KVK_INFRASTRUCTURE,
         fields: FIELD_GROUPS.LAND_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
-        moduleCode: 'about_kvks_infrastructure_details',
+        moduleCode: 'about_kvks_land_details',
     },
 
     // Vehicles - siblings
@@ -113,7 +113,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: FIELD_GROUPS.VIEW_VEHICLES,
         canCreate: ['kvk_admin', 'kvk_user'],
-        moduleCode: 'about_kvks_vehicle_details',
+        moduleCode: 'about_kvks_view_vehicles',
     },
     {
         path: ENTITY_PATHS.KVK_VEHICLE_DETAILS,
@@ -144,7 +144,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: FIELD_GROUPS.VIEW_EQUIPMENTS,
         canCreate: ['kvk_admin', 'kvk_user'],
-        moduleCode: 'about_kvks_equipment_details',
+        moduleCode: 'about_kvks_view_equipments',
     },
     {
         path: ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,

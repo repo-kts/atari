@@ -1,4 +1,5 @@
 const exportHelper = require('../utils/exportHelper.js');
+const { getCompactDateTime } = exportHelper;
 const reportTemplateService = require('../services/reports/reportTemplateService.js');
 const reportExcelService = require('../services/reports/reportExcelService.js');
 const reportWordService = require('../services/reports/reportWordService.js');
@@ -367,7 +368,7 @@ const exportData = async (req, res) => {
 
         let buffer;
         let contentType;
-        let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}`;
+        let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${getCompactDateTime()}`;
 
         let effectiveRawData = rawData;
         if (templateKey === 'about-kvk-view' && rawData) {

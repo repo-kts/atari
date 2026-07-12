@@ -423,6 +423,7 @@ async function _buildOftCreateData(data, kvkId) {
         disciplineOther: sanitizeString(safeGet(data, 'disciplineOther'), { allowEmpty: true }) || null,
         sourceOfFundingId,
         sourceOfFundingOther: sanitizeString(safeGet(data, 'sourceOfFundingOther'), { allowEmpty: true }) || null,
+        fundingAgencyName: sanitizeString(safeGet(data, 'fundingAgencyName'), { allowEmpty: true }) || null,
         unit,
         title: sanitizeString(safeGet(data, 'title'), { allowEmpty: true }) || '',
         problemDiagnosed: sanitizeString(safeGet(data, 'problemDiagnosed'), { allowEmpty: true }) || '',
@@ -469,6 +470,7 @@ async function _buildOftUpdateData(data, existing) {
     if (data.disciplineOther !== undefined) updateData.disciplineOther = sanitizeString(data.disciplineOther, { allowEmpty: true }) || null;
     if (data.sourceOfFundingId !== undefined) updateData.sourceOfFundingId = sanitizeInteger(data.sourceOfFundingId);
     if (data.sourceOfFundingOther !== undefined) updateData.sourceOfFundingOther = sanitizeString(data.sourceOfFundingOther, { allowEmpty: true }) || null;
+    if (data.fundingAgencyName !== undefined) updateData.fundingAgencyName = sanitizeString(data.fundingAgencyName, { allowEmpty: true }) || null;
     if (data.unit !== undefined) updateData.unit = sanitizeString(data.unit, { allowEmpty: true }) || null;
     if (data.title !== undefined) updateData.title = sanitizeString(data.title, { allowEmpty: true }) || '';
     if (data.problemDiagnosed !== undefined) updateData.problemDiagnosed = sanitizeString(data.problemDiagnosed, { allowEmpty: true }) || '';
@@ -540,6 +542,7 @@ function _mapOftResponse(r) {
         sourceOfFundingId: r.sourceOfFundingId,
         sourceOfFundingName: r.sourceOfFundingOther || (r.sourceOfFunding ? r.sourceOfFunding.name : undefined),
         sourceOfFundingOther: r.sourceOfFundingOther ?? '',
+        fundingAgencyName: r.fundingAgencyName ?? '',
         title: r.title,
         problemDiagnosed: r.problemDiagnosed,
         sourceOfTechnology: r.sourceOfTechnology,

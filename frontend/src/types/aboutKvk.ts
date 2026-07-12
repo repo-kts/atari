@@ -139,6 +139,7 @@ export interface KvkInfrastructure {
     plinthAreaSqM: number;
     underUse: boolean;
     sourceOfFunding: string;
+    fundingAgencyName?: string | null;
     createdAt?: string;
     updatedAt?: string;
     kvk?: { kvkId: number; kvkName: string };
