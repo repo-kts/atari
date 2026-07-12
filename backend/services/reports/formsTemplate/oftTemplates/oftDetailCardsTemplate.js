@@ -168,6 +168,7 @@ function _renderCard(record, cardNumber, base = '2.2') {
         ['OFT End on', this._escapeHtml(_formatMonthYear(record.oftEndDate))],
         ['Critical Input', esc(record.criticalInput)],
         ['Cost of OFT', esc(record.costOfOft)],
+        ['Funding Agency', esc(record.fundingAgencyName)],
     ];
 
     html += `

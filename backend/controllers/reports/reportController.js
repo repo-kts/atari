@@ -1,6 +1,7 @@
 const reportService = require('../../services/reports/reportService.js');
 const reportAggregationService = require('../../services/reports/reportAggregationService.js');
 const { normalizeReportKvkId } = require('../../utils/reportKvkId.js');
+const { getCompactDateTime, getReportScopeFilenamePrefix } = require('../../utils/exportHelper.js');
 
 /**
  * Resolve KVK id for single-KVK report endpoints.
@@ -79,7 +80,7 @@ const generateKvkReport = async (req, res) => {
                 filters: filters || {},
                 generatedBy,
             });
-            const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.xlsx`;
+            const fileName = `kvk-report-${getCompactDateTime()}.xlsx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
             res.setHeader('Content-Length', result.excelBuffer.length);
@@ -93,7 +94,7 @@ const generateKvkReport = async (req, res) => {
                 filters: filters || {},
                 generatedBy,
             });
-            const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.docx`;
+            const fileName = `kvk-report-${getCompactDateTime()}.docx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
             res.setHeader('Content-Length', result.wordBuffer.length);
@@ -106,7 +107,7 @@ const generateKvkReport = async (req, res) => {
             filters: filters || {},
             generatedBy,
         });
-        const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.pdf`;
+        const fileName = `kvk-report-${getCompactDateTime()}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
         res.setHeader('Content-Length', result.pdfBuffer.length);
@@ -249,7 +250,7 @@ const generateAggregatedReport = async (req, res) => {
                 filters: filters || {},
                 generatedBy,
             });
-            const fileName = `Aggregated_Report_${Date.now()}.xlsx`;
+            const fileName = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.xlsx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
             res.setHeader('Content-Length', result.excelBuffer.length);
@@ -263,7 +264,7 @@ const generateAggregatedReport = async (req, res) => {
                 filters: filters || {},
                 generatedBy,
             });
-            const fileName = `Aggregated_Report_${Date.now()}.docx`;
+            const fileName = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.docx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
             res.setHeader('Content-Length', result.wordBuffer.length);
@@ -276,7 +277,7 @@ const generateAggregatedReport = async (req, res) => {
             filters: filters || {},
             generatedBy,
         });
-        const fileName = `Aggregated_Report_${Date.now()}.pdf`;
+        const fileName = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
         res.setHeader('Content-Length', result.pdfBuffer.length);
@@ -419,7 +420,7 @@ const generateKvkReportUpdated = async (req, res) => {
         });
 
         // Set response headers for PDF download
-        const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.pdf`;
+        const fileName = `kvk-report-${getCompactDateTime()}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
         res.setHeader('Content-Length', result.pdfBuffer.length);

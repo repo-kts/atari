@@ -15,6 +15,7 @@ import type { ReportFilters } from '../../types/reports';
 import type { ReportScope } from '../../types/reportScope';
 import { useToast } from '@/hooks/useToast';
 import { useLayoutUI } from '@/contexts/LayoutUIContext';
+import { getCompactDateTime, getReportScopeFilenamePrefix } from '@/utils/exportUtils';
 
 const DEFAULT_LEFT_PANEL_PERCENT = 50;
 const SPLIT_DIVIDER_WIDTH_PX = 12;
@@ -332,13 +333,8 @@ export const KvkReportPage: React.FC = () => {
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                const fname =
-                    format === 'excel'
-                        ? `Aggregated_Report_${Date.now()}.xlsx`
-                        : format === 'docx'
-                        ? `Aggregated_Report_${Date.now()}.docx`
-                        : `Aggregated_Report_${Date.now()}.pdf`;
-                link.download = fname;
+                const ext = format === 'excel' ? 'xlsx' : format === 'docx' ? 'docx' : 'pdf';
+                link.download = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.${ext}`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -346,12 +342,8 @@ export const KvkReportPage: React.FC = () => {
             } else {
                 const kvkId = user?.kvkId || undefined;
                 request.kvkId = kvkId;
-                const fname =
-                    format === 'excel'
-                        ? `KVK_Report_${kvkId || 'All'}_${Date.now()}R.xlsx`
-                        : format === 'docx'
-                        ? `KVK_Report_${kvkId || 'All'}_${Date.now()}.docx`
-                        : `KVK_Report_${kvkId || 'All'}_${Date.now()}.pdf`;
+                const ext = format === 'excel' ? 'xlsx' : format === 'docx' ? 'docx' : 'pdf';
+                const fname = `kvk-report-${getCompactDateTime()}.${ext}`;
                 await reportApi.downloadReport(request, fname, format);
             }
             toast({ title: 'Success', message: 'Download started.', variant: 'success', autoCloseDelay: 1500 });

@@ -874,6 +874,7 @@ const KVK_INFRA_ALLOWED_FIELDS = [
     'plinthAreaSqM',
     'underUse',
     'sourceOfFunding',
+    'fundingAgencyName',
 ];
 
 function keepOnlyAllowedFields(payload, allowedFields) {
@@ -1124,6 +1125,9 @@ function sanitizeData(entityName, data) {
         if (sanitized.sourceOfFunding !== undefined) {
             sanitized.sourceOfFunding = sanitizeString(safeGet(data, 'sourceOfFunding'), { allowEmpty: false });
         }
+        if (sanitized.fundingAgencyName !== undefined) {
+            sanitized.fundingAgencyName = sanitizeString(safeGet(data, 'fundingAgencyName'), { allowEmpty: true });
+        }
         if (sanitized.specifyName !== undefined) {
             // Only meaningful when infrastructure is "Others"; store trimmed/null.
             const v = sanitizeString(safeGet(data, 'specifyName'), { allowEmpty: true });
@@ -1144,6 +1148,7 @@ function sanitizeData(entityName, data) {
             'repairingCost',
             'assetFundingSourceId',
             'assetFundingSourceOther',
+            'fundingAgencyName',
             'vehicleStatusId',
         ];
 
@@ -1161,6 +1166,7 @@ function sanitizeData(entityName, data) {
             'reportingYear',
             'assetFundingSourceId',
             'assetFundingSourceOther',
+            'fundingAgencyName',
             'equipmentStatusId',
         ];
 
@@ -1294,6 +1300,7 @@ async function create(entityName, data) {
                 ? sanitizeInteger(sanitizedData.assetFundingSourceId)
                 : null,
             assetFundingSourceOther: sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true }),
+            fundingAgencyName: sanitizeString(sanitizedData.fundingAgencyName, { allowEmpty: true }),
             vehicleStatusId: sanitizeInteger(sanitizedData.vehicleStatusId),
         };
 
@@ -1314,6 +1321,7 @@ async function create(entityName, data) {
                 ? sanitizeInteger(sanitizedData.assetFundingSourceId)
                 : null,
             assetFundingSourceOther: sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true }),
+            fundingAgencyName: sanitizeString(sanitizedData.fundingAgencyName, { allowEmpty: true }),
             equipmentStatusId: sanitizeInteger(sanitizedData.equipmentStatusId),
         };
 
@@ -1441,6 +1449,9 @@ async function update(entityName, id, data) {
         if (sanitizedData.assetFundingSourceOther !== undefined) {
             finalUpdateData.assetFundingSourceOther = sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true });
         }
+        if (sanitizedData.fundingAgencyName !== undefined) {
+            finalUpdateData.fundingAgencyName = sanitizeString(sanitizedData.fundingAgencyName, { allowEmpty: true });
+        }
         if (sanitizedData.vehicleStatusId !== undefined) finalUpdateData.vehicleStatusId = sanitizeInteger(sanitizedData.vehicleStatusId);
 
         return executePrismaWrite(entityName, 'update', async () => {
@@ -1468,6 +1479,9 @@ async function update(entityName, id, data) {
         }
         if (sanitizedData.assetFundingSourceOther !== undefined) {
             finalUpdateData.assetFundingSourceOther = sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true });
+        }
+        if (sanitizedData.fundingAgencyName !== undefined) {
+            finalUpdateData.fundingAgencyName = sanitizeString(sanitizedData.fundingAgencyName, { allowEmpty: true });
         }
         if (sanitizedData.equipmentStatusId !== undefined) finalUpdateData.equipmentStatusId = sanitizeInteger(sanitizedData.equipmentStatusId);
 

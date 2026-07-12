@@ -88,10 +88,39 @@ export function downloadFile(
 }
 
 /**
- * Generate filename from title
+ * Compact "YYYYMMDDHHmm" timestamp (no separators) for filenames, e.g. 202607120857
+ */
+export function getCompactDateTime(): string {
+    const now = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`
+}
+
+/**
+ * Generate filename from title: "<form-name>-<currentDateTime>.<extension>"
  */
 export function generateFilename(title: string, extension: string): string {
-    return `${title.toLowerCase().replace(/\s+/g, '-')}.${extension}`
+    return `${title.toLowerCase().replace(/\s+/g, '-')}-${getCompactDateTime()}.${extension}`
+}
+
+/**
+ * Resolve the most-specific selected scope level to a filename prefix
+ * (mirrors the KVK > Org > District > State > Zone precedence used to
+ * label aggregated reports elsewhere in the app).
+ */
+export function getReportScopeFilenamePrefix(scope?: {
+    zoneIds?: number[]
+    stateIds?: number[]
+    districtIds?: number[]
+    orgIds?: number[]
+    kvkIds?: number[]
+} | null): string {
+    if (scope?.kvkIds?.length) return 'kvk-report'
+    if (scope?.orgIds?.length) return 'org-report'
+    if (scope?.districtIds?.length) return 'district-report'
+    if (scope?.stateIds?.length) return 'state-report'
+    if (scope?.zoneIds?.length) return 'zone-report'
+    return 'all-kvk-report'
 }
 
 /**

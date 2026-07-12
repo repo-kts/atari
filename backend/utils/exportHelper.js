@@ -30,9 +30,49 @@ const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, Bord
 const { reportConfig } = require('../config/reportConfig.js');
 
 /**
+ * Builds a unique "ATARI-YYYYMMDDHHMISS" serial so office staff can tell two
+ * PDF exports apart even if generated seconds apart.
+ * @returns {string}
+ */
+function generatePdfSerialNumber() {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`
+        + `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    return `ATARI-${stamp}`;
+}
+
+/**
+ * Compact "YYYYMMDDHHMI" timestamp (no separators) for download filenames,
+ * e.g. 202607120857.
+ * @returns {string}
+ */
+function getCompactDateTime() {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
+}
+
+/**
+ * Resolve the most-specific populated scope level to a filename prefix
+ * (KVK > Org > District > State > Zone, matching reportService's report-type
+ * precedence), for aggregated report downloads.
+ * @param {{ zoneIds?: number[], stateIds?: number[], districtIds?: number[], orgIds?: number[], kvkIds?: number[] }} [scope]
+ * @returns {string}
+ */
+function getReportScopeFilenamePrefix(scope) {
+    if (scope?.kvkIds?.length) return 'kvk-report';
+    if (scope?.orgIds?.length) return 'org-report';
+    if (scope?.districtIds?.length) return 'district-report';
+    if (scope?.stateIds?.length) return 'state-report';
+    if (scope?.zoneIds?.length) return 'zone-report';
+    return 'all-kvk-report';
+}
+
+/**
  * Generates a PDF buffer from HTML using Puppeteer
  * Optimized for serverless environments (Vercel, AWS Lambda)
- * @param {string} html 
+ * @param {string} html
  * @returns {Promise<Buffer>}
  */
 async function generatePDF(html, options = {}) {
@@ -73,13 +113,24 @@ async function generatePDF(html, options = {}) {
 
     try {
         const page = await browser.newPage();
-        
+
         // Log HTML size for debugging
         if (html) {
             console.log(`Generating PDF for HTML of size: ${Math.round(html.length / 1024)} KB`);
         }
 
-        await page.setContent(html, {
+        // Unique per-generation serial so office staff can tell two PDFs apart
+        // even if the content is otherwise identical. PDF-only by construction —
+        // Excel/Word exports never call this function. Stamped directly into the
+        // HTML (not Puppeteer's headerTemplate, which repeats on every page) as
+        // the first element in <body>, so it falls on page 1 only.
+        const serialNumber = generatePdfSerialNumber();
+        const serialStampHtml = `<div style="position:absolute; top:4mm; right:6mm; font-size:8px; color:#444444; font-family: Arial, Helvetica, sans-serif; z-index:9999;">${serialNumber}</div>`;
+        const htmlWithSerial = /<body[^>]*>/i.test(html)
+            ? html.replace(/<body([^>]*)>/i, (match, attrs) => `<body${attrs}>${serialStampHtml}`)
+            : `${serialStampHtml}${html || ''}`;
+
+        await page.setContent(htmlWithSerial, {
             waitUntil: 'domcontentloaded',
             timeout: 60000 // Increased timeout for larger content
         });
@@ -300,5 +351,7 @@ async function generateWord(title, headers, rows, options = {}) {
 module.exports = {
     generatePDF,
     generateExcel,
-    generateWord
+    generateWord,
+    getCompactDateTime,
+    getReportScopeFilenamePrefix
 };

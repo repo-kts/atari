@@ -7,6 +7,7 @@ import type {
     ReportApiResponse,
 } from '../types/reports';
 import type { ScopeOption, ScopeOptions } from '../types/reportScope';
+import { getCompactDateTime } from '../utils/exportUtils';
 
 /**
  * Report API Service
@@ -62,12 +63,8 @@ class ReportApiService {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            const defaultName =
-                format === 'excel'
-                    ? `KVK_Report_${Date.now()}.xlsx`
-                    : format === 'docx'
-                    ? `KVK_Report_${Date.now()}.docx`
-                    : `KVK_Report_${Date.now()}.pdf`;
+            const ext = format === 'excel' ? 'xlsx' : format === 'docx' ? 'docx' : 'pdf';
+            const defaultName = `kvk-report-${getCompactDateTime()}.${ext}`;
             link.download = fileName || defaultName;
             document.body.appendChild(link);
             link.click();

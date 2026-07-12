@@ -646,6 +646,13 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
             {entityType === ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS && (
                 <div className="space-y-3">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <FormSelect
+                            label="Whether Staff Quarters are available"
+                            required
+                            value={formData.isCompleted ?? ''}
+                            onChange={handleFieldChange('isCompleted')}
+                            options={YES_NO_OPTIONS}
+                        />
                         <FormInput
                             label="Date of Completion"
                             required
@@ -654,13 +661,6 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             onChange={handleDateChange('dateOfCompletion')}
                         />
 
-                        <FormSelect
-                            label="Whether Staff Quarters have been Completed"
-                            required
-                            value={formData.isCompleted ?? ''}
-                            onChange={handleFieldChange('isCompleted')}
-                            options={YES_NO_OPTIONS}
-                        />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

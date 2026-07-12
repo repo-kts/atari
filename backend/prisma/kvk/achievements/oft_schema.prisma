@@ -47,6 +47,7 @@ model Kvkoft {
   disciplineOther          String?              @map("discipline_other")
   sourceOfFundingId        Int?                 @map("source_of_funding_id")
   sourceOfFundingOther     String?              @map("source_of_funding_other")
+  fundingAgencyName        String?              @map("funding_agency_name")
   unit                     String?              @map("unit")
   title                    String               @map("title_of_oft")
   problemDiagnosed         String               @map("problem_diagnosed")

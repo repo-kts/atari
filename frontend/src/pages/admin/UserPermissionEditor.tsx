@@ -16,16 +16,28 @@ const MENU_DISPLAY_ORDER = [
     'About KVKs',
     'Achievements',
     'Performance Indicators',
-    'Miscellaneous Information',
-    'Digital Information',
-    'Swachh Bharat Abhiyaan',
     'Meetings',
+    'Miscellaneous Information',
     'Module Images',
     'Targets',
     'Log History',
     'Notifications',
     'Reports',
 ]
+
+/**
+ * The sidebar visually nests these menus inside a parent (Swachh Bharat
+ * Abhiyaan's forms live under "Achievements", Digital Information's forms
+ * live under "Miscellaneous Information" — see Sidebar.tsx). The backend's
+ * permission catalog tags them with their own distinct menuName, so fold them
+ * into their sidebar parent here for display grouping only.
+ */
+const MENU_GROUP_ALIAS: Record<string, string> = {
+    'Swachh Bharat Abhiyaan': 'Achievements',
+    'Digital Information': 'Miscellaneous Information',
+}
+
+const displayMenuName = (menuName: string): string => MENU_GROUP_ALIAS[menuName] || menuName
 
 const IndeterminateCheckbox: React.FC<
     React.InputHTMLAttributes<HTMLInputElement> & { indeterminate?: boolean }
@@ -97,29 +109,30 @@ export const UserPermissionEditor: React.FC = () => {
         })
     }
 
+    // Within a menu group, the API already returns modules in catalog
+    // declaration order (see rolePermissionRepository.js) which mirrors the
+    // sidebar's tile order — so this only needs a stable sort on the
+    // top-level group index (aliased menus fold into their sidebar parent).
     const orderedModules = useMemo(() => {
         if (!data?.modules) return []
         const orderIndex = (name: string) => {
-            const i = MENU_DISPLAY_ORDER.indexOf(name)
+            const i = MENU_DISPLAY_ORDER.indexOf(displayMenuName(name))
             return i === -1 ? MENU_DISPLAY_ORDER.length : i
         }
-        return [...data.modules].sort((a, b) => {
-            const i = orderIndex(a.menuName)
-            const j = orderIndex(b.menuName)
-            if (i !== j) return i - j
-            return a.subMenuName.localeCompare(b.subMenuName)
-        })
+        return [...data.modules].sort((a, b) => orderIndex(a.menuName) - orderIndex(b.menuName))
     }, [data?.modules])
 
     const menuEntries = useMemo(() => {
-        // Group by actual menus present in the payload so an unknown menu
-        // (e.g. one added to the backend but not yet listed in
-        // MENU_DISPLAY_ORDER) is appended at the end instead of dropped.
+        // Group by actual menus present in the payload (folding aliased menus
+        // into their sidebar parent) so an unknown menu (e.g. one added to
+        // the backend but not yet listed in MENU_DISPLAY_ORDER) is appended
+        // at the end instead of dropped.
         const groups = new Map<string, UserModuleWithPermissions[]>()
         for (const mod of orderedModules) {
-            const arr = groups.get(mod.menuName) ?? []
+            const key = displayMenuName(mod.menuName)
+            const arr = groups.get(key) ?? []
             arr.push(mod)
-            groups.set(mod.menuName, arr)
+            groups.set(key, arr)
         }
         return Array.from(groups.entries()) as [string, UserModuleWithPermissions[]][]
     }, [orderedModules])

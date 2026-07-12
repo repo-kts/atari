@@ -49,11 +49,8 @@ const createTechnologyOption = () => ({
 
 const OFT_UNIT_OPTIONS: Array<{ value: string; label: string }> = [
     { value: 'ha', label: 'ha' },
-    { value: 'Number', label: 'Number' },
-    { value: 'Acre', label: 'Acre' },
     { value: 'Kg', label: 'Kg' },
-    { value: 'Quintal', label: 'Quintal' },
-    { value: 'Ton', label: 'Ton' },
+    { value: 'Number', label: 'Number' },
     { value: 'Litre', label: 'Litre' },
 ]
 
@@ -952,6 +949,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, sourceOfFundingOther: e.target.value })}
                             />
                         )}
+                        <FormInput
+                            label="Funding Agency Name"
+                            value={formData.fundingAgencyName ?? ''}
+                            onChange={(e) => setFormData({ ...formData, fundingAgencyName: e.target.value })}
+                            placeholder="Enter funding agency name"
+                        />
                         <FormInput
                             label="Production system and thematic area"
                             required
