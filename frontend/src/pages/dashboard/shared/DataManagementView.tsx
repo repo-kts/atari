@@ -24,6 +24,7 @@ import {
     type ColumnFilters,
 } from '@/components/common/DataTable/columnFilterUtils'
 import { isFilterActive as isColumnFilterActive } from '@/components/common/DataTable/ColumnFilter'
+import { formatHeaderLabel } from '@/utils/exportUtils'
 import { SearchInput } from '@/components/common/SearchInput'
 import { LoadingState } from '@/components/common/LoadingState'
 // import { ErrorState } from '@/components/common/ErrorState'
@@ -704,6 +705,18 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const { totalPages, safePage, startIndex, endIndex, paginatedData } =
         paginationData
+
+    // Human-readable names of the filters currently narrowing the dataset,
+    // shown next to the "Total items with selected filters" pill.
+    const activeFilterNames = useMemo(() => {
+        const names: string[] = []
+        if (debouncedSearch.trim()) names.push('Search')
+        if (reportingYearFrom || reportingYearTo) names.push('Reporting Year')
+        Object.entries(columnFilters).forEach(([field, state]) => {
+            if (isColumnFilterActive(state)) names.push(formatHeaderLabel(field))
+        })
+        return names
+    }, [debouncedSearch, reportingYearFrom, reportingYearTo, columnFilters])
 
     const handleEdit = (item: any) => {
         handleEditItem({
@@ -2771,6 +2784,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         endIndex={endIndex}
                                         totalItems={useServerPaging && serverPagination ? serverPagination.total : columnFilteredData.length}
                                         grandTotal={useServerPaging && serverPagination ? serverPagination.total : dedupedBaseItems.length}
+                                        activeFilterNames={activeFilterNames}
                                         onPageChange={setCurrentPage}
                                     />
                                 </>
