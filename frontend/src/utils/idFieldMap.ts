@@ -68,6 +68,7 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK]: 'nicraSeedBankFodderBankId',
     [ENTITY_TYPES.NICRA_DIGNITARY_TYPE]: 'nicraDignitaryTypeId',
     [ENTITY_TYPES.NICRA_PI_TYPE]: 'nicraPiTypeId',
+    [ENTITY_TYPES.DIGNITARY_TYPE]: 'dignitaryTypeId',
     [ENTITY_TYPES.FINANCIAL_PROJECT]: 'financialProjectId',
 
     // Training, Extension & Events
