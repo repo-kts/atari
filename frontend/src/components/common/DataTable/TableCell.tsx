@@ -152,6 +152,11 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
     // Default: text value
     if (typeof value === 'string' || typeof value === 'number') {
         const full = String(value)
+        // Backend sometimes serializes missing values as the literal strings
+        // "null"/"undefined" — render a dash instead of showing them raw.
+        if (['null', 'undefined'].includes(full.trim().toLowerCase())) {
+            return <span>-</span>
+        }
         const short = truncateText(full, 30)
         return <span title={full}>{short || '-'}</span>
     }

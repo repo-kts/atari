@@ -469,6 +469,14 @@ const cfldBudgetUtilizationRepository = {
                 where.kvkId = parseInt(filters.kvkId, 10);
             }
 
+            // This model stores the reporting year as `reportingYearDate`
+            // (month-level DateTime) + `year` (Int) — there is no `reportingYear`
+            // column, so DON'T pass reportingYear:true (it would make Prisma
+            // orderBy reference a non-existent field). Order the real column at
+            // the DB level; sortFormListRows regroups by YEAR in memory.
+            const orderBy = buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'budgetId' });
+            orderBy.unshift({ reportingYearDate: 'desc' });
+
             const results = await prisma.kvkBudgetUtilization.findMany({
                 where,
                 include: {
@@ -481,8 +489,10 @@ const cfldBudgetUtilizationRepository = {
                         }
                     }
                 },
-                orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', createdAt: true, tiebreak: 'budgetId' })
+                orderBy
             });
+            // sortFormListRows sorts on `reportingYear`; expose it from reportingYearDate.
+            for (const row of results) row.reportingYear = row.reportingYearDate;
             sortFormListRows(results, user, { tiebreak: 'budgetId' });
             return results.map(_mapResponse);
         } catch (error) {

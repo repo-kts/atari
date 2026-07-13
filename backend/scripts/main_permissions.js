@@ -85,6 +85,7 @@ const MODULES = [
   { menuName: 'All Masters', subMenuName: 'Discipline Master', moduleCode: 'all_masters_discipline_master' },
   { menuName: 'All Masters', subMenuName: 'Crop Type Master', moduleCode: 'all_masters_crop_type_master' },
   { menuName: 'All Masters', subMenuName: 'Infrastructure Master', moduleCode: 'all_masters_infrastructure_master' },
+  { menuName: 'All Masters', subMenuName: 'CFLD Budget Item Master', moduleCode: 'all_masters_budget_item_master' },
   { menuName: 'All Masters', subMenuName: 'NARI Activity Master', moduleCode: 'all_masters_nari_activity_master' },
   { menuName: 'All Masters', subMenuName: 'NARI Nutrition Garden Type Master', moduleCode: 'all_masters_nari_garden_type_master' },
   { menuName: 'All Masters', subMenuName: 'NICRA Master', moduleCode: 'all_masters_nicra_master' },

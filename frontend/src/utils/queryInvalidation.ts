@@ -400,6 +400,7 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.CROP_TYPE]: ['crop-types'],
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: ['infrastructure-masters'],
     [ENTITY_TYPES.LAND_ITEM_MASTER]: ['land-item-masters'],
+    [ENTITY_TYPES.BUDGET_ITEM_MASTER]: ['budget-items'],
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: ['soil-water-analyses', 'soil-water-analysis-masters'],
     [ENTITY_TYPES.VEHICLE_PRESENT_STATUS]: ['vehicle-present-statuses'],
     [ENTITY_TYPES.EQUIPMENT_PRESENT_STATUS]: ['equipment-present-statuses'],

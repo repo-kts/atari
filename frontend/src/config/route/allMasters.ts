@@ -617,6 +617,17 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_infrastructure_master',
     },
     {
+        path: ENTITY_PATHS.BUDGET_ITEM_MASTER,
+        title: 'CFLD Budget Item Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: MASTER_SIBLING_GROUPS.PROJECT_BUDGET_MASTERS,
+        fields: FIELD_GROUPS.BUDGET_ITEM_MASTER,
+        moduleCode: 'all_masters_budget_item_master',
+    },
+    {
         path: ENTITY_PATHS.IMPORTANT_DAY,
         title: 'Important Day Master',
         category: 'All Masters',

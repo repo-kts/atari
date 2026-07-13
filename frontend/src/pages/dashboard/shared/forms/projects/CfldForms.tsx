@@ -255,11 +255,11 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         }
     }, [entityType, cfldSection, isPercentIncreaseManuallyEdited, formData?.farmerYield, formData?.yieldAvg, formData?.demoYieldAvg, formData?.percentIncrease, setFormData]);
     // Data fetching hooks - only fetch when needed
-    const { data: seasons = [] } = useSeasons();
+    const { data: seasons = [], isLoading: seasonsLoading } = useSeasons();
     const { data: cropTypes = [] } = useCropTypes();
     const { data: extensionActivityTypes = [] } = useCfldExtensionActivityTypes();
     const { data: cfldCrops = [] } = useCfldCrops();
-    const { data: budgetItemMasters = [] } = useBudgetItems({
+    const { data: budgetItemMasters = [], isLoading: budgetItemsLoading } = useBudgetItems({
         enabled: entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET,
     });
 
@@ -372,18 +372,68 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         extensionActivityOptions,
         formData.extensionActivityId,
     );
-    const budgetCropOptions = useMemo(
-        () => (cfldCrops as any[]).map((crop: any) => ({
-            value: crop.cropId ?? crop.fldCropId,
-            label: crop.cropName ?? crop.CropName,
-            isOther: Boolean(crop.isOther),
-        })),
-        [cfldCrops],
-    );
+    // Budget crop is dependent on the selected season: only CFLD crops configured
+    // for that season are shown. Value is the crop NAME — the backend resolves it
+    // to (or creates) the matching FldCrop via resolveOrCreateCfldCropId.
+    // The "Other" crop is always appended so it stays selectable in every season
+    // (there is a single global isOther crop row) and so an edited "Other" record
+    // can round-trip back to the dropdown.
+    const budgetCropOptions = useMemo(() => {
+        const out: Array<{ value: any; label: string; isOther: boolean }> = [];
+        const seen = new Set<string>();
+        const push = (name: any, isOther: boolean) => {
+            const label = String(name ?? '').trim();
+            if (!label) return;
+            // De-duplicate by name (case-insensitive) so repeated master rows
+            // — e.g. multiple "Other" entries — collapse to a single option.
+            // If any duplicate is flagged isOther, the merged option is isOther
+            // (Kharif's "Other" row is unflagged but must still open specify).
+            const key = label.toLowerCase();
+            if (seen.has(key)) {
+                if (isOther) {
+                    const existing = out.find((o) => o.label.toLowerCase() === key);
+                    if (existing) existing.isOther = true;
+                }
+                return;
+            }
+            seen.add(key);
+            out.push({ value: label, label, isOther });
+        };
+        (cfldCrops as any[])
+            .filter((c: any) => Number(c.seasonId ?? c.SeasonId ?? c.season?.seasonId) === Number(formData.seasonId))
+            .forEach((c: any) => push(c.CropName || c.cropName, Boolean(c.isOther)));
+        // Ensure an "Other" option is always available (single global isOther row),
+        // so it stays selectable in every season and edited "Other" records round-trip.
+        if (!out.some((o) => o.isOther)) {
+            const otherCrop = (cfldCrops as any[]).find((c: any) => Boolean(c.isOther));
+            if (otherCrop) push(otherCrop.CropName || otherCrop.cropName, true);
+        }
+        return out;
+    }, [cfldCrops, formData.seasonId]);
     const { isOtherSelected: isOtherBudgetCrop, otherResetPatch: budgetCropResetPatch } = useOtherSpecify(
         budgetCropOptions,
-        formData.cropId,
+        formData.crop ?? formData.cropName,
     );
+
+    // When editing an "Other" budget crop, the backend collapses `crop` to the
+    // free-text `cropOther`, which matches no dropdown option. Detect that and
+    // switch `crop` back to the "Other" option value so the dropdown shows
+    // "Other" and the specify input surfaces the saved text (mirrors how Season
+    // round-trips via seasonId).
+    useEffect(() => {
+        if (entityType !== ENTITY_TYPES.PROJECT_CFLD_BUDGET) return;
+        const otherText = formData?.cropOther;
+        if (!otherText || !String(otherText).trim()) return;
+        const otherOption = budgetCropOptions.find((o) => o.isOther);
+        if (!otherOption) return;
+        if (formData.crop === otherOption.value) return;
+        // Leave a genuine (non-Other) crop selection alone.
+        const matchesRealCrop = budgetCropOptions.some(
+            (o) => !o.isOther && o.value === (formData.crop ?? formData.cropName)
+        );
+        if (matchesRealCrop) return;
+        setFormData((prev: any) => ({ ...prev, crop: otherOption.value }));
+    }, [entityType, budgetCropOptions, formData?.cropOther, formData?.crop, formData?.cropName, setFormData]);
 
     // Generic field update handler
     const handleFieldChange = useCallback(
@@ -454,13 +504,6 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [setFormData, cfldCropResetPatch]
     );
 
-    // Crop change handler for FormSelect (budget form)
-    const handleCropChangeFormSelect = useCallback(
-        (e: React.ChangeEvent<HTMLSelectElement>) => {
-            handleFieldChange('crop', e.target.value);
-        },
-        [handleFieldChange]
-    );
 
     // Extension activity change handler
     const handleExtensionActivityChange = useCallback(
@@ -1102,10 +1145,16 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     onChange={(value) => setFormData((prev: any) => ({
                         ...prev,
                         seasonId: value,
+                        // Crop depends on season — reset it when the season changes.
+                        crop: '',
+                        cropName: '',
+                        cropId: undefined,
+                        cropOther: '',
                         ...seasonResetPatch(value, 'seasonOther'),
                     }))}
                     options={seasonOptions}
                     emptyMessage="No seasons available"
+                    isLoading={seasonsLoading}
                 />
                 {isOtherSeason && (
                     <SpecifyOtherInput
@@ -1115,15 +1164,25 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         onChange={(e) => handleFieldChange('seasonOther', e.target.value)}
                     />
                 )}
-                <FormSelect
+                <MasterDataDropdown
                     label="Crop"
                     required
-                    value={formData.cropId ?? ''}
-                    onChange={(e) => {
-                        const cropId = parseInt(e.target.value)
-                        setFormData((prev: any) => ({ ...prev, cropId, ...budgetCropResetPatch(cropId, 'cropOther') }))
-                    }}
+                    value={formData.crop ?? formData.cropName ?? ''}
+                    onChange={(value) =>
+                        setFormData((prev: any) => ({
+                            ...prev,
+                            crop: value,
+                            cropId: undefined,
+                            ...budgetCropResetPatch(value, 'cropOther'),
+                        }))
+                    }
                     options={budgetCropOptions}
+                    disabled={!formData.seasonId}
+                    emptyMessage={
+                        formData.seasonId
+                            ? 'No crops in this season'
+                            : 'Select a season first'
+                    }
                 />
                 {isOtherBudgetCrop && (
                     <SpecifyOtherInput
@@ -1169,29 +1228,46 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E0E0E0]">
-                        {budgetItemRows.map((item) => (
-                            <tr key={item.budgetItemId}>
-                                <td className="px-4 py-3 text-[#212121] font-medium border-r border-[#E0E0E0]">{item.itemName}</td>
-                                <td className="px-4 py-3 border-r border-[#E0E0E0]">
-                                    <FormInput
-                                        label=""
-                                        type="number"
-                                        step="0.01"
-                                        value={item.budgetReceived ?? ''}
-                                        onChange={(e) => handleBudgetItemValueChange(item.budgetItemId, 'budgetReceived', e.target.value)}
-                                    />
-                                </td>
-                                <td className="px-4 py-3">
-                                    <FormInput
-                                        label=""
-                                        type="number"
-                                        step="0.01"
-                                        value={item.budgetUtilized ?? ''}
-                                        onChange={(e) => handleBudgetItemValueChange(item.budgetItemId, 'budgetUtilized', e.target.value)}
-                                    />
+                        {budgetItemsLoading ? (
+                            <tr>
+                                <td colSpan={3} className="px-4 py-10">
+                                    <div className="flex items-center justify-center gap-3 text-[#757575]">
+                                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#487749]/25 border-t-[#487749]" />
+                                        <span className="text-sm">Loading budget items…</span>
+                                    </div>
                                 </td>
                             </tr>
-                        ))}
+                        ) : budgetItemRows.length === 0 ? (
+                            <tr>
+                                <td colSpan={3} className="px-4 py-10 text-center text-sm text-[#757575]">
+                                    No budget items configured. Add them in All Masters → CFLD Budget Item Master.
+                                </td>
+                            </tr>
+                        ) : (
+                            budgetItemRows.map((item) => (
+                                <tr key={item.budgetItemId}>
+                                    <td className="px-4 py-3 text-[#212121] font-medium border-r border-[#E0E0E0]">{item.itemName}</td>
+                                    <td className="px-4 py-3 border-r border-[#E0E0E0]">
+                                        <FormInput
+                                            label=""
+                                            type="number"
+                                            step="0.01"
+                                            value={item.budgetReceived ?? ''}
+                                            onChange={(e) => handleBudgetItemValueChange(item.budgetItemId, 'budgetReceived', e.target.value)}
+                                        />
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <FormInput
+                                            label=""
+                                            type="number"
+                                            step="0.01"
+                                            value={item.budgetUtilized ?? ''}
+                                            onChange={(e) => handleBudgetItemValueChange(item.budgetItemId, 'budgetUtilized', e.target.value)}
+                                        />
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>

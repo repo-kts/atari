@@ -312,6 +312,18 @@ export interface LandItemMasterFormData {
     isOther?: boolean;
 }
 
+export interface BudgetItemMaster {
+    budgetItemId: number;
+    itemName: string;
+    _count?: {
+        utilizations: number;
+    };
+}
+
+export interface BudgetItemMasterFormData {
+    itemName: string;
+}
+
 export interface VehiclePresentStatus {
     vehicleStatusId: number;
     statusCode: string;
@@ -766,6 +778,17 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<LandItemMaster>>(`${BASE_URL}/land-item-master/${id}`, data),
     deleteLandItemMaster: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/land-item-master/${id}`),
+
+    getBudgetItemMasters: () =>
+        apiClient.get<PaginatedResponse<BudgetItemMaster>>(`${BASE_URL}/budget-item`),
+    getBudgetItemMasterById: (id: number) =>
+        apiClient.get<ApiResponse<BudgetItemMaster>>(`${BASE_URL}/budget-item/${id}`),
+    createBudgetItemMaster: (data: BudgetItemMasterFormData) =>
+        apiClient.post<ApiResponse<BudgetItemMaster>>(`${BASE_URL}/budget-item`, data),
+    updateBudgetItemMaster: (id: number, data: Partial<BudgetItemMasterFormData>) =>
+        apiClient.put<ApiResponse<BudgetItemMaster>>(`${BASE_URL}/budget-item/${id}`, data),
+    deleteBudgetItemMaster: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/budget-item/${id}`),
 
     getVehiclePresentStatuses: () =>
         apiClient.get<PaginatedResponse<VehiclePresentStatus>>(`${BASE_URL}/vehicle-present-status`),
