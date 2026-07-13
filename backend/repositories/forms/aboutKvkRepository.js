@@ -875,8 +875,52 @@ const KVK_INFRA_ALLOWED_FIELDS = [
     'plinthAreaSqM',
     'underUse',
     'sourceOfFunding',
+    'sourceOfFundingOther',
     'fundingAgencyName',
 ];
+
+function isLegacyOtherValue(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    return normalized === 'other'
+        || normalized === 'others'
+        || normalized.includes('please specify');
+}
+
+async function normalizeInfrastructureFundingOther(data, current = {}) {
+    const sourceOfFunding = data.sourceOfFunding !== undefined
+        ? data.sourceOfFunding
+        : current.sourceOfFunding;
+    const finalData = { ...data };
+
+    if (!sourceOfFunding) return finalData;
+
+    const sourceMaster = await prisma.fundingSourceMaster.findFirst({
+        where: { name: { equals: String(sourceOfFunding), mode: 'insensitive' } },
+        select: { isOther: true },
+    });
+    const isOther = Boolean(sourceMaster?.isOther) || isLegacyOtherValue(sourceOfFunding);
+
+    if (!isOther) {
+        if (data.sourceOfFunding !== undefined || data.sourceOfFundingOther !== undefined) {
+            finalData.sourceOfFundingOther = null;
+        }
+        return finalData;
+    }
+
+    const rawOther = data.sourceOfFundingOther !== undefined
+        ? data.sourceOfFundingOther
+        : current.sourceOfFundingOther;
+    const sourceOfFundingOther = sanitizeString(rawOther, { allowEmpty: true });
+    finalData.sourceOfFundingOther = sourceOfFundingOther?.trim() || null;
+    if (!finalData.sourceOfFundingOther) {
+        throw new ValidationError(
+            'sourceOfFundingOther is required when source of funding is Others',
+            'sourceOfFundingOther',
+        );
+    }
+
+    return finalData;
+}
 
 function keepOnlyAllowedFields(payload, allowedFields) {
     Object.keys(payload).forEach((field) => {
@@ -1126,6 +1170,10 @@ function sanitizeData(entityName, data) {
         if (sanitized.sourceOfFunding !== undefined) {
             sanitized.sourceOfFunding = sanitizeString(safeGet(data, 'sourceOfFunding'), { allowEmpty: false });
         }
+        if (sanitized.sourceOfFundingOther !== undefined) {
+            const value = sanitizeString(safeGet(data, 'sourceOfFundingOther'), { allowEmpty: true });
+            sanitized.sourceOfFundingOther = value?.trim() || null;
+        }
         if (sanitized.fundingAgencyName !== undefined) {
             sanitized.fundingAgencyName = sanitizeString(safeGet(data, 'fundingAgencyName'), { allowEmpty: true });
         }
@@ -1355,7 +1403,8 @@ async function create(entityName, data) {
     }
 
     if (entityName === 'kvk-infrastructure') {
-        const convertedData = convertRelationFieldsForInfrastructure(sanitizedData);
+        const normalizedData = await normalizeInfrastructureFundingOther(sanitizedData);
+        const convertedData = convertRelationFieldsForInfrastructure(normalizedData);
         return executePrismaWrite(entityName, 'create', async () => {
             return await prisma[config.model].create({
                 data: convertedData,
@@ -1526,7 +1575,12 @@ async function update(entityName, id, data) {
     }
 
     if (entityName === 'kvk-infrastructure') {
-        const convertedData = convertRelationFieldsForInfrastructure(sanitizedData);
+        const current = await prisma.kvkInfrastructure.findUnique({
+            where: { [config.idField]: resolvedId },
+            select: { sourceOfFunding: true, sourceOfFundingOther: true },
+        });
+        const normalizedData = await normalizeInfrastructureFundingOther(sanitizedData, current || {});
+        const convertedData = convertRelationFieldsForInfrastructure(normalizedData);
         return executePrismaWrite(entityName, 'update', async () => {
             return await prisma[config.model].update({
                 where: { [config.idField]: resolvedId },

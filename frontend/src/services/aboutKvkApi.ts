@@ -42,7 +42,7 @@ const STAFF_ALLOWED_KEYS = [
 
 const INFRASTRUCTURE_ALLOWED_KEYS = [
     'kvkId', 'infraMasterId', 'specifyName', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel',
-    'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding', 'fundingAgencyName',
+    'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding', 'sourceOfFundingOther', 'fundingAgencyName',
 ] as const;
 
 const VEHICLE_ALLOWED_KEYS = [

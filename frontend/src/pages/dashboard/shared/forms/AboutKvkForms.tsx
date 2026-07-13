@@ -114,6 +114,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         () => toOptions(fundingSources as any[], 'name', 'name'),
         [fundingSources],
     )
+    const isOtherInfrastructureFundingSelected = React.useMemo(() => {
+        const selected = (fundingSources as any[]).find(
+            (source) => String(source.name) === String(formData.sourceOfFunding),
+        )
+        if (selected?.isOther) return true
+        const name = String(formData.sourceOfFunding || '').trim().toLowerCase()
+        return name === 'other' || name === 'others' || name.includes('please specify')
+    }, [fundingSources, formData.sourceOfFunding])
     const assetFundingSourceOptions = React.useMemo(
         () => toOptions(fundingSources as any[], 'fundingSourceId', 'name'),
         [fundingSources],
@@ -752,10 +760,33 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Source of Funding"
                             required
                             value={formData.sourceOfFunding ?? ''}
-                            onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
+                            onChange={(e) => {
+                                const sourceOfFunding = e.target.value
+                                const selected = (fundingSources as any[]).find(
+                                    (source) => String(source.name) === String(sourceOfFunding),
+                                )
+                                const normalizedName = sourceOfFunding.trim().toLowerCase()
+                                const isOther = Boolean(selected?.isOther)
+                                    || normalizedName === 'other'
+                                    || normalizedName === 'others'
+                                    || normalizedName.includes('please specify')
+                                setFormData({
+                                    ...formData,
+                                    sourceOfFunding,
+                                    sourceOfFundingOther: isOther ? formData.sourceOfFundingOther : '',
+                                })
+                            }}
                             options={fundingSourceNameOptions}
                             isLoading={isLoadingFundingSources}
                         />
+                        {isOtherInfrastructureFundingSelected && (
+                            <SpecifyOtherInput
+                                label="Please specify source of funding"
+                                required
+                                value={formData.sourceOfFundingOther ?? ''}
+                                onChange={(e) => setFormData({ ...formData, sourceOfFundingOther: e.target.value })}
+                            />
+                        )}
                         <FormInput
                             label="Funding Agency Name"
                             value={formData.fundingAgencyName ?? ''}

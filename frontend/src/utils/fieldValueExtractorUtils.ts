@@ -937,7 +937,9 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.SOURCE_OF_FUNDING]: {
         extractor: (item: any) => {
-            if (item.sourceOfFunding) return item.sourceOfFunding;
+            if (item.sourceOfFundingOther || item.sourceOfFunding) {
+                return item.sourceOfFundingOther || item.sourceOfFunding;
+            }
             return null;
         },
         priority: 6,
