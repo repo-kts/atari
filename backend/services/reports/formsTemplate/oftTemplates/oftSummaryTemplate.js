@@ -142,7 +142,7 @@ function renderValueCells(isMultiState, stateKeys, stateMap) {
 
 // ── Main render function ────────────────────────────────────────────
 
-function renderOftSummarySection(section, data, sectionId, isFirstSection) {
+function renderOftSummarySection(section, data, sectionId, isFirstSection, reportContext = {}) {
     // Accept every shape the orchestration can hand us:
     //   - { records, subjects }                  single KVK (data service)
     //   - [ { records, subjects }, ... ]         super-admin: one chunk per KVK
@@ -404,7 +404,11 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
     </table>`;
 
     // ── B. State Wise OFT Details ───────────────────────────────
-    html += renderStateWiseBlock.call(this, section, records);
+    // Only meaningful for aggregated (zone/state/national) reports; omit on a
+    // single-KVK report.
+    if (reportContext.isAggregatedReport) {
+        html += renderStateWiseBlock.call(this, section, records);
+    }
 
     html += `
 </div>`;

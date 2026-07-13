@@ -59,7 +59,6 @@ function renderOtherExtensionContentMatrixReportSection(section, data, sectionId
   <style>${tableCss()}</style>
   <div class="oec-mx-wrap">
     <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
-    <p style="font-size:6pt; margin:4px 0 8px 0;">${esc(`(Reporting year ${y})`)}</p>
     <table class="oec-mx-tbl">
       <thead>
         <tr>

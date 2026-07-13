@@ -26,7 +26,8 @@ function renderLandDetailsSection(section, data, sectionId, isFirstSection, repo
         const description = this._pickValue(row, ['Description', 'description']) || '-'
         const areaRaw = this._pickValue(row, ['Area (ha)', 'areaHa'])
         const area = areaRaw === null || areaRaw === undefined || areaRaw === '' ? '-' : areaRaw
-        if (typeof areaRaw === 'number') total += areaRaw
+        const n = parseFloat(areaRaw)
+        if (Number.isFinite(n)) total += n
         return `
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
                 <td class="s-no">${index + 1}</td>

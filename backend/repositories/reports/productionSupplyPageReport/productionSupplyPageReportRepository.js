@@ -244,6 +244,105 @@ function resolveProductionSupplyGroupedPayload(data) {
     return buildKvkGroupedPagePayload(records);
 }
 
+// ── Category → Product Type → Crop grouping (§2.8.A) ─────────────────
+// Matches the reference layout: one titled table per Product Category
+// (lettered A, B, C…), inside which rows are grouped by Product Type (a
+// full-width group header row), then individual Crops (product) rows with
+// their Variety (speciesName), a Sub Total per Product Type, and a Total row
+// for the whole category.
+function cropRowFromRecord(r) {
+    const base = pageRowFromRecord(r);
+    return {
+        ...base,
+        crop: (r.product && String(r.product).trim())
+            || (r.prodType && String(r.prodType).trim())
+            || '—',
+        variety: (r.speciesName && String(r.speciesName).trim())
+            || (r.speciesBreedVariety && String(r.speciesBreedVariety).trim())
+            || (r.variety && String(r.variety).trim())
+            || '—',
+    };
+}
+
+function categoryNameOf(r) {
+    const c = r.productCategory || r.category;
+    return (c && String(c).trim()) || 'Uncategorised';
+}
+
+function productTypeNameOf(r) {
+    const t = r.productType;
+    return (t && String(t).trim()) || '—';
+}
+
+function buildCategoryGroupedPagePayload(records) {
+    const list = Array.isArray(records) ? records : [];
+
+    // Group records: category → product type → rows, preserving stable order.
+    const byCategory = new Map();
+    for (const r of list) {
+        const cat = categoryNameOf(r);
+        if (!byCategory.has(cat)) byCategory.set(cat, new Map());
+        const typeMap = byCategory.get(cat);
+        const type = productTypeNameOf(r);
+        if (!typeMap.has(type)) typeMap.set(type, []);
+        typeMap.get(type).push(r);
+    }
+
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const categories = [...byCategory.keys()].sort(sortStr).map((categoryName, idx) => {
+        const typeMap = byCategory.get(categoryName);
+        const catTotals = emptyTotals();
+        const catUnits = new Set();
+        let catRowCount = 0;
+
+        const productTypeGroups = [...typeMap.keys()].sort(sortStr).map((productTypeName) => {
+            const typeRecords = typeMap.get(productTypeName);
+            const rows = typeRecords.map((r) => cropRowFromRecord(r));
+
+            const z = emptyTotals();
+            const units = new Set();
+            rows.forEach((row, i) => {
+                addToTotals(z, row);
+                addToTotals(catTotals, row);
+                const u = (typeRecords[i].unit && String(typeRecords[i].unit).trim()) || '';
+                units.add(u);
+                catUnits.add(u);
+                catRowCount += 1;
+            });
+            const subtotal = grandRowFromTotals(z, quantitySumLabel(z.quantitySum, units, rows.length));
+            subtotal.productName = 'Sub Total';
+            return { productTypeName, rows, subtotal };
+        });
+
+        const total = grandRowFromTotals(catTotals, quantitySumLabel(catTotals.quantitySum, catUnits, catRowCount));
+        total.productName = 'Total';
+        return {
+            categoryName,
+            letter: letters[idx] || String(idx + 1),
+            productTypeGroups,
+            total,
+        };
+    });
+
+    return { categories };
+}
+
+function quantitySumLabel(sum, unitSet, rowCount) {
+    const unitList = [...unitSet].filter(Boolean);
+    const qSum = Number.isInteger(sum) ? sum : Number(sum.toFixed(3));
+    if (!rowCount) return '—';
+    return unitList.length === 1 ? `${qSum} ${unitList[0]}` : `${qSum} (mixed units)`;
+}
+
+function resolveProductionSupplyCategoryGroupedPayload(data) {
+    let records = [];
+    if (Array.isArray(data)) records = data;
+    else if (data && Array.isArray(data.records)) records = data.records;
+    else if (data && data.data && Array.isArray(data.data.records)) records = data.data.records;
+    else if (data) records = [data];
+    return buildCategoryGroupedPagePayload(records);
+}
+
 function mapPrismaRowToReportRow(r) {
     if (!r) return null;
     const reportingYear = formatReportingYear(r.reportingYear);
@@ -324,8 +423,10 @@ function resolveProductionSupplyPagePayload(data) {
 module.exports = {
     buildPagePayloadFromRecords,
     buildKvkGroupedPagePayload,
+    buildCategoryGroupedPagePayload,
     resolveProductionSupplyPagePayload,
     resolveProductionSupplyGroupedPayload,
+    resolveProductionSupplyCategoryGroupedPayload,
     getProductionSupplyReportData,
     fetchProductionSupplyRecordsForReport,
     pageRowFromRecord,

@@ -1,4 +1,4 @@
-const { resolveProductionSupplyGroupedPayload } = require('../../../../repositories/reports/productionSupplyPageReport/productionSupplyPageReportRepository.js');
+const { resolveProductionSupplyCategoryGroupedPayload } = require('../../../../repositories/reports/productionSupplyPageReport/productionSupplyPageReportRepository.js');
 
 function esc(t) {
     if (t === null || t === undefined) return '';
@@ -33,16 +33,23 @@ function tableCss() {
   .ps-page-tbl .l { text-align:left; }
   .ps-page-tbl .sub { font-weight:bold; background:#f1f5f9; }
   .ps-page-tbl .grand { font-weight:bold; background:#f5f5f5; }
+  .ps-page-tbl .pt-hd { background:#eef2f7; }
+  .ps-page-tbl .pt-hd td { text-align:left; }
 `;
 }
+
+// Total column count for a full-width group-header row (Crop + Variety +
+// Quantity + Value + 12 farmer cells + 3 total cells).
+const TOTAL_COLS = 18;
 
 function colGroup() {
     return `
   <colgroup>
-    <col style="width:18%" />
+    <col style="width:14%" />
+    <col style="width:11%" />
     <col style="width:8%" />
     <col style="width:7%" />
-    ${Array.from({ length: 15 }).map(() => '<col style="width:4.4%" />').join('')}
+    ${Array.from({ length: 14 }).map(() => '<col style="width:4.28%" />').join('')}
   </colgroup>`;
 }
 
@@ -50,7 +57,8 @@ function headHtml() {
     return `
       <thead>
         <tr>
-          <th rowspan="3" class="l">Name of product</th>
+          <th rowspan="3" class="l">Crop</th>
+          <th rowspan="3" class="l">Variety</th>
           <th rowspan="3">Quantity</th>
           <th rowspan="3">Value (Rs)</th>
           <th colspan="12">Farmers</th>
@@ -85,33 +93,61 @@ function cellsFarmerTotal(r) {
     return parts.map((c) => `<td>${fmtInt(c)}</td>`).join('');
 }
 
-function dataRow(r, cls) {
+// Individual Crop row: Crop + Variety, then quantity/value/farmer/total cells.
+function cropRow(r) {
     return `
-      <tr${cls ? ` class="${cls}"` : ''}>
-        <td class="l">${esc(r.productName)}</td>
+      <tr>
+        <td class="l">${esc(r.crop)}</td>
+        <td class="l">${esc(r.variety)}</td>
         <td>${esc(r.quantityLabel)}</td>
         <td>${fmtMoney(r.valueRs)}</td>
         ${cellsFarmerTotal(r)}
       </tr>`;
 }
 
-function renderGroup(g) {
-    const body = g.rows.map((r) => dataRow(r)).join('');
-    const sub = dataRow(g.subtotal, 'sub');
+// A totals row (Sub Total / Total): label spans Crop+Variety, then figures.
+function totalsRow(r, cls, label) {
+    return `
+      <tr class="${cls}">
+        <td class="l" colspan="2">${esc(label)}</td>
+        <td>${esc(r.quantityLabel)}</td>
+        <td>${fmtMoney(r.valueRs)}</td>
+        ${cellsFarmerTotal(r)}
+      </tr>`;
+}
+
+// Full-width Product Type group-header row.
+function productTypeHeaderRow(name) {
+    return `
+      <tr class="pt-hd">
+        <td class="l" colspan="${TOTAL_COLS}"><strong>${esc(name)}</strong></td>
+      </tr>`;
+}
+
+function renderCategory(cat) {
+    let body = '';
+    for (const g of cat.productTypeGroups) {
+        body += productTypeHeaderRow(g.productTypeName);
+        body += g.rows.map((r) => cropRow(r)).join('');
+        body += totalsRow(g.subtotal, 'sub', 'Sub Total');
+    }
+    body += totalsRow(cat.total, 'grand', 'Total');
+
+    const title = `${esc(cat.letter)}. ${esc(cat.categoryName)}`;
     return `
     <div class="ps-group">
-      <div class="ps-kvk-hd">${esc(g.kvkName)}</div>
+      <div class="ps-kvk-hd">${title}</div>
       <table class="ps-page-tbl">${colGroup()}${headHtml()}
-        <tbody>${body}${sub}</tbody>
+        <tbody>${body}</tbody>
       </table>
     </div>`;
 }
 
 function renderProductionSupplyPageReportSection(section, data, sectionId, isFirstSection) {
-    const payload = resolveProductionSupplyGroupedPayload(data);
-    const groups = payload.groups || [];
+    const payload = resolveProductionSupplyCategoryGroupedPayload(data);
+    const categories = payload.categories || [];
 
-    if (groups.length === 0) {
+    if (categories.length === 0) {
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
@@ -119,16 +155,7 @@ function renderProductionSupplyPageReportSection(section, data, sectionId, isFir
 </div>`;
     }
 
-    const groupsHtml = groups.map((g) => renderGroup(g)).join('');
-
-    const grandHtml = payload.isMultiKvk
-        ? `
-    <div class="ps-group">
-      <table class="ps-page-tbl">${colGroup()}${headHtml()}
-        <tbody>${dataRow(payload.grandTotal, 'grand')}</tbody>
-      </table>
-    </div>`
-        : '';
+    const categoriesHtml = categories.map((c) => renderCategory(c)).join('');
 
     return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
@@ -136,8 +163,7 @@ function renderProductionSupplyPageReportSection(section, data, sectionId, isFir
   <div class="ps-page-wrap">
     <h1 class="section-title">${section.id} ${esc(section.title)}</h1>
     <div class="ps-page-sec">Production and supply of Technological products</div>
-    ${groupsHtml}
-    ${grandHtml}
+    ${categoriesHtml}
   </div>
 </div>`;
 }
