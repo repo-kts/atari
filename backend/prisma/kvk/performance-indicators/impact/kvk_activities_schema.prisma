@@ -3,6 +3,7 @@ model KvkImpactActivity {
   kvkId              Int
   reportingYear DateTime? @map("reporting_year")
 specificArea       String      @map("specific_area")
+specificAreaOther  String?     @map("specific_area_other")
   briefDetails       String      @map("brief_details")
   farmersBenefitted  Int         @map("farmers_benefitted")
   horizontalSpread   String      @map("horizontal_spread")

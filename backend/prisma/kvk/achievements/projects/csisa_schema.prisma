@@ -2,6 +2,7 @@ model Csisa {
   csisaId          Int               @id @default(autoincrement()) @map("csisa_id")
   kvkId            Int
   seasonId         Int?
+  seasonOther      String?           @map("season_other")
   villagesCovered  Int               @map("villages_covered")
   blocksCovered    Int               @map("blocks_covered")
   districtsCovered Int               @map("districts_covered")

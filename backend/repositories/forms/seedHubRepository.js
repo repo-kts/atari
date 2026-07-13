@@ -90,6 +90,7 @@ const seedHubRepository = {
                 kvkId,
                 reportingYear,
                 seasonId: toIntOrNull(data.seasonId) || 1,
+                seasonOther: (data.seasonOther && String(data.seasonOther).trim()) || null,
                 cropName: data.cropName || '',
                 varietyName: data.varietyName || data.variety || '',
                 areaCoveredHa: toFloatOrZero(data.areaCovered ?? data.areaCoveredHa ?? data.area),
@@ -128,6 +129,7 @@ const seedHubRepository = {
             updateData.reportingYear = parsed;
         }
         if (data.seasonId !== undefined) updateData.seasonId = toIntOrNull(data.seasonId);
+        if (data.seasonOther !== undefined) updateData.seasonOther = (String(data.seasonOther).trim()) || null;
         if (data.cropName !== undefined) updateData.cropName = data.cropName || '';
         if (data.varietyName !== undefined || data.variety !== undefined) updateData.varietyName = data.varietyName || data.variety || '';
         if (data.areaCovered !== undefined || data.areaCoveredHa !== undefined || data.area !== undefined) updateData.areaCoveredHa = toFloatOrZero(data.areaCovered ?? data.areaCoveredHa ?? data.area);
@@ -175,7 +177,8 @@ function _mapResponse(r) {
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         seasonId: r.seasonId,
-        seasonName: r.season ? r.season.seasonName : undefined,
+        seasonName: r.seasonOther || (r.season ? r.season.seasonName : undefined),
+        seasonOther: r.seasonOther ?? '',
         reportingYear: formatReportingYear(r.reportingYear),
         cropName: r.cropName,
         varietyName: r.varietyName,

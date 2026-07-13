@@ -16,6 +16,7 @@ const kvkImpactActivityRepository = {
                     return d;
                 })(),
                 specificArea: data.specificArea,
+                specificAreaOther: (data.specificAreaOther && String(data.specificAreaOther).trim()) || null,
                 briefDetails: data.briefDetails,
                 farmersBenefitted: parseInt(data.farmersBenefitted || 0),
                 horizontalSpread: data.horizontalSpread,
@@ -79,6 +80,7 @@ const kvkImpactActivityRepository = {
                     })()
                     : existing.reportingYear,
                 specificArea: data.specificArea !== undefined ? data.specificArea : existing.specificArea,
+                specificAreaOther: data.specificAreaOther !== undefined ? ((String(data.specificAreaOther).trim()) || null) : existing.specificAreaOther,
                 briefDetails: data.briefDetails !== undefined ? data.briefDetails : existing.briefDetails,
                 farmersBenefitted: data.farmersBenefitted !== undefined ? parseInt(data.farmersBenefitted || 0) : existing.farmersBenefitted,
                 horizontalSpread: data.horizontalSpread !== undefined ? data.horizontalSpread : existing.horizontalSpread,

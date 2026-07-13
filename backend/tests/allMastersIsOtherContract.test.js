@@ -52,7 +52,9 @@ test('every previously unsupported master model stores isOther', () => {
 
 test('every all-master form renders an Other checkbox for each editable entity', () => {
     const expectedCheckboxes = {
-        'BasicMasterForms.tsx': 5,
+        // Zone, State, District, Organization and University are structural
+        // masters and intentionally do not support custom "Other" values.
+        'BasicMasterForms.tsx': 0,
         'OftFldForms.tsx': 9,
         'TrainingExtensionForms.tsx': 8,
         'ProductionProjectForms.tsx': 11,
@@ -66,6 +68,101 @@ test('every all-master form renders an Other checkbox for each editable entity',
         const source = fs.readFileSync(path.join(formsDir, file), 'utf8');
         const actual = (source.match(/<IsOtherCheckbox\b/g) || []).length;
         assert.equal(actual, expected, `${file} should render ${expected} Other checkboxes`);
+    }
+});
+
+const COMPLETE_DOWNSTREAM_CONSUMERS = [
+    ['backend/prisma/kvk/about-kvk/employee_schema.prisma', 'KvkStaff', 'disciplineOther'],
+    ['backend/prisma/kvk/achievements/projects/cfld/extension_activity_schema.prisma', 'ExtensionActivityOrganized', 'activityOther'],
+    ['backend/prisma/kvk/achievements/projects/cfld/budget_utilization_schema.prisma', 'KvkBudgetUtilization', 'cropOther'],
+    ['backend/prisma/kvk/achievements/fld/technical_feedback_schema.prisma', 'FldTechnicalFeedback', 'cropOther'],
+    ['backend/prisma/kvk/achievements/projects/natural_farming/demonstration_info_schema.prisma', 'DemonstrationInfo', 'staffCategoryOther'],
+    ['backend/prisma/kvk/performance-indicators/impact/kvk_activities_schema.prisma', 'KvkImpactActivity', 'specificAreaOther'],
+    ['backend/prisma/kvk/performance-indicators/impact/entrepreneurship_schema.prisma', 'Entrepreneurship', 'enterpriseTypeOther'],
+    ['backend/prisma/kvk/achievements/fld/fld_schema.prisma', 'KvkFldIntroduction', 'seasonOther'],
+    ['backend/prisma/kvk/achievements/oft_schema.prisma', 'Kvkoft', 'seasonOther'],
+    ['backend/prisma/kvk/achievements/projects/climate_resilient/cra_details_schema.prisma', 'CraDetails', 'seasonOther'],
+    ['backend/prisma/kvk/achievements/projects/csisa_schema.prisma', 'Csisa', 'seasonOther'],
+    ['backend/prisma/kvk/achievements/projects/nari/bio_fortified_crops_schema.prisma', 'NariBioFortifiedCrop', 'seasonOther'],
+    ['backend/prisma/kvk/achievements/projects/natural_farming/demonstration_info_schema.prisma', 'DemonstrationInfo', 'seasonOther'],
+    ['backend/prisma/kvk/achievements/projects/natural_farming/soil_data_info_schema.prisma', 'SoilDataInformation', 'seasonOther'],
+    ['backend/prisma/kvk/achievements/projects/nicra/nicra_details_schema.prisma', 'NicraDetails', 'seasonOther'],
+    ['backend/prisma/kvk/achievements/projects/seed_hub_schema.prisma', 'KvkSeedHubProgram', 'seasonOther'],
+    ['backend/prisma/kvk/performance-indicators/infrastructure/instructional_farm_crops_schema.prisma', 'InstructionalFarmCrop', 'seasonOther'],
+];
+
+test('every approved downstream selector has nullable specify-other storage', () => {
+    for (const [relativeFile, modelName, field] of COMPLETE_DOWNSTREAM_CONSUMERS) {
+        const source = fs.readFileSync(path.join(ROOT, relativeFile), 'utf8');
+        assert.match(
+            modelBlock(source, modelName),
+            new RegExp(`^\\s*${field}\\s+String\\?(?:\\s|$)`, 'm'),
+            `${modelName} should store ${field}`,
+        );
+    }
+});
+
+const DOWNSTREAM_UI_CONTRACTS = [
+    ['frontend/src/pages/dashboard/shared/forms/AboutKvkForms.tsx', 'disciplineOther'],
+    ['frontend/src/pages/dashboard/shared/forms/projects/CfldForms.tsx', 'activityOther'],
+    ['frontend/src/pages/dashboard/shared/forms/projects/CfldForms.tsx', 'cropOther'],
+    ['frontend/src/pages/dashboard/shared/forms/OftFldForms.tsx', 'cropOther'],
+    ['frontend/src/pages/dashboard/shared/forms/projects/NaturalFarmingForms.tsx', 'staffCategoryOther'],
+    ['frontend/src/pages/dashboard/shared/forms/performance-indicators/ImpactForms.tsx', 'specificAreaOther'],
+    ['frontend/src/pages/dashboard/shared/forms/performance-indicators/ImpactForms.tsx', 'enterpriseTypeOther'],
+    ['frontend/src/pages/dashboard/shared/forms/OftFldForms.tsx', 'seasonOther'],
+    ['frontend/src/pages/dashboard/shared/forms/projects/CraForms.tsx', 'seasonOther'],
+    ['frontend/src/pages/dashboard/shared/forms/projects/CsisaForms.tsx', 'seasonOther'],
+    ['frontend/src/pages/dashboard/shared/forms/projects/NariForms.tsx', 'seasonOther'],
+    ['frontend/src/pages/dashboard/shared/forms/projects/NaturalFarmingForms.tsx', 'seasonOther'],
+    ['frontend/src/pages/dashboard/shared/forms/projects/NicraForms.tsx', 'seasonOther'],
+    ['frontend/src/pages/dashboard/shared/forms/projects/SeedHubForms.tsx', 'seasonOther'],
+    ['frontend/src/pages/dashboard/shared/forms/performance-indicators/InfrastructurePerformanceForms.tsx', 'seasonOther'],
+];
+
+test('every approved downstream form conditionally renders and clears specify-other input', () => {
+    for (const [relativeFile, field] of DOWNSTREAM_UI_CONTRACTS) {
+        const source = fs.readFileSync(path.join(ROOT, relativeFile), 'utf8');
+        assert.match(source, /useOtherSpecify|isOther[A-Z]\w*Selected/, `${relativeFile} should inspect the selected option's isOther flag`);
+        assert.match(source, /isOther/, `${relativeFile} should preserve the master option's isOther flag`);
+        assert.match(source, /<SpecifyOtherInput\b/, `${relativeFile} should render SpecifyOtherInput`);
+        assert.match(source, new RegExp(`['\"]${field}['\"]|\\.${field}\\b`), `${relativeFile} should bind ${field}`);
+    }
+});
+
+const DOWNSTREAM_REPOSITORY_CONTRACTS = [
+    ['backend/repositories/forms/aboutKvkRepository.js', 'disciplineOther'],
+    ['backend/repositories/forms/cfldExtensionActivityRepository.js', 'activityOther'],
+    ['backend/repositories/forms/cfldBudgetUtilizationRepository.js', 'cropOther'],
+    ['backend/repositories/forms/fldTechnicalFeedbackRepository.js', 'cropOther'],
+    ['backend/repositories/forms/naturalFarmingRepository.js', 'staffCategoryOther'],
+    ['backend/repositories/forms/kvkImpactActivityRepository.js', 'specificAreaOther'],
+    ['backend/repositories/forms/entrepreneurshipRepository.js', 'enterpriseTypeOther'],
+    ['backend/repositories/forms/fldRepository.js', 'seasonOther'],
+    ['backend/repositories/forms/oftRepository.js', 'seasonOther'],
+    ['backend/repositories/forms/craDetailsRepository.js', 'seasonOther'],
+    ['backend/repositories/forms/csisaRepository.js', 'seasonOther'],
+    ['backend/repositories/forms/nariBioFortifiedCropRepository.js', 'seasonOther'],
+    ['backend/repositories/forms/naturalFarmingRepository.js', 'seasonOther'],
+    ['backend/repositories/forms/nicraDetailsRepository.js', 'seasonOther'],
+    ['backend/repositories/forms/seedHubRepository.js', 'seasonOther'],
+    ['backend/repositories/forms/instructionalFarmCropRepository.js', 'seasonOther'],
+];
+
+test('every approved downstream repository accepts its specify-other property', () => {
+    for (const [relativeFile, field] of DOWNSTREAM_REPOSITORY_CONTRACTS) {
+        const source = fs.readFileSync(path.join(ROOT, relativeFile), 'utf8');
+        assert.match(source, new RegExp(`\\b${field}\\b`), `${relativeFile} should handle ${field}`);
+    }
+});
+
+test('employee discipline specify-other survives frontend and backend allow-lists', () => {
+    for (const relativeFile of [
+        'frontend/src/services/aboutKvkApi.ts',
+        'backend/repositories/forms/aboutKvkRepository.js',
+    ]) {
+        const source = fs.readFileSync(path.join(ROOT, relativeFile), 'utf8');
+        assert.match(source, /disciplineOther/, `${relativeFile} should allow disciplineOther`);
     }
 });
 

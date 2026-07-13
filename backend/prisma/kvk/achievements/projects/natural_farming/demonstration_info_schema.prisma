@@ -20,6 +20,7 @@ model DemonstrationInfo {
   crop                          String
   variety                       String
   seasonId                      Int?
+  seasonOther                   String?        @map("season_other")
   technologyDemonstrated        String         @map("technology_demonstrated")
   areaInHa                      Float          @map("area_in_ha")
   farmerPracticeDetails         String         @map("farmer_practice_details")
@@ -56,6 +57,7 @@ model DemonstrationInfo {
   farmerFeedback                String         @map("farmer_feedback")
   images                        String?        @map("images")
   staffCategoryId               Int?           @map("staff_category_id")
+  staffCategoryOther            String?        @map("staff_category_other")
 
   kvk                           Kvk            @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   staffCategory                 StaffCategoryMaster? @relation(fields: [staffCategoryId], references: [staffCategoryId], onDelete: SetNull)

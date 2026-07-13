@@ -2,6 +2,7 @@ model KvkSeedHubProgram {
   seedHubId               Int         @id @default(autoincrement()) @map("seed_hub_id")
   kvkId                   Int
   seasonId                Int?
+  seasonOther             String?     @map("season_other")
   cropName                String      @map("crop_name")
   varietyName             String      @map("variety_name")
   areaCoveredHa           Float       @map("area_covered_ha")

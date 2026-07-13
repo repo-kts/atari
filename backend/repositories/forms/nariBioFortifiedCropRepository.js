@@ -32,6 +32,7 @@ const nariBioFortifiedCropRepository = {
                     return d;
                 })(),
                 seasonId,
+                seasonOther: (data.seasonOther && String(data.seasonOther).trim()) || null,
                 activityId,
                 activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 nameOfNutriSmartVillage: villageName,
@@ -126,6 +127,7 @@ const nariBioFortifiedCropRepository = {
                     })()
                     : undefined,
                 seasonId: data.seasonId ? parseInt(data.seasonId) : undefined,
+                seasonOther: data.seasonOther !== undefined ? ((String(data.seasonOther).trim()) || null) : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
                 activityOther: data.activityOther !== undefined ? ((String(data.activityOther).trim()) || null) : undefined,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
@@ -230,7 +232,8 @@ function _mapResponse(r) {
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,
-        seasonName: r.season?.seasonName,
+        seasonName: r.seasonOther || r.season?.seasonName,
+        seasonOther: r.seasonOther ?? '',
         activityId: r.activityId,
         activityName: r.activityOther || r.activity?.activityName,
         activityOther: r.activityOther ?? '',

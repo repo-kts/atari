@@ -11,6 +11,7 @@ model KvkStaff {
   sanctionedPostOther         String?                     @map("sanctioned_post_other")
   positionOrder               Int                         @map("position_order")
   disciplineId                Int?
+  disciplineOther             String?                     @map("discipline_other")
   payScaleId                  Int?                        @map("pay_scale_id")
   payScaleOther               String?                     @map("pay_scale_other")
   dateOfJoining               DateTime                    @map("date_of_joining")

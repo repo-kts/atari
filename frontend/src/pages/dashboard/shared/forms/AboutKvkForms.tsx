@@ -20,6 +20,7 @@ import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
 import { toOptions } from '@/utils/formOptions'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
 
 const KVK_STAFF_FORM_CODE = 'kvk_staff'
 
@@ -90,6 +91,12 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const disciplineOptions = React.useMemo(
         () => toOptions(disciplines as any[], 'disciplineId', 'disciplineName'),
         [disciplines],
+    )
+    const isOtherDisciplineSelected = React.useMemo(
+        () => Boolean((disciplines as any[]).find(
+            (discipline) => String(discipline.disciplineId) === String(formData.disciplineId),
+        )?.isOther),
+        [disciplines, formData.disciplineId],
     )
     const staffCategoryOptions = React.useMemo(
         () => toOptions(staffCategories as any[], 'staffCategoryId', 'categoryName'),
@@ -526,9 +533,27 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 label="Discipline"
                                 required
                                 value={formData.disciplineId ?? ''}
-                                onChange={(e) => setFormData({ ...formData, disciplineId: parseInt(e.target.value) })}
+                                onChange={(e) => {
+                                    const disciplineId = e.target.value ? parseInt(e.target.value) : null
+                                    const isOther = Boolean((disciplines as any[]).find(
+                                        (discipline) => String(discipline.disciplineId) === String(disciplineId),
+                                    )?.isOther)
+                                    setFormData({
+                                        ...formData,
+                                        disciplineId,
+                                        disciplineOther: isOther ? formData.disciplineOther : '',
+                                    })
+                                }}
                                 options={disciplineOptions}
                             />
+                            {isOtherDisciplineSelected && (
+                                <SpecifyOtherInput
+                                    label="Please specify discipline"
+                                    required
+                                    value={formData.disciplineOther ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, disciplineOther: e.target.value })}
+                                />
+                            )}
                             <FormInput
                                 label="Date of Joining"
                                 required

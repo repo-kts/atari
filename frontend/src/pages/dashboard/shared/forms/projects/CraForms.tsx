@@ -43,6 +43,10 @@ export const CraForms: React.FC<CraFormsProps> = ({
         () => createMasterDataOptions(extensionActivityTypes, 'activityId', 'activityName', { flagKey: 'isOther' }),
         [extensionActivityTypes]
     )
+    const seasonOptions = React.useMemo(
+        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName', { flagKey: 'isOther' }),
+        [seasons]
+    )
     const farmingSystemOptions = React.useMemo(
         () => (farmingSystems || [])
             .filter((fs: any) => !formData.seasonId || fs.seasonId === parseInt(formData.seasonId))
@@ -52,6 +56,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
     const { isOtherSelected: isOtherCropping, otherResetPatch: croppingResetPatch } = useOtherSpecify(croppingSystemOptions, formData.croppingSystemId)
     const { isOtherSelected: isOtherFarming, otherResetPatch: farmingResetPatch } = useOtherSpecify(farmingSystemOptions, formData.farmingSystemId)
     const { isOtherSelected: isOtherExtensionActivity, otherResetPatch: extensionActivityResetPatch } = useOtherSpecify(extensionActivityOptions, formData.extensionActivityId)
+    const { isOtherSelected: isOtherSeason, otherResetPatch: seasonResetPatch } = useOtherSpecify(seasonOptions, formData.seasonId)
 
     React.useEffect(() => {
         // Backfill croppingSystemId during edit for legacy rows that only have text.
@@ -97,6 +102,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     seasonId: value,
+                                    ...seasonResetPatch(value, 'seasonOther'),
                                     // reset dependents
                                     croppingSystemId: '',
                                     farmingSystemId: '',
@@ -104,9 +110,12 @@ export const CraForms: React.FC<CraFormsProps> = ({
                                     farmingSystemOther: '',
                                 })
                             }
-                            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
+                            options={seasonOptions}
                             emptyMessage="No seasons available"
                         />
+                        {isOtherSeason && (
+                            <SpecifyOtherInput label="Please specify other season" required value={formData.seasonOther} onChange={(e) => setFormData({ ...formData, seasonOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Technology demonstrated/ interventions"
                             required

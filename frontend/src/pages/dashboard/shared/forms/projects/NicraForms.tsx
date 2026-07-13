@@ -49,6 +49,11 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     dignitaryTypes = [],
     piTypes = []
 }) => {
+    const seasonOptions = React.useMemo(
+        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName', { flagKey: 'isOther' }),
+        [seasons]
+    )
+    const { isOtherSelected: isOtherSeason, otherResetPatch: seasonResetPatch } = useOtherSpecify(seasonOptions, formData.seasonId)
     const nicraCategoryOptions = React.useMemo(
         () => (categories as any[]).map((c: any) => ({ value: c.nicraCategoryId ?? c.id ?? c.categoryId, label: c.categoryName, isOther: Boolean(c.isOther) })),
         [categories]
@@ -226,14 +231,19 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     const renderAreaOrUnit = () => textInput('Area (ha) / Unit', 'areaOrUnit')
 
     const renderSeason = () => (
-        <MasterDataDropdown
-            label="Season"
-            required
-            value={formData.seasonId ?? ''}
-            onChange={(value) => setFormData({ ...formData, seasonId: value })}
-            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
-            emptyMessage="No seasons available"
-        />
+        <>
+            <MasterDataDropdown
+                label="Season"
+                required
+                value={formData.seasonId ?? ''}
+                onChange={(value) => setFormData({ ...formData, seasonId: value, ...seasonResetPatch(value, 'seasonOther') })}
+                options={seasonOptions}
+                emptyMessage="No seasons available"
+            />
+            {isOtherSeason && (
+                <SpecifyOtherInput label="Please specify other season" required value={formData.seasonOther} onChange={(e) => setFormData({ ...formData, seasonOther: e.target.value })} />
+            )}
+        </>
     )
 
     const renderMonth = () => (

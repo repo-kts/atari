@@ -6,6 +6,8 @@ import { useYears, useSeasons } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { parseEstablishmentYearInput } from '@/utils/formNumericGuards'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 
 interface InfrastructurePerformanceFormsProps {
     entityType: ExtendedEntityType | null
@@ -144,9 +146,10 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
     )
 
     const seasonOptions = useMemo(
-        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName'),
+        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName', { flagKey: 'isOther' }),
         [seasons]
     )
+    const { isOtherSelected: isOtherSeason, otherResetPatch: seasonResetPatch } = useOtherSpecify(seasonOptions, formData.seasonId)
 
     // Optimized onChange handlers using useCallback
     const handleFieldChange = useCallback(
@@ -342,11 +345,14 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="Season"
                             required
                             value={formData.seasonId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, seasonId: value })}
+                            onChange={(value) => setFormData({ ...formData, seasonId: value, ...seasonResetPatch(value, 'seasonOther') })}
                             options={seasonOptions}
                             isLoading={isLoadingSeasons}
                             emptyMessage="No seasons available"
                         />
+                        {isOtherSeason && (
+                            <SpecifyOtherInput label="Please specify other season" required value={formData.seasonOther} onChange={(e) => setFormData({ ...formData, seasonOther: e.target.value })} />
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

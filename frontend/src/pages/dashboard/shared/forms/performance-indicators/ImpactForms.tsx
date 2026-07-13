@@ -7,6 +7,8 @@ import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { parseBoundedCountInput, parseEstablishmentYearInput } from '@/utils/formNumericGuards'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 
 interface ImpactFormsProps {
     entityType: ExtendedEntityType | null
@@ -30,14 +32,16 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
     )
 
     const specificAreaOptions = useMemo(
-        () => createMasterDataOptions(specificAreas, 'specificAreaName', 'specificAreaName'),
+        () => createMasterDataOptions(specificAreas, 'specificAreaName', 'specificAreaName', { flagKey: 'isOther' }),
         [specificAreas]
     )
 
     const enterpriseTypeOptions = useMemo(
-        () => createMasterDataOptions(enterpriseTypes, 'enterpriseTypeName', 'enterpriseTypeName'),
+        () => createMasterDataOptions(enterpriseTypes, 'enterpriseTypeName', 'enterpriseTypeName', { flagKey: 'isOther' }),
         [enterpriseTypes]
     )
+    const { isOtherSelected: isOtherSpecificArea, otherResetPatch: specificAreaResetPatch } = useOtherSpecify(specificAreaOptions, formData.specificArea)
+    const { isOtherSelected: isOtherEnterpriseType, otherResetPatch: enterpriseTypeResetPatch } = useOtherSpecify(enterpriseTypeOptions, formData.enterpriseType)
 
     // Optimized onChange handlers using useCallback
     const handleFieldChange = useCallback(
@@ -130,11 +134,14 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             label="Name of Specific Area"
                             required
                             value={formData.specificArea ?? ''}
-                            onChange={(value) => setFormData({ ...formData, specificArea: value })}
+                            onChange={(value) => setFormData({ ...formData, specificArea: value, ...specificAreaResetPatch(value, 'specificAreaOther') })}
                             options={specificAreaOptions}
                             isLoading={isLoadingAreas}
                             emptyMessage="No specific areas available"
                         />
+                        {isOtherSpecificArea && (
+                            <SpecifyOtherInput label="Please specify other specific area" required value={formData.specificAreaOther} onChange={(e) => setFormData({ ...formData, specificAreaOther: e.target.value })} />
+                        )}
                     </div>
 
                     <FormTextArea
@@ -269,11 +276,14 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             label="Type of Enterprise"
                             required
                             value={formData.enterpriseType ?? ''}
-                            onChange={(value) => setFormData({ ...formData, enterpriseType: value })}
+                            onChange={(value) => setFormData({ ...formData, enterpriseType: value, ...enterpriseTypeResetPatch(value, 'enterpriseTypeOther') })}
                             options={enterpriseTypeOptions}
                             isLoading={isLoadingEnterpriseTypes}
                             emptyMessage="No enterprise types available"
                         />
+                        {isOtherEnterpriseType && (
+                            <SpecifyOtherInput label="Please specify other enterprise type" required value={formData.enterpriseTypeOther} onChange={(e) => setFormData({ ...formData, enterpriseTypeOther: e.target.value })} />
+                        )}
 
                         <FormInput
                             label="No of Members Associated"

@@ -138,6 +138,7 @@ const fldTechnicalFeedbackRepository = {
             kvkId,
             fldId,
             cropId,
+            cropOther: (data.cropOther && String(data.cropOther).trim()) || null,
             feedback,
             reportingYear,
         };
@@ -242,6 +243,9 @@ const fldTechnicalFeedbackRepository = {
         );
 
         const updateData = buildUpdateData(data, UPDATE_FIELD_DEFINITIONS);
+        if (data.cropOther !== undefined) {
+            updateData.cropOther = (String(data.cropOther).trim()) || null;
+        }
         if (data.reportingYear !== undefined) {
             updateData.reportingYear = parseReportingYearDate(data.reportingYear);
             ensureNotFutureDate(updateData.reportingYear);
@@ -339,8 +343,9 @@ function _mapResponse(r) {
         fldId: r.fldId,
         fldName: r.fld?.fldName,
         cropId: r.cropId,
-        cropName: r.crop?.cropName,
-        crop: r.crop?.cropName,
+        cropOther: r.cropOther ?? '',
+        cropName: r.cropOther || r.crop?.cropName,
+        crop: r.cropOther || r.crop?.cropName,
         feedback: r.feedback,
         feedBack: r.feedback,
         reportingYear: formatReportingYear(r.reportingYear),

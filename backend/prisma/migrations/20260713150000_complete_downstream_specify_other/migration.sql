@@ -1,0 +1,17 @@
+ALTER TABLE "kvk_staff" ADD COLUMN "discipline_other" TEXT;
+ALTER TABLE "extension_activity_organized" ADD COLUMN "activity_other" TEXT;
+ALTER TABLE "kvk_budget_utilization" ADD COLUMN "crop_other" TEXT;
+ALTER TABLE "fld_technical_feedback" ADD COLUMN "crop_other" TEXT;
+ALTER TABLE "demonstration_info" ADD COLUMN "staff_category_other" TEXT;
+ALTER TABLE "kvk_impact_activity" ADD COLUMN "specific_area_other" TEXT;
+ALTER TABLE "entrepreneurship" ADD COLUMN "enterprise_type_other" TEXT;
+ALTER TABLE "kvk_fld_introduction" ADD COLUMN "season_other" TEXT;
+ALTER TABLE "kvk_oft" ADD COLUMN "season_other" TEXT;
+ALTER TABLE "cra_details" ADD COLUMN "season_other" TEXT;
+ALTER TABLE "csisa" ADD COLUMN "season_other" TEXT;
+ALTER TABLE "nari_bio_fortified_crop" ADD COLUMN "season_other" TEXT;
+ALTER TABLE "demonstration_info" ADD COLUMN "season_other" TEXT;
+ALTER TABLE "soil_data_information" ADD COLUMN "season_other" TEXT;
+ALTER TABLE "nicra_details" ADD COLUMN "season_other" TEXT;
+ALTER TABLE "kvk_seed_hub_program" ADD COLUMN "season_other" TEXT;
+ALTER TABLE "instructional_farm_crop" ADD COLUMN "season_other" TEXT;

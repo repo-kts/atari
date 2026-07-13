@@ -16,6 +16,7 @@ const instructionalFarmCropRepository = {
                     return d;
                 })(),
                 seasonId: data.seasonId ? parseInt(data.seasonId) : null,
+                seasonOther: (data.seasonOther && String(data.seasonOther).trim()) || null,
                 cropName: data.cropName,
                 area: parseFloat(data.area || 0),
                 variety: data.variety,
@@ -81,6 +82,7 @@ const instructionalFarmCropRepository = {
                     })()
                     : existing.reportingYear,
                 seasonId: data.seasonId !== undefined ? (data.seasonId ? parseInt(data.seasonId) : null) : existing.seasonId,
+                seasonOther: data.seasonOther !== undefined ? ((String(data.seasonOther).trim()) || null) : existing.seasonOther,
                 cropName: data.cropName !== undefined ? data.cropName : existing.cropName,
                 area: data.area !== undefined ? parseFloat(data.area || 0) : existing.area,
                 variety: data.variety !== undefined ? data.variety : existing.variety,

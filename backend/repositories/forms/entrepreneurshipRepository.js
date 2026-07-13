@@ -21,6 +21,7 @@ const entrepreneurshipRepository = {
                 registeredAddress: data.registeredAddress,
                 yearOfEstablishment: parseYearOfEstablishment(data.yearOfEstablishment),
                 enterpriseType: data.enterpriseType,
+                enterpriseTypeOther: (data.enterpriseTypeOther && String(data.enterpriseTypeOther).trim()) || null,
                 membersAssociated: parseBoundedCountInt(data.membersAssociated, 'Members associated'),
                 registrationDetails: data.registrationDetails,
                 technicalComponents: data.technicalComponents,
@@ -91,6 +92,7 @@ const entrepreneurshipRepository = {
                     ? parseYearOfEstablishment(data.yearOfEstablishment)
                     : existing.yearOfEstablishment,
                 enterpriseType: data.enterpriseType !== undefined ? data.enterpriseType : existing.enterpriseType,
+                enterpriseTypeOther: data.enterpriseTypeOther !== undefined ? ((String(data.enterpriseTypeOther).trim()) || null) : existing.enterpriseTypeOther,
                 membersAssociated: data.membersAssociated !== undefined
                     ? parseBoundedCountInt(data.membersAssociated, 'Members associated')
                     : existing.membersAssociated,

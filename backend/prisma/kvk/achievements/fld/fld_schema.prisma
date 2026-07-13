@@ -10,6 +10,7 @@ model KvkFldIntroduction {
   kvkStaffId                  Int
   staffName                   String?                     @map("staff_name")
   seasonId                    Int?
+  seasonOther                 String?                     @map("season_other")
   sectorId                    Int?
   sectorOther                 String?                     @map("sector_other")
   thematicAreaId              Int?

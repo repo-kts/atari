@@ -52,6 +52,19 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
         soilParameterOptions,
         formData.soilParameterId
     )
+    const seasonOptions = React.useMemo(
+        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName', { flagKey: 'isOther' }),
+        [seasons],
+    )
+    const { isOtherSelected: isOtherSeason, otherResetPatch: seasonResetPatch } = useOtherSpecify(seasonOptions, formData.seasonId)
+    const staffCategoryOptions = React.useMemo(
+        () => createMasterDataOptions(staffCategories, 'staffCategoryId', 'categoryName', { flagKey: 'isOther' }),
+        [staffCategories],
+    )
+    const { isOtherSelected: isOtherStaffCategory, otherResetPatch: staffCategoryResetPatch } = useOtherSpecify(
+        staffCategoryOptions,
+        formData.staffCategoryId,
+    )
     const handleAttachmentIds = React.useCallback(
         (ids: number[]) => setFormData((prev: any) => ({ ...prev, attachmentIds: ids })),
         [setFormData],
@@ -326,10 +339,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Category"
                             required
                             value={formData.staffCategoryId ?? ''}
-                            onChange={(e) => setFormData({ ...formData, staffCategoryId: e.target.value })}
-                            options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
+                            onChange={(e) => setFormData({ ...formData, staffCategoryId: e.target.value, ...staffCategoryResetPatch(e.target.value, 'staffCategoryOther') })}
+                            options={staffCategoryOptions}
                             placeholder="Select"
                         />
+                        {isOtherStaffCategory && (
+                            <SpecifyOtherInput label="Please specify other category" required value={formData.staffCategoryOther} onChange={(e) => setFormData({ ...formData, staffCategoryOther: e.target.value })} />
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -382,10 +398,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Season"
                             required
                             value={formData.seasonId ?? ''}
-                            onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
-                            options={seasons.map((s: any) => ({ value: s.seasonId || s.id, label: s.seasonName }))}
+                            onChange={(e) => setFormData({ ...formData, seasonId: e.target.value, ...seasonResetPatch(e.target.value, 'seasonOther') })}
+                            options={seasonOptions}
                             placeholder="Select"
                         />
+                        {isOtherSeason && (
+                            <SpecifyOtherInput label="Please specify other season" required value={formData.seasonOther} onChange={(e) => setFormData({ ...formData, seasonOther: e.target.value })} />
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 gap-8">
@@ -737,10 +756,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Season"
                             required
                             value={formData.seasonId ?? ''}
-                            onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
-                            options={seasons.map((s: any) => ({ value: s.seasonId || s.id, label: s.seasonName }))}
+                            onChange={(e) => setFormData({ ...formData, seasonId: e.target.value, ...seasonResetPatch(e.target.value, 'seasonOther') })}
+                            options={seasonOptions}
                             placeholder="Select"
                         />
+                        {isOtherSeason && (
+                            <SpecifyOtherInput label="Please specify other season" required value={formData.seasonOther} onChange={(e) => setFormData({ ...formData, seasonOther: e.target.value })} />
+                        )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <FormInput

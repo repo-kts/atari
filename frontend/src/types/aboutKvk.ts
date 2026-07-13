@@ -104,6 +104,7 @@ export interface KvkEmployee {
     sanctionedPostId: number;
     positionOrder: number;
     disciplineId: number;
+    disciplineOther?: string | null;
     payScaleId?: number | null;
     payScale?: { payScaleId: number; scaleName: string };
     payLevelId?: number;

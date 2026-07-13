@@ -428,6 +428,9 @@ const cfldBudgetUtilizationRepository = {
             const yearInfo = resolveReportingYearInput(data.reportingYear ?? data.year, new Date().getUTCFullYear(), null);
             const numericYear = yearInfo.year ?? new Date().getUTCFullYear();
             const scalarData = buildDynamicBudgetScalarData(data);
+            if (data.cropOther !== undefined) {
+                scalarData.cropOther = (String(data.cropOther).trim()) || null;
+            }
             const createPayload = {
                 ...scalarData,
                 kvkId,
@@ -521,6 +524,9 @@ const cfldBudgetUtilizationRepository = {
             }
 
             const updateData = buildDynamicBudgetScalarData(data);
+            if (data.cropOther !== undefined) {
+                updateData.cropOther = (String(data.cropOther).trim()) || null;
+            }
             const rawYear = data.reportingYear ?? data.year;
             if (rawYear !== undefined) {
                 const yearInfo = resolveReportingYearInput(rawYear, existing.year, existing.reportingYearDate || null);
@@ -631,6 +637,9 @@ function _mapResponse(r) {
         seasonName: r.seasonOther || relations.seasonName,
         season: r.seasonOther || relations.season,
         seasonOther: r.seasonOther ?? '',
+        cropName: r.cropOther || relations.cropName,
+        crop: r.cropOther || relations.crop,
+        cropOther: r.cropOther ?? '',
         year: r.year,
         reportingYear: formatBudgetReportingYear(r.reportingYearDate, r.year),
         ...dynamicScalarFields,

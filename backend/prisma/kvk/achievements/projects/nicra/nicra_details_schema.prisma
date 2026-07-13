@@ -32,6 +32,7 @@ model NicraDetails {
   fstType                String           @map("fst_type")
   cropName               String           @map("crop_name")
   seasonId               Int?
+  seasonOther            String?          @map("season_other")
   month                  Month
   technologyDemonstrated String           @map("technology_demonstrated")
   areaOrUnit             Float            @map("area_or_unit")

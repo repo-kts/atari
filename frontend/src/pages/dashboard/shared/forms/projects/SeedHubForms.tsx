@@ -3,6 +3,8 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 
 interface SeedHubFormsProps {
     entityType: string
@@ -17,6 +19,12 @@ export const SeedHubForms: React.FC<SeedHubFormsProps> = ({
     setFormData,
     seasons
 }) => {
+    const seasonOptions = React.useMemo(
+        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName', { flagKey: 'isOther' }),
+        [seasons]
+    )
+    const { isOtherSelected: isOtherSeason, otherResetPatch: seasonResetPatch } = useOtherSpecify(seasonOptions, formData.seasonId)
+
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_SEED_HUB && (
@@ -33,10 +41,13 @@ export const SeedHubForms: React.FC<SeedHubFormsProps> = ({
                             label="Season"
                             required
                             value={formData.seasonId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, seasonId: value })}
-                            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
+                            onChange={(value) => setFormData({ ...formData, seasonId: value, ...seasonResetPatch(value, 'seasonOther') })}
+                            options={seasonOptions}
                             emptyMessage="No seasons available"
                         />
+                        {isOtherSeason && (
+                            <SpecifyOtherInput label="Please specify other season" required value={formData.seasonOther} onChange={(e) => setFormData({ ...formData, seasonOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Name of crop taken under seed production"
                             required

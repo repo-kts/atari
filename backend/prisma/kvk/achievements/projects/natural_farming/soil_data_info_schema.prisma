@@ -5,6 +5,7 @@ model SoilDataInformation {
   reportingYearDate     DateTime?         @map("reporting_year_date")
   crop                  String
   seasonId              Int?
+  seasonOther           String?           @map("season_other")
   soilParameterId       Int?              @map("soil_parameter_id")
   soilParameterOther    String?           @map("soil_parameter_other")
   phBefore              Float             @map("ph_before")

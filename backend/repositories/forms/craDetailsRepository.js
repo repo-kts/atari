@@ -29,6 +29,7 @@ const craDetailsRepository = {
                     return d;
                 })(),
                 seasonId: data.seasonId ? parseInt(data.seasonId) : null,
+                seasonOther: (data.seasonOther && String(data.seasonOther).trim()) || null,
                 interventions: data.interventions || data.technologyDemonstrated || '',
                 croppingSystem,
                 croppingSystemId,
@@ -131,6 +132,7 @@ const craDetailsRepository = {
                     })()
                     : undefined,
                 seasonId: data.seasonId ? parseInt(data.seasonId) : undefined,
+                seasonOther: data.seasonOther !== undefined ? ((String(data.seasonOther).trim()) || null) : undefined,
                 interventions: data.interventions !== undefined ? data.interventions : (data.technologyDemonstrated !== undefined ? data.technologyDemonstrated : undefined),
                 croppingSystem: nextCroppingSystemText !== undefined ? nextCroppingSystemText : undefined,
                 croppingSystemId: data.croppingSystemId !== undefined ? (data.croppingSystemId ? parseInt(data.croppingSystemId) : null) : undefined,
@@ -185,7 +187,9 @@ function _mapResponse(r) {
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,
-        season: r.season ? r.season.seasonName : '',
+        season: r.seasonOther || (r.season ? r.season.seasonName : ''),
+        seasonName: r.seasonOther || (r.season ? r.season.seasonName : ''),
+        seasonOther: r.seasonOther ?? '',
         // Map back to frontend names
         technologyDemonstrated: r.interventions,
         interventions: r.interventions,

@@ -16,6 +16,7 @@ model KvkBudgetUtilization {
   seasonId              Int?
   seasonOther           String?                    @map("season_other")
   cropId                Int?
+  cropOther             String?                    @map("crop_other")
   overallFundAllocation Float                      @map("overall_crop_wise_fund_allocation")
   areaAllotted          Float                      @map("area_ha_allotted")
   areaAchieved          Float                      @map("area_ha_achieved")

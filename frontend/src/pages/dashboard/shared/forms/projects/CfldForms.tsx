@@ -364,8 +364,25 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         () => extensionActivityTypes.map((ext: any) => ({
             value: ext.extensionActivityId ?? ext.activityId ?? ext.id,
             label: ext.extensionName ?? ext.activityName ?? ext.name,
+            isOther: Boolean(ext.isOther),
         })),
         [extensionActivityTypes]
+    );
+    const { isOtherSelected: isOtherExtensionActivity, otherResetPatch: extensionActivityResetPatch } = useOtherSpecify(
+        extensionActivityOptions,
+        formData.extensionActivityId,
+    );
+    const budgetCropOptions = useMemo(
+        () => (cfldCrops as any[]).map((crop: any) => ({
+            value: crop.cropId ?? crop.fldCropId,
+            label: crop.cropName ?? crop.CropName,
+            isOther: Boolean(crop.isOther),
+        })),
+        [cfldCrops],
+    );
+    const { isOtherSelected: isOtherBudgetCrop, otherResetPatch: budgetCropResetPatch } = useOtherSpecify(
+        budgetCropOptions,
+        formData.cropId,
     );
 
     // Generic field update handler
@@ -448,9 +465,14 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     // Extension activity change handler
     const handleExtensionActivityChange = useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
-            handleFieldChange('extensionActivityId', parseInt(e.target.value));
+            const extensionActivityId = parseInt(e.target.value);
+            setFormData((prev: any) => ({
+                ...prev,
+                extensionActivityId,
+                ...extensionActivityResetPatch(extensionActivityId, 'activityOther'),
+            }));
         },
-        [handleFieldChange]
+        [setFormData, extensionActivityResetPatch]
     );
 
     const handleReportingYearChange = useCallback(
@@ -937,6 +959,14 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     onChange={handleExtensionActivityChange}
                     options={extensionActivityOptions}
                 />
+                {isOtherExtensionActivity && (
+                    <SpecifyOtherInput
+                        label="Please specify other extension activity"
+                        required
+                        value={formData.activityOther}
+                        onChange={(e) => handleFieldChange('activityOther', e.target.value)}
+                    />
+                )}
                 <FormInput
                     label="Date"
                     required
@@ -1088,16 +1118,21 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                 <FormSelect
                     label="Crop"
                     required
-                    value={formData.crop ?? formData.cropName ?? ''}
-                    onChange={handleCropChangeFormSelect}
-                    options={useMemo(
-                        () => cfldCrops.map((crop: any) => ({
-                            value: crop.CropName || crop.cropName,
-                            label: crop.CropName || crop.cropName,
-                        })),
-                        [cfldCrops]
-                    )}
+                    value={formData.cropId ?? ''}
+                    onChange={(e) => {
+                        const cropId = parseInt(e.target.value)
+                        setFormData((prev: any) => ({ ...prev, cropId, ...budgetCropResetPatch(cropId, 'cropOther') }))
+                    }}
+                    options={budgetCropOptions}
                 />
+                {isOtherBudgetCrop && (
+                    <SpecifyOtherInput
+                        label="Please specify other crop"
+                        required
+                        value={formData.cropOther}
+                        onChange={(e) => handleFieldChange('cropOther', e.target.value)}
+                    />
+                )}
                 <FormInput
                     label="Overall Crop wise fund allocation"
                     required

@@ -412,6 +412,7 @@ async function _buildOftCreateData(data, kvkId) {
         kvkId,
         expectedCompletionDate,
         seasonId,
+        seasonOther: sanitizeString(safeGet(data, 'seasonOther'), { allowEmpty: true }) || null,
         staffId,
         staffName: await getStaffNameSnapshot(staffId),
         oftSubjectId,
@@ -458,6 +459,7 @@ async function _buildOftUpdateData(data, existing) {
         updateData.reportingYear = _parseReportingYearOrFallback(data.reportingYear, existing.reportingYear || existing.oftStartDate);
     }
     if (data.seasonId !== undefined) updateData.seasonId = sanitizeInteger(data.seasonId);
+    if (data.seasonOther !== undefined) updateData.seasonOther = sanitizeString(data.seasonOther, { allowEmpty: true }) || null;
     if (data.staffId !== undefined || data.staffName !== undefined) {
         updateData.staffId = sanitizeInteger(data.staffId || data.staffName);
         updateData.staffName = await getStaffNameSnapshot(updateData.staffId);
@@ -525,7 +527,8 @@ function _mapOftResponse(r) {
         expectedCompletionDate: r.expectedCompletionDate ? r.expectedCompletionDate.toISOString().split('T')[0] : '',
         reportingYear: formatReportingYear(effectiveReportingYear),
         seasonId: r.seasonId,
-        seasonName: r.season ? r.season.seasonName : undefined,
+        seasonName: r.seasonOther || (r.season ? r.season.seasonName : undefined),
+        seasonOther: r.seasonOther ?? '',
         staffId: r.staffId,
         staffName: r.staffName || (r.staff ? r.staff.staffName : undefined),
         oftSubjectId: r.oftSubjectId,

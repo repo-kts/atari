@@ -8,7 +8,6 @@ import { Zone, State, Organization } from '@/types/masterData'
 import { useMasterData } from '@/hooks/useMasterData'
 import { masterDataApi } from '@/services/masterDataApi'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
-import { IsOtherCheckbox } from '@/components/common/IsOtherCheckbox'
 
 interface BasicMasterFormsProps {
     entityType: ExtendedEntityType | null
@@ -97,7 +96,6 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         }, [setFormData])}
                         placeholder="Enter zone name"
                     />
-                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
                 </div>
             )}
 
@@ -121,7 +119,6 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         }, [setFormData])}
                         options={zoneOptions}
                     />
-                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
                 </div>
             )}
 
@@ -169,7 +166,6 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         emptyMessage="No states available for this zone"
                         loadingMessage="Loading states..."
                     />
-                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
                 </div>
             )}
 
@@ -184,7 +180,6 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         }, [setFormData])}
                         placeholder="Enter institute name"
                     />
-                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
                 </div>
             )}
 
@@ -259,7 +254,6 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         onChange={(e) => setFormData((prev: any) => ({ ...prev, hostAddress: e.target.value }))}
                         placeholder="Enter host address"
                     />
-                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
                 </div>
             )}
         </>

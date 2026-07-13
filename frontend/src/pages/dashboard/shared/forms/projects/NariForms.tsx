@@ -39,9 +39,14 @@ export const NariForms: React.FC<NariFormsProps> = ({
         () => createMasterDataOptions(nariCropCategories, 'cropCategoryId', 'name', { flagKey: 'isOther' }),
         [nariCropCategories]
     )
+    const seasonOptions = React.useMemo(
+        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName', { flagKey: 'isOther' }),
+        [seasons]
+    )
     const { isOtherSelected: isOtherNariActivity, otherResetPatch: nariActivityResetPatch } = useOtherSpecify(nariActivityOptions, formData.activityId)
     const { isOtherSelected: isOtherGardenType, otherResetPatch: gardenTypeResetPatch } = useOtherSpecify(gardenTypeOptions, formData.typeOfNutritionalGardenId)
     const { isOtherSelected: isOtherCropCategory, otherResetPatch: cropCategoryResetPatch } = useOtherSpecify(cropCategoryOptions, formData.cropCategoryId)
+    const { isOtherSelected: isOtherSeason, otherResetPatch: seasonResetPatch } = useOtherSpecify(seasonOptions, formData.seasonId)
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN && (
@@ -212,10 +217,13 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Season"
                             required
                             value={formData.seasonId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, seasonId: value })}
-                            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
+                            onChange={(value) => setFormData({ ...formData, seasonId: value, ...seasonResetPatch(value, 'seasonOther') })}
+                            options={seasonOptions}
                             placeholder="Select Season"
                         />
+                        {isOtherSeason && (
+                            <SpecifyOtherInput label="Please specify other season" required value={formData.seasonOther} onChange={(e) => setFormData({ ...formData, seasonOther: e.target.value })} />
+                        )}
                         <MasterDataDropdown
                             label="Activity"
                             required

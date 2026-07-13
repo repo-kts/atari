@@ -6,7 +6,8 @@ model NariBioFortifiedCrop {
 
   reportingYear DateTime? @map("reporting_year")
 
-  seasonId Int    @map("season_id")
+  seasonId    Int    @map("season_id")
+  seasonOther String? @map("season_other")
   season   Season @relation(fields: [seasonId], references: [seasonId])
 
   activityId Int          @map("activity_id")

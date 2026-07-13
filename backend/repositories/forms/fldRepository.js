@@ -367,6 +367,7 @@ const fldRepository = {
             categoryOther: typeof data.categoryOther === 'string' ? (data.categoryOther.trim() || null) : null,
             subCategoryOther: typeof data.subCategoryOther === 'string' ? (data.subCategoryOther.trim() || null) : null,
             cropOther: typeof data.cropOther === 'string' ? (data.cropOther.trim() || null) : null,
+            seasonOther: typeof data.seasonOther === 'string' ? (data.seasonOther.trim() || null) : null,
             seasonId: validateRequiredInteger(
                 data,
                 CREATE_FIELD_DEFINITIONS.seasonId.fieldNames,
@@ -602,6 +603,9 @@ const fldRepository = {
 
         // Build update data using field definitions
         const updateData = buildUpdateData(updatePayload, UPDATE_FIELD_DEFINITIONS);
+        if (updatePayload.seasonOther !== undefined) {
+            updateData.seasonOther = typeof updatePayload.seasonOther === 'string' ? (updatePayload.seasonOther.trim() || null) : null;
+        }
         if (Object.prototype.hasOwnProperty.call(updateData, 'kvkStaffId')) {
             updateData.staffName = await getStaffNameSnapshot(updateData.kvkStaffId);
         }
@@ -721,6 +725,7 @@ const fldRepository = {
                 kvkId: sourceFld.kvkId,
                 kvkStaffId: sourceFld.kvkStaffId,
                 seasonId: sourceFld.seasonId,
+                seasonOther: sourceFld.seasonOther,
                 sectorId: sourceFld.sectorId,
                 sectorOther: sourceFld.sectorOther,
                 thematicAreaId: sourceFld.thematicAreaId,
@@ -849,7 +854,8 @@ function _mapResponse(r) {
         expectedCompletionDate: r.expectedCompletionDate ? r.expectedCompletionDate.toISOString().split('T')[0] : '',
         reportingYear: formatReportingYear(effectiveReportingYear),
         seasonId: r.seasonId,
-        seasonName: r.season?.seasonName,
+        seasonName: r.seasonOther || r.season?.seasonName,
+        seasonOther: r.seasonOther ?? '',
         sectorId: r.sectorId,
         // Prefer the typed "Other" text over the generic master name so lists/reports show the real value.
         sectorName: r.sectorOther || r.sector?.sectorName,

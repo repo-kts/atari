@@ -364,6 +364,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.SEASON_NAME]: {
         extractor: (item: any) => {
+            if (item.seasonOther) return item.seasonOther;
             if (item.seasonName) return item.seasonName;
             if (item.season?.seasonName) return item.season.seasonName;
             if (item.season_name) return item.season_name;
@@ -989,7 +990,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 7,
     },
     [FIELD_NAMES.SEASON]: {
-        extractor: (item: any) => item.seasonName || (item.season?.seasonName) || null,
+        extractor: (item: any) => item.seasonOther || item.seasonName || (item.season?.seasonName) || null,
     },
     // Note: 'Crop' extractor is defined below using FIELD_NAMES.CROP constant
     [FIELD_NAMES.VARIETY]: {
@@ -1723,7 +1724,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
 
     // Performance Impact - KVK Activities
     [FIELD_NAMES.NAME_OF_SPECIFIC_AREA]: {
-        extractor: (item: any) => item.specificArea || null,
+        extractor: (item: any) => item.specificAreaOther || item.specificArea || null,
         priority: 6,
     },
     [FIELD_NAMES.BRIEF_DETAILS_OF_THE_AREA]: {
@@ -1753,7 +1754,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 6,
     },
     [FIELD_NAMES.TYPE_OF_ENTERPRISE]: {
-        extractor: (item: any) => item.enterpriseType || null,
+        extractor: (item: any) => item.enterpriseTypeOther || item.enterpriseType || null,
         priority: 6,
     },
     [FIELD_NAMES.NO_OF_MEMBERS_ASSOCIATED]: {

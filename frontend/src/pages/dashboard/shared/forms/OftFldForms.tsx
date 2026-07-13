@@ -290,8 +290,21 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
             selectedFldForTechnicalFeedback.cropName ||
             fldCrops.find((c: any) => Number(c.cropId) === Number(cropId))?.cropName ||
             `Crop ${cropId}`
-        return [{ value: cropId, label: cropName }]
+        const cropMaster = fldCrops.find((c: any) => Number(c.cropId) === Number(cropId))
+        return [{ value: cropId, label: cropName, isOther: Boolean(cropMaster?.isOther) }]
     }, [selectedFldForTechnicalFeedback, fldCrops])
+    const { isOtherSelected: isOtherFeedbackCrop, otherResetPatch: feedbackCropResetPatch } = useOtherSpecify(
+        cropOptionsForSelectedFld,
+        formData.cropId,
+    )
+    const seasonOptions = useMemo(
+        () => createMasterDataOptions(seasons, 'seasonId', 'seasonName', { flagKey: 'isOther' }),
+        [seasons],
+    )
+    const { isOtherSelected: isOtherSeason, otherResetPatch: seasonResetPatch } = useOtherSpecify(
+        seasonOptions,
+        formData.seasonId,
+    )
 
     // FldActivity list for extension training - using the proper hook
     const { data: activityList = [] } = useFldActivities()
@@ -825,10 +838,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Season"
                             required
                             value={formData.seasonId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, seasonId: value as number })}
-                            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
+                            onChange={(value) => setFormData({ ...formData, seasonId: value as number, ...seasonResetPatch(value, 'seasonOther') })}
+                            options={seasonOptions}
                             emptyMessage="No seasons available"
                         />
+                        {isOtherSeason && (
+                            <SpecifyOtherInput label="Please specify other season" required value={formData.seasonOther} onChange={(e) => setFormData({ ...formData, seasonOther: e.target.value })} />
+                        )}
 
                         <MasterDataDropdown
                             label="OFT Subject"
@@ -1196,10 +1212,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Season"
                             required
                             value={formData.seasonId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, seasonId: value as number })}
-                            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
+                            onChange={(value) => setFormData({ ...formData, seasonId: value as number, ...seasonResetPatch(value, 'seasonOther') })}
+                            options={seasonOptions}
                             emptyMessage="No seasons available"
                         />
+                        {isOtherSeason && (
+                            <SpecifyOtherInput label="Please specify other season" required value={formData.seasonOther} onChange={(e) => setFormData({ ...formData, seasonOther: e.target.value })} />
+                        )}
 
                         <MasterDataDropdown
                             label="Sector"
@@ -1733,7 +1752,8 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     cropId: value as number,
-                                    crop: selectedCrop?.label || ''
+                                    crop: selectedCrop?.label || '',
+                                    ...feedbackCropResetPatch(value, 'cropOther'),
                                 })
                             }}
                             options={cropOptionsForSelectedFld}
@@ -1743,6 +1763,9 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             }}
                             emptyMessage="No crop is mapped to selected FLD"
                         />
+                        {isOtherFeedbackCrop && (
+                            <SpecifyOtherInput label="Please specify other crop" required value={formData.cropOther} onChange={(e) => setFormData({ ...formData, cropOther: e.target.value })} />
+                        )}
                     </div>
 
                     <FormTextArea

@@ -847,6 +847,7 @@ const KVK_STAFF_ALLOWED_FIELDS = [
     'sanctionedPostOther',
     'positionOrder',
     'disciplineId',
+    'disciplineOther',
     'payScaleId',
     'payScaleOther',
     'dateOfJoining',

@@ -50,6 +50,7 @@ const csisaRepository = {
         const reportingYear = parseReportingYearDate(data.reportingYear);
         ensureNotFutureDate(reportingYear);
         const seasonId = parseInt(data.seasonId) || 1;
+        const seasonOther = (data.seasonOther && String(data.seasonOther).trim()) || null;
         const villagesCovered = parseInt(data.villageCovered || data.villagesCovered) || 0;
         const blocksCovered = parseInt(data.blockCovered || data.blocksCovered) || 0;
         const districtsCovered = parseInt(data.districtCovered || data.districtsCovered) || 0;
@@ -59,13 +60,13 @@ const csisaRepository = {
 
         const [csisaRecord] = await prisma.$queryRawUnsafe(`
             INSERT INTO csisa (
-                "kvkId", reporting_year, "seasonId", 
+                "kvkId", reporting_year, "seasonId", season_other,
                 villages_covered, blocks_covered, districts_covered, 
                 respondents, trial_name, area_covered_ha,
                 created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING *
-        `, kvkId, reportingYear, seasonId, villagesCovered, blocksCovered, districtsCovered,
+        `, kvkId, reportingYear, seasonId, seasonOther, villagesCovered, blocksCovered, districtsCovered,
             respondents, trialName, areaCoveredHa);
 
         const csisaId = csisaRecord.csisa_id;
@@ -172,6 +173,7 @@ const csisaRepository = {
             ensureNotFutureDate(updateData.reportingYear);
         }
         if (data.seasonId !== undefined) updateData.seasonId = parseInt(data.seasonId);
+        if (data.seasonOther !== undefined) updateData.seasonOther = (String(data.seasonOther).trim()) || null;
         if (data.villagesCovered !== undefined || data.villageCovered !== undefined || data.villagesCoveredNo !== undefined)
             updateData.villagesCovered = parseInt(data.villagesCovered ?? data.villageCovered ?? data.villagesCoveredNo);
         if (data.blocksCovered !== undefined || data.blockCovered !== undefined || data.blocksCoveredNo !== undefined)
@@ -222,13 +224,14 @@ const csisaRepository = {
             await tx.$executeRawUnsafe(`
                 UPDATE csisa 
                 SET 
-                    reporting_year = $1, "seasonId" = $2, villages_covered = $3, 
-                    blocks_covered = $4, districts_covered = $5, respondents = $6, 
-                    trial_name = $7, area_covered_ha = $8, updated_at = CURRENT_TIMESTAMP
-                WHERE csisa_id = $9
+                    reporting_year = $1, "seasonId" = $2, season_other = $3, villages_covered = $4,
+                    blocks_covered = $5, districts_covered = $6, respondents = $7,
+                    trial_name = $8, area_covered_ha = $9, updated_at = CURRENT_TIMESTAMP
+                WHERE csisa_id = $10
             `,
                 updateData.reportingYear ?? existing.reportingYear,
                 updateData.seasonId ?? existing.seasonId,
+                updateData.seasonOther !== undefined ? updateData.seasonOther : existing.seasonOther,
                 updateData.villagesCovered ?? existing.villagesCovered,
                 updateData.blocksCovered ?? existing.blocksCovered,
                 updateData.districtsCovered ?? existing.districtsCovered,
@@ -301,7 +304,8 @@ function _mapResponse(r) {
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         reportingYear: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,
-        seasonName: r.season ? r.season.seasonName : undefined,
+        seasonName: r.seasonOther || (r.season ? r.season.seasonName : undefined),
+        seasonOther: r.seasonOther ?? '',
         villagesCovered: r.villagesCovered,
         villageCovered: r.villagesCovered,
         blocksCovered: r.blocksCovered,

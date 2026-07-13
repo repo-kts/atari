@@ -37,6 +37,7 @@ model Kvkoft {
   kvkOftId                 Int                  @id @default(autoincrement()) @map("kvk_oft_id")
   kvkId                    Int
   seasonId                 Int?
+  seasonOther              String?              @map("season_other")
   staffId                  Int
   staffName                String?              @map("staff_name")
   oftSubjectId             Int?
