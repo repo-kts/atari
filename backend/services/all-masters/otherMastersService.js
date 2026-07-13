@@ -1,5 +1,18 @@
 const otherMastersRepository = require('../../repositories/all-masters/otherMastersRepository.js');
 
+function buildScopeFilters(config, data) {
+    const filters = {};
+    if (!config || !Array.isArray(config.uniqueScopeFields)) return filters;
+    for (const field of config.uniqueScopeFields) {
+        const value = data[field];
+        if (value === undefined || value === null || value === '') continue;
+        const parsed = field.endsWith('Id') ? parseInt(value, 10) : value;
+        if (typeof parsed === 'number' && Number.isNaN(parsed)) continue;
+        filters[field] = parsed;
+    }
+    return filters;
+}
+
 /**
  * Other Masters Service
  * Business logic layer for Season, Sanctioned Post, and Year master data operations
@@ -79,7 +92,12 @@ async function create(entityName, data) {
         }
 
         // Check for duplicate name
-        const exists = await otherMastersRepository.nameExists(entityName, data[nameField]);
+        const exists = await otherMastersRepository.nameExists(
+            entityName,
+            data[nameField],
+            null,
+            buildScopeFilters(config, data)
+        );
         if (exists) {
             const error = new Error(`${nameField} already exists`);
             error.statusCode = 409;
@@ -135,7 +153,12 @@ async function update(entityName, id, data) {
             }
 
             // Check for duplicate name (excluding current entity)
-            const exists = await otherMastersRepository.nameExists(entityName, data[nameField], id);
+            const exists = await otherMastersRepository.nameExists(
+                entityName,
+                data[nameField],
+                id,
+                buildScopeFilters(config, { ...existing, ...data })
+            );
             if (exists) {
                 const error = new Error(`${nameField} already exists`);
                 error.statusCode = 409;

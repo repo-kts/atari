@@ -3,6 +3,7 @@ model DistrictLevelData {
   kvkId               Int
   reportingYear       DateTime?   @map("reporting_year")
   items               String      @map("account_type")
+  accountTypeOther    String?     @map("account_type_other")
   information         String      @map("information")
   
   // Crop related fields

@@ -184,6 +184,7 @@ const ENTITY_CONFIG = {
         idField: 'equipmentMasterId',
         nameField: 'name',
         parentField: 'equipmentTypeId',
+        uniqueScopeFields: ['equipmentTypeId'],
         defaultOrderBy: [
             { equipmentType: { name: 'asc' } },
             { name: 'asc' },
@@ -377,6 +378,7 @@ const ENTITY_CONFIG = {
         ],
         allowDeleteWithDependents: true, // onDelete: SetNull configured on nicra_details
         parentField: 'nicraCategoryId',
+        uniqueScopeFields: ['nicraCategoryId'],
         includes: {
             category: {
                 select: {
@@ -1034,7 +1036,7 @@ const deleteEntity = async (entityType, id) => {
 /**
  * Check if name exists (for validation)
  */
-const nameExists = async (entityType, name, excludeId = null) => {
+const nameExists = async (entityType, name, excludeId = null, additionalFilters = {}) => {
     const config = getEntityConfig(entityType);
 
     const where = {
@@ -1042,6 +1044,7 @@ const nameExists = async (entityType, name, excludeId = null) => {
             equals: name,
             mode: 'insensitive',
         },
+        ...additionalFilters,
     };
 
     if (excludeId) {

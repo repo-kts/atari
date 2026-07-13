@@ -178,6 +178,17 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.registrationNo || item.vehicle?.registrationNo || null,
         priority: 9,
     },
+    [FIELD_NAMES.VEHICLE_TYPE]: {
+        extractor: (item: any) => {
+            const master = item.vehicleType?.name || item.vehicle?.vehicleType?.name;
+            const other = item.vehicleTypeOther || item.vehicle?.vehicleTypeOther;
+            const isOther =
+                item.vehicleType?.isOther ?? item.vehicle?.vehicleType?.isOther;
+            if (isOther && other) return other;
+            return master || other || null;
+        },
+        priority: 8,
+    },
     [FIELD_NAMES.VEHICLE_NAME]: {
         extractor: (item: any) => {
             const name = item.vehicleName || item.vehicle?.vehicleName;
@@ -951,7 +962,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.LAND_ITEM]: {
         extractor: (item: any) => {
-            if (item.landItemMaster?.isOther && item.specifyItemName) return item.specifyItemName;
             if (item.landItemMaster?.name) return item.landItemMaster.name;
             if (item.item) return item.item;
             return null;

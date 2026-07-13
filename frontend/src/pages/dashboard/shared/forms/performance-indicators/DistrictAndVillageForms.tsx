@@ -4,7 +4,9 @@ import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormTextArea } from '../shared/FormComponents'
 import { useYears, useAccountTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 
 /** `items` holds account type; API or legacy payloads may send non-strings. */
 function normalizeAccountTypeItems(value: unknown): string {
@@ -41,11 +43,15 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
     )
 
     const accountTypeOptions = useMemo(
-        () => createMasterDataOptions(accountTypes, 'accountType', 'accountType'),
+        () => createMasterDataOptions(accountTypes, 'accountType', 'accountType', { flagKey: 'isOther' }),
         [accountTypes]
     )
 
     const accountTypeValue = normalizeAccountTypeItems(formData.items)
+    const { isOtherSelected: isOtherAccountType, otherResetPatch: accountTypeResetPatch } = useOtherSpecify(
+        accountTypeOptions,
+        accountTypeValue,
+    )
 
     // Optimized onChange handlers using useCallback
     const handleFieldChange = useCallback(
@@ -85,13 +91,23 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                             label="Account Type"
                             required
                             value={accountTypeValue}
-                            onChange={(value) =>
-                                setFormData({ ...formData, items: String(value) })
-                            }
+                            onChange={(value) => setFormData({
+                                ...formData,
+                                items: String(value),
+                                ...accountTypeResetPatch(value, 'accountTypeOther'),
+                            })}
                             options={accountTypeOptions}
                             isLoading={isLoadingAccountTypes}
                             emptyMessage="No account types available"
                         />
+                        {isOtherAccountType && (
+                            <SpecifyOtherInput
+                                label="Please specify account type"
+                                required
+                                value={formData.accountTypeOther ?? ''}
+                                onChange={(e) => setFormData({ ...formData, accountTypeOther: e.target.value })}
+                            />
+                        )}
                     </div>
 
                     {/* Conditional Section: Crops */}

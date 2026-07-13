@@ -6,6 +6,7 @@ model KkvSoilWaterAnalysis {
   analysisId             Int               @map("analysis_id")
   analysisOther          String?           @map("analysis_other")
   samplesAnalysedThrough String            @map("samples_analysed_through")
+  samplesAnalysedThroughOther String?       @map("samples_analysed_through_other")
   samplesAnalysed        Int               @map("samples_analysed")
   villagesNumber         Int               @map("villages_number")
   amountRealized         Int               @map("amount_realized")

@@ -13,10 +13,38 @@ const safeParseInt = (val) => {
     return isNaN(parsed) ? null : parsed;
 };
 
+function isLegacyOtherValue(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    return normalized === 'other'
+        || normalized === 'others'
+        || normalized.includes('please specify');
+}
+
+async function normalizeAccountTypeOther(data, current = {}) {
+    const items = data.items !== undefined ? data.items : current.items;
+    const accountType = await prisma.accountTypeMaster.findFirst({
+        where: { accountType: { equals: String(items || ''), mode: 'insensitive' } },
+        select: { isOther: true },
+    });
+    const isOther = Boolean(accountType?.isOther) || isLegacyOtherValue(items);
+
+    if (!isOther) return null;
+
+    const rawOther = data.accountTypeOther !== undefined
+        ? data.accountTypeOther
+        : current.accountTypeOther;
+    const other = String(rawOther || '').trim();
+    if (!other) {
+        throw new Error('accountTypeOther is required when account type is Other');
+    }
+    return other;
+}
+
 const districtLevelDataRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
+        const accountTypeOther = await normalizeAccountTypeOther(data);
 
         const created = await prisma.districtLevelData.create({
             data: {
@@ -27,6 +55,7 @@ const districtLevelDataRepository = {
                     return d;
                 })(),
                 items: data.items,
+                accountTypeOther,
                 information: data.information,
                 season: data.season,
                 type: data.type,
@@ -87,6 +116,7 @@ const districtLevelDataRepository = {
 
         const existing = await prisma.districtLevelData.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        const accountTypeOther = await normalizeAccountTypeOther(data, existing);
 
         const updated = await prisma.districtLevelData.update({
             where: { districtLevelDataId: id },
@@ -99,6 +129,7 @@ const districtLevelDataRepository = {
                     })()
                     : existing.reportingYear,
                 items: data.items !== undefined ? data.items : existing.items,
+                accountTypeOther,
                 information: data.information !== undefined ? data.information : existing.information,
                 season: data.season !== undefined ? data.season : existing.season,
                 type: data.type !== undefined ? data.type : existing.type,

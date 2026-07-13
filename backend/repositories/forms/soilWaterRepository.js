@@ -10,6 +10,24 @@ const SOIL_WATER_ANALYSIS_OTHER_RULES = [
     { idField: 'analysisId', otherField: 'analysisOther', model: 'soilWaterAnalysis', idKey: 'soilWaterAnalysisId', label: 'Analysis' },
 ];
 
+function normalizeSamplesAnalysedThroughOther(data, current = {}) {
+    const through = data.samplesAnalysedThrough !== undefined
+        ? data.samplesAnalysedThrough
+        : current.samplesAnalysedThrough;
+    const isOther = String(through || '').trim().toLowerCase() === 'other';
+
+    if (!isOther) return null;
+
+    const rawOther = data.samplesAnalysedThroughOther !== undefined
+        ? data.samplesAnalysedThroughOther
+        : current.samplesAnalysedThroughOther;
+    const other = String(rawOther || '').trim();
+    if (!other) {
+        throw new Error('samplesAnalysedThroughOther is required when samples analyzed through is Other');
+    }
+    return other;
+}
+
 // Raw-SQL ORDER BY matching buildFormListOrderBy: reporting year newest first,
 // then KVK name A→Z (superadmin) or latest entry first (KVK-scoped user).
 function _soilOrderBy(user, alias, pk) {
@@ -56,6 +74,7 @@ function _mapAnalysisResponse(r) {
         startDate: r.start_date ? r.start_date.toISOString().split('T')[0] : null,
         endDate: r.end_date ? r.end_date.toISOString().split('T')[0] : null,
         samplesAnalysedThrough: r.samples_analysed_through,
+        samplesAnalysedThroughOther: r.samples_analysed_through_other ?? '',
         samplesAnalysed: r.samples_analysed,
         villagesNumber: r.villages_number,
         amountRealized: r.amount_realized,
@@ -228,18 +247,20 @@ const soilWaterRepository = {
         const aRealized = parseInt(data.amountRealized || 0);
         const rYearId = await soilWaterRepository.resolveReportingYear(data);
         await assertOtherFieldsValid(SOIL_WATER_ANALYSIS_OTHER_RULES, { analysisId: data.analysisId ?? data.soilWaterAnalysisId, analysisOther: data.analysisOther });
+        const samplesAnalysedThroughOther = normalizeSamplesAnalysedThroughOther(data);
 
         // All NOT NULL columns MUST have values.
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_soil_water_analysis 
-            ("kvkId", start_date, end_date, analysis_id, analysis_other, samples_analysed_through, samples_analysed, villages_number, amount_realized, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ("kvkId", start_date, end_date, analysis_id, analysis_other, samples_analysed_through, samples_analysed_through_other, samples_analysed, villages_number, amount_realized, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         `, kvkId,
             data.startDate ? new Date(data.startDate) : new Date(),
             data.endDate ? new Date(data.endDate) : new Date(),
             isNaN(aId) ? null : aId,
             (data.analysisOther && String(data.analysisOther).trim()) || null,
             data.samplesAnalysedThrough || 'Other',
+            samplesAnalysedThroughOther,
             isNaN(sAnalysed) ? 0 : sAnalysed,
             isNaN(vNum) ? 0 : vNum,
             isNaN(aRealized) ? 0 : aRealized,
@@ -294,12 +315,29 @@ const soilWaterRepository = {
         const updates = [];
         const values = [];
         let index = 1;
+        const normalizedData = { ...data };
+
+        if (data.samplesAnalysedThrough !== undefined || data.samplesAnalysedThroughOther !== undefined) {
+            const currentRows = await prisma.$queryRawUnsafe(`
+                SELECT samples_analysed_through, samples_analysed_through_other
+                FROM kvk_soil_water_analysis
+                WHERE soil_water_analysis_id = $1
+            `, parseInt(id));
+            const current = currentRows[0]
+                ? {
+                    samplesAnalysedThrough: currentRows[0].samples_analysed_through,
+                    samplesAnalysedThroughOther: currentRows[0].samples_analysed_through_other,
+                }
+                : {};
+            normalizedData.samplesAnalysedThroughOther = normalizeSamplesAnalysedThroughOther(data, current);
+        }
 
         const fieldMap = {
             startDate: 'start_date',
             endDate: 'end_date',
             analysisId: 'analysis_id',
             samplesAnalysedThrough: 'samples_analysed_through',
+            samplesAnalysedThroughOther: 'samples_analysed_through_other',
             samplesAnalysed: 'samples_analysed',
             villagesNumber: 'villages_number',
             amountRealized: 'amount_realized',
@@ -313,21 +351,23 @@ const soilWaterRepository = {
             stF: 'st_f'
         };
 
-        if (data.analysisOther !== undefined) {
+        if (normalizedData.analysisOther !== undefined) {
             updates.push(`analysis_other = $${index++}`);
-            values.push((String(data.analysisOther).trim()) || null);
+            values.push((String(normalizedData.analysisOther).trim()) || null);
         }
 
         for (const [key, dbCol] of Object.entries(fieldMap)) {
-            if (data[key] !== undefined) {
+            if (normalizedData[key] !== undefined) {
                 updates.push(`${dbCol} = $${index++}`);
                 if (key === 'startDate' || key === 'endDate') {
-                    values.push(new Date(data[key]));
-                } else if (typeof data[key] === 'string' && key !== 'samplesAnalysedThrough') {
-                    const parsed = parseInt(data[key]);
+                    values.push(new Date(normalizedData[key]));
+                } else if (typeof normalizedData[key] === 'string'
+                    && key !== 'samplesAnalysedThrough'
+                    && key !== 'samplesAnalysedThroughOther') {
+                    const parsed = parseInt(normalizedData[key]);
                     values.push(isNaN(parsed) ? (key === 'analysisId' ? null : 0) : parsed);
                 } else {
-                    values.push(data[key]);
+                    values.push(normalizedData[key]);
                 }
             }
         }

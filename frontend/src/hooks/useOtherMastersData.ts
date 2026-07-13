@@ -23,6 +23,7 @@ import type {
     UnitFormData,
     InfrastructureMasterFormData,
     LandItemMasterFormData,
+    BudgetItemMasterFormData,
     SoilWaterAnalysisFormData,
     NariCropCategoryFormData,
     NariActivityFormData,
@@ -693,17 +694,62 @@ export function useBudgetItems(options?: { enabled?: boolean }) {
     const enabled = options?.enabled !== undefined ? options.enabled : true;
     const query = useQuery({
         queryKey: ['budget-items'],
-        queryFn: async () => {
-            const { apiClient } = await import('../services/api');
-            const res = await apiClient.get('/admin/masters/budget-item') as any;
-            return res.data || [];
-        },
+        queryFn: () => otherMastersApi.getBudgetItemMasters().then((res) => res.data),
         staleTime: 10 * 60 * 1000,
         enabled,
     });
     return {
         data: (query.data || []) as Array<{ budgetItemId: number; itemName: string }>,
         isLoading: query.isLoading,
+    };
+}
+
+// Full CRUD hook for the Budget Item master admin page (Other Masters).
+// Shares the ['budget-items'] query key so the CFLD budget-utilization table
+// refreshes automatically after an item is added / edited / removed.
+export function useBudgetItemMasters(options?: { enabled?: boolean }) {
+    const queryClient = useQueryClient();
+    const enabled = options?.enabled !== undefined ? options.enabled : true;
+
+    const query = useQuery({
+        queryKey: ['budget-items'],
+        queryFn: () => otherMastersApi.getBudgetItemMasters().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+        enabled,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: BudgetItemMasterFormData) => otherMastersApi.createBudgetItemMaster(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['budget-items'] });
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<BudgetItemMasterFormData> }) =>
+            otherMastersApi.updateBudgetItemMaster(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['budget-items'] });
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteBudgetItemMaster(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['budget-items'] });
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
     };
 }
 
