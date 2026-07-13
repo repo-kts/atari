@@ -84,7 +84,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
     const { data: trainingTypes = [] } = useTrainingTypes()
     const { data: trainingAreas = [] } = useTrainingAreas()
     const { data: trainingClientele = [] } = useTrainingClientele()
-    const { data: fundingSources = [] } = useFundingSources()
+    const { data: fundingSources = [], isLoading: isLoadingFundingSources } = useFundingSources()
     const { data: extensionActivities = [] } = useExtensionActivities()
     const { data: otherExtensionActivities = [] } = useOtherExtensionActivities()
     const { data: importantDays = [] } = useImportantDays()
@@ -621,6 +621,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             onChange={handleFundingSourceChange}
                             options={trainingFundingOptions}
                             emptyMessage="No funding sources available"
+                            isLoading={isLoadingFundingSources}
                         />
                         {isOtherTrainingFunding && (
                             <SpecifyOtherInput

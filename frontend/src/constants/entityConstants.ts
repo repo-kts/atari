@@ -38,7 +38,6 @@ export const ENTITY_TYPES = {
     BANK_ACCOUNT_TYPE: 'bank-account-type',
     PAY_LEVEL: 'pay-level',
     PAY_SCALE: 'pay-scale',
-    ASSET_FUNDING_SOURCE: 'asset-funding-source',
     VEHICLE_TYPE: 'vehicle-type',
     EQUIPMENT_TYPE: 'equipment-type',
     EQUIPMENT_MASTER: 'equipment-master',
@@ -246,7 +245,6 @@ export const ENTITY_TYPES = {
     PROGRAMME_TYPE: 'programme-type',
     PPV_FRA_TRAINING_TYPE: 'misc-ppv-fra-training-type',
     FINANCIAL_PROJECT: 'financial-project',
-    FUNDING_AGENCY: 'funding-agency',
 } as const;
 
 export type EntityTypeConstant = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];
@@ -330,7 +328,6 @@ export const ENTITY_PATHS = {
     BANK_ACCOUNT_TYPE: '/all-master/bank-account-type',
     PAY_LEVEL: '/all-master/pay-level',
     PAY_SCALE: '/all-master/pay-scale',
-    ASSET_FUNDING_SOURCE: '/all-master/asset-funding-source',
     VEHICLE_TYPE: '/all-master/vehicle-type',
     EQUIPMENT_TYPE: '/all-master/equipment-type',
     EQUIPMENT_MASTER: '/all-master/equipment-master',
@@ -373,5 +370,4 @@ export const ENTITY_PATHS = {
     PRODUCTION_PROJECTS_MASTERS: '/all-master/production-projects',
     PUBLICATIONS_MASTERS: '/all-master/publications',
     FINANCIAL_PROJECT: '/all-master/financial-project',
-    FUNDING_AGENCY: '/all-master/funding-agency',
 } as const;

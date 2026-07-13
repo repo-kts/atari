@@ -53,7 +53,6 @@ import {
     useBankAccountTypes,
     usePayLevels,
     usePayScales,
-    useAssetFundingSources,
     useVehicleTypes,
     useEquipmentTypes,
     useEquipmentMastersPaginated,
@@ -83,7 +82,6 @@ import {
     usePpvFraTrainingTypes,
     useDignitaryTypes,
     useFinancialProjects,
-    useFundingAgencies,
     useVehiclePresentStatuses,
     useEquipmentPresentStatuses,
 } from './useOtherMastersData'
@@ -162,7 +160,6 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.BANK_ACCOUNT_TYPE]: () => useBankAccountTypes(),
     [ENTITY_TYPES.PAY_LEVEL]: () => usePayLevels(),
     [ENTITY_TYPES.PAY_SCALE]: () => usePayScales(),
-    [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: () => useAssetFundingSources(),
     [ENTITY_TYPES.VEHICLE_TYPE]: () => useVehicleTypes(),
     [ENTITY_TYPES.EQUIPMENT_TYPE]: () => useEquipmentTypes(),
     [ENTITY_TYPES.EQUIPMENT_MASTER]: (params) => useEquipmentMastersPaginated(params),
@@ -194,7 +191,6 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.PPV_FRA_TRAINING_TYPE]: () => usePpvFraTrainingTypes(),
     [ENTITY_TYPES.DIGNITARY_TYPE]: () => useDignitaryTypes(),
     [ENTITY_TYPES.FINANCIAL_PROJECT]: () => useFinancialProjects(),
-    [ENTITY_TYPES.FUNDING_AGENCY]: () => useFundingAgencies(),
 
     // Projects (Achievements)
     [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: () => useCfldTechnicalParameters(),

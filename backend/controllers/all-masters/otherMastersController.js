@@ -201,12 +201,6 @@ exports.createDiscipline = create('discipline');
 exports.updateDiscipline = update('discipline');
 exports.deleteDiscipline = deleteEntity('discipline');
 
-exports.getAllAssetFundingSources = getAll('asset-funding-source');
-exports.getAssetFundingSourceById = getById('asset-funding-source');
-exports.createAssetFundingSource = create('asset-funding-source');
-exports.updateAssetFundingSource = update('asset-funding-source');
-exports.deleteAssetFundingSource = deleteEntity('asset-funding-source');
-
 exports.getAllEquipmentTypes = getAll('equipment-type');
 exports.getEquipmentTypeById = getById('equipment-type');
 exports.createEquipmentType = create('equipment-type');
@@ -426,16 +420,6 @@ exports.getFinancialProjectById = getById('financial-project');
 exports.createFinancialProject = create('financial-project');
 exports.updateFinancialProject = update('financial-project');
 exports.deleteFinancialProject = deleteEntity('financial-project');
-
-// ============================================
-// Funding Agency Master Controllers
-// ============================================
-
-exports.getAllFundingAgencies = getAll('funding-agency');
-exports.getFundingAgencyById = getById('funding-agency');
-exports.createFundingAgency = create('funding-agency');
-exports.updateFundingAgency = update('funding-agency');
-exports.deleteFundingAgency = deleteEntity('funding-agency');
 
 exports.getAllVehiclePresentStatuses = getAll('vehicle-present-status');
 exports.getVehiclePresentStatusById = getById('vehicle-present-status');

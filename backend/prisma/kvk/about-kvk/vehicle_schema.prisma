@@ -36,7 +36,7 @@ model KvkVehicleDetail {
   kvk                  Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   vehicle              KvkVehicle                 @relation(fields: [vehicleId], references: [vehicleId], onDelete: Cascade)
   vehicleStatus        VehiclePresentStatusMaster @relation(fields: [vehicleStatusId], references: [vehicleStatusId])
-  assetFundingSource   AssetFundingSourceMaster?  @relation(fields: [assetFundingSourceId], references: [assetFundingSourceId], onDelete: SetNull)
+  assetFundingSource   FundingSourceMaster?       @relation(fields: [assetFundingSourceId], references: [fundingSourceId], onDelete: SetNull)
 
   @@unique([vehicleId, reportingYear])
   @@index([kvkId, reportingYear])

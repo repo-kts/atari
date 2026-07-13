@@ -96,11 +96,6 @@ router.post('/discipline',    requirePermission('all_masters_discipline_master',
 router.put('/discipline/:id', requirePermission('all_masters_discipline_master', 'EDIT'),   otherMastersController.updateDiscipline);
 router.delete('/discipline/:id', requirePermission('all_masters_discipline_master', 'DELETE'), otherMastersController.deleteDiscipline);
 
-router.get('/asset-funding-source',     otherMastersController.getAllAssetFundingSources);
-router.get('/asset-funding-source/:id', otherMastersController.getAssetFundingSourceById);
-router.post('/asset-funding-source',    requirePermission('all_masters_asset_funding_source_master', 'ADD'),    otherMastersController.createAssetFundingSource);
-router.put('/asset-funding-source/:id', requirePermission('all_masters_asset_funding_source_master', 'EDIT'),   otherMastersController.updateAssetFundingSource);
-router.delete('/asset-funding-source/:id', requirePermission('all_masters_asset_funding_source_master', 'DELETE'), otherMastersController.deleteAssetFundingSource);
 
 router.get('/equipment-type',     otherMastersController.getAllEquipmentTypes);
 router.get('/equipment-type/:id', otherMastersController.getEquipmentTypeById);
@@ -162,9 +157,9 @@ router.delete('/training-clientele/:id', requirePermission('all_masters_training
 
 router.get('/funding-source',     otherMastersController.getAllFundingSources);
 router.get('/funding-source/:id', otherMastersController.getFundingSourceById);
-router.post('/funding-source',    requirePermission('all_masters_training_master', 'ADD'),    otherMastersController.createFundingSource);
-router.put('/funding-source/:id', requirePermission('all_masters_training_master', 'EDIT'),   otherMastersController.updateFundingSource);
-router.delete('/funding-source/:id', requirePermission('all_masters_training_master', 'DELETE'), otherMastersController.deleteFundingSource);
+router.post('/funding-source',    requirePermission('all_masters_asset_funding_source_master', 'ADD'),    otherMastersController.createFundingSource);
+router.put('/funding-source/:id', requirePermission('all_masters_asset_funding_source_master', 'EDIT'),   otherMastersController.updateFundingSource);
+router.delete('/funding-source/:id', requirePermission('all_masters_asset_funding_source_master', 'DELETE'), otherMastersController.deleteFundingSource);
 
 // ============================================
 // Other Masters Routes (continued)
@@ -323,16 +318,6 @@ router.get('/financial-project/:id', otherMastersController.getFinancialProjectB
 router.post('/financial-project', requirePermission('all_masters_financial_project_master', 'ADD'), otherMastersController.createFinancialProject);
 router.put('/financial-project/:id', requirePermission('all_masters_financial_project_master', 'EDIT'), otherMastersController.updateFinancialProject);
 router.delete('/financial-project/:id', requirePermission('all_masters_financial_project_master', 'DELETE'), otherMastersController.deleteFinancialProject);
-
-// ============================================
-// Funding Agency Master Routes
-// ============================================
-
-router.get('/funding-agency', otherMastersController.getAllFundingAgencies);
-router.get('/funding-agency/:id', otherMastersController.getFundingAgencyById);
-router.post('/funding-agency', requirePermission('all_masters_funding_agency_master', 'ADD'), otherMastersController.createFundingAgency);
-router.put('/funding-agency/:id', requirePermission('all_masters_funding_agency_master', 'EDIT'), otherMastersController.updateFundingAgency);
-router.delete('/funding-agency/:id', requirePermission('all_masters_funding_agency_master', 'DELETE'), otherMastersController.deleteFundingAgency);
 
 router.get('/vehicle-present-status', otherMastersController.getAllVehiclePresentStatuses);
 router.get('/vehicle-present-status/:id', otherMastersController.getVehiclePresentStatusById);

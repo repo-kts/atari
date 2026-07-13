@@ -498,12 +498,12 @@ async function seedKvks() {
 
   // Seed Equipment
   console.log('\n   🔧 Seeding Equipment...');
-  const fundingIcar = await prisma.assetFundingSourceMaster.upsert({
+  const fundingIcar = await prisma.fundingSourceMaster.upsert({
     where: { name: 'ICAR' },
     update: {},
     create: { name: 'ICAR' },
   });
-  const fundingStateGovt = await prisma.assetFundingSourceMaster.upsert({
+  const fundingStateGovt = await prisma.fundingSourceMaster.upsert({
     where: { name: 'State Govt' },
     update: {},
     create: { name: 'State Govt' },
@@ -515,14 +515,14 @@ async function seedKvks() {
         equipmentName: 'Tractor',
         yearOfPurchase: 2020,
         totalCost: 500000,
-        assetFundingSourceId: fundingIcar.assetFundingSourceId,
+        assetFundingSourceId: fundingIcar.fundingSourceId,
       },
       {
         kvkId: kvk.kvkId,
         equipmentName: 'Harvester',
         yearOfPurchase: 2021,
         totalCost: 800000,
-        assetFundingSourceId: fundingStateGovt.assetFundingSourceId,
+        assetFundingSourceId: fundingStateGovt.fundingSourceId,
       },
     ];
 

@@ -152,7 +152,6 @@ const superAdminMenuItems: MenuItem[] = [
                     'all_masters_equipment_present_status_master',
                     'all_masters_events_master',
                     'all_masters_financial_project_master',
-                    'all_masters_funding_agency_master',
                     'all_masters_job_type_master',
                     'all_masters_bank_account_type_master',
                     'all_masters_asset_funding_source_master',
@@ -517,7 +516,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const routeToParentMap: { pattern: RegExp; parentPath: string }[] = [
         { pattern: /^\/all-master\/(zones|states|organizations|universities|districts|kvks)/, parentPath: '/all-master/basic' },
         { pattern: /^\/all-master\/(oft|fld|cfld-crop)/, parentPath: '/all-master/oft-fld' },
-        { pattern: /^\/all-master\/(training-type|training-area|training-thematic|training-clientele|funding-source|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
+        { pattern: /^\/all-master\/(training-type|training-area|training-thematic|training-clientele|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
         { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise|natural-farming-activity|natural-farming-soil-parameter|agri-drone-demonstrations-on)/, parentPath: '/all-master/production-projects' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
         // Digital Information forms live under the Miscellaneous group in the sidebar,
@@ -528,9 +527,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         // Staff Quarters lives under the performance URL tree but belongs to the About KVK group in the sidebar.
         { pattern: /^\/forms\/performance\/infrastructure\/staff-quarters/, parentPath: '/forms/about-kvk' },
         { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },
-        { pattern: /^\/all-master\/(staff-category|job-type|bank-account-type|pay-level|pay-scale|asset-funding-source|vehicle-type|equipment-type|equipment-master|sanctioned-post|discipline|season|year|unit|crop-type|infrastructure-master|vehicle-present-status|equipment-present-status|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
+        { pattern: /^\/all-master\/(staff-category|job-type|bank-account-type|pay-level|pay-scale|funding-source|vehicle-type|equipment-type|equipment-master|sanctioned-post|discipline|season|year|unit|crop-type|infrastructure-master|vehicle-present-status|equipment-present-status|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
         { pattern: /^\/all-master\/(nari-activity|nari-nutrition-garden-type|nari-crop-category)/, parentPath: '/all-master/other-masters' },
-        { pattern: /^\/all-master\/(impact-specific-area|enterprise-type|account-type|programme-type|ppv-fra-training-type|dignitary-type|financial-project|funding-agency)/, parentPath: '/all-master/other-masters' },
+        { pattern: /^\/all-master\/(impact-specific-area|enterprise-type|account-type|programme-type|ppv-fra-training-type|dignitary-type|financial-project)/, parentPath: '/all-master/other-masters' },
     ]
 
     const getEffectiveParent = (pathname: string): string | null => {

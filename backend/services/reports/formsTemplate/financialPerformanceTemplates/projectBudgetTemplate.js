@@ -31,8 +31,8 @@ function fundingAgencyDisplayOf(row) {
     if (row.specifyAgencyName != null && String(row.specifyAgencyName).trim() !== '') {
         return String(row.specifyAgencyName).trim();
     }
-    if (row.fundingAgency?.agencyName != null && String(row.fundingAgency.agencyName).trim() !== '') {
-        return String(row.fundingAgency.agencyName).trim();
+    if (row.sourceOfFunding?.name != null && String(row.sourceOfFunding.name).trim() !== '') {
+        return String(row.sourceOfFunding.name).trim();
     }
     return '—';
 }

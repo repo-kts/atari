@@ -28,7 +28,7 @@ async function getProjectBudgetReportData(kvkId, filters = {}) {
         include: {
             kvk: { select: { kvkName: true } },
             projectName: { select: { projectName: true } },
-            fundingAgency: { select: { agencyName: true } },
+            sourceOfFunding: { select: { name: true } },
         },
         orderBy: [{ createdAt: 'asc' }],
     });
@@ -40,7 +40,7 @@ async function getProjectBudgetReportData(kvkId, filters = {}) {
             || r.projectName?.projectName
             || '—';
         const displayAgency = r.specifyAgencyName?.trim()
-            || r.fundingAgency?.agencyName
+            || r.sourceOfFunding?.name
             || '—';
 
         return {
@@ -50,6 +50,7 @@ async function getProjectBudgetReportData(kvkId, filters = {}) {
             projectDisplayName: displayProject,
             accountNumber: r.accountNumber || '',
             fundingAgencyDisplay: displayAgency,
+            fundingAgencyName: r.fundingAgencyName || '',
             budgetEstimate: r.budgetEstimate,
             budgetAllocated: r.budgetAllocated,
             budgetReleased: r.budgetReleased,

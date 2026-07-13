@@ -77,15 +77,6 @@ export interface PayScale {
     };
 }
 
-export interface AssetFundingSource {
-    assetFundingSourceId: number;
-    name: string;
-    _count?: {
-        equipments: number;
-        equipmentDetails: number;
-        vehicleDetails: number;
-    };
-}
 
 export interface EquipmentTypeEntry {
     equipmentTypeId: number;
@@ -183,6 +174,10 @@ export interface FundingSource {
     isOther?: boolean;
     _count?: {
         trainings: number;
+        kvkOfts: number;
+        equipments: number;
+        equipmentDetails: number;
+        vehicleDetails: number;
     };
 }
 
@@ -269,11 +264,6 @@ export interface PayLevelFormData {
 
 export interface PayScaleFormData {
     scaleName: string;
-    isOther?: boolean;
-}
-
-export interface AssetFundingSourceFormData {
-    name: string;
     isOther?: boolean;
 }
 
@@ -516,27 +506,16 @@ export interface DignitaryTypeFormData {
 export interface FinancialProject {
     financialProjectId: number;
     projectName: string;
-    fundingAgencyId?: number;
-    fundingAgency?: {
-        fundingAgencyId: number;
-        agencyName: string;
+    fundingSourceId?: number;
+    fundingSource?: {
+        fundingSourceId: number;
+        name: string;
     };
 }
 
 export interface FinancialProjectFormData {
     projectName: string;
-    fundingAgencyId?: number;
-}
-
-export interface FundingAgency {
-    fundingAgencyId: number;
-    agencyName: string;
-    isOther?: boolean;
-}
-
-export interface FundingAgencyFormData {
-    agencyName: string;
-    isOther?: boolean;
+    fundingSourceId?: number;
 }
 
 // ============================================
@@ -632,16 +611,6 @@ export const otherMastersApi = {
     deletePayScale: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/pay-scale/${id}`),
 
-    getAssetFundingSources: () =>
-        apiClient.get<PaginatedResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source`),
-    getAssetFundingSourceById: (id: number) =>
-        apiClient.get<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source/${id}`),
-    createAssetFundingSource: (data: AssetFundingSourceFormData) =>
-        apiClient.post<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source`, data),
-    updateAssetFundingSource: (id: number, data: Partial<AssetFundingSourceFormData>) =>
-        apiClient.put<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source/${id}`, data),
-    deleteAssetFundingSource: (id: number) =>
-        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/asset-funding-source/${id}`),
 
     getEquipmentTypes: () =>
         apiClient.get<PaginatedResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type`),
@@ -1007,16 +976,4 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<FinancialProject>>(`${BASE_URL}/financial-project/${id}`, data),
     deleteFinancialProject: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/financial-project/${id}`),
-
-    // Funding Agencies
-    getFundingAgencies: () =>
-        apiClient.get<PaginatedResponse<FundingAgency>>(`${BASE_URL}/funding-agency`),
-    getFundingAgencyById: (id: number) =>
-        apiClient.get<ApiResponse<FundingAgency>>(`${BASE_URL}/funding-agency/${id}`),
-    createFundingAgency: (data: FundingAgencyFormData) =>
-        apiClient.post<ApiResponse<FundingAgency>>(`${BASE_URL}/funding-agency`, data),
-    updateFundingAgency: (id: number, data: Partial<FundingAgencyFormData>) =>
-        apiClient.put<ApiResponse<FundingAgency>>(`${BASE_URL}/funding-agency/${id}`, data),
-    deleteFundingAgency: (id: number) =>
-        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/funding-agency/${id}`),
 };

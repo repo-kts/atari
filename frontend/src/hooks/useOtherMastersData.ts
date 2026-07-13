@@ -10,7 +10,6 @@ import type {
     BankAccountTypeFormData,
     PayLevelFormData,
     PayScaleFormData,
-    AssetFundingSourceFormData,
     EquipmentTypeFormData,
     VehicleTypeFormData,
     EquipmentMasterFormData,
@@ -40,7 +39,6 @@ import type {
     PpvFraTrainingTypeFormData,
     DignitaryTypeFormData,
     FinancialProjectFormData,
-    FundingAgencyFormData,
     VehiclePresentStatusFormData,
     EquipmentPresentStatusFormData,
 } from '../services/otherMastersApi';
@@ -381,50 +379,6 @@ export function usePayScales() {
         mutationFn: (id: number) => otherMastersApi.deletePayScale(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.PAY_SCALE);
-        },
-    });
-
-    return {
-        data: query.data || [],
-        isLoading: query.isLoading,
-        error: query.error,
-        create: createMutation.mutateAsync,
-        update: updateMutation.mutateAsync,
-        remove: deleteMutation.mutateAsync,
-        isCreating: createMutation.isPending,
-        isUpdating: updateMutation.isPending,
-        isDeleting: deleteMutation.isPending,
-    };
-}
-
-export function useAssetFundingSources() {
-    const queryClient = useQueryClient();
-
-    const query = useQuery({
-        queryKey: ['asset-funding-sources'],
-        queryFn: () => otherMastersApi.getAssetFundingSources().then((res) => res.data),
-        staleTime: 5 * 60 * 1000,
-    });
-
-    const createMutation = useMutation({
-        mutationFn: (data: AssetFundingSourceFormData) => otherMastersApi.createAssetFundingSource(data),
-        onSuccess: () => {
-            invalidateEntityType(queryClient, ENTITY_TYPES.ASSET_FUNDING_SOURCE);
-        },
-    });
-
-    const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: number; data: Partial<AssetFundingSourceFormData> }) =>
-            otherMastersApi.updateAssetFundingSource(id, data),
-        onSuccess: () => {
-            invalidateEntityType(queryClient, ENTITY_TYPES.ASSET_FUNDING_SOURCE);
-        },
-    });
-
-    const deleteMutation = useMutation({
-        mutationFn: (id: number) => otherMastersApi.deleteAssetFundingSource(id),
-        onSuccess: () => {
-            invalidateEntityType(queryClient, ENTITY_TYPES.ASSET_FUNDING_SOURCE);
         },
     });
 
@@ -1830,54 +1784,6 @@ export function useFinancialProjects() {
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.FINANCIAL_PROJECT);
             queryClient.invalidateQueries({ queryKey: ['financial-projects'] });
-        },
-    });
-
-    return {
-        data: query.data || [],
-        isLoading: query.isLoading,
-        error: query.error,
-        create: createMutation.mutateAsync,
-        update: updateMutation.mutateAsync,
-        remove: deleteMutation.mutateAsync,
-        isCreating: createMutation.isPending,
-        isUpdating: updateMutation.isPending,
-        isDeleting: deleteMutation.isPending,
-    };
-}
-
-export function useFundingAgencies() {
-    const queryClient = useQueryClient();
-
-    const query = useQuery({
-        queryKey: ['funding-agencies'],
-        queryFn: () => otherMastersApi.getFundingAgencies().then((res) => res.data),
-        staleTime: 5 * 60 * 1000,
-    });
-
-    const createMutation = useMutation({
-        mutationFn: (data: FundingAgencyFormData
-        ) => otherMastersApi.createFundingAgency(data),
-        onSuccess: () => {
-            invalidateEntityType(queryClient, ENTITY_TYPES.FUNDING_AGENCY);
-            queryClient.invalidateQueries({ queryKey: ['funding-agencies'] });
-        },
-    });
-
-    const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: number; data: Partial<FundingAgencyFormData> }) =>
-            otherMastersApi.updateFundingAgency(id, data),
-        onSuccess: () => {
-            invalidateEntityType(queryClient, ENTITY_TYPES.FUNDING_AGENCY);
-            queryClient.invalidateQueries({ queryKey: ['funding-agencies'] });
-        },
-    });
-
-    const deleteMutation = useMutation({
-        mutationFn: (id: number) => otherMastersApi.deleteFundingAgency(id),
-        onSuccess: () => {
-            invalidateEntityType(queryClient, ENTITY_TYPES.FUNDING_AGENCY);
-            queryClient.invalidateQueries({ queryKey: ['funding-agencies'] });
         },
     });
 
