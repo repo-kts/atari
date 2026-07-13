@@ -9,6 +9,8 @@ const ROOT = path.resolve(__dirname, '..');
 const prisma = require('../config/prisma.js');
 const aboutKvkRepository = require('../repositories/forms/aboutKvkRepository.js');
 const soilWaterRepository = require('../repositories/forms/soilWaterRepository.js');
+const districtLevelDataRepository = require('../repositories/forms/districtLevelDataRepository.js');
+const reportCacheInvalidationService = require('../services/reports/reportCacheInvalidationService.js');
 
 function read(relativePath) {
     return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
@@ -134,5 +136,59 @@ test('Soil & Water persists specified samples-through text and rejects an empty 
         );
     } finally {
         prisma.$queryRawUnsafe = originalQuery;
+    }
+});
+
+test('District Level account type uses the master Other flag and exposes a specify input', () => {
+    const form = read('../frontend/src/pages/dashboard/shared/forms/performance-indicators/DistrictAndVillageForms.tsx');
+    const repository = read('repositories/forms/districtLevelDataRepository.js');
+    const report = read('repositories/reports/districtLevelDataReportRepository.js');
+    const template = read('services/reports/formsTemplate/districtVillageTemplates/districtLevelDataTemplate.js');
+
+    assert.match(form, /flagKey:\s*'isOther'/);
+    assert.match(form, /accountTypeOther/);
+    assert.match(repository, /accountTypeOther/);
+    assert.match(report, /accountTypeDisplay/);
+    assert.match(template, /accountTypeDisplay\s*\|\|\s*row\.items/);
+});
+
+test('District Level persists specified account type text and rejects an empty value', async () => {
+    const originalCreate = prisma.districtLevelData.create;
+    const originalFindFirst = prisma.accountTypeMaster.findFirst;
+    const originalInvalidate = reportCacheInvalidationService.invalidateDataSourceForKvk;
+    let captured;
+
+    prisma.accountTypeMaster.findFirst = async () => ({ accountType: 'Other', isOther: true });
+    prisma.districtLevelData.create = async (args) => {
+        captured = args;
+        return args.data;
+    };
+    reportCacheInvalidationService.invalidateDataSourceForKvk = async () => {};
+
+    const baseData = {
+        kvkId: 1,
+        reportingYear: '2026-01-01',
+        items: 'Other',
+        information: 'Details',
+    };
+
+    try {
+        await districtLevelDataRepository.create({
+            ...baseData,
+            accountTypeOther: '  Custom district indicator  ',
+        });
+        assert.equal(captured.data.accountTypeOther, 'Custom district indicator');
+
+        await assert.rejects(
+            () => districtLevelDataRepository.create({
+                ...baseData,
+                accountTypeOther: '   ',
+            }),
+            /accountTypeOther is required/,
+        );
+    } finally {
+        prisma.districtLevelData.create = originalCreate;
+        prisma.accountTypeMaster.findFirst = originalFindFirst;
+        reportCacheInvalidationService.invalidateDataSourceForKvk = originalInvalidate;
     }
 });

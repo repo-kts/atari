@@ -35,6 +35,8 @@ async function getDistrictLevelDataReportData(kvkId, filters = {}) {
         kvkName: r.kvk?.kvkName || '',
         reportingYear: r.reportingYear,
         items: r.items || '',
+        accountTypeOther: r.accountTypeOther || '',
+        accountTypeDisplay: r.accountTypeOther || r.items || '',
         information: r.information || '',
         season: r.season || '',
         type: r.type || '',

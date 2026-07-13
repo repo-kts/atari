@@ -61,7 +61,7 @@ function renderDistrictLevelDataSection(section, data, sectionId, isFirstSection
 
     const baseBody = baseRows.map((row, idx) => `<tr>
         <td style="text-align:center;">${idx + 1}</td>
-        <td>${esc(txt(row.items))}</td>
+        <td>${esc(txt(row.accountTypeDisplay || row.items))}</td>
         <td>${esc(txt(row.information))}</td>
     </tr>`).join('');
 
@@ -188,7 +188,7 @@ function buildDistrictLevelDataTabularData(rawData) {
     ];
     const out = rows.map((row) => [
         kvkNameOf(row) || '—',
-        txt(row.items),
+        txt(row.accountTypeDisplay || row.items),
         txt(row.season),
         txt(row.type),
         txt(row.cropName),
