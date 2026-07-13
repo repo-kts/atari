@@ -40,7 +40,7 @@ function tableCss() {
 
 // Total column count for a full-width group-header row (Crop + Variety +
 // Quantity + Value + 12 farmer cells + 3 total cells).
-const TOTAL_COLS = 18;
+const TOTAL_COLS = 19;
 
 function colGroup() {
     return `
@@ -49,7 +49,7 @@ function colGroup() {
     <col style="width:11%" />
     <col style="width:8%" />
     <col style="width:7%" />
-    ${Array.from({ length: 14 }).map(() => '<col style="width:4.28%" />').join('')}
+    ${Array.from({ length: 15 }).map(() => '<col style="width:4%" />').join('')}
   </colgroup>`;
 }
 
