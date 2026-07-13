@@ -237,6 +237,20 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                 </div>
             )}
 
+            {entityType === ENTITY_TYPES.BUDGET_ITEM_MASTER && (
+                <div className="space-y-4">
+                    <FormInput
+                        label="Budget Item Name"
+                        required
+                        value={formData.itemName ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, itemName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="e.g. Critical Input"
+                    />
+                </div>
+            )}
+
             {entityType === ENTITY_TYPES.IMPORTANT_DAY && (
                 <div className="space-y-4">
                     <FormInput

@@ -112,7 +112,7 @@ class OftFldService {
             const config = getEntityConfig ? getEntityConfig(entityName) : null;
 
             // Check for duplicate names (where applicable)
-            if (config && config.nameField && data[config.nameField]) {
+            if (config && config.nameField && !config.skipUniqueName && data[config.nameField]) {
                 const exists = await oftFldRepository.nameExists(
                     entityName,
                     data[config.nameField],
@@ -169,7 +169,7 @@ class OftFldService {
 
             // Check for duplicate names (excluding current entity).
             // Merge existing row so scope fields absent from a partial update still apply.
-            if (config && config.nameField && data[config.nameField]) {
+            if (config && config.nameField && !config.skipUniqueName && data[config.nameField]) {
                 const exists = await oftFldRepository.nameExists(
                     entityName,
                     data[config.nameField],

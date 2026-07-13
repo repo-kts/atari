@@ -58,6 +58,7 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.CROP_TYPE]: 'typeId',
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: 'infraMasterId',
     [ENTITY_TYPES.LAND_ITEM_MASTER]: 'landItemId',
+    [ENTITY_TYPES.BUDGET_ITEM_MASTER]: 'budgetItemId',
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: 'soilWaterAnalysisId',
     [ENTITY_TYPES.NARI_ACTIVITY]: 'nariActivityId',
     [ENTITY_TYPES.NARI_CROP_CATEGORY]: 'cropCategoryId',

@@ -225,6 +225,9 @@ const ENTITY_CONFIG = {
         model: 'fLDCropMaster',
         idField: 'cfldId',
         nameField: 'cropName',
+        // Same crop name may repeat across seasons/types (and even within one) —
+        // do not enforce name uniqueness for CFLD crops.
+        skipUniqueName: true,
         defaultOrderBy: [
             { season: { seasonName: 'asc' } },
             { cropType: { typeName: 'asc' } },

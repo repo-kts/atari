@@ -20,6 +20,8 @@
     "seed:users": "node scripts/users.js",
     "seed:data": "node scripts/seed-data.js",
     "seed:masters": "node scripts/seed-masters.js",
+    "seed:budget-items": "node scripts/seed-cfld-budget-items.js",
+    "perm:budget-item": "node scripts/add-budget-item-permission.js",
     "seed:forms": "node scripts/seed-forms-data.js",
     "seed:kvk": "node scripts/seed-kvk-data.js",
     "build": "prisma generate",

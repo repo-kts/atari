@@ -82,6 +82,7 @@ const sections: FeatureSection[] = [
         icon: <IndianRupee className="w-5 h-5" />,
         items: [
             { label: 'Financial Project Master', path: '/all-master/financial-project' },
+            { label: 'CFLD Budget Item Master', path: '/all-master/budget-item-master' },
         ],
     },
 ]
