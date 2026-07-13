@@ -357,6 +357,7 @@ export interface EquipmentPresentStatusFormData {
 export interface SoilWaterAnalysis {
     soilWaterAnalysisId: number;
     analysisName: string;
+    isOther?: boolean;
     createdAt?: string;
     updatedAt?: string;
     _count?: {
@@ -464,6 +465,7 @@ export interface NicraPiTypeFormData {
 export interface ImpactSpecificArea {
     specificAreaId: number;
     specificAreaName: string;
+    isOther?: boolean;
 }
 
 export interface ImpactSpecificAreaFormData {
@@ -473,6 +475,7 @@ export interface ImpactSpecificAreaFormData {
 export interface EnterpriseType {
     enterpriseTypeId: number;
     enterpriseTypeName: string;
+    isOther?: boolean;
 }
 
 export interface EnterpriseTypeFormData {
@@ -506,6 +509,7 @@ export interface PpvFraTrainingTypeFormData {
 export interface DignitaryType {
     dignitaryTypeId: number;
     name: string;
+    isOther?: boolean;
     _count?: {
         visitors: number;
     };
@@ -518,6 +522,7 @@ export interface DignitaryTypeFormData {
 export interface FinancialProject {
     financialProjectId: number;
     projectName: string;
+    isOther?: boolean;
     fundingSourceId?: number;
     fundingSource?: {
         fundingSourceId: number;

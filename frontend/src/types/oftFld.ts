@@ -95,6 +95,7 @@ export interface FldCrop {
 export interface FldActivity {
     activityId: number;
     activityName: string;
+    isOther?: boolean;
     _count?: {
         extensions: number;
         kvkExtensionActivities: number;
@@ -105,6 +106,7 @@ export interface FldActivity {
 export interface Season {
     seasonId: number;
     seasonName: string;
+    isOther?: boolean;
     _count?: {
         cfldCrops: number;
     };
