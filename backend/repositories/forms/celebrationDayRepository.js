@@ -1,6 +1,10 @@
 const prisma = require('../../config/prisma.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
+const CELEBRATION_DAY_OTHER_RULES = [
+    { idField: 'importantDayId', otherField: 'importantDayOther', model: 'importantDay', idKey: 'importantDayId', label: 'Important day' },
+];
 const celebrationDayRepository = {
     create: async (data, user) => {
         // Resolve kvkId: prioritized from user session (if linked to a KVK like Gaya), then from data.
@@ -25,6 +29,7 @@ const celebrationDayRepository = {
 
         // "Other" free-text: only meaningful when the chosen important-day row is flagged isOther.
         const importantDayOther = (data.importantDayOther && String(data.importantDayOther).trim()) || null;
+        await assertOtherFieldsValid(CELEBRATION_DAY_OTHER_RULES, { importantDayId, importantDayOther });
         const result = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_important_day_celebration (
                 "kvkId", event_date, "importantDayId", important_day_other,
@@ -122,6 +127,7 @@ const celebrationDayRepository = {
         if (data.importantDayOther !== undefined) {
             updateData.importantDayOther = (String(data.importantDayOther).trim()) || null;
         }
+        await assertOtherFieldsValid(CELEBRATION_DAY_OTHER_RULES, updateData);
 
         const count = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;
         if (count !== undefined) updateData.numberOfActivities = parseInt(count);

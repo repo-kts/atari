@@ -19,6 +19,7 @@ import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
 import { toOptions } from '@/utils/formOptions'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
 import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
 
@@ -111,7 +112,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     )
     // KvkInfrastructure.sourceOfFunding is still a string column — match by name.
     const fundingSourceNameOptions = React.useMemo(
-        () => toOptions(fundingSources as any[], 'name', 'name'),
+        () => createMasterDataOptions(fundingSources as any[], 'name', 'name', { flagKey: 'isOther' }),
         [fundingSources],
     )
     const isOtherInfrastructureFundingSelected = React.useMemo(() => {
@@ -143,9 +144,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         const selected = (infraMasters as any[]).find(
             (m) => String(m.infraMasterId) === String(formData.infraMasterId),
         )
-        if (selected?.isOther) return true
-        const name = String(selected?.name || '').trim().toLowerCase()
-        return name === 'others' || name === 'other'
+        return Boolean(selected?.isOther)
     }, [infraMasters, formData.infraMasterId])
     const accountTypeOptions = React.useMemo(
         () => toOptions(bankAccountTypes as any[], 'bankAccountTypeId', 'name'),
@@ -648,9 +647,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             const selected = (infraMasters as any[]).find(
                                 (m) => String(m.infraMasterId) === String(infraMasterId),
                             )
-                            const isOther = Boolean(selected?.isOther) || ['others', 'other'].includes(
-                                String(selected?.name || '').trim().toLowerCase(),
-                            )
+                            const isOther = Boolean(selected?.isOther)
                             setFormData({
                                 ...formData,
                                 infraMasterId,
@@ -806,8 +803,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         onChange={(e) => {
                             const vehicleTypeId = e.target.value ? parseInt(e.target.value) : null
                             const selected = (vehicleTypes as any[]).find((t) => String(t.vehicleTypeId) === String(vehicleTypeId))
-                            const name = String(selected?.name || '').trim().toLowerCase()
-                            const isOther = Boolean(selected?.isOther) || name === 'others' || name === 'other' || name.includes('please specify')
+                            const isOther = Boolean(selected?.isOther)
                             setFormData({ ...formData, vehicleTypeId, vehicleTypeOther: isOther ? formData.vehicleTypeOther : '' })
                         }}
                         options={vehicleTypeOptions}
@@ -989,8 +985,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => {
                                 const assetFundingSourceId = e.target.value ? parseInt(e.target.value) : null
                                 const selected = (fundingSources as any[]).find((a) => String(a.fundingSourceId) === String(assetFundingSourceId))
-                                const name = String(selected?.name || '').trim().toLowerCase()
-                                const isOther = Boolean(selected?.isOther) || name === 'others' || name === 'other' || name.includes('please specify')
+                                const isOther = Boolean(selected?.isOther)
                                 setFormData({ ...formData, assetFundingSourceId, assetFundingSourceOther: isOther ? formData.assetFundingSourceOther : '' })
                             }}
                             disabled={!formData.reportingYear}
@@ -1076,8 +1071,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         onChange={(e) => {
                             const assetFundingSourceId = e.target.value ? parseInt(e.target.value) : null
                             const selected = (fundingSources as any[]).find((a) => String(a.fundingSourceId) === String(assetFundingSourceId))
-                            const name = String(selected?.name || '').trim().toLowerCase()
-                            const isOther = Boolean(selected?.isOther) || name === 'others' || name === 'other' || name.includes('please specify')
+                            const isOther = Boolean(selected?.isOther)
                             setFormData({ ...formData, assetFundingSourceId, assetFundingSourceOther: isOther ? formData.assetFundingSourceOther : '' })
                         }}
                         placeholder="Select"

@@ -12,7 +12,16 @@ const {
     validateFarmerCounts,
     checkRecordOwnership,
     validateId,
+    assertOtherFieldsValid,
 } = require('../../utils/formRepositoryHelpers.js');
+
+const TRAINING_OTHER_RULES = [
+    { idField: 'clienteleId', otherField: 'clienteleOther', model: 'clienteleMaster', idKey: 'clienteleId', label: 'Clientele' },
+    { idField: 'trainingTypeId', otherField: 'trainingTypeOther', model: 'trainingType', idKey: 'trainingTypeId', label: 'Training type' },
+    { idField: 'trainingAreaId', otherField: 'trainingAreaOther', model: 'trainingArea', idKey: 'trainingAreaId', label: 'Training area' },
+    { idField: 'thematicAreaId', otherField: 'thematicAreaOther', model: 'trainingThematicArea', idKey: 'trainingThematicAreaId', label: 'Thematic area' },
+    { idField: 'fundingSourceId', otherField: 'fundingSourceOther', model: 'fundingSourceMaster', idKey: 'fundingSourceId', label: 'Source of funding' },
+];
 
 /**
  * Training Repository
@@ -196,6 +205,7 @@ const trainingRepository = {
     create: async (data, opts, user) => {
         // Validate input
         validateInput(data, user);
+        await assertOtherFieldsValid(TRAINING_OTHER_RULES, data);
         const kvkId = resolveKvkId(data, user);
 
         // Use transaction to ensure atomicity of master data creation
@@ -471,6 +481,7 @@ const trainingRepository = {
      */
     update: async (id, data, user) => {
         validateInput(data, user);
+        await assertOtherFieldsValid(TRAINING_OTHER_RULES, data);
 
         // Validate ID first
         const parsedId = validateId(id, 'trainingAchievementId');

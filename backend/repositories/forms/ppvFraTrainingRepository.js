@@ -1,10 +1,15 @@
 const prisma = require('../../config/prisma.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
+const PPV_FRA_TRAINING_OTHER_RULES = [
+    { idField: 'typeId', otherField: 'typeOther', model: 'ppvFraTrainingTypeMaster', idKey: 'typeId', label: 'Training type' },
+];
 const ppvFraTrainingRepository = {
     create: async (data, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('KVK ID is required');
+        await assertOtherFieldsValid(PPV_FRA_TRAINING_OTHER_RULES, data);
 
         return await prisma.ppvFraTraining.create({
             data: {
@@ -65,6 +70,10 @@ const ppvFraTrainingRepository = {
         if (user && user.kvkId) where.kvkId = parseInt(user.kvkId);
         const existing = await prisma.ppvFraTraining.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(PPV_FRA_TRAINING_OTHER_RULES, {
+            typeId: data.typeId !== undefined ? data.typeId : existing.typeId,
+            typeOther: data.typeOther !== undefined ? data.typeOther : existing.typeOther,
+        });
         return await prisma.ppvFraTraining.update({
             where: { ppvFraTrainingId: parseInt(id) },
             data: {

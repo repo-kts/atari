@@ -11,7 +11,7 @@ const csisaController = {
             });
         } catch (error) {
             console.error('Error in csisaController.create:', error);
-            res.status(500).json({
+            res.status(error.statusCode || 500).json({
                 success: false,
                 message: 'Failed to create CSISA record',
                 error: error.message
@@ -29,7 +29,7 @@ const csisaController = {
             });
         } catch (error) {
             console.error('Error in csisaController.getAll:', error);
-            res.status(500).json({
+            res.status(error.statusCode || 500).json({
                 success: false,
                 message: 'Failed to fetch CSISA records',
                 error: error.message
@@ -52,7 +52,7 @@ const csisaController = {
             });
         } catch (error) {
             console.error('Error in csisaController.getById:', error);
-            res.status(500).json({
+            res.status(error.statusCode || 500).json({
                 success: false,
                 message: 'Failed to fetch CSISA record',
                 error: error.message

@@ -11,6 +11,7 @@ model KvkInfrastructure {
   plinthAreaSqM        Float                   @default(0) @map("plinth_area_sqm")
   underUse             Boolean                 @map("under_use")
   sourceOfFunding      String                  @map("source_of_funding")
+  // "Other" free-text: only meaningful when the chosen funding-source row is flagged isOther.
   sourceOfFundingOther String?                 @map("source_of_funding_other")
   fundingAgencyName    String?                 @map("funding_agency_name")
   createdAt            DateTime                @default(now()) @map("created_at")

@@ -7,7 +7,7 @@ const cfldExtensionActivityController = {
             res.json({ success: true, data: result });
         } catch (error) {
             console.error('Error fetching CFLD activity types:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 
@@ -17,7 +17,7 @@ const cfldExtensionActivityController = {
             res.status(201).json({ success: true, data: result });
         } catch (error) {
             console.error('Error creating CFLD Extension Activity:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 
@@ -27,7 +27,7 @@ const cfldExtensionActivityController = {
             res.json({ success: true, data: results });
         } catch (error) {
             console.error('Error fetching CFLD Extension Activities:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 
@@ -40,7 +40,7 @@ const cfldExtensionActivityController = {
             res.json({ success: true, data: result });
         } catch (error) {
             console.error('Error fetching CFLD Extension Activity:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 

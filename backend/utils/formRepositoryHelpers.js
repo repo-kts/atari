@@ -1,5 +1,6 @@
 const { sanitizeString, sanitizeInteger, sanitizeNumber, sanitizeDate, safeGet, removeIdFieldsForUpdate } = require('./dataSanitizer.js');
 const { ValidationError } = require('./errorHandler.js');
+const prisma = require('../config/prisma.js');
 
 /**
  * Form Repository Helpers
@@ -551,11 +552,59 @@ function validateId(id, idField = 'id') {
     return parsedId;
 }
 
+/**
+ * Enforce master-driven "Other" dropdowns: when the selected master row has
+ * isOther=true, the paired free-text field is required. Mirrors the frontend's
+ * useOtherSpecify gating, but enforced server-side so a bypassed/broken client
+ * can't save a blank specify value.
+ *
+ * @param {Array<{idField: string, otherField: string, model: string, idKey: string, label: string, stringId?: boolean}>} rules
+ *   - idField: the FK field on `data` selecting the master row (e.g. 'disciplineId')
+ *   - otherField: the free-text field on `data` paired with it (e.g. 'disciplineOther')
+ *   - model: the Prisma client accessor for the master model (e.g. 'discipline')
+ *   - idKey: the master's own unique lookup column (usually its id, e.g. 'disciplineId';
+ *     can be a unique name column for masters referenced by name instead of id)
+ *   - label: human-readable name used in the error message
+ *   - stringId: set true when idKey is a string column (e.g. a unique name) so the
+ *     lookup value isn't coerced with sanitizeInteger
+ * @param {Object} data - Sanitized payload being written (create or update)
+ * @param {Object} [options]
+ * @param {(message: string, field: string) => Error} [options.throwError] - Custom error
+ *   factory for repositories that use their own error class (e.g. RepositoryError)
+ *   instead of the shared ValidationError.
+ * @throws {ValidationError} If a master flagged isOther has no paired specify text
+ */
+async function assertOtherFieldsValid(rules, data, options = {}) {
+    if (!Array.isArray(rules) || !data) return;
+    const { throwError } = options;
+
+    for (const rule of rules) {
+        const idValue = data[rule.idField];
+        // Field not being set/changed in this write, or relation explicitly cleared — nothing to check.
+        if (idValue === undefined || idValue === null || idValue === '') continue;
+
+        // stringId lookups use findFirst — the name column isn't always declared
+        // @unique in the schema even though it's unique in practice for master data.
+        const master = rule.stringId
+            ? await prisma[rule.model].findFirst({ where: { [rule.idKey]: String(idValue) }, select: { isOther: true } })
+            : await prisma[rule.model].findUnique({ where: { [rule.idKey]: sanitizeInteger(idValue) }, select: { isOther: true } });
+        if (!master) continue; // an invalid id surfaces its own error further down the write path
+
+        if (master.isOther) {
+            const otherValue = data[rule.otherField];
+            if (!otherValue || !String(otherValue).trim()) {
+                const message = `${rule.label} is required when "Other" is selected`;
+                throw throwError ? throwError(message, rule.otherField) : new ValidationError(message, rule.otherField);
+            }
+        }
+    }
+}
+
 module.exports = {
     validateInput,
     resolveKvkId,
     buildRoleBasedWhere,
-    validateRequiredInteger, 
+    validateRequiredInteger,
     validateOptionalInteger,
     validateRequiredString,
     validateRequiredNumber,
@@ -565,4 +614,5 @@ module.exports = {
     checkRecordOwnership,
     applyFilters,
     validateId,
+    assertOtherFieldsValid,
 };

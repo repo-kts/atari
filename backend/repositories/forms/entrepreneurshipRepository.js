@@ -2,12 +2,18 @@ const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 const { parseYearOfEstablishment, parseBoundedCountInt } = require('../../utils/formIntValidation.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const ENTREPRENEURSHIP_OTHER_RULES = [
+    { idField: 'enterpriseType', otherField: 'enterpriseTypeOther', model: 'enterpriseTypeMaster', idKey: 'enterpriseTypeName', label: 'Enterprise type', stringId: true },
+];
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const entrepreneurshipRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new ValidationError('Valid kvkId is required', 'kvkId');
+        await assertOtherFieldsValid(ENTREPRENEURSHIP_OTHER_RULES, data);
 
         return await prisma.entrepreneurship.create({
             data: {
@@ -75,6 +81,10 @@ const entrepreneurshipRepository = {
 
         const existing = await prisma.entrepreneurship.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(ENTREPRENEURSHIP_OTHER_RULES, {
+            enterpriseType: data.enterpriseType !== undefined ? data.enterpriseType : existing.enterpriseType,
+            enterpriseTypeOther: data.enterpriseTypeOther !== undefined ? data.enterpriseTypeOther : existing.enterpriseTypeOther,
+        });
 
         return await prisma.entrepreneurship.update({
             where: { entrepreneurshipId: id },

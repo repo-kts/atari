@@ -1,6 +1,10 @@
 const prisma = require('../../config/prisma.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
+const VIP_VISITOR_OTHER_RULES = [
+    { idField: 'dignitaryTypeId', otherField: 'dignitaryTypeOther', model: 'dignitaryType', idKey: 'dignitaryTypeId', label: 'Dignitary type' },
+];
 const vipVisitorsRepository = {
     create: async (data, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -22,6 +26,7 @@ const vipVisitorsRepository = {
         }
 
         if (!dignitaryTypeId) throw new Error('Dignitary Type is required');
+        await assertOtherFieldsValid(VIP_VISITOR_OTHER_RULES, { dignitaryTypeId, dignitaryTypeOther: data.dignitaryTypeOther });
 
         return await prisma.vipVisitor.create({
             data: {
@@ -91,6 +96,10 @@ const vipVisitorsRepository = {
         } else if (data.dignitaryTypeId !== undefined) {
             dignitaryTypeId = parseInt(data.dignitaryTypeId);
         }
+        await assertOtherFieldsValid(VIP_VISITOR_OTHER_RULES, {
+            dignitaryTypeId,
+            dignitaryTypeOther: data.dignitaryTypeOther !== undefined ? data.dignitaryTypeOther : existing.dignitaryTypeOther,
+        });
 
         return await prisma.vipVisitor.update({
             where: { vipVisitorId: parseInt(id) },

@@ -937,9 +937,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.SOURCE_OF_FUNDING]: {
         extractor: (item: any) => {
-            if (item.sourceOfFundingOther || item.sourceOfFunding) {
-                return item.sourceOfFundingOther || item.sourceOfFunding;
-            }
+            // When the chosen funding source is the "Other" option, show the typed
+            // specify value instead of the generic "Others" label.
+            if (item.sourceOfFundingOther) return item.sourceOfFundingOther;
+            if (item.sourceOfFunding) return item.sourceOfFunding;
             return null;
         },
         priority: 6,

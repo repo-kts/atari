@@ -1,7 +1,11 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const ARYA_OTHER_RULES = [
+    { idField: 'enterpriseId', otherField: 'enterpriseOther', model: 'enterprise', idKey: 'enterpriseId', label: 'Enterprise' },
+];
 const aryaCurrentYearRepository = {
     create: async (data, user) => {
         const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
@@ -40,6 +44,7 @@ const aryaCurrentYearRepository = {
         const imagePath = data.imagePath || null;
         // "Other" free-text: only meaningful when the chosen enterprise row is flagged isOther.
         const enterpriseOther = (data.enterpriseOther && String(data.enterpriseOther).trim()) || null;
+        await assertOtherFieldsValid(ARYA_OTHER_RULES, { enterpriseId, enterpriseOther });
 
         const resultRows = await prisma.$queryRawUnsafe(`
             INSERT INTO arya_current_year (
@@ -166,6 +171,7 @@ const aryaCurrentYearRepository = {
         const enterpriseOther = data.enterpriseOther !== undefined
             ? ((String(data.enterpriseOther).trim()) || null)
             : existing.enterpriseOther;
+        await assertOtherFieldsValid(ARYA_OTHER_RULES, { enterpriseId, enterpriseOther });
 
         await prisma.$executeRawUnsafe(`
             UPDATE arya_current_year

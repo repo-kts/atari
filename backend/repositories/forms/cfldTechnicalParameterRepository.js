@@ -14,6 +14,13 @@ const {
     buildKvkScopedWhere,
 } = require('../../utils/cfldHelpers.js');
 const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const CFLD_TECH_PARAM_OTHER_RULES = [
+    { idField: 'cropId', otherField: 'cropOther', model: 'fLDCropMaster', idKey: 'cfldId', label: 'Crop' },
+    { idField: 'typeId', otherField: 'typeOther', model: 'cropType', idKey: 'typeId', label: 'Crop type' },
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+];
 
 const TRANSACTION_OPTIONS = {
     maxWait: 5000,
@@ -286,6 +293,12 @@ async function buildCreateData(data, user) {
         throw new ValidationError('Crop type ID is required', 'typeId');
     }
 
+    await assertOtherFieldsValid(CFLD_TECH_PARAM_OTHER_RULES, {
+        cropId, cropOther: data.cropOther,
+        typeId, typeOther: data.typeOther,
+        seasonId, seasonOther: data.seasonOther,
+    });
+
     const farmerYield = safeParseFloat(data.farmerYield || data.yieldFarmerField, 0);
     const demoYieldAvg = safeParseFloat(data.yieldAvg || data.demoYieldAvg, 0);
     const computedPercentIncrease = calculatePercentIncrease({ farmerYield, demoYieldAvg });
@@ -482,6 +495,7 @@ async function buildUpdateData(data, existing) {
     if (data.seasonOther !== undefined) updateData.seasonOther = safeMaybeText(data.seasonOther);
     if (data.typeOther !== undefined) updateData.typeOther = safeMaybeText(data.typeOther);
     if (data.cropOther !== undefined) updateData.cropOther = safeMaybeText(data.cropOther);
+    await assertOtherFieldsValid(CFLD_TECH_PARAM_OTHER_RULES, updateData);
 
     if (data.month !== undefined) {
         updateData.month = parseMonth(data.month);

@@ -1,10 +1,38 @@
 const aboutKvkService = require('../../services/forms/aboutKvkService.js');
 const { sanitizeDate } = require('../../utils/dataSanitizer.js');
+const { translatePrismaError } = require('../../utils/errorHandler.js');
 
 /**
  * About KVK Controller
  * Handles HTTP requests for About KVK forms
  */
+
+// Friendly labels for error messages — nicer than raw entity slugs like "kvk-bank-accounts".
+const ENTITY_LABELS = {
+    'kvks': 'KVK',
+    'kvk-bank-accounts': 'Bank account',
+    'kvk-employees': 'Employee',
+    'kvk-staff-transferred': 'Staff transfer record',
+    'kvk-infrastructure': 'Infrastructure record',
+    'kvk-vehicles': 'Vehicle',
+    'kvk-vehicle-details': 'Vehicle detail record',
+    'kvk-equipments': 'Equipment',
+    'kvk-equipment-details': 'Equipment detail record',
+    'kvk-land-details': 'Land detail record',
+};
+
+// Translates raw Prisma/internal errors into a user-readable message and picks a
+// status code (translated error's own statusCode wins; otherwise fallbackStatus,
+// which callers derive from legacy string-matching on the original message).
+function sendControllerError(res, error, { entityName, operation, fallbackStatus = 500 }) {
+    const resource = ENTITY_LABELS[entityName] || entityName;
+    console.error(`Error during ${operation} for ${resource}:`, error);
+    const translated = translatePrismaError(error, resource, operation);
+    res.status(translated.statusCode || fallbackStatus).json({
+        success: false,
+        error: translated.message,
+    });
+}
 
 const getAll = (entityName) => async (req, res) => {
     try {
@@ -30,11 +58,7 @@ const getAll = (entityName) => async (req, res) => {
             ...(result.noKvkLinked && { noKvkLinked: true }),
         });
     } catch (error) {
-        console.error(`Error fetching ${entityName}:`, error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName, operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -44,7 +68,7 @@ const getById = (entityName) => async (req, res) => {
         if (!id || id === 'undefined' || id === 'null') {
             return res.status(400).json({
                 success: false,
-                error: `ID is required for ${entityName}. Received: ${id}`,
+                error: `ID is required for ${ENTITY_LABELS[entityName] || entityName}. Received: ${id}`,
             });
         }
         const data = await aboutKvkService.getById(entityName, id, req.user);
@@ -53,13 +77,9 @@ const getById = (entityName) => async (req, res) => {
             data,
         });
     } catch (error) {
-        console.error(`Error fetching ${entityName} by ID:`, error);
-        const statusCode = error.message.includes('not found') ? 404 :
+        const fallbackStatus = error.message.includes('not found') ? 404 :
             error.message.includes('Access denied') ? 403 : 500;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName, operation: 'fetch', fallbackStatus });
     }
 };
 
@@ -69,14 +89,10 @@ const create = (entityName) => async (req, res) => {
         res.status(201).json({
             success: true,
             data,
-            message: `${entityName} created successfully`,
+            message: `${ENTITY_LABELS[entityName] || entityName} created successfully`,
         });
     } catch (error) {
-        console.error(`Error creating ${entityName}:`, error);
-        res.status(400).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName, operation: 'create', fallbackStatus: 400 });
     }
 };
 
@@ -86,23 +102,19 @@ const update = (entityName) => async (req, res) => {
         if (!id || id === 'undefined' || id === 'null') {
             return res.status(400).json({
                 success: false,
-                error: `ID is required for ${entityName}. Received: ${id}`,
+                error: `ID is required for ${ENTITY_LABELS[entityName] || entityName}. Received: ${id}`,
             });
         }
         const data = await aboutKvkService.update(entityName, id, req.body, req.user);
         res.json({
             success: true,
             data,
-            message: `${entityName} updated successfully`,
+            message: `${ENTITY_LABELS[entityName] || entityName} updated successfully`,
         });
     } catch (error) {
-        console.error(`Error updating ${entityName}:`, error);
-        const statusCode = error.message.includes('not found') ? 404 :
+        const fallbackStatus = error.message.includes('not found') ? 404 :
             error.message.includes('Access denied') ? 403 : 400;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName, operation: 'update', fallbackStatus });
     }
 };
 
@@ -112,22 +124,18 @@ const deleteEntity = (entityName) => async (req, res) => {
         if (!id || id === 'undefined' || id === 'null') {
             return res.status(400).json({
                 success: false,
-                error: `ID is required for ${entityName}. Received: ${id}`,
+                error: `ID is required for ${ENTITY_LABELS[entityName] || entityName}. Received: ${id}`,
             });
         }
         await aboutKvkService.delete(entityName, id, req.user);
         res.json({
             success: true,
-            message: `${entityName} deleted successfully`,
+            message: `${ENTITY_LABELS[entityName] || entityName} deleted successfully`,
         });
     } catch (error) {
-        console.error(`Error deleting ${entityName}:`, error);
-        const statusCode = error.message.includes('not found') ? 404 :
+        const fallbackStatus = error.message.includes('not found') ? 404 :
             error.message.includes('Access denied') ? 403 : 500;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName, operation: 'delete', fallbackStatus });
     }
 };
 
@@ -205,11 +213,7 @@ exports.getAllSanctionedPosts = async (req, res) => {
             data,
         });
     } catch (error) {
-        console.error('Error fetching sanctioned posts:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName: 'Sanctioned post', operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -221,11 +225,7 @@ exports.getAllDisciplines = async (req, res) => {
             data,
         });
     } catch (error) {
-        console.error('Error fetching disciplines:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName: 'Discipline', operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -237,11 +237,7 @@ exports.getAllInfraMasters = async (req, res) => {
             data,
         });
     } catch (error) {
-        console.error('Error fetching infrastructure masters:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName: 'Infrastructure master', operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -260,11 +256,7 @@ exports.getStaffForDropdown = async (req, res) => {
             data,
         });
     } catch (error) {
-        console.error('Error fetching KVK staff for dropdown:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName: 'KVK staff', operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -281,8 +273,7 @@ exports.getVehiclesForDropdown = async (req, res) => {
         );
         res.json({ success: true, data });
     } catch (error) {
-        console.error('Error fetching vehicles for dropdown:', error);
-        res.status(500).json({ success: false, error: error.message });
+        sendControllerError(res, error, { entityName: 'Vehicle', operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -299,8 +290,7 @@ exports.getEquipmentsForDropdown = async (req, res) => {
         );
         res.json({ success: true, data });
     } catch (error) {
-        console.error('Error fetching equipments for dropdown:', error);
-        res.status(500).json({ success: false, error: error.message });
+        sendControllerError(res, error, { entityName: 'Equipment', operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -327,11 +317,7 @@ exports.getAllKvksForDropdown = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error('Error fetching KVKs for dropdown:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName: 'KVK', operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -384,13 +370,9 @@ exports.transferEmployee = async (req, res) => {
             message: 'Employee transferred successfully',
         });
     } catch (error) {
-        console.error('Error transferring employee:', error);
-        const statusCode = error.message.includes('not found') ? 404 :
+        const fallbackStatus = error.message.includes('not found') ? 404 :
             error.message.includes('Access denied') || error.message.includes('Only KVK') ? 403 : 400;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName: 'Employee transfer', operation: 'transfer', fallbackStatus });
     }
 };
 
@@ -427,11 +409,7 @@ exports.getAllTransfers = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error('Error fetching transfers:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName: 'Transfer', operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -459,11 +437,7 @@ exports.getStaffTransferHistory = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error('Error fetching staff transfer history:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName: 'Staff transfer history', operation: 'fetch', fallbackStatus: 500 });
     }
 };
 
@@ -510,12 +484,8 @@ exports.revertTransfer = async (req, res) => {
             message: 'Transfer reverted successfully',
         });
     } catch (error) {
-        console.error('Error reverting transfer:', error);
-        const statusCode = error.message.includes('not found') ? 404 :
+        const fallbackStatus = error.message.includes('not found') ? 404 :
                           error.message.includes('Only Super') ? 403 : 400;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
+        sendControllerError(res, error, { entityName: 'Transfer', operation: 'revert', fallbackStatus });
     }
 };

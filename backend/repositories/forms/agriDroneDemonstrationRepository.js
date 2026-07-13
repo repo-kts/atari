@@ -1,7 +1,11 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const AGRI_DRONE_DEMO_OTHER_RULES = [
+    { idField: 'demonstrationsOnId', otherField: 'demonstrationsOnOther', model: 'agriDroneDemonstrationsOnMaster', idKey: 'agriDroneDemonstrationsOnId', label: 'Demonstrations on' },
+];
 function isKvkUser(user) {
     return user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
 }
@@ -36,6 +40,7 @@ const agriDroneDemonstrationRepository = {
         if (!intro) throw new Error('Invalid intro selected or unauthorized');
 
         const kvkId = intro.kvkId;
+        await assertOtherFieldsValid(AGRI_DRONE_DEMO_OTHER_RULES, data);
 
         const record = await prisma.kvkAgriDroneDemonstration.create({
             data: {
@@ -126,6 +131,7 @@ const agriDroneDemonstrationRepository = {
             const intro = await prisma.kvkAgriDrone.findFirst({ where: introWhere, select: { agriDroneId: true, kvkId: true } });
             if (!intro) throw new Error('Invalid intro selected or unauthorized');
         }
+        await assertOtherFieldsValid(AGRI_DRONE_DEMO_OTHER_RULES, data);
 
         const updated = await prisma.kvkAgriDroneDemonstration.update({
             where: { agriDroneDemonstrationId: existing.agriDroneDemonstrationId },

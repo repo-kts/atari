@@ -1,7 +1,11 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const SEED_HUB_OTHER_RULES = [
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+];
 const toIntOrNull = (value) => {
     if (value === undefined || value === null || value === '') return null;
     const n = parseInt(value, 10);
@@ -84,6 +88,7 @@ const seedHubRepository = {
 
         const reportingYear = parseReportingYearDate(data.reportingYear);
         ensureNotFutureDate(reportingYear);
+        await assertOtherFieldsValid(SEED_HUB_OTHER_RULES, data);
 
         const created = await prisma.kvkSeedHubProgram.create({
             data: {
@@ -121,6 +126,7 @@ const seedHubRepository = {
 
         const existing = await prisma.kvkSeedHubProgram.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(SEED_HUB_OTHER_RULES, data);
 
         const updateData = {};
         if (data.reportingYear !== undefined) {

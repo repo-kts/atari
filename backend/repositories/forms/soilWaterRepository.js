@@ -1,6 +1,14 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { KVK_ROLES } = require('../../utils/formListOrderBy.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const SOIL_WATER_EQUIPMENT_OTHER_RULES = [
+    { idField: 'soilWaterAnalysisId', otherField: 'analysisOther', model: 'soilWaterAnalysis', idKey: 'soilWaterAnalysisId', label: 'Analysis' },
+];
+const SOIL_WATER_ANALYSIS_OTHER_RULES = [
+    { idField: 'analysisId', otherField: 'analysisOther', model: 'soilWaterAnalysis', idKey: 'soilWaterAnalysisId', label: 'Analysis' },
+];
 
 function normalizeSamplesAnalysedThroughOther(data, current = {}) {
     const through = data.samplesAnalysedThrough !== undefined
@@ -129,9 +137,10 @@ const soilWaterRepository = {
         const rYearId = await soilWaterRepository.resolveReportingYear(data);
         const analysisId = parseInt(data.soilWaterAnalysisId);
         const qty = parseInt(data.quantity);
+        await assertOtherFieldsValid(SOIL_WATER_EQUIPMENT_OTHER_RULES, data);
 
         await prisma.$queryRawUnsafe(`
-            INSERT INTO kvk_soil_water_equipment 
+            INSERT INTO kvk_soil_water_equipment
             ("kvkId", reporting_year, "soilWaterAnalysisId", analysis_other, equipment_name, quantity, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         `, kvkId, rYearId, isNaN(analysisId) ? null : analysisId, (data.analysisOther && String(data.analysisOther).trim()) || null, data.equipmentName || '', isNaN(qty) ? 0 : qty);
@@ -172,6 +181,7 @@ const soilWaterRepository = {
     },
 
     updateEquipment: async (id, data, user) => {
+        await assertOtherFieldsValid(SOIL_WATER_EQUIPMENT_OTHER_RULES, data);
         const updates = [];
         const values = [];
         let index = 1;
@@ -236,6 +246,7 @@ const soilWaterRepository = {
         const vNum = parseInt(data.villagesNumber || data.numberOfVillages || 0);
         const aRealized = parseInt(data.amountRealized || 0);
         const rYearId = await soilWaterRepository.resolveReportingYear(data);
+        await assertOtherFieldsValid(SOIL_WATER_ANALYSIS_OTHER_RULES, { analysisId: data.analysisId ?? data.soilWaterAnalysisId, analysisOther: data.analysisOther });
         const samplesAnalysedThroughOther = normalizeSamplesAnalysedThroughOther(data);
 
         // All NOT NULL columns MUST have values.
@@ -300,6 +311,7 @@ const soilWaterRepository = {
     },
 
     updateAnalysis: async (id, data, user) => {
+        await assertOtherFieldsValid(SOIL_WATER_ANALYSIS_OTHER_RULES, data);
         const updates = [];
         const values = [];
         let index = 1;

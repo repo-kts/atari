@@ -15,7 +15,12 @@ const {
     checkRecordOwnership,
     applyFilters,
     validateId,
+    assertOtherFieldsValid,
 } = require('../../utils/formRepositoryHelpers.js');
+
+const FLD_EXTENSION_OTHER_RULES = [
+    { idField: 'activityId', otherField: 'activityOther', model: 'fldActivity', idKey: 'activityId', label: 'Activity' },
+];
 
 /**
  * FLD Extension Repository Configuration
@@ -177,6 +182,7 @@ const fldExtensionRepository = {
         if (!activity) {
             throw new ValidationError('Activity not found', 'activityId');
         }
+        await assertOtherFieldsValid(FLD_EXTENSION_OTHER_RULES, { activityId, activityOther: data.activityOther });
 
         const createData = {
             kvkId,
@@ -317,6 +323,7 @@ const fldExtensionRepository = {
         if (data.activityOther !== undefined) {
             updateData.activityOther = (String(data.activityOther).trim()) || null;
         }
+        await assertOtherFieldsValid(FLD_EXTENSION_OTHER_RULES, updateData);
 
         // Handle farmer counts (only if provided)
         const farmerCounts = validateFarmerCounts(data, FLD_EXTENSION_CONFIG.farmerCountMapping, {

@@ -140,6 +140,8 @@ export interface KvkInfrastructure {
     plinthAreaSqM: number;
     underUse: boolean;
     sourceOfFunding: string;
+    // Free-text specify value shown when the chosen funding source is flagged "Other".
+    sourceOfFundingOther?: string | null;
     fundingAgencyName?: string | null;
     createdAt?: string;
     updatedAt?: string;

@@ -18,7 +18,17 @@ const {
     checkRecordOwnership,
     applyFilters,
     validateId,
+    assertOtherFieldsValid,
 } = require('../../utils/formRepositoryHelpers.js');
+
+const FLD_OTHER_RULES = [
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+    { idField: 'sectorId', otherField: 'sectorOther', model: 'sector', idKey: 'sectorId', label: 'Sector' },
+    { idField: 'thematicAreaId', otherField: 'thematicAreaOther', model: 'fldThematicArea', idKey: 'thematicAreaId', label: 'Thematic area' },
+    { idField: 'categoryId', otherField: 'categoryOther', model: 'fldCategory', idKey: 'categoryId', label: 'Category' },
+    { idField: 'subCategoryId', otherField: 'subCategoryOther', model: 'fldSubcategory', idKey: 'subCategoryId', label: 'Sub-category' },
+    { idField: 'cropId', otherField: 'cropOther', model: 'fldCrop', idKey: 'cropId', label: 'Crop' },
+];
 
 /**
  * FLD Repository Configuration
@@ -310,6 +320,7 @@ const fldRepository = {
      */
     create: async (data, user) => {
         validateInput(data, user);
+        await assertOtherFieldsValid(FLD_OTHER_RULES, data);
         const kvkId = resolveKvkId(data, user);
 
         // Women Empowerment FLDs have no measurable quantity/unit — sector lookup decides whether to skip those validators.
@@ -582,6 +593,7 @@ const fldRepository = {
         }
 
         const updatePayload = { ...(data || {}) };
+        await assertOtherFieldsValid(FLD_OTHER_RULES, updatePayload);
         const incomingSectorId = updatePayload.sectorId ?? existingRecord.sectorId;
         let sectorName = existingRecord.sector?.sectorName || '';
         if (incomingSectorId !== existingRecord.sectorId && incomingSectorId !== undefined && incomingSectorId !== null && incomingSectorId !== '') {

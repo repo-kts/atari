@@ -2,6 +2,19 @@ const prisma = require('../../config/prisma.js');
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const NF_ACTIVITY_OTHER_RULES = [
+    { idField: 'activityId', otherField: 'activityOther', model: 'naturalFarmingActivityMaster', idKey: 'naturalFarmingActivityId', label: 'Activity' },
+];
+const NF_DEMO_OTHER_RULES = [
+    { idField: 'staffCategoryId', otherField: 'staffCategoryOther', model: 'staffCategoryMaster', idKey: 'staffCategoryId', label: 'Staff category' },
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+];
+const NF_SOIL_OTHER_RULES = [
+    { idField: 'soilParameterId', otherField: 'soilParameterOther', model: 'naturalFarmingSoilParameterMaster', idKey: 'naturalFarmingSoilParameterId', label: 'Soil parameter' },
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+];
 
 const KVK_ROLES = ['kvk_admin', 'kvk_user'];
 const isKvkUser = (user) => user && (KVK_ROLES.includes(user.roleName) || user.kvkId);
@@ -239,6 +252,10 @@ const physicalInfoRepository = {
         const kvkId = getKvkId(user, data);
         const resolvedActivity = await resolveNaturalFarmingActivity(data.activityId ?? data.activity ?? data.activityName);
         const isOtherActivity = Boolean(resolvedActivity?.isOther) || isOtherActivityName(resolvedActivity?.activityName);
+        await assertOtherFieldsValid(NF_ACTIVITY_OTHER_RULES, {
+            activityId: resolvedActivity?.naturalFarmingActivityId,
+            activityOther: data.activityOther,
+        });
         return await prisma.physicalInfo.create({
             data: {
                 kvkId,
@@ -342,6 +359,10 @@ const physicalInfoRepository = {
                 isOther: existing.activityMaster.isOther,
             } : null);
         const isOtherActivity = Boolean(resolvedActivity?.isOther) || isOtherActivityName(resolvedActivity?.activityName);
+        await assertOtherFieldsValid(NF_ACTIVITY_OTHER_RULES, {
+            activityId: resolvedActivity?.naturalFarmingActivityId,
+            activityOther: data.activityOther !== undefined ? data.activityOther : existing.activityOther,
+        });
 
         return await prisma.physicalInfo.update({
             where: { physicalInfoId: safeInt(id, 0) },
@@ -480,6 +501,7 @@ const demonstrationInfoRepository = {
         mappedData.anyOtherWith = (data.with_practicing_anyOtherSpecific || data.with_anyOtherSpecific || data.with_practicing_populationDensity)
             ? safeFloat(data.with_practicing_anyOtherSpecific || data.with_anyOtherSpecific || data.with_practicing_populationDensity, null)
             : mappedData.anyOtherWith;
+        await assertOtherFieldsValid(NF_DEMO_OTHER_RULES, mappedData);
         return await prisma.demonstrationInfo.create({ data: mappedData });
     },
     findAll: async (filters, user) => {
@@ -730,6 +752,14 @@ const demonstrationInfoRepository = {
         if (isKvkUser(user)) where.kvkId = safeInt(user.kvkId);
         const existing = await prisma.demonstrationInfo.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(NF_DEMO_OTHER_RULES, {
+            staffCategoryId: (data.staffCategoryId !== undefined || data.staffCategoryName !== undefined)
+                ? await resolveStaffCategory(data.staffCategoryId ?? data.staffCategoryName)
+                : existing.staffCategoryId,
+            staffCategoryOther: data.staffCategoryOther !== undefined ? data.staffCategoryOther : existing.staffCategoryOther,
+            seasonId: data.seasonId !== undefined ? (data.seasonId ? safeInt(data.seasonId, null) : null) : existing.seasonId,
+            seasonOther: data.seasonOther !== undefined ? data.seasonOther : existing.seasonOther,
+        });
         return await prisma.demonstrationInfo.update({
             where: { demonstrationInfoId: safeInt(id, 0) },
             data: {
@@ -899,6 +929,12 @@ const soilDataRepository = {
         const kvkId = getKvkId(user, data);
         const soilParameterId = await resolveNaturalFarmingSoilParameterId(data.soilParameterId ?? data.soilParameter ?? data.type);
         const yearInfo = resolveYearDateInput(data.reportingYear ?? data.year, new Date().getUTCFullYear(), null);
+        await assertOtherFieldsValid(NF_SOIL_OTHER_RULES, {
+            soilParameterId,
+            soilParameterOther: data.soilParameterOther,
+            seasonId: data.seasonId ? safeInt(data.seasonId, null) : null,
+            seasonOther: data.seasonOther,
+        });
         return await prisma.soilDataInformation.create({
             data: {
                 kvkId,
@@ -1024,6 +1060,12 @@ const soilDataRepository = {
         const yearInfo = (data.reportingYear !== undefined || data.year !== undefined)
             ? resolveYearDateInput(data.reportingYear ?? data.year, existing.year, existing.reportingYearDate || null)
             : { year: existing.year, reportingYearDate: existing.reportingYearDate || buildDateFromYear(existing.year) };
+        await assertOtherFieldsValid(NF_SOIL_OTHER_RULES, {
+            soilParameterId: resolvedSoilParameterId,
+            soilParameterOther: data.soilParameterOther !== undefined ? data.soilParameterOther : existing.soilParameterOther,
+            seasonId: data.seasonId !== undefined ? (data.seasonId ? safeInt(data.seasonId, null) : null) : existing.seasonId,
+            seasonOther: data.seasonOther !== undefined ? data.seasonOther : existing.seasonOther,
+        });
 
         return await prisma.soilDataInformation.update({
             where: { soilDataInformationId: parseInt(id) },

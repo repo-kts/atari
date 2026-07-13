@@ -17,7 +17,7 @@ const createRoutes = (path, repository, moduleCode) => {
             const data = await repository.findAll(req.query, req.user);
             res.json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            res.status(error.statusCode || 500).json({ message: error.message });
         }
     });
 
@@ -26,7 +26,7 @@ const createRoutes = (path, repository, moduleCode) => {
             const data = await repository.create(req.body, req.user);
             res.status(201).json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            res.status(error.statusCode || 500).json({ message: error.message });
         }
     });
 
@@ -35,7 +35,7 @@ const createRoutes = (path, repository, moduleCode) => {
             const data = await repository.update(req.params.id, req.body, req.user);
             res.json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            res.status(error.statusCode || 500).json({ message: error.message });
         }
     };
     router.put(`/${path}/:id`, requirePermission(moduleCode, 'EDIT'), updateHandler);
@@ -46,7 +46,7 @@ const createRoutes = (path, repository, moduleCode) => {
             await repository.delete(req.params.id, req.user);
             res.json({ message: 'Deleted successfully' });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            res.status(error.statusCode || 500).json({ message: error.message });
         }
     });
 };
