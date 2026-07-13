@@ -38,6 +38,7 @@ const ENTITY_CONFIG = {
         tableName: 'training_area',
         idColumn: 'training_area_id',
         requiredFields: ['trainingTypeId', 'trainingAreaName'],
+        uniqueScopeFields: ['trainingTypeId'],
         writableFields: ['trainingTypeId', 'trainingAreaName', 'isOther'],
         includes: {
             trainingType: {
@@ -66,6 +67,7 @@ const ENTITY_CONFIG = {
         tableName: 'training_thematic_area',
         idColumn: 'training_thematic_area_id',
         requiredFields: ['trainingAreaId', 'trainingThematicAreaName'],
+        uniqueScopeFields: ['trainingAreaId'],
         writableFields: ['trainingAreaId', 'trainingThematicAreaName', 'isOther'],
         includes: {
             trainingArea: {

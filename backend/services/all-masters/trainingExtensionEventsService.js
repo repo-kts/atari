@@ -3,6 +3,19 @@ const { normalizeListLimit, DEFAULT_MASTER_LIST_PAGE_SIZE } = require('../../con
 const { getEntityConfig } = require('../../repositories/all-masters/trainingExtensionEventsRepository.js');
 const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = require('../../utils/errorHandler.js');
 
+function buildScopeFilters(config, data) {
+    const filters = {};
+    if (!config || !Array.isArray(config.uniqueScopeFields)) return filters;
+    for (const field of config.uniqueScopeFields) {
+        const value = data[field];
+        if (value === undefined || value === null || value === '') continue;
+        const parsed = field.endsWith('Id') ? parseInt(value, 10) : value;
+        if (typeof parsed === 'number' && Number.isNaN(parsed)) continue;
+        filters[field] = parsed;
+    }
+    return filters;
+}
+
 /**
  * Training, Extension & Events Master Data Service
  * Business logic layer for Training, Extension Activities, and Events master data operations
@@ -96,7 +109,9 @@ class TrainingExtensionEventsService {
             if (config && config.nameField && data[config.nameField]) {
                 const exists = await trainingExtensionEventsRepository.nameExists(
                     entityName,
-                    data[config.nameField]
+                    data[config.nameField],
+                    null,
+                    buildScopeFilters(config, data)
                 );
                 if (exists) {
                     throw new ConflictError(`${entityName} with this ${config.nameField} already exists`);
@@ -140,7 +155,7 @@ class TrainingExtensionEventsService {
 
         try {
             // Check if entity exists
-            await this.getById(entityName, id);
+            const existing = await this.getById(entityName, id);
 
             // Get entity config for duplicate name check
             const config = getEntityConfig ? getEntityConfig(entityName) : null;
@@ -150,7 +165,8 @@ class TrainingExtensionEventsService {
                 const exists = await trainingExtensionEventsRepository.nameExists(
                     entityName,
                     data[config.nameField],
-                    id
+                    id,
+                    buildScopeFilters(config, { ...existing, ...data })
                 );
                 if (exists) {
                     throw new ConflictError(`${entityName} with this ${config.nameField} already exists`);

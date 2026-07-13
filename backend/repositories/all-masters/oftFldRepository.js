@@ -78,6 +78,7 @@ const ENTITY_CONFIG = {
         tableName: 'thematic_area',
         idColumn: 'thematic_area_id',
         requiredFields: ['sectorId', 'thematicAreaName'],
+        uniqueScopeFields: ['sectorId'],
         includes: {
             sector: {
                 select: {
@@ -99,6 +100,7 @@ const ENTITY_CONFIG = {
         tableName: 'category',
         idColumn: 'category_id',
         requiredFields: ['sectorId', 'categoryName'],
+        uniqueScopeFields: ['sectorId'],
         includes: {
             sector: {
                 select: {
@@ -126,6 +128,7 @@ const ENTITY_CONFIG = {
         tableName: 'sub_category',
         idColumn: 'sub_category_id',
         requiredFields: ['categoryId', 'sectorId', 'subCategoryName'],
+        uniqueScopeFields: ['categoryId', 'sectorId'],
         includes: {
             category: {
                 select: {
@@ -234,6 +237,7 @@ const ENTITY_CONFIG = {
         tableName: 'fld_crop_master',
         idColumn: 'cfld_id',
         requiredFields: ['seasonId', 'typeId', 'cropName'],
+        uniqueScopeFields: ['seasonId', 'typeId'],
         includes: {
             season: {
                 select: {

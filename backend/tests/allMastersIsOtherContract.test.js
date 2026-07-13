@@ -58,8 +58,9 @@ test('every all-master form renders an Other checkbox for each editable entity',
         'OftFldForms.tsx': 9,
         'TrainingExtensionForms.tsx': 8,
         'ProductionProjectForms.tsx': 11,
-        // Equipment Type and Vehicle Type share one render branch.
-        'OtherMastersForms.tsx': 35,
+        // Equipment Type and Vehicle Type share one render branch. The former
+        // Funding Agency and Asset Funding Source masters were consolidated.
+        'OtherMastersForms.tsx': 33,
         'PublicationForms.tsx': 1,
     };
     const formsDir = path.join(ROOT, 'frontend/src/pages/dashboard/shared/forms');
