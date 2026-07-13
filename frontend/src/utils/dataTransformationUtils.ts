@@ -812,7 +812,9 @@ export async function processFiles(data: any): Promise<any> {
 
 /**
  * Enforces common start/end date rules across payloads:
- * - start/end dates cannot be in the future
+ * - start dates cannot be in the future
+ * - end dates MAY be in the future (planned completion) — matching the
+ *   forward-looking date inputs that opt out of the today max
  * - end date cannot be before matching start date
  */
 export function normalizeStartEndDateRanges(data: any): any {
@@ -823,7 +825,9 @@ export function normalizeStartEndDateRanges(data: any): any {
 
     Object.keys(normalized).forEach((key) => {
         const lowerKey = key.toLowerCase();
-        if (!lowerKey.includes('startdate') && !lowerKey.includes('enddate')) return;
+        // Only start dates are clamped away from the future; end dates are
+        // allowed to be future so a planned/expected completion can be entered.
+        if (!lowerKey.includes('startdate') || lowerKey.includes('enddate')) return;
 
         const ymd = toDateOnlyString(normalized[key]);
         if (!ymd) return;

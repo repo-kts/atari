@@ -167,11 +167,16 @@ function validateNoFutureDates(body) {
         const dt = parseDateOnly(value);
         if (!dt) continue;
 
-        // Allow future dates for forward-looking fields (target, expected, planned).
+        // Allow future dates for forward-looking fields (target, expected,
+        // planned, completion) and end dates — an end/completion date may be a
+        // planned future date (mirrors the frontend date inputs that opt out of
+        // the today max). end < start is still blocked by validateDateOrdering.
         const lowerKey = String(key).toLowerCase();
         if (lowerKey.includes('target')) continue;
         if (lowerKey.includes('expected')) continue;
         if (lowerKey.includes('planned')) continue;
+        if (lowerKey.includes('completion')) continue;
+        if (lowerKey.includes('end')) continue;
 
         if (dt.getTime() > today.getTime()) {
             throw new ValidationError(`"${key}" cannot be in the future`, key);
