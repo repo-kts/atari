@@ -6,7 +6,7 @@ const vipVisitorsController = {
             const data = await vipVisitorsService.findAll(req.query, req.user);
             res.json({ success: true, data });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -51,7 +51,7 @@ const vipVisitorsController = {
             const data = await vipVisitorsService.findAllDignitaryTypes();
             res.json({ success: true, data });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 };

@@ -4,6 +4,7 @@ const { ValidationError, translatePrismaError } = require('../../utils/errorHand
 const { normalizeOptionalIndianMobile, normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 const { parseYearOfEstablishment } = require('../../utils/formIntValidation.js');
 const { parseReportingYearDate, ensureNotFutureDate, normalizeDateRange } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 /**
  * About KVK Repository
@@ -875,6 +876,7 @@ const KVK_INFRA_ALLOWED_FIELDS = [
     'plinthAreaSqM',
     'underUse',
     'sourceOfFunding',
+    'sourceOfFundingOther',
     'fundingAgencyName',
 ];
 
@@ -884,6 +886,46 @@ function keepOnlyAllowedFields(payload, allowedFields) {
             delete payload[field];
         }
     });
+}
+
+// Master-driven "Other" dropdowns: when the selected master row has isOther=true,
+// the paired free-text field is required. Mirrors the frontend's useOtherSpecify
+// gating, but enforced server-side so a bypassed/broken client can't save a blank.
+const OTHER_FIELD_RULES = {
+    'kvk-bank-accounts': [
+        { idField: 'bankAccountTypeMasterId', otherField: 'accountTypeOther', model: 'bankAccountTypeMaster', idKey: 'bankAccountTypeId', label: 'Account type' },
+    ],
+    'kvk-employees': [
+        { idField: 'sanctionedPostId', otherField: 'sanctionedPostOther', model: 'sanctionedPost', idKey: 'sanctionedPostId', label: 'Sanctioned post' },
+        { idField: 'disciplineId', otherField: 'disciplineOther', model: 'discipline', idKey: 'disciplineId', label: 'Discipline' },
+        { idField: 'staffCategoryId', otherField: 'staffCategoryOther', model: 'staffCategoryMaster', idKey: 'staffCategoryId', label: 'Staff category' },
+        { idField: 'payLevelId', otherField: 'payLevelOther', model: 'payLevelMaster', idKey: 'payLevelId', label: 'Pay level' },
+        { idField: 'payScaleId', otherField: 'payScaleOther', model: 'payScaleMaster', idKey: 'payScaleId', label: 'Pay scale' },
+        { idField: 'jobTypeMasterId', otherField: 'jobTypeOther', model: 'jobTypeMaster', idKey: 'jobTypeId', label: 'Job type' },
+    ],
+    'kvk-vehicles': [
+        { idField: 'vehicleTypeId', otherField: 'vehicleTypeOther', model: 'vehicleTypeMaster', idKey: 'vehicleTypeId', label: 'Vehicle type' },
+    ],
+    'kvk-equipments': [
+        { idField: 'equipmentTypeId', otherField: 'equipmentTypeOther', model: 'equipmentTypeMaster', idKey: 'equipmentTypeId', label: 'Equipment type' },
+    ],
+    'kvk-vehicle-details': [
+        { idField: 'assetFundingSourceId', otherField: 'assetFundingSourceOther', model: 'fundingSourceMaster', idKey: 'fundingSourceId', label: 'Source of funding' },
+        { idField: 'vehicleStatusId', otherField: 'vehicleStatusOther', model: 'vehiclePresentStatusMaster', idKey: 'vehicleStatusId', label: 'Vehicle status' },
+    ],
+    'kvk-equipment-details': [
+        { idField: 'assetFundingSourceId', otherField: 'assetFundingSourceOther', model: 'fundingSourceMaster', idKey: 'fundingSourceId', label: 'Source of funding' },
+        { idField: 'equipmentStatusId', otherField: 'equipmentStatusOther', model: 'equipmentPresentStatusMaster', idKey: 'equipmentStatusId', label: 'Equipment status' },
+    ],
+    'kvk-infrastructure': [
+        { idField: 'infraMasterId', otherField: 'specifyName', model: 'kvkInfrastructureMaster', idKey: 'infraMasterId', label: 'Infrastructure name' },
+        { idField: 'sourceOfFunding', otherField: 'sourceOfFundingOther', model: 'fundingSourceMaster', idKey: 'name', label: 'Source of funding', stringId: true },
+    ],
+};
+OTHER_FIELD_RULES['kvk-staff-transferred'] = OTHER_FIELD_RULES['kvk-employees'];
+
+async function validateOtherFields(entityName, data) {
+    await assertOtherFieldsValid(OTHER_FIELD_RULES[entityName], data);
 }
 
 
@@ -1126,6 +1168,11 @@ function sanitizeData(entityName, data) {
         if (sanitized.sourceOfFunding !== undefined) {
             sanitized.sourceOfFunding = sanitizeString(safeGet(data, 'sourceOfFunding'), { allowEmpty: false });
         }
+        if (sanitized.sourceOfFundingOther !== undefined) {
+            // Only meaningful when the chosen funding source is flagged isOther; store trimmed/null.
+            const v = sanitizeString(safeGet(data, 'sourceOfFundingOther'), { allowEmpty: true });
+            sanitized.sourceOfFundingOther = v && v.trim() ? v.trim() : null;
+        }
         if (sanitized.fundingAgencyName !== undefined) {
             sanitized.fundingAgencyName = sanitizeString(safeGet(data, 'fundingAgencyName'), { allowEmpty: true });
         }
@@ -1279,6 +1326,8 @@ async function create(entityName, data) {
     // CRITICAL: Ensure ID fields are removed for create operations too
     sanitizedData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
 
+    await validateOtherFields(entityName, sanitizedData);
+
     // For KVKs, convert relation IDs to relation connect operations
     if (entityName === 'kvks') {
         const convertedData = convertRelationFieldsForKvk(sanitizedData);
@@ -1422,6 +1471,8 @@ async function update(entityName, id, data) {
 
     // CRITICAL: Double-check ID fields are removed (defense in depth)
     sanitizedData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
+
+    await validateOtherFields(entityName, sanitizedData);
 
     // For KVKs, convert relation IDs to relation connect/disconnect operations
     if (entityName === 'kvks') {

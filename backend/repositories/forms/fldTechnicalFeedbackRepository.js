@@ -14,7 +14,12 @@ const {
     checkRecordOwnership,
     applyFilters,
     validateId,
+    assertOtherFieldsValid,
 } = require('../../utils/formRepositoryHelpers.js');
+
+const FLD_TECH_FEEDBACK_OTHER_RULES = [
+    { idField: 'cropId', otherField: 'cropOther', model: 'fldCrop', idKey: 'cropId', label: 'Crop' },
+];
 
 /**
  * FLD Technical Feedback Repository Configuration
@@ -133,6 +138,7 @@ const fldTechnicalFeedbackRepository = {
                 throw new ValidationError('Crop not found', 'cropId');
             }
         }
+        await assertOtherFieldsValid(FLD_TECH_FEEDBACK_OTHER_RULES, { cropId, cropOther: data.cropOther });
 
         const createData = {
             kvkId,
@@ -246,6 +252,7 @@ const fldTechnicalFeedbackRepository = {
         if (data.cropOther !== undefined) {
             updateData.cropOther = (String(data.cropOther).trim()) || null;
         }
+        await assertOtherFieldsValid(FLD_TECH_FEEDBACK_OTHER_RULES, updateData);
         if (data.reportingYear !== undefined) {
             updateData.reportingYear = parseReportingYearDate(data.reportingYear);
             ensureNotFutureDate(updateData.reportingYear);

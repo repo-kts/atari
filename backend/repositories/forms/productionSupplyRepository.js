@@ -10,6 +10,15 @@ const {
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const PRODUCTION_SUPPLY_OTHER_RULES = [
+    { idField: 'productCategoryId', otherField: 'productCategoryOther', model: 'productCategory', idKey: 'productCategoryId', label: 'Product category' },
+    { idField: 'productTypeId', otherField: 'productTypeOther', model: 'productType', idKey: 'productTypeId', label: 'Product type' },
+    { idField: 'productId', otherField: 'productOther', model: 'product', idKey: 'productId', label: 'Product' },
+];
+const throwRepositoryValidationError = (message) => new RepositoryError(message, 'VALIDATION_ERROR', 400);
+
 /**
  * Production Supply Repository
  * Handles all database operations for Production and Supply of Technological Products
@@ -182,6 +191,15 @@ const productionSupplyRepository = {
             if (productId) {
                 await _validateForeignKey(productId, 'product', 'productId', 'Product', false);
             }
+
+            await assertOtherFieldsValid(PRODUCTION_SUPPLY_OTHER_RULES, {
+                productCategoryId,
+                productCategoryOther: data.productCategoryOther,
+                productTypeId,
+                productTypeOther: data.productTypeOther,
+                productId,
+                productOther: data.productOther,
+            }, { throwError: throwRepositoryValidationError });
 
             // Validate required fields. Unit is no longer stored — it derives from
             // the linked product's master unit at read time.
@@ -417,6 +435,8 @@ const productionSupplyRepository = {
             if (data.productCategoryOther !== undefined) updateData.productCategoryOther = _normalizeString(data.productCategoryOther, 'productCategoryOther', true);
             if (data.productTypeOther !== undefined) updateData.productTypeOther = _normalizeString(data.productTypeOther, 'productTypeOther', true);
             if (data.productOther !== undefined) updateData.productOther = _normalizeString(data.productOther, 'productOther', true);
+
+            await assertOtherFieldsValid(PRODUCTION_SUPPLY_OTHER_RULES, updateData, { throwError: throwRepositoryValidationError });
 
             // Update required fields if provided
             if (data.speciesName !== undefined) {

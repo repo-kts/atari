@@ -9,6 +9,11 @@ const {
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const PUBLICATION_OTHER_RULES = [
+    { idField: 'publicationId', otherField: 'publicationOther', model: 'publication', idKey: 'publicationId', label: 'Publication' },
+];
 /**
  * Publication Details Repository
  * Handles all database operations for KVK Publication Details
@@ -144,6 +149,9 @@ const publicationDetailsRepository = {
             if (publicationId) {
                 await _validateForeignKey(publicationId, 'publication', 'publicationId', 'Publication', false);
             }
+            await assertOtherFieldsValid(PUBLICATION_OTHER_RULES, { publicationId, publicationOther: data.publicationOther }, {
+                throwError: (message) => new RepositoryError(message, 'VALIDATION_ERROR', 400),
+            });
 
             // Validate required fields (always-required core fields)
             const title = _normalizeString(data.title, 'Title', false);
@@ -340,6 +348,9 @@ const publicationDetailsRepository = {
             if (data.publicationOther !== undefined) {
                 updateData.publicationOther = _normalizeString(data.publicationOther, 'Other Publication', true);
             }
+            await assertOtherFieldsValid(PUBLICATION_OTHER_RULES, updateData, {
+                throwError: (message) => new RepositoryError(message, 'VALIDATION_ERROR', 400),
+            });
 
             // Update fields if provided
             if (data.title !== undefined) {

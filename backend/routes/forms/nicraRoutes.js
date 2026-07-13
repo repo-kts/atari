@@ -161,7 +161,7 @@ router.post('/details', requireRole([...kvkRoles, 'super_admin']), async (req, r
         const data = await nicraService.createDetails(req.body, req.user);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 });
 
@@ -170,7 +170,7 @@ const updateDetails = async (req, res) => {
         const data = await nicraService.updateDetails(req.params.id, req.body, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 };
 router.put('/details/:id', requireRole([...kvkRoles, 'super_admin']), updateDetails);
@@ -200,7 +200,7 @@ router.post('/intervention', requireRole([...kvkRoles, 'super_admin']), async (r
         const data = await nicraService.createIntervention(req.body, req.user);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 });
 
@@ -209,7 +209,7 @@ const updateIntervention = async (req, res) => {
         const data = await nicraService.updateIntervention(req.params.id, req.body, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 };
 router.put('/intervention/:id', requireRole([...kvkRoles, 'super_admin']), updateIntervention);
@@ -434,7 +434,7 @@ router.post('/dignitaries', requireRole([...kvkRoles, 'super_admin']), async (re
         const data = await nicraService.createDignitaries(req.body, req.user);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 });
 
@@ -443,7 +443,7 @@ const updateDignitaries = async (req, res) => {
         const data = await nicraService.updateDignitaries(req.params.id, req.body, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 };
 router.put('/dignitaries/:id', requireRole([...kvkRoles, 'super_admin']), updateDignitaries);
@@ -473,7 +473,7 @@ router.post('/pi-copi', requireRole([...kvkRoles, 'super_admin']), async (req, r
         const data = await nicraService.createPiCopi(req.body, req.user);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 });
 
@@ -482,7 +482,7 @@ const updatePiCopi = async (req, res) => {
         const data = await nicraService.updatePiCopi(req.params.id, req.body, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 };
 router.put('/pi-copi/:id', requireRole([...kvkRoles, 'super_admin']), updatePiCopi);

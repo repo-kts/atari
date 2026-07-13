@@ -7,7 +7,7 @@ const seedHubController = {
             res.json({ success: true, data: results });
         } catch (error) {
             console.error('Error in seedHubController.getAll:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -19,7 +19,7 @@ const seedHubController = {
             }
             res.json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -29,7 +29,7 @@ const seedHubController = {
             res.status(201).json({ success: true, data: result });
         } catch (error) {
             console.error('Error in seedHubController.create:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -38,7 +38,7 @@ const seedHubController = {
             const result = await seedHubService.update(req.params.id, req.body, req.user);
             res.json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -47,7 +47,7 @@ const seedHubController = {
             await seedHubService.delete(req.params.id, req.user);
             res.json({ success: true, message: 'Deleted successfully' });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
 };

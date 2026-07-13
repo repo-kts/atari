@@ -3,6 +3,13 @@ const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formList
 const { Prisma } = require('@prisma/client');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { mapCommonRelations } = require('../../utils/responseMapper.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+const { ValidationError } = require('../../utils/errorHandler.js');
+
+const CFLD_BUDGET_OTHER_RULES = [
+    { idField: 'cropId', otherField: 'cropOther', model: 'fldCrop', idKey: 'cropId', label: 'Crop' },
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+];
 
 const CFLD_BUDGET_MODEL = Prisma.dmmf.datamodel.models.find(
     (model) => model.name === 'KvkBudgetUtilization'
@@ -371,6 +378,9 @@ const buildBudgetItemsPayload = (
 };
 
 const throwRepositoryError = (operation, error) => {
+    if (error instanceof ValidationError) {
+        throw error;
+    }
     if (error instanceof Error && (
         error.message === 'Record not found' ||
         error.message === 'Unauthorized' ||
@@ -443,6 +453,12 @@ const cfldBudgetUtilizationRepository = {
             } else if (createPayload.seasonId === undefined) {
                 createPayload.seasonId = 1;
             }
+            await assertOtherFieldsValid(CFLD_BUDGET_OTHER_RULES, {
+                cropId,
+                cropOther: data.cropOther,
+                seasonId: createPayload.seasonId,
+                seasonOther: data.seasonOther,
+            });
 
             const created = await prisma.$transaction(async (tx) => tx.kvkBudgetUtilization.create({
                 data: {
@@ -542,6 +558,7 @@ const cfldBudgetUtilizationRepository = {
             if (data.crop) {
                 updateData.cropId = await resolveOrCreateCfldCropId(data.crop);
             }
+            await assertOtherFieldsValid(CFLD_BUDGET_OTHER_RULES, updateData);
 
             const budgetItemsMaster = await prisma.budgetItem.findMany({
                 select: { budgetItemId: true, itemName: true },

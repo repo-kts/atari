@@ -8,7 +8,7 @@ const soilWaterController = {
             res.status(201).json({ success: true, data: result });
         } catch (error) {
             console.error('Error creating soil equipment:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
     getAllEquipment: async (req, res) => {
@@ -17,7 +17,7 @@ const soilWaterController = {
             res.status(200).json({ success: true, count: result.length, data: result });
         } catch (error) {
             console.error('Error fetching soil equipment:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
     getEquipmentById: async (req, res) => {
@@ -36,7 +36,7 @@ const soilWaterController = {
             res.status(200).json({ success: true, data: result });
         } catch (error) {
             console.error('Error updating soil equipment:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
     deleteEquipment: async (req, res) => {
@@ -45,7 +45,7 @@ const soilWaterController = {
             res.status(200).json({ success: true });
         } catch (error) {
             console.error('Error deleting soil equipment:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -56,7 +56,7 @@ const soilWaterController = {
             res.status(201).json({ success: true, data: result });
         } catch (error) {
             console.error('Error creating soil analysis:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
     getAllAnalysis: async (req, res) => {
@@ -65,7 +65,7 @@ const soilWaterController = {
             res.status(200).json({ success: true, count: result.length, data: result });
         } catch (error) {
             console.error('Error fetching soil analysis:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
     getAnalysisById: async (req, res) => {
@@ -84,7 +84,7 @@ const soilWaterController = {
             res.status(200).json({ success: true, data: result });
         } catch (error) {
             console.error('Error updating soil analysis:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
     deleteAnalysis: async (req, res) => {
@@ -93,7 +93,7 @@ const soilWaterController = {
             res.status(200).json({ success: true });
         } catch (error) {
             console.error('Error deleting soil analysis:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -104,7 +104,7 @@ const soilWaterController = {
             res.status(201).json({ success: true, data: result });
         } catch (error) {
             console.error('Error creating world soil day:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
     getAllWorldSoilDay: async (req, res) => {
@@ -113,7 +113,7 @@ const soilWaterController = {
             res.status(200).json({ success: true, count: result.length, data: result });
         } catch (error) {
             console.error('Error fetching world soil day:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
     getWorldSoilDayById: async (req, res) => {
@@ -132,7 +132,7 @@ const soilWaterController = {
             res.status(200).json({ success: true, data: result });
         } catch (error) {
             console.error('Error updating world soil day:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
     deleteWorldSoilDay: async (req, res) => {
@@ -141,7 +141,7 @@ const soilWaterController = {
             res.status(200).json({ success: true });
         } catch (error) {
             console.error('Error deleting world soil day:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -154,7 +154,7 @@ const soilWaterController = {
             res.status(200).json({ success: true, data: result });
         } catch (error) {
             console.error('Error fetching analysis masters:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
 };

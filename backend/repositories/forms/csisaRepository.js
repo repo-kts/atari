@@ -1,7 +1,11 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const CSISA_OTHER_RULES = [
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+];
 const csisaRepository = {
     create: async (data, user) => {
         const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
@@ -49,6 +53,7 @@ const csisaRepository = {
 
         const reportingYear = parseReportingYearDate(data.reportingYear);
         ensureNotFutureDate(reportingYear);
+        await assertOtherFieldsValid(CSISA_OTHER_RULES, data);
         const seasonId = parseInt(data.seasonId) || 1;
         const seasonOther = (data.seasonOther && String(data.seasonOther).trim()) || null;
         const villagesCovered = parseInt(data.villageCovered || data.villagesCovered) || 0;
@@ -166,6 +171,7 @@ const csisaRepository = {
         // Check existence and ownership
         const existing = await prisma.csisa.findFirst({ where: whereSpec });
         if (!existing) throw new Error("Record not found or unauthorized");
+        await assertOtherFieldsValid(CSISA_OTHER_RULES, data);
 
         const updateData = {};
         if (data.reportingYear !== undefined) {

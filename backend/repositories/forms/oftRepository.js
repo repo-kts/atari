@@ -4,7 +4,16 @@ const { sanitizeString, sanitizeInteger, sanitizeNumber, sanitizeDate, safeGet, 
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { OFT_STATUS, normalizeOftStatus } = require('../../constants/oftStatus.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 const crypto = require('crypto');
+
+const OFT_OTHER_RULES = [
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+    { idField: 'oftSubjectId', otherField: 'oftSubjectOther', model: 'oftSubject', idKey: 'oftSubjectId', label: 'OFT subject' },
+    { idField: 'oftThematicAreaId', otherField: 'oftThematicAreaOther', model: 'oftThematicArea', idKey: 'oftThematicAreaId', label: 'Thematic area' },
+    { idField: 'disciplineId', otherField: 'disciplineOther', model: 'discipline', idKey: 'disciplineId', label: 'Discipline' },
+    { idField: 'sourceOfFundingId', otherField: 'sourceOfFundingOther', model: 'fundingSourceMaster', idKey: 'fundingSourceId', label: 'Source of funding' },
+];
 
 // Result reports rebuild a dynamic table (tables → columns → rows → cells) with
 // many sequential writes. Prisma's default interactive-transaction timeout is
@@ -393,6 +402,7 @@ const oftRepository = {
 };
 
 async function _buildOftCreateData(data, kvkId) {
+    await assertOtherFieldsValid(OFT_OTHER_RULES, data);
     const expectedCompletionDate = sanitizeDate(safeGet(data, 'expectedCompletionDate'));
     const oftStartDate = sanitizeDate(safeGet(data, 'oftStartDate') || safeGet(data, 'duration')) || new Date();
     const reportingYear = _parseReportingYearOrFallback(safeGet(data, 'reportingYear'), oftStartDate);
@@ -451,6 +461,7 @@ async function _buildOftCreateData(data, kvkId) {
 }
 
 async function _buildOftUpdateData(data, existing) {
+    await assertOtherFieldsValid(OFT_OTHER_RULES, data);
     const updateData = {};
     if (data.expectedCompletionDate !== undefined) {
         updateData.expectedCompletionDate = sanitizeDate(data.expectedCompletionDate);

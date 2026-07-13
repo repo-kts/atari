@@ -7,7 +7,7 @@ const cfldBudgetUtilizationController = {
             res.status(201).json({ success: true, data: result });
         } catch (error) {
             console.error('Error creating CFLD Budget Utilization:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 
@@ -17,7 +17,7 @@ const cfldBudgetUtilizationController = {
             res.json({ success: true, data: results });
         } catch (error) {
             console.error('Error fetching CFLD Budget Utilizations:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 
@@ -30,7 +30,7 @@ const cfldBudgetUtilizationController = {
             res.json({ success: true, data: result });
         } catch (error) {
             console.error('Error fetching CFLD Budget Utilization:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 

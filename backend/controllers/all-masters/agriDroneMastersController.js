@@ -23,7 +23,7 @@ const agriDroneMastersController = {
             });
         } catch (error) {
             console.error('Error fetching agri-drone-demonstrations-on:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 
@@ -35,7 +35,7 @@ const agriDroneMastersController = {
             res.json({ success: true, data: item });
         } catch (error) {
             console.error('Error fetching agri-drone-demonstrations-on by id:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 
@@ -46,7 +46,7 @@ const agriDroneMastersController = {
             res.status(201).json({ success: true, data: created, message: 'Created successfully' });
         } catch (error) {
             console.error('Error creating agri-drone-demonstrations-on:', error);
-            res.status(400).json({ success: false, error: error.message });
+            res.status(error.statusCode || 400).json({ success: false, error: error.message });
         }
     },
 
@@ -57,7 +57,7 @@ const agriDroneMastersController = {
             res.json({ success: true, data: updated, message: 'Updated successfully' });
         } catch (error) {
             console.error('Error updating agri-drone-demonstrations-on:', error);
-            res.status(400).json({ success: false, error: error.message });
+            res.status(error.statusCode || 400).json({ success: false, error: error.message });
         }
     },
 
@@ -68,7 +68,7 @@ const agriDroneMastersController = {
             res.json({ success: true, message: 'Deleted successfully' });
         } catch (error) {
             console.error('Error deleting agri-drone-demonstrations-on:', error);
-            res.status(500).json({ success: false, error: error.message });
+            res.status(error.statusCode || 500).json({ success: false, error: error.message });
         }
     },
 };

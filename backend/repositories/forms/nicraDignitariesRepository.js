@@ -1,6 +1,12 @@
 const prisma = require('../../config/prisma.js');
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const NICRA_DIGNITARY_OTHER_RULES = [
+    { idField: 'dignitaryTypeId', otherField: 'dignitaryTypeOther', model: 'nicraDignitaryTypeMaster', idKey: 'nicraDignitaryTypeId', label: 'Dignitary type' },
+];
+
 async function resolveNicraDignitaryTypeId(rawValue) {
     if (rawValue === undefined || rawValue === null || rawValue === '') return null;
     const parsedId = parseInt(rawValue, 10);
@@ -52,6 +58,7 @@ const nicraDignitariesRepository = {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
         const dignitaryTypeId = await resolveNicraDignitaryTypeId(data.dignitaryTypeId ?? data.type);
+        await assertOtherFieldsValid(NICRA_DIGNITARY_OTHER_RULES, { dignitaryTypeId, dignitaryTypeOther: data.dignitaryTypeOther });
 
         const result = await prisma.nicraDignitariesVisited.create({
             data: {
@@ -115,6 +122,8 @@ const nicraDignitariesRepository = {
         const dignitaryTypeId = (data.dignitaryTypeId !== undefined || data.type !== undefined)
             ? await resolveNicraDignitaryTypeId(data.dignitaryTypeId ?? data.type)
             : existing.dignitaryTypeId;
+        const dignitaryTypeOther = data.dignitaryTypeOther !== undefined ? data.dignitaryTypeOther : existing.dignitaryTypeOther;
+        await assertOtherFieldsValid(NICRA_DIGNITARY_OTHER_RULES, { dignitaryTypeId, dignitaryTypeOther });
 
         const updated = await prisma.nicraDignitariesVisited.update({
             where: { nicraDignitariesVisitedId: parseInt(id) },

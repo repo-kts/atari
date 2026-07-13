@@ -1,6 +1,12 @@
 const prisma = require('../../config/prisma.js');
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const NICRA_PI_TYPE_OTHER_RULES = [
+    { idField: 'piTypeId', otherField: 'piTypeOther', model: 'nicraPiTypeMaster', idKey: 'nicraPiTypeId', label: 'PI/CO-PI type' },
+];
+
 async function resolveNicraPiTypeId(rawValue) {
     if (rawValue === undefined || rawValue === null || rawValue === '') return null;
     const parsedId = parseInt(rawValue, 10);
@@ -37,6 +43,7 @@ const nicraPiCopiRepository = {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
         const piTypeId = await resolveNicraPiTypeId(data.piTypeId ?? data.type);
+        await assertOtherFieldsValid(NICRA_PI_TYPE_OTHER_RULES, { piTypeId, piTypeOther: data.piTypeOther });
 
         return await prisma.nicraPiCopi.create({
             data: {
@@ -111,6 +118,8 @@ const nicraPiCopiRepository = {
         const piTypeId = (data.piTypeId !== undefined || data.type !== undefined)
             ? await resolveNicraPiTypeId(data.piTypeId ?? data.type)
             : existing.piTypeId;
+        const piTypeOther = data.piTypeOther !== undefined ? data.piTypeOther : existing.piTypeOther;
+        await assertOtherFieldsValid(NICRA_PI_TYPE_OTHER_RULES, { piTypeId, piTypeOther });
 
         const updated = await prisma.nicraPiCopi.update({
             where: { nicraPiCopiId: parseInt(id) },

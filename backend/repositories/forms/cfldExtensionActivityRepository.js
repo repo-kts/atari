@@ -1,6 +1,11 @@
 const prisma = require('../../config/prisma.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
+const CFLD_EXTENSION_ACTIVITY_OTHER_RULES = [
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+    { idField: 'extensionActivityId', otherField: 'activityOther', model: 'extensionActivity', idKey: 'extensionActivityId', label: 'Extension activity' },
+];
 const cfldExtensionActivityRepository = {
     getActivityTypes: async () => {
         const rows = await prisma.$queryRawUnsafe(
@@ -23,6 +28,7 @@ const cfldExtensionActivityRepository = {
         const seasonOther = (typeof data.seasonOther === 'string' && data.seasonOther.trim()) ? data.seasonOther.trim() : null;
         const extensionActivityId = data.extensionActivityId ? parseInt(data.extensionActivityId) : 1;
         const activityOther = (typeof data.activityOther === 'string' && data.activityOther.trim()) ? data.activityOther.trim() : null;
+        await assertOtherFieldsValid(CFLD_EXTENSION_ACTIVITY_OTHER_RULES, { seasonId, seasonOther, extensionActivityId, activityOther });
         // Frontend sends 'date', fallback to 'activityDate'
         const activityDate = (data.date || data.activityDate) ? new Date(data.date || data.activityDate) : new Date();
         const placeOfActivity = data.placeOfActivity || '';
@@ -104,6 +110,7 @@ const cfldExtensionActivityRepository = {
         if (data.seasonOther !== undefined) updateData.seasonOther = (typeof data.seasonOther === 'string' && data.seasonOther.trim()) ? data.seasonOther.trim() : null;
         if (data.extensionActivityId) updateData.extensionActivityId = parseInt(data.extensionActivityId);
         if (data.activityOther !== undefined) updateData.activityOther = (typeof data.activityOther === 'string' && data.activityOther.trim()) ? data.activityOther.trim() : null;
+        await assertOtherFieldsValid(CFLD_EXTENSION_ACTIVITY_OTHER_RULES, updateData);
         // Accept 'date' from frontend or 'activityDate'
         const dateVal = data.date || data.activityDate;
         if (dateVal) updateData.activityDate = new Date(dateVal);

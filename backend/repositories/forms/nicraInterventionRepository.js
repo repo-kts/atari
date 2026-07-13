@@ -1,6 +1,12 @@
 const prisma = require('../../config/prisma.js');
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const NICRA_SEED_BANK_OTHER_RULES = [
+    { idField: 'seedBankFodderBankId', otherField: 'seedBankFodderBankOther', model: 'nicraSeedBankFodderBankMaster', idKey: 'nicraSeedBankFodderBankId', label: 'Seed/fodder bank' },
+];
+
 async function resolveSeedBankFodderBankId(rawValue) {
     if (rawValue === undefined || rawValue === null || rawValue === '') return null;
 
@@ -36,6 +42,7 @@ const nicraInterventionRepository = {
         const seedBankFodderBankId = await resolveSeedBankFodderBankId(
             data.seedBankFodderBankId ?? data.seedBankFodderBank
         );
+        await assertOtherFieldsValid(NICRA_SEED_BANK_OTHER_RULES, { seedBankFodderBankId, seedBankFodderBankOther: data.seedBankFodderBankOther });
 
         const result = await prisma.nicraIntervention.create({
             data: {
@@ -113,6 +120,8 @@ const nicraInterventionRepository = {
         const seedBankFodderBankId = (data.seedBankFodderBankId !== undefined || data.seedBankFodderBank !== undefined)
             ? await resolveSeedBankFodderBankId(data.seedBankFodderBankId ?? data.seedBankFodderBank)
             : existing.seedBankFodderBankId;
+        const seedBankFodderBankOther = data.seedBankFodderBankOther !== undefined ? data.seedBankFodderBankOther : existing.seedBankFodderBankOther;
+        await assertOtherFieldsValid(NICRA_SEED_BANK_OTHER_RULES, { seedBankFodderBankId, seedBankFodderBankOther });
 
         const updated = await prisma.nicraIntervention.update({
             where: { nicraInterventionId: parseInt(id) },

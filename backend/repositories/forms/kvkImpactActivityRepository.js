@@ -1,11 +1,17 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const KVK_IMPACT_ACTIVITY_OTHER_RULES = [
+    { idField: 'specificArea', otherField: 'specificAreaOther', model: 'impactSpecificAreaMaster', idKey: 'specificAreaName', label: 'Specific area', stringId: true },
+];
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const kvkImpactActivityRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
+        await assertOtherFieldsValid(KVK_IMPACT_ACTIVITY_OTHER_RULES, data);
 
         return await prisma.kvkImpactActivity.create({
             data: {
@@ -68,6 +74,10 @@ const kvkImpactActivityRepository = {
 
         const existing = await prisma.kvkImpactActivity.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(KVK_IMPACT_ACTIVITY_OTHER_RULES, {
+            specificArea: data.specificArea !== undefined ? data.specificArea : existing.specificArea,
+            specificAreaOther: data.specificAreaOther !== undefined ? data.specificAreaOther : existing.specificAreaOther,
+        });
 
         return await prisma.kvkImpactActivity.update({
             where: { impactActivityId: id },

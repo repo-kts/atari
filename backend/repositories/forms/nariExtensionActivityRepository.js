@@ -1,13 +1,18 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const NARI_OTHER_RULES = [
+    { idField: 'activityId', otherField: 'activityOther', model: 'nariActivity', idKey: 'nariActivityId', label: 'Activity' },
+];
 const nariExtensionActivityRepository = {
     create: async (data, user) => {
         const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
         const kvkId = isKvkScoped ? parseInt(user.kvkId) : parseInt(data.kvkId);
 
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
+        await assertOtherFieldsValid(NARI_OTHER_RULES, data);
 
         const result = await prisma.nariExtensionActivity.create({
             data: {
@@ -91,6 +96,7 @@ const nariExtensionActivityRepository = {
     },
 
     update: async (id, data) => {
+        await assertOtherFieldsValid(NARI_OTHER_RULES, data);
         const result = await prisma.nariExtensionActivity.update({
             where: { nariExtensionActivityId: parseInt(id) },
             data: {

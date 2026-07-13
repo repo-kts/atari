@@ -1,6 +1,12 @@
 const prisma = require('../../config/prisma.js');
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const NARI_GARDEN_OTHER_RULES = [
+    { idField: 'activityId', otherField: 'activityOther', model: 'nariActivity', idKey: 'nariActivityId', label: 'Activity' },
+    { idField: 'typeOfNutritionalGardenId', otherField: 'typeOfNutritionalGardenOther', model: 'nutritionGardenType', idKey: 'nutritionGardenTypeId', label: 'Type of nutritional garden' },
+];
 
 const nariNutritionalGardenRepository = {
     create: async (data, user) => {
@@ -17,6 +23,7 @@ const nariNutritionalGardenRepository = {
         if (isNaN(activityId)) throw new Error('Activity is required');
         if (!villageName) throw new Error('Name of Nutri-Smart Village is required');
         if (isNaN(typeOfNutritionalGardenId)) throw new Error('Type of Nutritional Garden is required');
+        await assertOtherFieldsValid(NARI_GARDEN_OTHER_RULES, data);
 
         const result = await prisma.nariNutritionalGarden.create({
             data: {
@@ -107,6 +114,7 @@ const nariNutritionalGardenRepository = {
     },
 
     update: async (id, data) => {
+        await assertOtherFieldsValid(NARI_GARDEN_OTHER_RULES, data);
         const result = await prisma.nariNutritionalGarden.update({
             where: { nariNutritionalGardenId: parseInt(id) },
             data: {

@@ -1,7 +1,11 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const TSP_SCSP_OTHER_RULES = [
+    { idField: 'activityId', otherField: 'activityOther', model: 'tspScspActivities', idKey: 'tspScspActivityId', label: 'Activity' },
+];
 function normalizeTspScspType(value) {
     const normalized = String(value || '').trim().toUpperCase();
     if (normalized === 'TSP' || normalized === 'SCSP') return normalized;
@@ -80,6 +84,7 @@ const tspScspRepository = {
         const isScsp = type === 'SCSP';
         const tspScspTypeId = await resolveTypeId(type);
         const activityId = await resolveActivityId(data.activityId, data.activityName);
+        await assertOtherFieldsValid(TSP_SCSP_OTHER_RULES, { activityId, activityOther: data.activityOther });
 
         const tspDistrictId = !isScsp ? safeParseInt(data.districtId) : null;
         if (!isScsp && tspDistrictId === null) {
@@ -190,6 +195,7 @@ const tspScspRepository = {
             (data.activityId !== undefined || data.activityName !== undefined)
                 ? await resolveActivityId(data.activityId, data.activityName)
                 : undefined;
+        await assertOtherFieldsValid(TSP_SCSP_OTHER_RULES, { activityId: resolvedActivityId, activityOther: data.activityOther });
 
         const result = await prisma.tspScsp.update({
             where: { tspScspId: parseInt(id) },

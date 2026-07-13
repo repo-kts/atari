@@ -15,7 +15,7 @@ const craExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in craExtensionActivityController.createDetails:', error);
-            res.status(500).json({ success: false, message: error.message || 'Failed to create CRA details' });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Failed to create CRA details' });
         }
     },
 
@@ -25,7 +25,7 @@ const craExtensionActivityController = {
             res.status(200).json({ success: true, count: result.length, data: result });
         } catch (error) {
             console.error('Error in craExtensionActivityController.getAllDetails:', error);
-            res.status(500).json({ success: false, message: error.message || 'Failed to fetch CRA details' });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Failed to fetch CRA details' });
         }
     },
 
@@ -36,7 +36,7 @@ const craExtensionActivityController = {
             res.status(200).json({ success: true, data: result });
         } catch (error) {
             console.error('Error in craExtensionActivityController.getDetailsById:', error);
-            res.status(500).json({ success: false, message: error.message || 'Failed to fetch CRA details' });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Failed to fetch CRA details' });
         }
     },
 
@@ -47,7 +47,7 @@ const craExtensionActivityController = {
             res.status(200).json({ success: true, message: 'CRA details updated successfully', data: result });
         } catch (error) {
             console.error('Error in craExtensionActivityController.updateDetails:', error);
-            res.status(500).json({ success: false, message: error.message || 'Failed to update CRA details' });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Failed to update CRA details' });
         }
     },
 
@@ -59,7 +59,7 @@ const craExtensionActivityController = {
             res.status(200).json({ success: true, message: 'CRA details deleted successfully' });
         } catch (error) {
             console.error('Error in craExtensionActivityController.deleteDetails:', error);
-            res.status(500).json({ success: false, message: error.message || 'Failed to delete CRA details' });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Failed to delete CRA details' });
         }
     },
 
@@ -75,7 +75,7 @@ const craExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in craExtensionActivityController.create:', error);
-            res.status(500).json({
+            res.status(error.statusCode || 500).json({
                 success: false,
                 message: error.message || 'Failed to create extension activity',
                 error: error.message
@@ -94,7 +94,7 @@ const craExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in craExtensionActivityController.getAll:', error);
-            res.status(500).json({
+            res.status(error.statusCode || 500).json({
                 success: false,
                 message: error.message || 'Failed to fetch extension activities',
                 error: error.message
@@ -117,7 +117,7 @@ const craExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in craExtensionActivityController.getById:', error);
-            res.status(500).json({
+            res.status(error.statusCode || 500).json({
                 success: false,
                 message: error.message || 'Failed to fetch extension activity',
                 error: error.message
@@ -136,7 +136,7 @@ const craExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in craExtensionActivityController.update:', error);
-            res.status(500).json({
+            res.status(error.statusCode || 500).json({
                 success: false,
                 message: error.message || 'Failed to update extension activity',
                 error: error.message
@@ -155,7 +155,7 @@ const craExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in craExtensionActivityController.delete:', error);
-            res.status(500).json({
+            res.status(error.statusCode || 500).json({
                 success: false,
                 message: error.message || 'Failed to delete extension activity',
                 error: error.message

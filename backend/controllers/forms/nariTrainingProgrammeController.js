@@ -6,7 +6,7 @@ const nariTrainingProgrammeController = {
             const result = await nariTrainingProgrammeService.create(req.body, req.user);
             res.status(201).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -15,7 +15,7 @@ const nariTrainingProgrammeController = {
             const result = await nariTrainingProgrammeService.findAll(req.query, req.user);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -25,7 +25,7 @@ const nariTrainingProgrammeController = {
             if (!result) return res.status(404).json({ success: false, message: 'Record not found' });
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -34,7 +34,7 @@ const nariTrainingProgrammeController = {
             const result = await nariTrainingProgrammeService.update(req.params.id, req.body, req.user);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -43,7 +43,7 @@ const nariTrainingProgrammeController = {
             await nariTrainingProgrammeService.delete(req.params.id, req.user);
             res.status(200).json({ success: true, message: 'Deleted successfully' });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
 };

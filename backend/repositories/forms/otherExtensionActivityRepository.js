@@ -11,6 +11,12 @@ const {
     resolveStaffId,
     resolveOtherExtensionActivityTypeId,
 } = require('../../utils/repositoryHelpers.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const OTHER_EXTENSION_ACTIVITY_OTHER_RULES = [
+    { idField: 'activityTypeId', otherField: 'activityTypeOther', model: 'otherExtensionActivity', idKey: 'otherExtensionActivityId', label: 'Extension activity type' },
+];
+const throwOtherExtensionActivityValidationError = (message) => new RepositoryError(message, 'VALIDATION_ERROR', 400);
 
 const getStaffNameSnapshot = async (staffId) => {
     if (!staffId) return null;
@@ -73,6 +79,10 @@ const otherExtensionActivityRepository = {
                 'numberOfActivities',
                 false
             );
+
+            await assertOtherFieldsValid(OTHER_EXTENSION_ACTIVITY_OTHER_RULES, { activityTypeId, activityTypeOther: data.activityTypeOther }, {
+                throwError: throwOtherExtensionActivityValidationError,
+            });
 
             // Prepare create data (no participant fields)
             const createData = {
@@ -237,6 +247,10 @@ const otherExtensionActivityRepository = {
             if (data.activityTypeOther !== undefined) {
                 updateData.activityTypeOther = (String(data.activityTypeOther).trim()) || null;
             }
+            await assertOtherFieldsValid(OTHER_EXTENSION_ACTIVITY_OTHER_RULES, {
+                activityTypeId: updateData.activityTypeId !== undefined ? updateData.activityTypeId : existing.activityTypeId,
+                activityTypeOther: updateData.activityTypeOther !== undefined ? updateData.activityTypeOther : existing.activityTypeOther,
+            }, { throwError: throwOtherExtensionActivityValidationError });
 
             // Update numberOfActivities
             const numberOfActivities = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;

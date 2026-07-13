@@ -1,11 +1,18 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const CRA_DETAILS_OTHER_RULES = [
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+    { idField: 'croppingSystemId', otherField: 'croppingSystemOther', model: 'craCropingSystem', idKey: 'craCropingSystemId', label: 'Cropping system' },
+    { idField: 'farmingSystemId', otherField: 'farmingSystemOther', model: 'craFarmingSystem', idKey: 'craFarmingSystemId', label: 'Farming system' },
+];
 const craDetailsRepository = {
     create: async (data, opts, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
+        await assertOtherFieldsValid(CRA_DETAILS_OTHER_RULES, data);
 
         // Resolve cropping system text from selected master ID when provided.
         let croppingSystem = data.croppingSystem || data.cropingSystem || '';
@@ -105,6 +112,7 @@ const craDetailsRepository = {
 
         const existing = await prisma.craDetails.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(CRA_DETAILS_OTHER_RULES, data);
 
         let nextCroppingSystemText;
         if (data.croppingSystem !== undefined || data.cropingSystem !== undefined) {

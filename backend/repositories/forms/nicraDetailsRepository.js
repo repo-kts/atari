@@ -1,7 +1,13 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, parsePositiveInteger } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const NICRA_DETAILS_OTHER_RULES = [
+    { idField: 'nicraCategoryId', otherField: 'categoryOther', model: 'nicraCategory', idKey: 'nicraCategoryId', label: 'Category' },
+    { idField: 'nicraSubCategoryId', otherField: 'subCategoryOther', model: 'nicraSubCategory', idKey: 'nicraSubCategoryId', label: 'Sub-category' },
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+];
 const safeParseFloat = (val) => {
     const parsed = parseFloat(val);
     return isNaN(parsed) ? 0 : parsed;
@@ -58,6 +64,14 @@ const nicraDetailsRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
+        await assertOtherFieldsValid(NICRA_DETAILS_OTHER_RULES, {
+            nicraCategoryId: data.categoryId || data.nicraCategoryId,
+            categoryOther: data.categoryOther,
+            nicraSubCategoryId: data.subCategoryId || data.nicraSubCategoryId,
+            subCategoryOther: data.subCategoryOther,
+            seasonId: data.seasonId,
+            seasonOther: data.seasonOther,
+        });
 
         return await prisma.nicraDetails.create({
             data: {
@@ -166,6 +180,14 @@ const nicraDetailsRepository = {
 
         const existing = await prisma.nicraDetails.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(NICRA_DETAILS_OTHER_RULES, {
+            nicraCategoryId: data.categoryId !== undefined ? data.categoryId : existing.nicraCategoryId,
+            categoryOther: data.categoryOther !== undefined ? data.categoryOther : existing.categoryOther,
+            nicraSubCategoryId: data.subCategoryId !== undefined ? data.subCategoryId : existing.nicraSubCategoryId,
+            subCategoryOther: data.subCategoryOther !== undefined ? data.subCategoryOther : existing.subCategoryOther,
+            seasonId: data.seasonId !== undefined ? data.seasonId : existing.seasonId,
+            seasonOther: data.seasonOther !== undefined ? data.seasonOther : existing.seasonOther,
+        });
 
         return await prisma.nicraDetails.update({
             where: { nicraDetailsId: parseInt(id) },

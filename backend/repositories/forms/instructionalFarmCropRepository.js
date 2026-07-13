@@ -1,11 +1,16 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const INSTRUCTIONAL_FARM_CROP_OTHER_RULES = [
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+];
 const instructionalFarmCropRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
+        await assertOtherFieldsValid(INSTRUCTIONAL_FARM_CROP_OTHER_RULES, data);
 
         return await prisma.instructionalFarmCrop.create({
             data: {
@@ -70,6 +75,10 @@ const instructionalFarmCropRepository = {
 
         const existing = await prisma.instructionalFarmCrop.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(INSTRUCTIONAL_FARM_CROP_OTHER_RULES, {
+            seasonId: data.seasonId !== undefined ? data.seasonId : existing.seasonId,
+            seasonOther: data.seasonOther !== undefined ? data.seasonOther : existing.seasonOther,
+        });
 
         return await prisma.instructionalFarmCrop.update({
             where: { instructionalFarmCropId: id },

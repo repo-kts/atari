@@ -1,7 +1,11 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const NARI_OTHER_RULES = [
+    { idField: 'activityId', otherField: 'activityOther', model: 'nariActivity', idKey: 'nariActivityId', label: 'Activity' },
+];
 function normalizeCampusType(value) {
     const normalized = String(value || 'ON_CAMPUS').trim().toUpperCase().replace(/\s+/g, '_');
     if (normalized === 'ON_CAMPUS' || normalized === 'OFF_CAMPUS') return normalized;
@@ -13,6 +17,7 @@ const nariTrainingProgrammeRepository = {
     create: async (data, user) => {
         const kvkId = parseInt(data.kvkId ?? user?.kvkId);
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required. Please select KVK or link user to a KVK.');
+        await assertOtherFieldsValid(NARI_OTHER_RULES, data);
 
         const result = await prisma.nariTrainingProgramme.create({
             data: {
@@ -100,6 +105,7 @@ const nariTrainingProgrammeRepository = {
     },
 
     update: async (id, data) => {
+        await assertOtherFieldsValid(NARI_OTHER_RULES, data);
         const result = await prisma.nariTrainingProgramme.update({
             where: { nariTrainingProgrammeId: parseInt(id) },
             data: {

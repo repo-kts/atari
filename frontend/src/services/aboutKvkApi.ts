@@ -35,14 +35,15 @@ const BANK_ACCOUNT_ALLOWED_KEYS = [
 
 const STAFF_ALLOWED_KEYS = [
     'kvkId', 'staffName', 'email', 'mobile', 'dateOfBirth', 'photoPath', 'resumePath',
-    'sanctionedPostId', 'positionOrder', 'disciplineId', 'disciplineOther', 'payScaleId', 'dateOfJoining',
+    'sanctionedPostId', 'sanctionedPostOther', 'positionOrder', 'disciplineId', 'disciplineOther',
+    'payScaleId', 'payScaleOther', 'dateOfJoining',
     'jobTypeMasterId', 'jobTypeOther', 'allowances', 'transferStatus', 'sourceKvkIds', 'originalKvkId',
-    'staffCategoryId', 'payLevelId', 'attachmentIds',
+    'staffCategoryId', 'staffCategoryOther', 'payLevelId', 'payLevelOther', 'attachmentIds',
 ] as const;
 
 const INFRASTRUCTURE_ALLOWED_KEYS = [
     'kvkId', 'infraMasterId', 'specifyName', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel',
-    'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding', 'fundingAgencyName',
+    'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding', 'sourceOfFundingOther', 'fundingAgencyName',
 ] as const;
 
 const VEHICLE_ALLOWED_KEYS = [
@@ -50,7 +51,7 @@ const VEHICLE_ALLOWED_KEYS = [
 ] as const;
 
 const VEHICLE_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'assetFundingSourceId', 'assetFundingSourceOther', 'fundingAgencyName', 'vehicleStatusId',
+    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'assetFundingSourceId', 'assetFundingSourceOther', 'fundingAgencyName', 'vehicleStatusId', 'vehicleStatusOther',
 ] as const;
 
 const EQUIPMENT_ALLOWED_KEYS = [
@@ -58,7 +59,7 @@ const EQUIPMENT_ALLOWED_KEYS = [
 ] as const;
 
 const EQUIPMENT_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'equipmentId', 'reportingYear', 'assetFundingSourceId', 'assetFundingSourceOther', 'fundingAgencyName', 'equipmentStatusId',
+    'kvkId', 'equipmentId', 'reportingYear', 'assetFundingSourceId', 'assetFundingSourceOther', 'fundingAgencyName', 'equipmentStatusId', 'equipmentStatusOther',
 ] as const;
 
 const LAND_DETAIL_ALLOWED_KEYS = [

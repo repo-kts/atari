@@ -1,7 +1,13 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+const NARI_BIO_FORTIFIED_OTHER_RULES = [
+    { idField: 'seasonId', otherField: 'seasonOther', model: 'season', idKey: 'seasonId', label: 'Season' },
+    { idField: 'activityId', otherField: 'activityOther', model: 'nariActivity', idKey: 'nariActivityId', label: 'Activity' },
+    { idField: 'cropCategoryId', otherField: 'cropCategoryOther', model: 'cropCategory', idKey: 'cropCategoryId', label: 'Category of crop' },
+];
 const nariBioFortifiedCropRepository = {
     create: async (data, user) => {
         const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
@@ -22,6 +28,7 @@ const nariBioFortifiedCropRepository = {
         if (!villageName) throw new Error('Name of Nutri-Smart Village is required');
         if (!cropName) throw new Error('Name of Crop is required');
         if (!data.variety) throw new Error('Variety is required');
+        await assertOtherFieldsValid(NARI_BIO_FORTIFIED_OTHER_RULES, data);
 
         const result = await prisma.nariBioFortifiedCrop.create({
             data: {
@@ -116,6 +123,7 @@ const nariBioFortifiedCropRepository = {
     },
 
     update: async (id, data) => {
+        await assertOtherFieldsValid(NARI_BIO_FORTIFIED_OTHER_RULES, data);
         const result = await prisma.nariBioFortifiedCrop.update({
             where: { nariBioFortifiedCropId: parseInt(id) },
             data: {

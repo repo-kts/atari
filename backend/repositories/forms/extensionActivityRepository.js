@@ -1,18 +1,16 @@
 const prisma = require('../../config/prisma.js');
 const { Prisma } = require('@prisma/client');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+// Shared class (not a local duplicate) so controllers' `instanceof RepositoryError`
+// checks — which import from this same module — correctly recognize these errors.
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
-/**
- * Custom error class for repository errors
- */
-class RepositoryError extends Error {
-    constructor(message, code = 'REPOSITORY_ERROR', statusCode = 400) {
-        super(message);
-        this.name = 'RepositoryError';
-        this.code = code;
-        this.statusCode = statusCode;
-    }
-}
+
+const EXTENSION_ACTIVITY_OTHER_RULES = [
+    { idField: 'activityId', otherField: 'activityOther', model: 'fldActivity', idKey: 'activityId', label: 'Extension activity' },
+];
+const throwExtensionActivityValidationError = (message) => new RepositoryError(message, 'VALIDATION_ERROR', 400);
 
 /**
  * Normalize activity name
@@ -333,6 +331,10 @@ const extensionActivityRepository = {
                 false
             );
 
+            await assertOtherFieldsValid(EXTENSION_ACTIVITY_OTHER_RULES, { activityId, activityOther: data.activityOther }, {
+                throwError: throwExtensionActivityValidationError,
+            });
+
             // Prepare create data (include all participant fields with defaults)
             const createData = {
                 kvkId,
@@ -497,6 +499,10 @@ const extensionActivityRepository = {
             if (data.activityOther !== undefined) {
                 updateData.activityOther = (String(data.activityOther).trim()) || null;
             }
+            await assertOtherFieldsValid(EXTENSION_ACTIVITY_OTHER_RULES, {
+                activityId: updateData.activityId !== undefined ? updateData.activityId : existing.activityId,
+                activityOther: updateData.activityOther !== undefined ? updateData.activityOther : existing.activityOther,
+            }, { throwError: throwExtensionActivityValidationError });
 
             // Update numberOfActivities
             const numberOfActivities = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;

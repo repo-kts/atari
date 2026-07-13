@@ -1,6 +1,10 @@
 const prisma = require('../../config/prisma.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
+const CRA_EXTENSION_ACTIVITY_OTHER_RULES = [
+    { idField: 'activityId', otherField: 'activityOther', model: 'fldActivity', idKey: 'activityId', label: 'Activity' },
+];
 const craExtensionActivityRepository = {
     create: async (data, opts, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -13,6 +17,7 @@ const craExtensionActivityRepository = {
             ? parseInt(activityIdRaw)
             : null
         if (!activityId) throw new Error('Valid extensionActivityId is required')
+        await assertOtherFieldsValid(CRA_EXTENSION_ACTIVITY_OTHER_RULES, { activityId, activityOther: data.activityOther });
 
         return await prisma.craExtensionActivity.create({
             data: {
@@ -83,6 +88,10 @@ const craExtensionActivityRepository = {
 
         const existing = await prisma.craExtensionActivity.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(CRA_EXTENSION_ACTIVITY_OTHER_RULES, {
+            activityId: data.extensionActivityId ?? data.activityId,
+            activityOther: data.activityOther,
+        });
 
         const result = await prisma.craExtensionActivity.update({
             where: { craExtensionActivityId: parseInt(id) },

@@ -1,10 +1,15 @@
 const aryaCurrentYearService = require('../../services/forms/aryaCurrentYearService.js');
 
 const mapError = (error) => {
+    // Errors with their own statusCode (e.g. ValidationError from assertOtherFieldsValid)
+    // carry a specific, user-facing message — surface it as-is instead of genericizing it.
+    if (error?.statusCode) {
+        return { status: error.statusCode, message: error.message };
+    }
     const msg = String(error?.message || '');
     if (/unauthorized/i.test(msg)) return { status: 401, message: 'Unauthorized' };
     if (/not found/i.test(msg)) return { status: 404, message: 'Record not found' };
-    if (/valid.*required|invalid/i.test(msg)) return { status: 400, message: 'Invalid request data' };
+    if (/valid.*required|invalid/i.test(msg)) return { status: 400, message: msg };
     return { status: 500, message: 'Internal server error' };
 };
 

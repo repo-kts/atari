@@ -1,11 +1,18 @@
 const prisma = require('../../config/prisma.js');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
+const { assertOtherFieldsValid } = require('../../utils/formRepositoryHelpers.js');
+
+const PROJECT_BUDGET_OTHER_RULES = [
+    { idField: 'financialProjectId', otherField: 'specifyProjectName', model: 'financialProject', idKey: 'financialProjectId', label: 'Project name' },
+    { idField: 'sourceOfFundingId', otherField: 'specifyAgencyName', model: 'fundingSourceMaster', idKey: 'fundingSourceId', label: 'Source of funding' },
+];
 
 const { buildFormListOrderBy } = require('../../utils/formListOrderBy.js');
 const projectBudgetRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
+        await assertOtherFieldsValid(PROJECT_BUDGET_OTHER_RULES, data);
 
         const record = await prisma.projectBudget.create({
             data: {
@@ -86,6 +93,12 @@ const projectBudgetRepository = {
 
         const existing = await prisma.projectBudget.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        await assertOtherFieldsValid(PROJECT_BUDGET_OTHER_RULES, {
+            financialProjectId: data.financialProjectId !== undefined ? data.financialProjectId : existing.financialProjectId,
+            specifyProjectName: data.specifyProjectName !== undefined ? data.specifyProjectName : existing.specifyProjectName,
+            sourceOfFundingId: data.sourceOfFundingId !== undefined ? data.sourceOfFundingId : existing.sourceOfFundingId,
+            specifyAgencyName: data.specifyAgencyName !== undefined ? data.specifyAgencyName : existing.specifyAgencyName,
+        });
 
         const updated = await prisma.projectBudget.update({
             where: { projectBudgetId: id },

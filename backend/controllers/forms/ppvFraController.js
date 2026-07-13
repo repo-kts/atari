@@ -3,7 +3,7 @@ const ppvFraService = require('../../services/forms/ppvFraService.js');
 const makeResponder = (res) => ({
     ok: (data) => res.json({ success: true, data }),
     created: (data) => res.status(201).json({ success: true, data }),
-    err: (e, code = 400) => res.status(code).json({ success: false, message: e.message }),
+    err: (e, code = 400) => res.status(e.statusCode || code).json({ success: false, message: e.message }),
 });
 
 const ppvFraController = {

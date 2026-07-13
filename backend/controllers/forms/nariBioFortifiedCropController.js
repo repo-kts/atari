@@ -7,7 +7,7 @@ const nariBioFortifiedCropController = {
             res.status(201).json({ success: true, data: result });
         } catch (error) {
             console.error('[NariBioFortifiedCropController] Create failed:', error);
-            res.status(500).json({ success: false, message: error.message, stack: process.env.NODE_ENV === 'development' ? error.stack : undefined });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message, stack: process.env.NODE_ENV === 'development' ? error.stack : undefined });
         }
     },
 
@@ -16,7 +16,7 @@ const nariBioFortifiedCropController = {
             const result = await nariBioFortifiedCropService.findAll(req.query, req.user);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -26,7 +26,7 @@ const nariBioFortifiedCropController = {
             if (!result) return res.status(404).json({ success: false, message: 'Record not found' });
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -35,7 +35,7 @@ const nariBioFortifiedCropController = {
             const result = await nariBioFortifiedCropService.update(req.params.id, req.body, req.user);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -44,7 +44,7 @@ const nariBioFortifiedCropController = {
             await nariBioFortifiedCropService.delete(req.params.id, req.user);
             res.status(200).json({ success: true, message: 'Deleted successfully' });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -53,7 +53,7 @@ const nariBioFortifiedCropController = {
             const result = await nariBioFortifiedCropService.getResultById(req.params.id);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -62,7 +62,7 @@ const nariBioFortifiedCropController = {
             const result = await nariBioFortifiedCropService.createResult(req.params.id, req.body);
             res.status(201).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     },
 
@@ -71,7 +71,7 @@ const nariBioFortifiedCropController = {
             const result = await nariBioFortifiedCropService.updateResult(req.params.id, req.body);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
 };
