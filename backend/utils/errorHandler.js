@@ -55,11 +55,25 @@ class ConflictError extends Error {
  * @param {string} operation - Operation name (e.g., 'create', 'update')
  * @returns {Error} User-friendly error
  */
+// Friendly message for problems the end user cannot fix themselves (missing
+// table/column, DB down, timeouts, deadlocks). The real technical detail is
+// logged server-side so developers can still diagnose it.
+function serverSideError(error, resource, operation, technicalDetail) {
+    console.error(
+        `[${operation}] ${resource} server-side error:`,
+        technicalDetail || error?.message,
+        error
+    );
+    return new Error(
+        `Sorry, we couldn't ${operation} ${resource} right now due to a system problem on our end. Please try again in a moment, and contact support if it keeps happening.`
+    );
+}
+
 function translatePrismaError(error, resource = 'Resource', operation = 'operation') {
     // If already a custom error, return as is
-    if (error instanceof ValidationError || 
-        error instanceof NotFoundError || 
-        error instanceof UnauthorizedError || 
+    if (error instanceof ValidationError ||
+        error instanceof NotFoundError ||
+        error instanceof UnauthorizedError ||
         error instanceof ConflictError) {
         return error;
     }
@@ -120,11 +134,11 @@ function translatePrismaError(error, resource = 'Resource', operation = 'operati
             
             case 'P2021':
                 // Table does not exist
-                return new Error(`Database table not found: ${error.meta?.table || 'unknown'}`);
-            
+                return serverSideError(error, resource, operation, `Missing table: ${error.meta?.table || 'unknown'}`);
+
             case 'P2022':
                 // Column does not exist
-                return new Error(`Database column not found: ${error.meta?.column || 'unknown'}`);
+                return serverSideError(error, resource, operation, `Missing column: ${error.meta?.column || 'unknown'}`);
             
             case 'P2023':
                 // Inconsistent column data
@@ -132,7 +146,7 @@ function translatePrismaError(error, resource = 'Resource', operation = 'operati
             
             case 'P2024':
                 // Timed out fetching a new connection from the connection pool
-                return new Error('Database connection timeout. Please try again.');
+                return serverSideError(error, resource, operation, 'Connection pool timeout');
             
             case 'P2025':
                 // Record not found
@@ -140,7 +154,7 @@ function translatePrismaError(error, resource = 'Resource', operation = 'operati
             
             case 'P2026':
                 // Unsupported feature
-                return new Error(`Unsupported database feature: ${error.message}`);
+                return serverSideError(error, resource, operation, `Unsupported DB feature: ${error.message}`);
             
             case 'P2027':
                 // Multiple errors occurred
@@ -148,11 +162,11 @@ function translatePrismaError(error, resource = 'Resource', operation = 'operati
             
             case 'P2030':
                 // Fulltext index not found
-                return new Error(`Search index not available: ${error.message}`);
-            
+                return serverSideError(error, resource, operation, `Fulltext index missing: ${error.message}`);
+
             case 'P2031':
                 // MongoReplicaSetNotFound
-                return new Error('Database replica set not found');
+                return serverSideError(error, resource, operation, 'Replica set not found');
             
             case 'P2033':
                 // Number exceeds 64-bit integer
@@ -160,12 +174,11 @@ function translatePrismaError(error, resource = 'Resource', operation = 'operati
             
             case 'P2034':
                 // Transaction failed due to a write conflict or a deadlock
-                return new Error('Transaction conflict. Please try again.');
-            
+                return serverSideError(error, resource, operation, 'Transaction write conflict/deadlock');
+
             default:
                 // Unknown Prisma error
-                console.error('Unhandled Prisma error:', error);
-                return new Error(`Database error: ${error.message || 'Unknown error'}`);
+                return serverSideError(error, resource, operation, `Unhandled Prisma code ${error.code}`);
         }
     }
     
@@ -210,8 +223,8 @@ function translatePrismaError(error, resource = 'Resource', operation = 'operati
         }
     }
     
-    // Return generic error
-    return new Error(`Failed to ${operation} ${resource}: ${error.message || 'Unknown error'}`);
+    // Return generic error (technical detail logged, friendly message shown)
+    return serverSideError(error, resource, operation, error.message || 'Unknown error');
 }
 
 /**
