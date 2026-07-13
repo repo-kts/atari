@@ -4,6 +4,7 @@ model FinancialInformation {
   year                   Int
   reportingYearDate      DateTime?              @map("reporting_year_date")
   activityId             Int?                   @map("activity_id")
+  activityOther          String?                @map("activity_other")
   numberOfActivities     Int                    @map("number_of_activities")
   budgetSanction         Float                  @map("budget_sanction")
   budgetExpenditure      Float                  @map("budget_expenditure")

@@ -95,7 +95,8 @@ const _mapResponse = (r) => {
         journalName: r.journalName,
         kvkName: r.kvk?.kvkName,
         reportingYear: reportingYear,
-        publicationItem: r.publication?.publicationName,
+        publicationItem: r.publicationOther || r.publication?.publicationName,
+        publicationOther: r.publicationOther ?? '',
         title: r.title,
         authorName: r.authorName,
         journalName: r.journalName,
@@ -104,9 +105,9 @@ const _mapResponse = (r) => {
         venue: r.venue,
         isbnNumber: r.isbnNumber,
         publicationId: r.publicationId,
-        publicationName: r.publication?.publicationName,
+        publicationName: r.publicationOther || r.publication?.publicationName,
         year: reportingYear,
-        publication: r.publication?.publicationName || r.publicationId,
+        publication: r.publicationOther || r.publication?.publicationName || r.publicationId,
     };
 };
 
@@ -160,6 +161,7 @@ const publicationDetailsRepository = {
                 kvkId,
                 reportingYear,
                 publicationId: publicationId ? parseInteger(publicationId, 'publicationId', false) : null,
+                publicationOther: _normalizeString(data.publicationOther, 'Other Publication', true),
                 title,
                 authorName,
                 journalName,
@@ -334,6 +336,9 @@ const publicationDetailsRepository = {
                 } else {
                     updateData.publicationId = null;
                 }
+            }
+            if (data.publicationOther !== undefined) {
+                updateData.publicationOther = _normalizeString(data.publicationOther, 'Other Publication', true);
             }
 
             // Update fields if provided

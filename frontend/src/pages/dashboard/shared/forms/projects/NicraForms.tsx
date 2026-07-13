@@ -57,6 +57,18 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         nicraCategoryOptions,
         formData.categoryId || formData.nicraCategoryId
     )
+    const isOtherNicraSubCategory = React.useMemo(() => Boolean((subCategories as any[]).find(
+        (sc: any) => String(sc.nicraSubCategoryId || sc.id || sc.subCategoryId) === String(formData.subCategoryId || formData.nicraSubCategoryId)
+    )?.isOther), [subCategories, formData.subCategoryId, formData.nicraSubCategoryId])
+    const isOtherSeedBank = React.useMemo(() => Boolean((seedBankFodderBanks as any[]).find(
+        (item: any) => String(item.name) === String(formData.seedBankFodderBank)
+    )?.isOther), [seedBankFodderBanks, formData.seedBankFodderBank])
+    const isOtherDignitaryType = React.useMemo(() => Boolean((dignitaryTypes as any[]).find(
+        (item: any) => String(item.nicraDignitaryTypeId) === String(formData.dignitaryTypeId)
+    )?.isOther), [dignitaryTypes, formData.dignitaryTypeId])
+    const isOtherPiType = React.useMemo(() => Boolean((piTypes as any[]).find(
+        (item: any) => String(item.nicraPiTypeId) === String(formData.piTypeId)
+    )?.isOther), [piTypes, formData.piTypeId])
     const photoIdsRef = React.useRef<number[]>([])
     const docIdsRef = React.useRef<number[]>([])
     const syncIds = useCallback(
@@ -678,13 +690,18 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                     .map((sc: any) => ({
                                         value: sc.nicraSubCategoryId || sc.id || sc.subCategoryId,
                                         label: sc.subCategoryName,
+                                        isOther: Boolean(sc.isOther),
                                     }))
                             }}
                             onChange={(value) => {
                                 const id = typeof value === 'number' ? value : parseInt(String(value), 10)
-                                setFormData({ ...formData, subCategoryId: id })
+                                const selected = (subCategories as any[]).find((sc: any) => String(sc.nicraSubCategoryId || sc.id || sc.subCategoryId) === String(id))
+                                setFormData({ ...formData, subCategoryId: id, subCategoryOther: selected?.isOther ? formData.subCategoryOther : '' })
                             }}
                         />
+                        {isOtherNicraSubCategory && (
+                            <SpecifyOtherInput label="Please specify other sub-category" required value={formData.subCategoryOther} onChange={(e) => setFormData({ ...formData, subCategoryOther: e.target.value })} />
+                        )}
                     </div>
 
                     {renderNicraDetailsBody()}
@@ -942,13 +959,20 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Seed bank/Fodder bank"
                             required
                             value={formData.seedBankFodderBank ?? ''}
-                            onChange={(e) => setFormData({ ...formData, seedBankFodderBank: e.target.value })}
+                            onChange={(e) => {
+                                const value = e.target.value
+                                const selected = (seedBankFodderBanks as any[]).find((item: any) => String(item.name) === value)
+                                setFormData({ ...formData, seedBankFodderBank: value, seedBankFodderBankOther: selected?.isOther ? formData.seedBankFodderBankOther : '' })
+                            }}
                             options={seedBankFodderBanks.map((opt: any) => ({
                                 value: opt.name,
                                 label: opt.name,
                             }))}
                             placeholder="Select"
                         />
+                        {isOtherSeedBank && (
+                            <SpecifyOtherInput label="Please specify other seed/fodder bank" required value={formData.seedBankFodderBankOther} onChange={(e) => setFormData({ ...formData, seedBankFodderBankOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Crop"
                             required
@@ -1414,7 +1438,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 const val = e.target.value
                                 const parsed = parseInt(val, 10)
                                 if (!isNaN(parsed)) {
-                                    setFormData({ ...formData, dignitaryTypeId: parsed, type: '' })
+                                    const selected = (dignitaryTypes as any[]).find((item: any) => String(item.nicraDignitaryTypeId) === String(parsed))
+                                    setFormData({ ...formData, dignitaryTypeId: parsed, type: '', dignitaryTypeOther: selected?.isOther ? formData.dignitaryTypeOther : '' })
                                 } else {
                                     setFormData({ ...formData, type: val, dignitaryTypeId: '' })
                                 }
@@ -1425,6 +1450,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             }))}
                             placeholder="Select"
                         />
+                        {isOtherDignitaryType && (
+                            <SpecifyOtherInput label="Please specify other dignitary type" required value={formData.dignitaryTypeOther} onChange={(e) => setFormData({ ...formData, dignitaryTypeOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Name"
                             required
@@ -1467,7 +1495,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 const val = e.target.value
                                 const parsed = parseInt(val, 10)
                                 if (!isNaN(parsed)) {
-                                    setFormData({ ...formData, piTypeId: parsed, type: '' })
+                                    const selected = (piTypes as any[]).find((item: any) => String(item.nicraPiTypeId) === String(parsed))
+                                    setFormData({ ...formData, piTypeId: parsed, type: '', piTypeOther: selected?.isOther ? formData.piTypeOther : '' })
                                 } else {
                                     setFormData({ ...formData, type: val, piTypeId: '' })
                                 }
@@ -1478,6 +1507,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             }))}
                             placeholder="Select"
                         />
+                        {isOtherPiType && (
+                            <SpecifyOtherInput label="Please specify other PI/CO-PI type" required value={formData.piTypeOther} onChange={(e) => setFormData({ ...formData, piTypeOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Name"
                             required

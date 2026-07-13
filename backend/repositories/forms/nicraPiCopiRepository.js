@@ -44,6 +44,7 @@ const nicraPiCopiRepository = {
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
                 piTypeId,
+                piTypeOther: (data.piTypeOther && String(data.piTypeOther).trim()) || null,
                 name: data.name,
             },
             include: {
@@ -70,7 +71,8 @@ const nicraPiCopiRepository = {
         });
         return results.map(r => ({
             ...r,
-            type: r.piType?.name || null,
+            type: r.piTypeOther || r.piType?.name || null,
+            piTypeOther: r.piTypeOther ?? '',
             startDate: formatYmd(r.startDate),
             endDate: formatYmd(r.endDate),
         }));
@@ -91,7 +93,8 @@ const nicraPiCopiRepository = {
         if (!result) return null;
         return {
             ...result,
-            type: result.piType?.name || null,
+            type: result.piTypeOther || result.piType?.name || null,
+            piTypeOther: result.piTypeOther ?? '',
             startDate: formatYmd(result.startDate),
             endDate: formatYmd(result.endDate),
         };
@@ -115,6 +118,7 @@ const nicraPiCopiRepository = {
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
                 endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
                 piTypeId,
+                piTypeOther: data.piTypeOther !== undefined ? ((String(data.piTypeOther).trim()) || null) : existing.piTypeOther,
                 name: data.name !== undefined ? data.name : existing.name,
             },
             include: {
@@ -123,7 +127,8 @@ const nicraPiCopiRepository = {
         });
         return {
             ...updated,
-            type: updated.piType?.name || null,
+            type: updated.piTypeOther || updated.piType?.name || null,
+            piTypeOther: updated.piTypeOther ?? '',
             startDate: formatYmd(updated.startDate),
             endDate: formatYmd(updated.endDate),
         };

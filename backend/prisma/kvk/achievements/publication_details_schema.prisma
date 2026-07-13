@@ -3,6 +3,7 @@ model KvkPublicationDetails {
   kvkId                Int
   reportingYear DateTime? @map("reporting_year")
 publicationId        Int?         @map("publication_id")
+publicationOther     String?      @map("publication_other")
   title                String       @map("title")
   authorName           String       @map("author_name")
   journalName          String?      @map("journal_name")

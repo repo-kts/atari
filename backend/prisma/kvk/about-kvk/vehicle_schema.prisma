@@ -30,6 +30,7 @@ model KvkVehicleDetail {
   assetFundingSourceOther String?                 @map("asset_funding_source_other")
   fundingAgencyName    String?                    @map("funding_agency_name")
   vehicleStatusId      Int                        @map("vehicle_status_id")
+  vehicleStatusOther   String?                    @map("vehicle_status_other")
   createdAt            DateTime                   @default(now()) @map("created_at")
   updatedAt            DateTime                   @updatedAt @map("updated_at")
   kvk                  Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)

@@ -11,6 +11,7 @@ model PpvFraTraining {
 
   programmeDate  DateTime           @map("programme_date")
   typeId         Int?               @map("type_id")
+  typeOther      String?            @map("type_other")
   trainingType   PpvFraTrainingTypeMaster? @relation(fields: [typeId], references: [typeId])
   
   // Keep the old type field to ensure NO DATA LOSS

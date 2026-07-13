@@ -2,6 +2,7 @@ model PhysicalInfo {
   physicalInfoId Int                    @id @default(autoincrement()) @map("physical_info_id")
   kvkId          Int
   activityId     Int?                   @map("activity_id")
+  activityOther  String?                @map("activity_other")
   trainingTitle  String?                @map("training_title")
   trainingDate   DateTime?              @map("training_date")
   venue          String?
@@ -27,9 +28,9 @@ model PhysicalInfo {
 model NaturalFarmingActivityMaster {
   naturalFarmingActivityId Int           @id @default(autoincrement()) @map("natural_farming_activity_id")
   activityName             String        @unique @map("activity_name")
+  isOther                  Boolean       @default(false) @map("is_other")
   physicalInfos            PhysicalInfo[]
   financialInfos           FinancialInformation[]
 
   @@map("natural_farming_activity_master")
 }
-

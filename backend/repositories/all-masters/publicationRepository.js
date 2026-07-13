@@ -131,6 +131,9 @@ function sanitizeData(config, data) {
             ? data[config.nameField].trim()
             : data[config.nameField];
     }
+    if (data.isOther !== undefined) {
+        sanitized.isOther = Boolean(data.isOther);
+    }
     return sanitized;
 }
 

@@ -295,6 +295,11 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     // FldActivity list for extension training - using the proper hook
     const { data: activityList = [] } = useFldActivities()
+    const fldActivityOptions = React.useMemo(
+        () => createMasterDataOptions(activityList, 'activityId', 'activityName', { flagKey: 'isOther' }),
+        [activityList]
+    )
+    const { isOtherSelected: isOtherFldActivity, otherResetPatch: fldActivityResetPatch } = useOtherSpecify(fldActivityOptions, formData.activityId)
 
     // OFT Thematic Areas - depends on subjectId
     const { data: oftThematicAreasData = [], isLoading: isLoadingOftThematicAreas } = useOftThematicAreasBySubject(
@@ -723,13 +728,16 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.FLD_ACTIVITIES && (
-                <FormInput
-                    label="Activity Name"
-                    required
-                    value={formData.activityName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
-                    placeholder="Enter activity name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Activity Name"
+                        required
+                        value={formData.activityName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
+                        placeholder="Enter activity name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData({ ...formData, isOther: checked })} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.CFLD_CROPS && (
@@ -1590,12 +1598,16 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     activityId: value as number,
-                                    activity: selectedActivity?.activityName || ''
+                                    activity: selectedActivity?.activityName || '',
+                                    ...fldActivityResetPatch(value, 'activityOther'),
                                 })
                             }}
-                            options={createMasterDataOptions(activityList, 'activityId', 'activityName')}
+                            options={fldActivityOptions}
                             emptyMessage="No activities available"
                         />
+                        {isOtherFldActivity && (
+                            <SpecifyOtherInput label="Please specify other activity" required value={formData.activityOther} onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })} />
+                        )}
 
                         <FormInput
                             label="No. of activities"

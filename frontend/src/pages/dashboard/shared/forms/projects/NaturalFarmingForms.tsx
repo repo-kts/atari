@@ -36,8 +36,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
     staffCategories = [],
 }) => {
     const todayYmd = new Date().toISOString().slice(0, 10)
-    const selectedNaturalFarmingActivity = naturalFarmingActivities.find(
-        (activity: any) => String(activity.naturalFarmingActivityId) === String(formData.activityId || '')
+    const activityOptions = React.useMemo(
+        () => createMasterDataOptions(naturalFarmingActivities, 'naturalFarmingActivityId', 'activityName', { flagKey: 'isOther' }),
+        [naturalFarmingActivities]
+    )
+    const { isOtherSelected: isOtherActivitySelected, otherResetPatch: activityResetPatch } = useOtherSpecify(
+        activityOptions,
+        formData.activityId
     )
     const soilParameterOptions = React.useMemo(
         () => createMasterDataOptions(naturalFarmingSoilParameters, 'naturalFarmingSoilParameterId', 'parameterName', { flagKey: 'isOther' }),
@@ -68,8 +73,6 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
             onAttachmentIdsChange={handleAttachmentIds}
         />
     ) : null
-
-    const isOtherActivitySelected = String(selectedNaturalFarmingActivity?.activityName || '').trim().toLowerCase() === 'other activity'
 
     return (
         <>
@@ -130,10 +133,14 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             onChange={(value) => setFormData({
                                 ...formData,
                                 activityId: value,
+                                ...activityResetPatch(value, 'activityOther'),
                             })}
-                            options={createMasterDataOptions(naturalFarmingActivities, 'naturalFarmingActivityId', 'activityName')}
+                            options={activityOptions}
                             emptyMessage="No natural farming activities available"
                         />
+                        {isOtherActivitySelected && (
+                            <SpecifyOtherInput label="Please specify other activity" required value={formData.activityOther} onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })} />
+                        )}
                     </div>
 
                     {isOtherActivitySelected ? (
@@ -855,10 +862,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Name of activity"
                             required
                             value={formData.activityId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(naturalFarmingActivities, 'naturalFarmingActivityId', 'activityName')}
+                            onChange={(value) => setFormData({ ...formData, activityId: value, ...activityResetPatch(value, 'activityOther') })}
+                            options={activityOptions}
                             emptyMessage="No activities available"
                         />
+                        {isOtherActivitySelected && (
+                            <SpecifyOtherInput label="Please specify other activity" required value={formData.activityOther} onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Number of activities organized"
                             required

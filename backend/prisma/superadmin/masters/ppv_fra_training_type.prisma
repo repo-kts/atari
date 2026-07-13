@@ -1,6 +1,7 @@
 model PpvFraTrainingTypeMaster {
   typeId    Int      @id @default(autoincrement()) @map("type_id")
   typeName  String   @unique @map("type_name")
+  isOther   Boolean  @default(false) @map("is_other")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

@@ -182,6 +182,7 @@ const fldExtensionRepository = {
             kvkId,
             fldId,
             activityId,
+            activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
             activityDate: new Date(activityDate),
             numberOfActivities,
             remarks,
@@ -313,6 +314,9 @@ const fldExtensionRepository = {
         );
 
         const updateData = buildUpdateData(data, UPDATE_FIELD_DEFINITIONS);
+        if (data.activityOther !== undefined) {
+            updateData.activityOther = (String(data.activityOther).trim()) || null;
+        }
 
         // Handle farmer counts (only if provided)
         const farmerCounts = validateFarmerCounts(data, FLD_EXTENSION_CONFIG.farmerCountMapping, {

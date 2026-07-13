@@ -43,6 +43,7 @@ const nicraInterventionRepository = {
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
                 seedBankFodderBankId,
+                seedBankFodderBankOther: (data.seedBankFodderBankOther && String(data.seedBankFodderBankOther).trim()) || null,
                 crop: data.crop,
                 variety: data.variety,
                 quantityQ: parseFloat(data.quantityQ || 0),
@@ -61,6 +62,7 @@ const nicraInterventionRepository = {
             id: r.nicraInterventionId,
             seedBankFodderBankId: r.seedBankFodderBankId,
             seedBankFodderBank: r.seedBankFodderBank?.name || r.seedBankFodderBank || null,
+            seedBankFodderBankOther: r.seedBankFodderBankOther ?? '',
             startDate: r.startDate && r.startDate instanceof Date ? r.startDate.toISOString().split('T')[0] : (r.startDate || ''),
             endDate: r.endDate && r.endDate instanceof Date ? r.endDate.toISOString().split('T')[0] : (r.endDate || '')
         };
@@ -118,6 +120,7 @@ const nicraInterventionRepository = {
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
                 endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
                 seedBankFodderBankId,
+                seedBankFodderBankOther: data.seedBankFodderBankOther !== undefined ? ((String(data.seedBankFodderBankOther).trim()) || null) : existing.seedBankFodderBankOther,
                 crop: data.crop !== undefined ? data.crop : existing.crop,
                 variety: data.variety !== undefined ? data.variety : existing.variety,
                 quantityQ: data.quantityQ !== undefined ? parseFloat(data.quantityQ) : existing.quantityQ,

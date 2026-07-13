@@ -3,6 +3,7 @@ model FldExtension {
   kvkId              Int
   fldId              Int
   activityId         Int
+  activityOther      String?            @map("activity_other")
   activityDate       DateTime           @map("activity_date")
   numberOfActivities Int                @map("number_of_activities")
   remarks            String?            @map("remarks")

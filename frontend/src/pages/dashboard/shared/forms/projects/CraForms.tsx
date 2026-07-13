@@ -39,6 +39,10 @@ export const CraForms: React.FC<CraFormsProps> = ({
             .map((cs: any) => ({ value: cs.craCropingSystemId ?? cs.id, label: cs.cropName ?? cs.croppingSystemName ?? cs.name, isOther: Boolean(cs.isOther) })),
         [croppingSystems, formData.seasonId]
     )
+    const extensionActivityOptions = React.useMemo(
+        () => createMasterDataOptions(extensionActivityTypes, 'activityId', 'activityName', { flagKey: 'isOther' }),
+        [extensionActivityTypes]
+    )
     const farmingSystemOptions = React.useMemo(
         () => (farmingSystems || [])
             .filter((fs: any) => !formData.seasonId || fs.seasonId === parseInt(formData.seasonId))
@@ -47,6 +51,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
     )
     const { isOtherSelected: isOtherCropping, otherResetPatch: croppingResetPatch } = useOtherSpecify(croppingSystemOptions, formData.croppingSystemId)
     const { isOtherSelected: isOtherFarming, otherResetPatch: farmingResetPatch } = useOtherSpecify(farmingSystemOptions, formData.farmingSystemId)
+    const { isOtherSelected: isOtherExtensionActivity, otherResetPatch: extensionActivityResetPatch } = useOtherSpecify(extensionActivityOptions, formData.extensionActivityId)
 
     React.useEffect(() => {
         // Backfill croppingSystemId during edit for legacy rows that only have text.
@@ -245,9 +250,15 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             label="Extension Activity"
                             required
                             value={formData.extensionActivityId ?? ''}
-                            onChange={(e) => setFormData({ ...formData, extensionActivityId: parseInt(e.target.value) })}
-                            options={extensionActivityTypes.map((ext: any) => ({ value: ext.activityId, label: ext.activityName }))}
+                            onChange={(e) => {
+                                const value = parseInt(e.target.value)
+                                setFormData({ ...formData, extensionActivityId: value, ...extensionActivityResetPatch(value, 'activityOther') })
+                            }}
+                            options={extensionActivityOptions}
                         />
+                        {isOtherExtensionActivity && (
+                            <SpecifyOtherInput label="Please specify other extension activity" required value={formData.activityOther} onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Start Date"
                             required

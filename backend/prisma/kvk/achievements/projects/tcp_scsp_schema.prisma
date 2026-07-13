@@ -17,6 +17,7 @@ model TspScspActivities {
 model TspScspTypeMaster {
   tspScspTypeId Int    @id @default(autoincrement()) @map("tsp_scsp_type_id")
   typeName      String @unique @map("type_name")
+  isOther       Boolean @default(false) @map("is_other")
   tspScspRecords TspScsp[]
 
   @@map("tsp_scsp_type_master")

@@ -42,7 +42,8 @@ const nicraDignitariesRepository = {
             ...r,
             id: r.nicraDignitariesVisitedId,
             dateOfVisit: r.dateOfVisit && r.dateOfVisit instanceof Date ? r.dateOfVisit.toISOString().split('T')[0] : (r.dateOfVisit || ''),
-            type: r.dignitaryType?.name || r.type || null,
+            type: r.dignitaryTypeOther || r.dignitaryType?.name || r.type || null,
+            dignitaryTypeOther: r.dignitaryTypeOther ?? '',
             photographs: photos,
         };
     },
@@ -57,6 +58,7 @@ const nicraDignitariesRepository = {
                 kvkId,
                 dateOfVisit: new Date(data.dateOfVisit),
                 dignitaryTypeId,
+                dignitaryTypeOther: (data.dignitaryTypeOther && String(data.dignitaryTypeOther).trim()) || null,
                 name: data.name,
                 remark: data.remark,
                 photographs: data.photographs ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : null,
@@ -119,6 +121,7 @@ const nicraDignitariesRepository = {
             data: {
                 dateOfVisit: data.dateOfVisit ? new Date(data.dateOfVisit) : existing.dateOfVisit,
                 dignitaryTypeId,
+                dignitaryTypeOther: data.dignitaryTypeOther !== undefined ? ((String(data.dignitaryTypeOther).trim()) || null) : existing.dignitaryTypeOther,
                 name: data.name !== undefined ? data.name : existing.name,
                 remark: data.remark !== undefined ? data.remark : existing.remark,
                 photographs: data.photographs !== undefined ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : existing.photographs,

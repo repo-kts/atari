@@ -28,6 +28,7 @@ const vipVisitorsRepository = {
                 kvkId,
                 dateOfVisit: data.visitDate ? new Date(data.visitDate) : new Date(),
                 dignitaryTypeId,
+                dignitaryTypeOther: (data.dignitaryTypeOther && String(data.dignitaryTypeOther).trim()) || null,
                 ministerName: data.ministerName || '',
                 salientPoints: data.observations || '',
             }
@@ -96,6 +97,7 @@ const vipVisitorsRepository = {
             data: {
                 dateOfVisit: data.visitDate ? new Date(data.visitDate) : existing.dateOfVisit,
                 dignitaryTypeId,
+                dignitaryTypeOther: data.dignitaryTypeOther !== undefined ? ((String(data.dignitaryTypeOther).trim()) || null) : existing.dignitaryTypeOther,
                 ministerName: data.ministerName !== undefined ? data.ministerName : existing.ministerName,
                 salientPoints: data.observations !== undefined ? data.observations : existing.salientPoints,
             }

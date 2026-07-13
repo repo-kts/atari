@@ -38,6 +38,7 @@ const ENTITY_CONFIG = {
         tableName: 'oft_thematic_area',
         idColumn: 'oft_thematic_area_id',
         requiredFields: ['oftSubjectId', 'thematicAreaName'],
+        uniqueScopeFields: ['oftSubjectId'],
         includes: {
             subject: {
                 select: {

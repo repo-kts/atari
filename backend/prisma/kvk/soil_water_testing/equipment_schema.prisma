@@ -1,6 +1,7 @@
 model SoilWaterAnalysis {
   soilWaterAnalysisId Int                     @id @default(autoincrement()) @map("soil_water_analysis_id")
   analysisName        String                  @unique @map("analysis_name")
+  isOther             Boolean                 @default(false) @map("is_other")
   createdAt           DateTime                @default(now()) @map("created_at")
   updatedAt           DateTime                @updatedAt @map("updated_at")
   analysis            KkvSoilWaterAnalysis[]
@@ -13,6 +14,7 @@ model KkvSoilWaterEquipment {
   soilWaterEquipmentId Int               @id @default(autoincrement()) @map("soil_water_equipment_id")
   kvkId                Int
   soilWaterAnalysisId  Int
+  analysisOther        String?            @map("analysis_other")
   equipmentName        String            @map("equipment_name")
   quantity             Int               @map("quantity")
   createdAt            DateTime          @default(now()) @map("created_at")

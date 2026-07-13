@@ -1,6 +1,7 @@
 model Publication {
   publicationId      Int                     @id @default(autoincrement()) @map("publication_id")
   publicationName    String                  @map("publication_name")
+  isOther            Boolean                 @default(false) @map("is_other")
   createdAt          DateTime                @default(now()) @map("created_at")
   updatedAt          DateTime                @updatedAt @map("updated_at")
   publicationDetails KvkPublicationDetails[]

@@ -6,6 +6,9 @@ import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { useYears } from '@/hooks/useOtherMastersData'
 import { usePublicationItems } from '@/hooks/usePublicationData'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { IsOtherCheckbox } from '@/components/common/IsOtherCheckbox'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 
 interface PublicationFormsProps {
     entityType: ExtendedEntityType | null
@@ -33,10 +36,12 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
     const publicationOptions = useMemo(() => {
         // If publication items exist, use them; otherwise use static types
         if (publicationItems.length > 0) {
-            return createMasterDataOptions(publicationItems, 'publicationId', 'publicationName')
+            return createMasterDataOptions(publicationItems, 'publicationId', 'publicationName', { flagKey: 'isOther' })
         }
         return []
     }, [publicationItems])
+    const selectedPublicationId = formData.publicationId ?? formData.publication
+    const { isOtherSelected: isOtherPublication, otherResetPatch: publicationResetPatch } = useOtherSpecify(publicationOptions, selectedPublicationId)
 
     // Optimized onChange handlers using useCallback with functional updates
     // This ensures we always work with the latest state and prevents unnecessary dependencies
@@ -65,13 +70,14 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                     ...prev,
                     publication: value,
                     publicationId: value,
+                    ...publicationResetPatch(value, 'publicationOther'),
                     publicationName:
                         selectedPublication?.publicationName ||
                         (typeof value === 'string' ? value : ''),
                 }
             })
         },
-        [setFormData, publicationItems]
+        [setFormData, publicationItems, publicationResetPatch]
     )
 
     // Optimized input change handlers using functional updates
@@ -164,13 +170,16 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
     return (
         <>
             {entityType === ENTITY_TYPES.PUBLICATION_ITEMS && (
-                <FormInput
-                    label="Publication Item"
-                    required
-                    value={formData.publicationName ?? ''}
-                    onChange={handlePublicationNameChange}
-                    placeholder="Enter publication item"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Publication Item"
+                        required
+                        value={formData.publicationName ?? ''}
+                        onChange={handlePublicationNameChange}
+                        placeholder="Enter publication item"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS && (
@@ -186,6 +195,9 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                             isLoading={isLoadingYears}
                             emptyMessage="No years available. Add them from All Masters."
                         />
+                        {isOtherPublication && (
+                            <SpecifyOtherInput label="Please specify other publication" required value={formData.publicationOther} onChange={(e) => setFormData((prev: any) => ({ ...prev, publicationOther: e.target.value }))} />
+                        )}
                         <MasterDataDropdown
                             label="Publication"
                             required

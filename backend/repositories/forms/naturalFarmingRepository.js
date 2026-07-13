@@ -60,7 +60,7 @@ async function resolveNaturalFarmingActivity(rawValue) {
     if (!isNaN(parsedId)) {
         const byId = await prisma.naturalFarmingActivityMaster.findUnique({
             where: { naturalFarmingActivityId: parsedId },
-            select: { naturalFarmingActivityId: true, activityName: true },
+            select: { naturalFarmingActivityId: true, activityName: true, isOther: true },
         });
         if (byId) return byId;
     }
@@ -70,13 +70,13 @@ async function resolveNaturalFarmingActivity(rawValue) {
 
     const existing = await prisma.naturalFarmingActivityMaster.findFirst({
         where: { activityName: { equals: name, mode: 'insensitive' } },
-        select: { naturalFarmingActivityId: true, activityName: true },
+        select: { naturalFarmingActivityId: true, activityName: true, isOther: true },
     });
     if (existing) return existing;
 
     return prisma.naturalFarmingActivityMaster.create({
         data: { activityName: name },
-        select: { naturalFarmingActivityId: true, activityName: true },
+        select: { naturalFarmingActivityId: true, activityName: true, isOther: true },
     });
 }
 
@@ -238,11 +238,12 @@ const physicalInfoRepository = {
     create: async (data, user) => {
         const kvkId = getKvkId(user, data);
         const resolvedActivity = await resolveNaturalFarmingActivity(data.activityId ?? data.activity ?? data.activityName);
-        const isOtherActivity = isOtherActivityName(resolvedActivity?.activityName);
+        const isOtherActivity = Boolean(resolvedActivity?.isOther) || isOtherActivityName(resolvedActivity?.activityName);
         return await prisma.physicalInfo.create({
             data: {
                 kvkId,
                 activityId: resolvedActivity?.naturalFarmingActivityId || null,
+                activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 trainingTitle: isOtherActivity ? null : (data.trainingTitle || ''),
                 trainingDate: isOtherActivity ? null : (data.trainingDate ? new Date(data.trainingDate) : null),
                 venue: isOtherActivity ? null : (data.venue || ''),
@@ -285,7 +286,7 @@ const physicalInfoRepository = {
             id: r.physicalInfoId,
             kvkName: r.kvk?.kvkName,
             stateName: r.kvk?.state?.stateName || '',
-            activityName: r.activityMaster?.activityName || null,
+            activityName: r.activityOther || r.activityMaster?.activityName || null,
             genMale: r.generalM,
             genFemale: r.generalF,
             obcMale: r.obcM,
@@ -313,7 +314,7 @@ const physicalInfoRepository = {
             ...r,
             id: r.physicalInfoId,
             kvkName: r.kvk?.kvkName,
-            activityName: r.activityMaster?.activityName || null,
+            activityName: r.activityOther || r.activityMaster?.activityName || null,
             genMale: r.generalM,
             genFemale: r.generalF,
             obcMale: r.obcM,
@@ -338,13 +339,15 @@ const physicalInfoRepository = {
             : (existing.activityMaster ? {
                 naturalFarmingActivityId: existing.activityMaster.naturalFarmingActivityId,
                 activityName: existing.activityMaster.activityName,
+                isOther: existing.activityMaster.isOther,
             } : null);
-        const isOtherActivity = isOtherActivityName(resolvedActivity?.activityName);
+        const isOtherActivity = Boolean(resolvedActivity?.isOther) || isOtherActivityName(resolvedActivity?.activityName);
 
         return await prisma.physicalInfo.update({
             where: { physicalInfoId: safeInt(id, 0) },
             data: {
                 activityId: resolvedActivity?.naturalFarmingActivityId ?? existing.activityId,
+                activityOther: data.activityOther !== undefined ? ((String(data.activityOther).trim()) || null) : existing.activityOther,
                 trainingTitle: isOtherActivity ? null : (data.trainingTitle !== undefined ? data.trainingTitle : existing.trainingTitle),
                 trainingDate: isOtherActivity ? null : (data.trainingDate ? new Date(data.trainingDate) : existing.trainingDate),
                 venue: isOtherActivity ? null : (data.venue !== undefined ? data.venue : existing.venue),
@@ -1064,6 +1067,7 @@ const financialInfoRepository = {
                 year: yearInfo.year ?? new Date().getUTCFullYear(),
                 reportingYearDate: yearInfo.reportingYearDate,
                 activityId: resolvedActivity?.naturalFarmingActivityId || null,
+                activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 numberOfActivities: safeInt(data.noOfActivities || data.numberOfActivities, 0),
                 budgetSanction: safeFloat(data.budgetSanction, 0),
                 budgetExpenditure: safeFloat(data.budgetExpenditure, 0),
@@ -1091,7 +1095,7 @@ const financialInfoRepository = {
             id: r.financialInformationId,
             kvkName: r.kvk?.kvkName,
             noOfActivities: r.numberOfActivities,
-            activityName: r.activityMaster?.activityName || null,
+            activityName: r.activityOther || r.activityMaster?.activityName || null,
             activityId: r.activityId,
             reportingYear: formatLegacyYearResponse(r.reportingYearDate, r.year),
         }));
@@ -1113,7 +1117,7 @@ const financialInfoRepository = {
             id: r.financialInformationId,
             kvkName: r.kvk?.kvkName,
             noOfActivities: r.numberOfActivities,
-            activityName: r.activityMaster?.activityName || null,
+            activityName: r.activityOther || r.activityMaster?.activityName || null,
             activityId: r.activityId,
             reportingYear: formatLegacyYearResponse(r.reportingYearDate, r.year),
         };
@@ -1137,6 +1141,7 @@ const financialInfoRepository = {
                 year: yearInfo.year ?? existing.year,
                 reportingYearDate: yearInfo.reportingYearDate || null,
                 activityId: resolvedActivity ? resolvedActivity.naturalFarmingActivityId : existing.activityId,
+                activityOther: data.activityOther !== undefined ? ((String(data.activityOther).trim()) || null) : existing.activityOther,
                 numberOfActivities: (data.noOfActivities || data.numberOfActivities) !== undefined ? safeInt(data.noOfActivities || data.numberOfActivities, existing.numberOfActivities) : existing.numberOfActivities,
                 budgetSanction: data.budgetSanction !== undefined ? safeFloat(data.budgetSanction, existing.budgetSanction) : existing.budgetSanction,
                 budgetExpenditure: data.budgetExpenditure !== undefined ? safeFloat(data.budgetExpenditure, existing.budgetExpenditure) : existing.budgetExpenditure,

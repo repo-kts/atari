@@ -18,6 +18,7 @@ const craExtensionActivityRepository = {
             data: {
                 kvkId,
                 activityId: parseInt(data.activityId || data.extensionActivityId),
+                activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 startDate: data.startDate ? new Date(data.startDate) : new Date(),
                 endDate: data.endDate ? new Date(data.endDate) : new Date(),
                 generalM: parseInt(data.generalM || data.genM || 0),
@@ -87,6 +88,7 @@ const craExtensionActivityRepository = {
             where: { craExtensionActivityId: parseInt(id) },
             data: {
                 activityId: (data.extensionActivityId !== undefined || data.activityId !== undefined) ? parseInt(data.extensionActivityId ?? data.activityId) : undefined,
+                activityOther: data.activityOther !== undefined ? ((String(data.activityOther).trim()) || null) : undefined,
                 startDate: data.startDate ? new Date(data.startDate) : undefined,
                 endDate: data.endDate ? new Date(data.endDate) : undefined,
                 generalM: (data.genM !== undefined || data.generalM !== undefined) ? parseInt(data.genM ?? data.generalM) : undefined,
@@ -130,8 +132,9 @@ function _mapResponse(r) {
         kvkId: r.kvkId,
         activityId: r.activityId,
         extensionActivityId: r.activityId,
-        activityName: r.activity ? r.activity.activityName : '',
-        nameOfExtensionActivities: r.activity ? r.activity.activityName : '', // For table display
+        activityName: r.activityOther || (r.activity ? r.activity.activityName : ''),
+        activityOther: r.activityOther ?? '',
+        nameOfExtensionActivities: r.activityOther || (r.activity ? r.activity.activityName : ''), // For table display
         kvkName: r.kvk ? r.kvk.kvkName : '',
         startDate: r.startDate ? r.startDate.toISOString().split('T')[0] : '',
         endDate: r.endDate ? r.endDate.toISOString().split('T')[0] : '',

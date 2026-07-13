@@ -19,7 +19,7 @@ const ENTITY_CONFIG = {
         nameField: 'zoneName',
         tableName: 'zone',
         idColumn: 'zone_id',
-        allowedFields: ['zoneName'],
+        allowedFields: ['zoneName', 'isOther'],
         includes: {
             _count: {
                 select: {
@@ -37,7 +37,7 @@ const ENTITY_CONFIG = {
         nameField: 'stateName',
         tableName: '"stateMaster"',
         idColumn: 'state_id',
-        allowedFields: ['stateName', 'zoneId'],
+        allowedFields: ['stateName', 'zoneId', 'isOther'],
         includes: {
             zone: {
                 select: {
@@ -60,7 +60,7 @@ const ENTITY_CONFIG = {
         nameField: 'districtName',
         tableName: '"districtMaster"',
         idColumn: 'district_id',
-        allowedFields: ['districtName', 'stateId', 'zoneId'],
+        allowedFields: ['districtName', 'stateId', 'zoneId', 'isOther'],
         includes: {
             state: {
                 select: {
@@ -89,7 +89,7 @@ const ENTITY_CONFIG = {
         nameField: 'orgName',
         tableName: '"orgMaster"',
         idColumn: 'org_id',
-        allowedFields: ['orgName', 'districtId'],
+        allowedFields: ['orgName', 'districtId', 'isOther'],
         includes: {
             district: {
                 select: {
@@ -133,6 +133,7 @@ const ENTITY_CONFIG = {
             'hostFax',
             'hostEmail',
             'hostAddress',
+            'isOther',
         ],
         includes: {
             organization: {
@@ -464,6 +465,10 @@ function sanitizeAndValidateData(entityName, data) {
             }
     }
 
+    if (data.isOther !== undefined) {
+        sanitized.isOther = Boolean(data.isOther);
+    }
+
     return sanitized;
 }
 
@@ -616,6 +621,10 @@ function sanitizeUpdateData(entityName, data) {
                 }
                 sanitized[config.nameField] = nameValue;
             }
+    }
+
+    if (data.isOther !== undefined) {
+        sanitized.isOther = Boolean(data.isOther);
     }
 
     // Ensure at least one field is being updated

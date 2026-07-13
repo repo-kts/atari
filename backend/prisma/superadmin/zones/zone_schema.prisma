@@ -1,6 +1,7 @@
 model Zone {
   zoneId    Int              @id @default(autoincrement()) @map("zone_id")
   zoneName  String           @unique @map("zone_name")
+  isOther   Boolean          @default(false) @map("is_other")
   createdAt DateTime         @default(now()) @map("created_at")
   updatedAt DateTime         @updatedAt @map("updated_at")
   districts DistrictMaster[]
@@ -15,6 +16,7 @@ model Zone {
 model StateMaster {
   stateId   Int              @id @default(autoincrement()) @map("state_id")
   stateName String           @map("state_name")
+  isOther   Boolean          @default(false) @map("is_other")
   zoneId    Int
   createdAt DateTime         @default(now()) @map("created_at")
   updatedAt DateTime         @updatedAt @map("updated_at")
@@ -32,6 +34,7 @@ model StateMaster {
 model DistrictMaster {
   districtId   Int         @id @default(autoincrement()) @map("district_id")
   districtName String      @map("district_name")
+  isOther      Boolean     @default(false) @map("is_other")
   stateId      Int
   zoneId       Int
   createdAt    DateTime    @default(now()) @map("created_at")
@@ -54,6 +57,7 @@ model DistrictMaster {
 model OrgMaster {
   orgId        Int                @id @default(autoincrement()) @map("org_id")
   orgName      String?            @map("org_name")
+  isOther      Boolean            @default(false) @map("is_other")
   districtId   Int?               @map("district_id")
   createdAt    DateTime           @default(now()) @map("created_at")
   updatedAt    DateTime           @updatedAt @map("updated_at")
@@ -72,6 +76,7 @@ model OrgMaster {
 model UniversityMaster {
   universityId   Int       @id @default(autoincrement()) @map("university_id")
   universityName String    @map("university_name")
+  isOther        Boolean   @default(false) @map("is_other")
   orgId          Int       @map("org_id")
   hostMobile     String?   @map("host_mobile")
   hostLandline   String?   @map("host_landline")

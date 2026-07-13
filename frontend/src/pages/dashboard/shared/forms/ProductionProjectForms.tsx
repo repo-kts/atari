@@ -334,13 +334,16 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.TSP_SCSP_TYPES && (
-                <FormInput
-                    label="TSP/SCSP Type"
-                    required
-                    value={formData.typeName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, typeName: e.target.value.toUpperCase() })}
-                    placeholder="Enter type (TSP or SCSP)"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="TSP/SCSP Type"
+                        required
+                        value={formData.typeName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, typeName: e.target.value.toUpperCase() })}
+                        placeholder="Enter type (TSP or SCSP)"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData({ ...formData, isOther: checked })} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.TSP_SCSP_ACTIVITIES && (
@@ -360,13 +363,16 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES && (
-                <FormInput
-                    label="Natural Farming Activity Name"
-                    required
-                    value={formData.activityName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
-                    placeholder="Enter natural farming activity name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Natural Farming Activity Name"
+                        required
+                        value={formData.activityName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
+                        placeholder="Enter natural farming activity name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData({ ...formData, isOther: checked })} />
+                </div>
             )}
 
             {entityType === ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS && (

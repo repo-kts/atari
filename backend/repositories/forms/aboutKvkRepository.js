@@ -1150,6 +1150,7 @@ function sanitizeData(entityName, data) {
             'assetFundingSourceOther',
             'fundingAgencyName',
             'vehicleStatusId',
+            'vehicleStatusOther',
         ];
 
         Object.keys(sanitized).forEach(field => {
@@ -1168,6 +1169,7 @@ function sanitizeData(entityName, data) {
             'assetFundingSourceOther',
             'fundingAgencyName',
             'equipmentStatusId',
+            'equipmentStatusOther',
         ];
 
         Object.keys(sanitized).forEach(field => {
@@ -1302,6 +1304,7 @@ async function create(entityName, data) {
             assetFundingSourceOther: sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true }),
             fundingAgencyName: sanitizeString(sanitizedData.fundingAgencyName, { allowEmpty: true }),
             vehicleStatusId: sanitizeInteger(sanitizedData.vehicleStatusId),
+            vehicleStatusOther: sanitizeString(sanitizedData.vehicleStatusOther, { allowEmpty: true }),
         };
 
         return executePrismaWrite(entityName, 'create', async () => {
@@ -1323,6 +1326,7 @@ async function create(entityName, data) {
             assetFundingSourceOther: sanitizeString(sanitizedData.assetFundingSourceOther, { allowEmpty: true }),
             fundingAgencyName: sanitizeString(sanitizedData.fundingAgencyName, { allowEmpty: true }),
             equipmentStatusId: sanitizeInteger(sanitizedData.equipmentStatusId),
+            equipmentStatusOther: sanitizeString(sanitizedData.equipmentStatusOther, { allowEmpty: true }),
         };
 
         return executePrismaWrite(entityName, 'create', async () => {
@@ -1453,6 +1457,7 @@ async function update(entityName, id, data) {
             finalUpdateData.fundingAgencyName = sanitizeString(sanitizedData.fundingAgencyName, { allowEmpty: true });
         }
         if (sanitizedData.vehicleStatusId !== undefined) finalUpdateData.vehicleStatusId = sanitizeInteger(sanitizedData.vehicleStatusId);
+        if (sanitizedData.vehicleStatusOther !== undefined) finalUpdateData.vehicleStatusOther = sanitizeString(sanitizedData.vehicleStatusOther, { allowEmpty: true });
 
         return executePrismaWrite(entityName, 'update', async () => {
             return await prisma[config.model].update({
@@ -1484,6 +1489,7 @@ async function update(entityName, id, data) {
             finalUpdateData.fundingAgencyName = sanitizeString(sanitizedData.fundingAgencyName, { allowEmpty: true });
         }
         if (sanitizedData.equipmentStatusId !== undefined) finalUpdateData.equipmentStatusId = sanitizeInteger(sanitizedData.equipmentStatusId);
+        if (sanitizedData.equipmentStatusOther !== undefined) finalUpdateData.equipmentStatusOther = sanitizeString(sanitizedData.equipmentStatusOther, { allowEmpty: true });
 
         return executePrismaWrite(entityName, 'update', async () => {
             return await prisma[config.model].update({

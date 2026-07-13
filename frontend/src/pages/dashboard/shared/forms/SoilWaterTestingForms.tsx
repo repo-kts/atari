@@ -6,6 +6,8 @@ import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { useYears, useSoilWaterAnalyses } from '@/hooks/useOtherMastersData'
 import { useAuth } from '@/contexts/AuthContext'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 
 interface SoilWaterTestingProps {
     entityType: ExtendedEntityType | null
@@ -36,8 +38,10 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
     );
 
     const analysisOptions = useMemo(() =>
-        createMasterDataOptions(soilWaterAnalyses, 'soilWaterAnalysisId', 'analysisName'),
+        createMasterDataOptions(soilWaterAnalyses, 'soilWaterAnalysisId', 'analysisName', { flagKey: 'isOther' }),
         [soilWaterAnalyses]);
+    const selectedAnalysisId = formData.analysisId || formData.soilWaterAnalysisId
+    const { isOtherSelected: isOtherAnalysis, otherResetPatch: analysisResetPatch } = useOtherSpecify(analysisOptions, selectedAnalysisId)
 
     if (!entityType) return null
 
@@ -60,10 +64,13 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                             label="Soil Water Analysis Type"
                             required
                             value={formData.soilWaterAnalysisId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, soilWaterAnalysisId: value })}
+                            onChange={(value) => setFormData({ ...formData, soilWaterAnalysisId: value, ...analysisResetPatch(value, 'analysisOther') })}
                             options={analysisOptions}
                             emptyMessage="No soil water analysis types available. Add them from All Masters."
                         />
+                        {isOtherAnalysis && (
+                            <SpecifyOtherInput label="Please specify other analysis" required value={formData.analysisOther} onChange={(e) => setFormData({ ...formData, analysisOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Name of the Equipment"
                             required
@@ -109,10 +116,13 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                             label="Analysis"
                             required
                             value={formData.analysisId || formData.soilWaterAnalysisId || ''}
-                            onChange={(value) => setFormData({ ...formData, analysisId: value, soilWaterAnalysisId: value })}
+                            onChange={(value) => setFormData({ ...formData, analysisId: value, soilWaterAnalysisId: value, ...analysisResetPatch(value, 'analysisOther') })}
                             options={analysisOptions}
                             emptyMessage="No soil water analysis types available. Add them from All Masters."
                         />
+                        {isOtherAnalysis && (
+                            <SpecifyOtherInput label="Please specify other analysis" required value={formData.analysisOther} onChange={(e) => setFormData({ ...formData, analysisOther: e.target.value })} />
+                        )}
                         {/* hard coded options for samples analyzed through */}
                         <FormSelect
                             label="Samples analyzed Through"

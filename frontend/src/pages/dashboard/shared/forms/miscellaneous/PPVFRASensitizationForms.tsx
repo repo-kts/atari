@@ -8,6 +8,8 @@ import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 
 interface PPVFRASensitizationFormsProps {
     entityType: ExtendedEntityType | null
@@ -33,9 +35,10 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
     )
 
     const trainingTypeOptions = useMemo(
-        () => createMasterDataOptions(trainingTypes, 'typeId', 'typeName'),
+        () => createMasterDataOptions(trainingTypes, 'typeId', 'typeName', { flagKey: 'isOther' }),
         [trainingTypes]
     )
+    const { isOtherSelected: isOtherTrainingType, otherResetPatch: trainingTypeResetPatch } = useOtherSpecify(trainingTypeOptions, formData.typeId)
 
     const handleFieldChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -87,11 +90,14 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             label="Type"
                             required
                             value={formData.typeId ?? ''}
-                            onChange={(val) => setFormData({ ...formData, typeId: val })}
+                            onChange={(val) => setFormData({ ...formData, typeId: val, ...trainingTypeResetPatch(val, 'typeOther') })}
                             options={trainingTypeOptions}
                             isLoading={isLoadingTypes}
                             emptyMessage="No training types available"
                         />
+                        {isOtherTrainingType && (
+                            <SpecifyOtherInput label="Please specify other type" required value={formData.typeOther} onChange={(e) => setFormData({ ...formData, typeOther: e.target.value })} />
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

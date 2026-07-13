@@ -2,6 +2,7 @@ model EquipmentMaster {
   equipmentMasterId Int      @id @default(autoincrement()) @map("equipment_master_id")
   equipmentTypeId   Int      @map("equipment_type_id")
   name              String   @map("name")
+  isOther           Boolean  @default(false) @map("is_other")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 

@@ -15,7 +15,7 @@ function _soilOrderBy(user, alias, pk) {
 // Mapping functions to avoid duplicate fields from spreading raw DB objects
 function _mapEquipmentResponse(r) {
     if (!r) return null;
-    const analysisName = r.analysis_name;
+    const analysisName = r.analysis_other || r.analysis_name;
     const reportingYear = formatReportingYear(r.reporting_year);
     return {
         id: r.soil_water_equipment_id,
@@ -26,6 +26,7 @@ function _mapEquipmentResponse(r) {
         analysisName,
         equipmentName: r.equipment_name,
         soilWaterAnalysisId: r.soilWaterAnalysisId,
+        analysisOther: r.analysis_other ?? '',
         quantity: r.quantity,
         createdAt: r.created_at,
         updatedAt: r.updated_at,
@@ -34,7 +35,7 @@ function _mapEquipmentResponse(r) {
 
 function _mapAnalysisResponse(r) {
     if (!r) return null;
-    const analysisName = r.analysis_name;
+    const analysisName = r.analysis_other || r.analysis_name;
     const reportingYear = formatReportingYear(r.reporting_year);
     return {
         id: r.soil_water_analysis_id,
@@ -43,6 +44,7 @@ function _mapAnalysisResponse(r) {
         kvkName: r.kvk_name,
         analysisName,
         analysisId: r.analysis_id,
+        analysisOther: r.analysis_other ?? '',
         startDate: r.start_date ? r.start_date.toISOString().split('T')[0] : null,
         endDate: r.end_date ? r.end_date.toISOString().split('T')[0] : null,
         samplesAnalysedThrough: r.samples_analysed_through,
@@ -111,9 +113,9 @@ const soilWaterRepository = {
 
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_soil_water_equipment 
-            ("kvkId", reporting_year, "soilWaterAnalysisId", equipment_name, quantity, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, kvkId, rYearId, isNaN(analysisId) ? null : analysisId, data.equipmentName || '', isNaN(qty) ? 0 : qty);
+            ("kvkId", reporting_year, "soilWaterAnalysisId", analysis_other, equipment_name, quantity, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `, kvkId, rYearId, isNaN(analysisId) ? null : analysisId, (data.analysisOther && String(data.analysisOther).trim()) || null, data.equipmentName || '', isNaN(qty) ? 0 : qty);
 
         return { success: true };
     },
@@ -165,6 +167,10 @@ const soilWaterRepository = {
             const val = parseInt(data.soilWaterAnalysisId);
             values.push(isNaN(val) ? null : val);
         }
+        if (data.analysisOther !== undefined) {
+            updates.push(`analysis_other = $${index++}`);
+            values.push((String(data.analysisOther).trim()) || null);
+        }
         if (data.equipmentName !== undefined) {
             updates.push(`equipment_name = $${index++}`);
             values.push(data.equipmentName || '');
@@ -215,12 +221,13 @@ const soilWaterRepository = {
         // All NOT NULL columns MUST have values.
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_soil_water_analysis 
-            ("kvkId", start_date, end_date, analysis_id, samples_analysed_through, samples_analysed, villages_number, amount_realized, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ("kvkId", start_date, end_date, analysis_id, analysis_other, samples_analysed_through, samples_analysed, villages_number, amount_realized, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         `, kvkId,
             data.startDate ? new Date(data.startDate) : new Date(),
             data.endDate ? new Date(data.endDate) : new Date(),
             isNaN(aId) ? null : aId,
+            (data.analysisOther && String(data.analysisOther).trim()) || null,
             data.samplesAnalysedThrough || 'Other',
             isNaN(sAnalysed) ? 0 : sAnalysed,
             isNaN(vNum) ? 0 : vNum,
@@ -293,6 +300,11 @@ const soilWaterRepository = {
             stM: 'st_m',
             stF: 'st_f'
         };
+
+        if (data.analysisOther !== undefined) {
+            updates.push(`analysis_other = $${index++}`);
+            values.push((String(data.analysisOther).trim()) || null);
+        }
 
         for (const [key, dbCol] of Object.entries(fieldMap)) {
             if (data[key] !== undefined) {

@@ -5,6 +5,7 @@ model NicraDignitariesVisited {
 
   dateOfVisit      DateTime @map("date_of_visit")
   dignitaryTypeId  Int?     @map("dignitary_type_id")
+  dignitaryTypeOther String? @map("dignitary_type_other")
   dignitaryType    NicraDignitaryTypeMaster? @relation(fields: [dignitaryTypeId], references: [nicraDignitaryTypeId], onDelete: SetNull, onUpdate: Cascade)
   name             String   @map("name")
   remark           String   @map("remark")
@@ -18,6 +19,7 @@ model NicraDignitariesVisited {
 model NicraDignitaryTypeMaster {
   nicraDignitaryTypeId Int    @id @default(autoincrement()) @map("nicra_dignitary_type_id")
   name                 String @unique @map("name")
+  isOther              Boolean @default(false) @map("is_other")
 
   nicraDignitariesVisited NicraDignitariesVisited[]
 

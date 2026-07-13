@@ -11,6 +11,7 @@ const ppvFraTrainingRepository = {
                 kvkId,
                 programmeDate: data.programmeDate ? new Date(data.programmeDate) : new Date(),
                 typeId: parseInt(data.typeId || 0),
+                typeOther: (data.typeOther && String(data.typeOther).trim()) || null,
                 title: data.title || '',
                 venue: data.venue || '',
                 resourcePerson: data.resourcePerson || '',
@@ -69,6 +70,7 @@ const ppvFraTrainingRepository = {
             data: {
                 programmeDate: data.programmeDate !== undefined ? new Date(data.programmeDate) : existing.programmeDate,
                 typeId: data.typeId !== undefined ? parseInt(data.typeId) : existing.typeId,
+                typeOther: data.typeOther !== undefined ? ((String(data.typeOther).trim()) || null) : existing.typeOther,
                 title: data.title !== undefined ? data.title : existing.title,
                 venue: data.venue !== undefined ? data.venue : existing.venue,
                 resourcePerson: data.resourcePerson !== undefined ? data.resourcePerson : existing.resourcePerson,

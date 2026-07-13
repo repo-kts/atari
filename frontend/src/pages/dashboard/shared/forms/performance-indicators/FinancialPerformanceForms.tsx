@@ -6,6 +6,7 @@ import { FinancialYearSelect } from '@/components/common/FinancialYearSelect'
 import { useYears, useFinancialProjects, useFundingAgencies } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { useOtherSpecify } from '@/hooks/useOtherSpecify'
 
 interface FinancialPerformanceFormsProps {
     entityType: ExtendedEntityType | null
@@ -30,20 +31,22 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
     )
 
     const projectOptions = useMemo(
-        () => createMasterDataOptions(financialProjects, 'financialProjectId', 'projectName'),
+        () => createMasterDataOptions(financialProjects, 'financialProjectId', 'projectName', { flagKey: 'isOther' }),
         [financialProjects]
     )
+    const { isOtherSelected: isOtherFinancialProject, otherResetPatch: projectResetPatch } = useOtherSpecify(projectOptions, formData.financialProjectId)
 
     const agencyOptions = useMemo(
-        () => createMasterDataOptions(fundingAgencies, 'fundingAgencyId', 'agencyName'),
+        () => createMasterDataOptions(fundingAgencies, 'fundingAgencyId', 'agencyName', { flagKey: 'isOther' }),
         [fundingAgencies]
     )
+    const { isOtherSelected: isOtherFundingAgency, otherResetPatch: agencyResetPatch } = useOtherSpecify(agencyOptions, formData.fundingAgencyId)
 
     const handleProjectChange = useCallback((value: string | number) => {
         const projectId = (typeof value === 'string' && value.trim() !== '') ? parseInt(value) : (typeof value === 'number' ? value : null);
         
         setFormData((prev: any) => {
-            const updates: any = { financialProjectId: projectId };
+            const updates: any = { financialProjectId: projectId, ...projectResetPatch(value, 'specifyProjectName') };
             
             if (projectId) {
                 const project = financialProjects.find((p: any) => p.financialProjectId === projectId);
@@ -55,7 +58,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
             
             return { ...prev, ...updates };
         });
-    }, [financialProjects, setFormData]);
+    }, [financialProjects, setFormData, projectResetPatch]);
 
     // Optimized onChange handlers
     const handleFieldChange = useCallback(
@@ -408,7 +411,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             isLoading={isLoadingProjects}
                             emptyMessage="No financial projects available"
                         />
-                        {financialProjects.find((p: any) => p.financialProjectId === parseInt(formData.financialProjectId?.toString()))?.projectName === 'Others' && (
+                        {isOtherFinancialProject && (
                             <FormInput
                                 label="Specify Project Name"
                                 required
@@ -435,16 +438,13 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             value={formData.fundingAgencyId ?? ''}
                             onChange={(value) => {
                                 const id = (typeof value === 'string' && value.trim() !== '') ? parseInt(value) : (typeof value === 'number' ? value : null);
-                                setFormData((prev: any) => ({ ...prev, fundingAgencyId: id }));
+                                setFormData((prev: any) => ({ ...prev, fundingAgencyId: id, ...agencyResetPatch(value, 'specifyAgencyName') }));
                             }}
                             options={agencyOptions}
                             isLoading={isLoadingAgencies}
                             emptyMessage="No funding agencies available"
                         />
-                        {(() => {
-                            const sel = fundingAgencies.find((a: any) => a.fundingAgencyId === parseInt(formData.fundingAgencyId?.toString()))
-                            return Boolean(sel?.isOther) || sel?.agencyName === 'Others'
-                        })() && (
+                        {isOtherFundingAgency && (
                             <FormInput
                                 label="Specify Agency Name"
                                 required

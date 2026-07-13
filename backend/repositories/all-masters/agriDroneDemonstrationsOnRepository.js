@@ -44,7 +44,10 @@ const agriDroneDemonstrationsOnRepository = {
         if (!name) throw new Error('demonstrationsOnName is required');
 
         const row = await prisma.agriDroneDemonstrationsOnMaster.create({
-            data: { demonstrationsOnName: name },
+            data: {
+                demonstrationsOnName: name,
+                ...(data?.isOther !== undefined ? { isOther: Boolean(data.isOther) } : {}),
+            },
         });
         return mapRow(row);
     },
@@ -55,7 +58,10 @@ const agriDroneDemonstrationsOnRepository = {
 
         const row = await prisma.agriDroneDemonstrationsOnMaster.update({
             where: { agriDroneDemonstrationsOnId: Number(id) },
-            data: { demonstrationsOnName: name },
+            data: {
+                demonstrationsOnName: name,
+                ...(data?.isOther !== undefined ? { isOther: Boolean(data.isOther) } : {}),
+            },
         });
         return mapRow(row);
     },
@@ -69,4 +75,3 @@ const agriDroneDemonstrationsOnRepository = {
 };
 
 module.exports = agriDroneDemonstrationsOnRepository;
-

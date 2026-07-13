@@ -4,6 +4,7 @@ model CraExtensionActivity {
   kvk                    Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   activityId Int         @map("activity_id")
+  activityOther String?   @map("activity_other")
   activity   FldActivity @relation(fields: [activityId], references: [activityId])
 
   startDate DateTime @map("start_date")

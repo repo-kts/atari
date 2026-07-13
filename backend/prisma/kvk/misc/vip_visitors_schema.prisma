@@ -1,6 +1,7 @@
 model DignitaryType {
   dignitaryTypeId Int          @id @default(autoincrement()) @map("dignitary_type_id")
   name            String       @unique
+  isOther         Boolean      @default(false) @map("is_other")
   visitors        VipVisitor[]
 
   @@map("dignitary_type")
@@ -14,6 +15,7 @@ model VipVisitor {
 
   dateOfVisit     DateTime      @map("date_of_visit")
   dignitaryTypeId Int
+  dignitaryTypeOther String? @map("dignitary_type_other")
   dignitaryType   DignitaryType @relation(fields: [dignitaryTypeId], references: [dignitaryTypeId])
   ministerName    String        @map("minister_name")
   salientPoints   String        @map("salient_points")

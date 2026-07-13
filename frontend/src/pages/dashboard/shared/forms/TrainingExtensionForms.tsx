@@ -452,13 +452,16 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             )}
 
             {entityType === ENTITY_TYPES.EVENTS && (
-                <FormInput
-                    label="Event Name"
-                    required
-                    value={formData.eventName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
-                    placeholder="Enter event name"
-                />
+                <div className="space-y-4">
+                    <FormInput
+                        label="Event Name"
+                        required
+                        value={formData.eventName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
+                        placeholder="Enter event name"
+                    />
+                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData({ ...formData, isOther: checked })} />
+                </div>
             )}
 
             {/* Achievement Training forms-------------- */}

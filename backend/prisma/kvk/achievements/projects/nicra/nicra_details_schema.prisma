@@ -12,6 +12,7 @@ model NicraCategory {
 model NicraSubCategory {
   nicraSubCategoryId Int            @id @default(autoincrement()) @map("nicra_sub_category_id")
   subCategoryName    String         @map("sub_category_name")
+  isOther            Boolean        @default(false) @map("is_other")
   nicraCategoryId    Int
   nicraDetails       NicraDetails[]
   category           NicraCategory  @relation(fields: [nicraCategoryId], references: [nicraCategoryId])
@@ -27,6 +28,7 @@ model NicraDetails {
   nicraCategoryId        Int?
   categoryOther          String?          @map("category_other")
   nicraSubCategoryId     Int?
+  subCategoryOther       String?          @map("sub_category_other")
   fstType                String           @map("fst_type")
   cropName               String           @map("crop_name")
   seasonId               Int?

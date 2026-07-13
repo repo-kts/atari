@@ -35,8 +35,13 @@ export const NariForms: React.FC<NariFormsProps> = ({
         () => createMasterDataOptions(nariNutritionGardenTypes, 'nutritionGardenTypeId', 'name', { flagKey: 'isOther' }),
         [nariNutritionGardenTypes]
     )
+    const cropCategoryOptions = React.useMemo(
+        () => createMasterDataOptions(nariCropCategories, 'cropCategoryId', 'name', { flagKey: 'isOther' }),
+        [nariCropCategories]
+    )
     const { isOtherSelected: isOtherNariActivity, otherResetPatch: nariActivityResetPatch } = useOtherSpecify(nariActivityOptions, formData.activityId)
     const { isOtherSelected: isOtherGardenType, otherResetPatch: gardenTypeResetPatch } = useOtherSpecify(gardenTypeOptions, formData.typeOfNutritionalGardenId)
+    const { isOtherSelected: isOtherCropCategory, otherResetPatch: cropCategoryResetPatch } = useOtherSpecify(cropCategoryOptions, formData.cropCategoryId)
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN && (
@@ -215,18 +220,24 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Activity"
                             required
                             value={formData.activityId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
+                            onChange={(value) => setFormData({ ...formData, activityId: value, ...nariActivityResetPatch(value, 'activityOther') })}
+                            options={nariActivityOptions}
                             placeholder="Select Activity"
                         />
+                        {isOtherNariActivity && (
+                            <SpecifyOtherInput label="Please specify other activity" required value={formData.activityOther} onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })} />
+                        )}
                         <MasterDataDropdown
                             label="Category of Crop"
                             required
                             value={formData.cropCategoryId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, cropCategoryId: value })}
-                            options={createMasterDataOptions(nariCropCategories, 'cropCategoryId', 'name')}
+                            onChange={(value) => setFormData({ ...formData, cropCategoryId: value, ...cropCategoryResetPatch(value, 'cropCategoryOther') })}
+                            options={cropCategoryOptions}
                             placeholder="Select Category"
                         />
+                        {isOtherCropCategory && (
+                            <SpecifyOtherInput label="Please specify other crop category" required value={formData.cropCategoryOther} onChange={(e) => setFormData({ ...formData, cropCategoryOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Name of Crop"
                             required
@@ -358,10 +369,13 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Activity"
                             required
                             value={formData.activityId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
+                            onChange={(value) => setFormData({ ...formData, activityId: value, ...nariActivityResetPatch(value, 'activityOther') })}
+                            options={nariActivityOptions}
                             placeholder="Select Activity"
                         />
+                        {isOtherNariActivity && (
+                            <SpecifyOtherInput label="Please specify other activity" required value={formData.activityOther} onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Name of Value-added product"
                             required
@@ -479,10 +493,13 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Activity"
                             required
                             value={formData.activityId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
+                            onChange={(value) => setFormData({ ...formData, activityId: value, ...nariActivityResetPatch(value, 'activityOther') })}
+                            options={nariActivityOptions}
                             placeholder="Select Activity"
                         />
+                        {isOtherNariActivity && (
+                            <SpecifyOtherInput label="Please specify other activity" required value={formData.activityOther} onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Title of training"
                             required
@@ -627,10 +644,13 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Activity"
                             required
                             value={formData.activityId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
+                            onChange={(value) => setFormData({ ...formData, activityId: value, ...nariActivityResetPatch(value, 'activityOther') })}
+                            options={nariActivityOptions}
                             placeholder="Select Activity"
                         />
+                        {isOtherNariActivity && (
+                            <SpecifyOtherInput label="Please specify other activity" required value={formData.activityOther} onChange={(e) => setFormData({ ...formData, activityOther: e.target.value })} />
+                        )}
                         <FormInput
                             label="Name of Activity"
                             required

@@ -4,6 +4,7 @@ model KkvSoilWaterAnalysis {
   startDate              DateTime          @map("start_date")
   endDate                DateTime          @map("end_date")
   analysisId             Int               @map("analysis_id")
+  analysisOther          String?           @map("analysis_other")
   samplesAnalysedThrough String            @map("samples_analysed_through")
   samplesAnalysed        Int               @map("samples_analysed")
   villagesNumber         Int               @map("villages_number")

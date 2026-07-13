@@ -29,7 +29,7 @@ const getById = async (entityType, id) => {
  * Create Publication Item
  */
 const createPublicationItem = async (data) => {
-    const { publicationName } = data;
+    const { publicationName, isOther } = data;
 
     // Validate
     if (!publicationName) {
@@ -46,7 +46,7 @@ const createPublicationItem = async (data) => {
         throw error;
     }
 
-    return await publicationRepository.create('publication-items', { publicationName });
+    return await publicationRepository.create('publication-items', { publicationName, isOther });
 };
 
 /**

@@ -1,6 +1,7 @@
 model ImpactSpecificAreaMaster {
   specificAreaId   Int      @id @default(autoincrement())
   specificAreaName String
+  isOther          Boolean  @default(false) @map("is_other")
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
 

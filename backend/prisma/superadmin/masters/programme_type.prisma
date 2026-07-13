@@ -1,6 +1,7 @@
 model ProgrammeTypeMaster {
   programmeTypeId Int      @id @default(autoincrement()) @map("programme_type_id")
   programmeType   String   @unique @map("programme_type")
+  isOther         Boolean  @default(false) @map("is_other")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 

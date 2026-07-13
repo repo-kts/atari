@@ -1,6 +1,7 @@
 model EnterpriseTypeMaster {
   enterpriseTypeId   Int                @id @default(autoincrement()) @map("enterprise_type_id")
   enterpriseTypeName String             @unique @map("enterprise_type_name")
+  isOther            Boolean            @default(false) @map("is_other")
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
 

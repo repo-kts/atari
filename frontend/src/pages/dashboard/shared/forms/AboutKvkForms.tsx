@@ -227,6 +227,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         () => toOptions(equipmentStatuses as any[], 'equipmentStatusId', 'statusLabel'),
         [equipmentStatuses],
     )
+    const isOtherVehicleStatusSelected = React.useMemo(
+        () => Boolean((vehicleStatuses as any[]).find((s) => String(s.vehicleStatusId) === String(formData.vehicleStatusId))?.isOther),
+        [vehicleStatuses, formData.vehicleStatusId],
+    )
+    const isOtherEquipmentStatusSelected = React.useMemo(
+        () => Boolean((equipmentStatuses as any[]).find((s) => String(s.equipmentStatusId) === String(formData.equipmentStatusId))?.isOther),
+        [equipmentStatuses, formData.equipmentStatusId],
+    )
     const filteredEquipmentOptions = React.useMemo(() => {
         const typeFilter = formData._filterEquipmentTypeId
         const filtered = (equipments as any[]).filter((eq) =>
@@ -901,10 +909,17 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Present Status"
                             required
                             value={formData.vehicleStatusId ?? ''}
-                            onChange={(e) => setFormData({ ...formData, vehicleStatusId: parseInt(e.target.value) })}
+                            onChange={(e) => {
+                                const vehicleStatusId = parseInt(e.target.value)
+                                const isOther = Boolean((vehicleStatuses as any[]).find((s) => String(s.vehicleStatusId) === String(vehicleStatusId))?.isOther)
+                                setFormData({ ...formData, vehicleStatusId, vehicleStatusOther: isOther ? formData.vehicleStatusOther : '' })
+                            }}
                             options={vehicleStatusOptions}
                             disabled={!formData.reportingYear}
                         />
+                        {isOtherVehicleStatusSelected && (
+                            <FormInput label="Please specify present status" required value={formData.vehicleStatusOther ?? ''} onChange={(e) => setFormData({ ...formData, vehicleStatusOther: e.target.value })} disabled={!formData.reportingYear} />
+                        )}
                     </div>
                     <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
                         <FormInput
@@ -991,9 +1006,16 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         label="Present Status"
                         required
                         value={formData.equipmentStatusId ?? ''}
-                        onChange={(e) => setFormData({ ...formData, equipmentStatusId: parseInt(e.target.value) })}
+                        onChange={(e) => {
+                            const equipmentStatusId = parseInt(e.target.value)
+                            const isOther = Boolean((equipmentStatuses as any[]).find((s) => String(s.equipmentStatusId) === String(equipmentStatusId))?.isOther)
+                            setFormData({ ...formData, equipmentStatusId, equipmentStatusOther: isOther ? formData.equipmentStatusOther : '' })
+                        }}
                         options={equipmentStatusOptions}
                     />
+                    {isOtherEquipmentStatusSelected && (
+                        <FormInput label="Please specify present status" required value={formData.equipmentStatusOther ?? ''} onChange={(e) => setFormData({ ...formData, equipmentStatusOther: e.target.value })} />
+                    )}
                     <FormSelect
                         label="Source of Funding"
                         value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}

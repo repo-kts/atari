@@ -6,6 +6,7 @@ model NicraPiCopi {
   startDate DateTime @map("start_date")
   endDate   DateTime @map("end_date")
   piTypeId  Int?     @map("pi_type_id")
+  piTypeOther String? @map("pi_type_other")
   piType    NicraPiTypeMaster? @relation(fields: [piTypeId], references: [nicraPiTypeId], onDelete: SetNull, onUpdate: Cascade)
   name      String   @map("name")
 
@@ -17,6 +18,7 @@ model NicraPiCopi {
 model NicraPiTypeMaster {
   nicraPiTypeId Int    @id @default(autoincrement()) @map("nicra_pi_type_id")
   name          String @unique @map("name")
+  isOther       Boolean @default(false) @map("is_other")
 
   nicraPiCopi NicraPiCopi[]
 

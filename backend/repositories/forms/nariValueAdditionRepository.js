@@ -21,6 +21,7 @@ const nariValueAdditionRepository = {
                     return d;
                 })(),
                 activityId,
+                activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || '',
                 nameOfCrop: data.nameOfCrop || data.cropName || '',
                 nameOfValueAddedProduct: data.nameOfValueAddedProduct || data.productName || '',
@@ -105,6 +106,7 @@ const nariValueAdditionRepository = {
                     })()
                     : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
+                activityOther: data.activityOther !== undefined ? ((String(data.activityOther).trim()) || null) : undefined,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
                 nameOfCrop: data.nameOfCrop || data.cropName || undefined,
                 nameOfValueAddedProduct: data.nameOfValueAddedProduct || data.productName || undefined,
@@ -225,7 +227,8 @@ function _mapResponse(r) {
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,
-        activityName: r.activity?.activityName,
+        activityName: r.activityOther || r.activity?.activityName,
+        activityOther: r.activityOther ?? '',
         nameOfNutriSmartVillage: r.nameOfNutriSmartVillage,
         nameOfCrop: r.nameOfCrop,
         nameOfValueAddedProduct: r.nameOfValueAddedProduct,

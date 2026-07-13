@@ -10,11 +10,13 @@ model NariBioFortifiedCrop {
   season   Season @relation(fields: [seasonId], references: [seasonId])
 
   activityId Int          @map("activity_id")
+  activityOther String?    @map("activity_other")
   activity   NariActivity @relation(fields: [activityId], references: [nariActivityId])
 
   nameOfNutriSmartVillage String @map("name_of_nutri_smart_village")
 
   cropCategoryId Int          @map("crop_category_id")
+  cropCategoryOther String?    @map("crop_category_other")
   cropCategory   CropCategory @relation(fields: [cropCategoryId], references: [cropCategoryId])
 
   nameOfCrop String @map("name_of_crop")
@@ -41,6 +43,7 @@ model NariBioFortifiedCrop {
 model CropCategory {
   cropCategoryId Int    @id @default(autoincrement()) @map("crop_category_id")
   name           String @unique @map("name")
+  isOther        Boolean @default(false) @map("is_other")
 
   nariBioFortifiedCrops NariBioFortifiedCrop[]
 

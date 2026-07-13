@@ -18,6 +18,7 @@ const nariExtensionActivityRepository = {
                     return d;
                 })(),
                 activityId: data.activityId ? parseInt(data.activityId) : null,
+                activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
                 nameOfActivity: data.nameOfActivity || '',
                 noOfActivities: parseInt(data.noOfActivities || 0),
@@ -101,6 +102,7 @@ const nariExtensionActivityRepository = {
                     })()
                     : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
+                activityOther: data.activityOther !== undefined ? ((String(data.activityOther).trim()) || null) : undefined,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
                 nameOfActivity: data.nameOfActivity !== undefined ? data.nameOfActivity : undefined,
                 noOfActivities: data.noOfActivities !== undefined ? parseInt(data.noOfActivities) : undefined,
@@ -141,7 +143,8 @@ function _mapResponse(r) {
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,
-        activityName: r.activity?.activityName,
+        activityName: r.activityOther || r.activity?.activityName,
+        activityOther: r.activityOther ?? '',
         nameOfNutriSmartVillage: r.nameOfNutriSmartVillage,
         activityOrganized: r.nameOfActivity,
         noOfActivities: r.noOfActivities,

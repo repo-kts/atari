@@ -23,6 +23,7 @@ const nariTrainingProgrammeRepository = {
                     return d;
                 })(),
                 activityId: data.activityId ? parseInt(data.activityId) : null,
+                activityOther: (data.activityOther && String(data.activityOther).trim()) || null,
                 campusType: normalizeCampusType(data.campusType),
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || '',
                 areaOfTraining: data.areaOfTraining || data.trainingArea || '',
@@ -110,6 +111,7 @@ const nariTrainingProgrammeRepository = {
                     })()
                     : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
+                activityOther: data.activityOther !== undefined ? ((String(data.activityOther).trim()) || null) : undefined,
                 campusType: data.campusType !== undefined ? normalizeCampusType(data.campusType) : undefined,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined || data.villageName !== undefined
                     ? (data.nameOfNutriSmartVillage ?? data.villageName)
@@ -158,7 +160,8 @@ function _mapResponse(r) {
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,
-        activityName: r.activity?.activityName,
+        activityName: r.activityOther || r.activity?.activityName,
+        activityOther: r.activityOther ?? '',
         campusType: r.campusType,
         nameOfNutriSmartVillage: r.nameOfNutriSmartVillage,
         areaOfTraining: r.areaOfTraining,
@@ -192,4 +195,3 @@ function _mapResponse(r) {
 }
 
 module.exports = nariTrainingProgrammeRepository;
-

@@ -122,6 +122,7 @@ const ENTITY_CONFIG = {
         model: 'discipline',
         idField: 'disciplineId',
         nameField: 'disciplineName',
+        extraFields: ['isOther'],
         allowDeleteWithDependents: true, // onDelete: SetNull configured
         includes: {
             _count: {
@@ -709,6 +710,10 @@ const create = async (entityType, data) => {
         }
     }
 
+    if (data.isOther !== undefined) {
+        sanitizedData.isOther = Boolean(data.isOther);
+    }
+
     // Optional parent field support (for dependent masters like NICRA sub-category)
     if (config.parentField) {
         const parentVal = data[config.parentField];
@@ -921,6 +926,10 @@ const update = async (entityType, id, data) => {
                 sanitizedData[field] = data[field];
             }
         }
+    }
+
+    if (data.isOther !== undefined) {
+        sanitizedData.isOther = Boolean(data.isOther);
     }
 
     if (config.parentField && data[config.parentField] !== undefined) {

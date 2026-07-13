@@ -113,7 +113,7 @@ const ENTITY_CONFIG = {
         tableName: 'event',
         idColumn: 'event_id',
         requiredFields: ['eventName'],
-        writableFields: ['eventName'],
+        writableFields: ['eventName', 'isOther'],
         includes: {},
     },
 };
