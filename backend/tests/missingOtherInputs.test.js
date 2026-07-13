@@ -8,6 +8,7 @@ process.env.DATABASE_URL ||= 'postgresql://test:test@localhost:5432/test';
 const ROOT = path.resolve(__dirname, '..');
 const prisma = require('../config/prisma.js');
 const aboutKvkRepository = require('../repositories/forms/aboutKvkRepository.js');
+const soilWaterRepository = require('../repositories/forms/soilWaterRepository.js');
 
 function read(relativePath) {
     return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
@@ -86,5 +87,52 @@ test('Infrastructure funding persists specified Other text and rejects an empty 
     } finally {
         prisma.kvkInfrastructure.create = originalCreate;
         prisma.fundingSourceMaster.findFirst = originalFindFirst;
+    }
+});
+
+test('Soil & Water samples-through Other is exposed and preferred in reports', () => {
+    const form = read('../frontend/src/pages/dashboard/shared/forms/SoilWaterTestingForms.tsx');
+    const repository = read('repositories/forms/soilWaterRepository.js');
+    const report = read('repositories/reports/soilWaterAnalysisReport/soilWaterAnalysisReportRepository.js');
+
+    assert.match(form, /samplesAnalysedThroughOther/);
+    assert.match(repository, /samples_analysed_through_other/);
+    assert.match(report, /samplesAnalysedThroughOther\s*\|\|\s*r\.samplesAnalysedThrough/);
+});
+
+test('Soil & Water persists specified samples-through text and rejects an empty value', async () => {
+    const originalQuery = prisma.$queryRawUnsafe;
+    let captured;
+    prisma.$queryRawUnsafe = async (sql, ...values) => {
+        captured = { sql, values };
+        return [];
+    };
+
+    const baseData = {
+        kvkId: 1,
+        reportingYear: '2026-01-01',
+        startDate: '2026-01-01',
+        endDate: '2026-01-02',
+        analysisId: 1,
+        samplesAnalysedThrough: 'Other',
+    };
+
+    try {
+        await soilWaterRepository.createAnalysis({
+            ...baseData,
+            samplesAnalysedThroughOther: '  Mobile lab  ',
+        });
+        assert.match(captured.sql, /samples_analysed_through_other/);
+        assert.ok(captured.values.includes('Mobile lab'));
+
+        await assert.rejects(
+            () => soilWaterRepository.createAnalysis({
+                ...baseData,
+                samplesAnalysedThroughOther: '   ',
+            }),
+            /samplesAnalysedThroughOther is required/,
+        );
+    } finally {
+        prisma.$queryRawUnsafe = originalQuery;
     }
 });

@@ -234,7 +234,8 @@ function detailRowFromRecord(r) {
     const f = FARMER_KEYS.reduce((acc, k) => { acc[k] = safeInt(r[k]); return acc; }, {});
     return {
         analysis: (r.analysisName && String(r.analysisName).trim()) || '—',
-        through: (r.samplesAnalysedThrough && String(r.samplesAnalysedThrough).trim()) || '—',
+        through: ((r.samplesAnalysedThroughOther || r.samplesAnalysedThrough)
+            && String(r.samplesAnalysedThroughOther || r.samplesAnalysedThrough).trim()) || '—',
         samples: safeInt(r.samplesAnalysed),
         villages: safeInt(r.villagesNumber),
         amount: safeInt(r.amountRealized),
@@ -316,6 +317,7 @@ async function fetchAnalysisRecordsForReport(kvkId, filters = {}) {
             stateName,
             analysisName: r.analysisName || '',
             samplesAnalysedThrough: r.samplesAnalysedThrough || '',
+            samplesAnalysedThroughOther: r.samplesAnalysedThroughOther || '',
             samplesAnalysed: safeInt(r.samplesAnalysed),
             villagesNumber: safeInt(r.villagesNumber),
             amountRealized: safeInt(r.amountRealized),
