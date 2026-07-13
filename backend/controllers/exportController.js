@@ -70,7 +70,7 @@ const {
     generateCelebrationDaysPageExcelBuffer,
     generateCelebrationDaysPageWordBuffer,
 } = require('../utils/celebrationDaysPageExport.js');
-const { resolveProductionSupplyGroupedPayload } = require('../repositories/reports/productionSupplyPageReport/productionSupplyPageReportRepository.js');
+const { resolveProductionSupplyCategoryGroupedPayload } = require('../repositories/reports/productionSupplyPageReport/productionSupplyPageReportRepository.js');
 const {
     generateProductionSupplyPageExcelBuffer,
     generateProductionSupplyPageWordBuffer,
@@ -595,7 +595,7 @@ const exportData = async (req, res) => {
                 } else if (templateKey === 'production-supply-page-report') {
                     buffer = await generateProductionSupplyPageExcelBuffer(
                         title,
-                        resolveProductionSupplyGroupedPayload(effectiveRawData),
+                        resolveProductionSupplyCategoryGroupedPayload(effectiveRawData),
                     );
                 } else if (templateKey === 'kvk-award-detailed-report') {
                     buffer = await generateKvkAwardPageExcelBuffer(
@@ -745,7 +745,7 @@ const exportData = async (req, res) => {
                 } else if (templateKey === 'production-supply-page-report') {
                     buffer = await generateProductionSupplyPageWordBuffer(
                         title,
-                        resolveProductionSupplyGroupedPayload(effectiveRawData),
+                        resolveProductionSupplyCategoryGroupedPayload(effectiveRawData),
                     );
                 } else if (templateKey === 'kvk-award-detailed-report') {
                     buffer = await generateKvkAwardPageWordBuffer(

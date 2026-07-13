@@ -246,10 +246,32 @@ function buildPayloadFromRecords(records, filters = {}) {
         bySection.get(key).push(r);
     }
 
+    // Always render the three canonical clientele sections in a fixed order —
+    // Farmers and Farm Women → Rural Youth → Extension Personnel — even when a
+    // section has no data (it renders as an empty table). Seed a placeholder key
+    // (with no rows) for any canonical training type missing from the data so the
+    // ordering below is stable and complete.
+    const presentTitles = new Set(
+        [...bySection.keys()].map((k) => sectionTitleFromRows(bySection.get(k) || []).trim().toLowerCase()),
+    );
+    TRAINING_TYPE_ORDER.forEach((title) => {
+        if (!presentTitles.has(title.trim().toLowerCase())) {
+            bySection.set(`title:${title}`, []);
+        }
+    });
+
+    // Title for a section key — falls back to the seeded placeholder title when
+    // the bucket has no rows.
+    const titleForKey = (key) => {
+        const rows = bySection.get(key) || [];
+        if (rows.length > 0) return sectionTitleFromRows(rows);
+        return typeof key === 'string' && key.startsWith('title:')
+            ? key.slice('title:'.length)
+            : 'Not specified';
+    };
+
     const sectionKeys = [...bySection.keys()].sort((ka, kb) => {
-        const a = sectionTitleFromRows(bySection.get(ka) || []);
-        const b = sectionTitleFromRows(bySection.get(kb) || []);
-        return sortTrainingType(a, b);
+        return sortTrainingType(titleForKey(ka), titleForKey(kb));
     });
 
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -257,7 +279,7 @@ function buildPayloadFromRecords(records, filters = {}) {
 
     sectionKeys.forEach((sectionKey, idx) => {
         const typeRows = bySection.get(sectionKey) || [];
-        const sectionTitle = sectionTitleFromRows(typeRows);
+        const sectionTitle = titleForKey(sectionKey);
         const letter = letters[idx] || String(idx + 1);
 
         const stateMap = new Map();

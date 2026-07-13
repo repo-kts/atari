@@ -165,7 +165,7 @@ function renderTechnicalAchievementSummarySection(section, data, sectionId, isFi
 
     for (const p of (d.production || [])) {
         html += gridBlock(esc, {
-            title: `Production / Supply — ${p.category}`,
+            title: p.category,
             subtitle: null,
             leftLabel: esc(p.category),
             leftCols: [

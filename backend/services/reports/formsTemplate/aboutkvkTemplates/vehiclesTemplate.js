@@ -19,7 +19,7 @@ function renderVehiclesSection(section, data, sectionId, isFirstSection) {
             <tr>
                 <th class="s-no">S. No.</th>
                 <th>KVK</th>
-                <th>Type of vehicle</th>
+                <th>Name of vehicle</th>
                 <th>Registration No.</th>
                 <th>Year of purchase</th>
                 <th>Cost (Rs.)</th>

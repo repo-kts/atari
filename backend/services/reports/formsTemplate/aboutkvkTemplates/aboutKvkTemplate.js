@@ -37,8 +37,6 @@ function renderAboutKvkSection(section, data, sectionId, isFirstSection) {
             includeSanctionYear: false,
             includeMobile: true
         })}
-        <h4 class="about-kvk-subheading">${base}.3 Total Land with KVK</h4>
-        ${this._renderLandTable(records)}
     </div>
 `;
 
