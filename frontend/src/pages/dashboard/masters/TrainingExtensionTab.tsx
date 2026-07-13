@@ -11,7 +11,6 @@ const sections: FeatureSection[] = [
             { label: 'Training Area', path: '/all-master/training-area' },
             { label: 'Training Thematic Area', path: '/all-master/training-thematic' },
             { label: 'Training Clientele', path: '/all-master/training-clientele' },
-            { label: 'Funding Source', path: '/all-master/funding-source' },
         ],
     },
     {

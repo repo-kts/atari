@@ -2255,18 +2255,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.FUNDING_AGENCY_NAME]: {
         extractor: (item: any) => {
-            const masterName = item.fundingAgency?.agencyName || item.agencyName;
-            const specifyName = item.specifyAgencyName;
-            if (masterName === 'Others' && specifyName) {
-                return specifyName;
-            }
+            const masterName = item.fundingSource?.name || item.name;
             return masterName || null;
         },
         priority: 5,
     },
     [FIELD_NAMES.FUNDING_AGENCY]: {
         extractor: (item: any) => {
-            const masterName = item.fundingAgency?.agencyName || item.agencyName;
+            const masterName = item.sourceOfFunding?.name || item.name;
             const specifyName = item.specifyAgencyName;
             if (masterName === 'Others' && specifyName) {
                 return specifyName;

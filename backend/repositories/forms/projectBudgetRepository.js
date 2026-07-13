@@ -13,9 +13,10 @@ const projectBudgetRepository = {
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
                 financialProjectId: parseInt(data.financialProjectId),
-                fundingAgencyId: data.fundingAgencyId ? parseInt(data.fundingAgencyId) : null,
+                sourceOfFundingId: data.sourceOfFundingId ? parseInt(data.sourceOfFundingId) : null,
                 specifyProjectName: data.specifyProjectName || null,
                 specifyAgencyName: data.specifyAgencyName || null,
+                fundingAgencyName: data.fundingAgencyName || null,
                 accountNumber: data.accountNumber || '',
                 budgetEstimate: parseFloat(data.budgetEstimate || 0),
                 budgetAllocated: parseFloat(data.budgetAllocated || 0),
@@ -44,7 +45,7 @@ const projectBudgetRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 projectName: { select: { projectName: true } },
-                fundingAgency: { select: { agencyName: true } }
+                sourceOfFunding: { select: { name: true } }
             },
             orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'projectBudgetId' })
         });
@@ -65,7 +66,7 @@ const projectBudgetRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 projectName: { select: { projectName: true } },
-                fundingAgency: { select: { agencyName: true } }
+                sourceOfFunding: { select: { name: true } }
             }
         });
 
@@ -92,9 +93,10 @@ const projectBudgetRepository = {
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
                 endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
                 financialProjectId: data.financialProjectId !== undefined ? parseInt(data.financialProjectId) : existing.financialProjectId,
-                fundingAgencyId: data.fundingAgencyId !== undefined ? (data.fundingAgencyId ? parseInt(data.fundingAgencyId) : null) : existing.fundingAgencyId,
+                sourceOfFundingId: data.sourceOfFundingId !== undefined ? (data.sourceOfFundingId ? parseInt(data.sourceOfFundingId) : null) : existing.sourceOfFundingId,
                 specifyProjectName: data.specifyProjectName !== undefined ? data.specifyProjectName : existing.specifyProjectName,
                 specifyAgencyName: data.specifyAgencyName !== undefined ? data.specifyAgencyName : existing.specifyAgencyName,
+                fundingAgencyName: data.fundingAgencyName !== undefined ? data.fundingAgencyName : existing.fundingAgencyName,
                 accountNumber: data.accountNumber !== undefined ? data.accountNumber : existing.accountNumber,
                 budgetEstimate: data.budgetEstimate !== undefined ? parseFloat(data.budgetEstimate) : existing.budgetEstimate,
                 budgetAllocated: data.budgetAllocated !== undefined ? parseFloat(data.budgetAllocated) : existing.budgetAllocated,

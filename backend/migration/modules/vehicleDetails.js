@@ -67,7 +67,7 @@ module.exports = {
         let assetFundingSourceId = null;
         const funding = cleanText(row.funding_source);
         if (funding) {
-            const m = await r.findOrCreate('assetFundingSourceMaster', 'name', 'assetFundingSourceId', funding);
+            const m = await r.findOrCreate('fundingSourceMaster', 'name', 'fundingSourceId', funding);
             assetFundingSourceId = m.id;
             if (m.created) warn('assetFundingSourceId', `Created new funding source "${funding}" (#${m.id})`);
         }

@@ -150,7 +150,7 @@ module.exports = {
         ));
         if (rawFunding) {
             const fs = await r.findOrCreate(
-                'assetFundingSourceMaster', 'name', 'assetFundingSourceId', rawFunding,
+                'fundingSourceMaster', 'name', 'fundingSourceId', rawFunding,
             );
             if (fs.id) {
                 assetFundingSourceId = fs.id;

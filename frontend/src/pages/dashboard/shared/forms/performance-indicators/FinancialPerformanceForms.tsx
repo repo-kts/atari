@@ -3,7 +3,7 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput } from '../shared/FormComponents'
 import { FinancialYearSelect } from '@/components/common/FinancialYearSelect'
-import { useYears, useFinancialProjects, useFundingAgencies } from '@/hooks/useOtherMastersData'
+import { useYears, useFinancialProjects, useFundingSources } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { useOtherSpecify } from '@/hooks/useOtherSpecify'
@@ -22,7 +22,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
     const { data: years = [], isLoading: isLoadingYears } = useYears()
     const { data: financialProjects = [], isLoading: isLoadingProjects } = useFinancialProjects()
 
-    const { data: fundingAgencies = [], isLoading: isLoadingAgencies } = useFundingAgencies()
+    const { data: fundingSources = [], isLoading: isLoadingSources } = useFundingSources()
 
     // Memoize options
     const yearOptions = useMemo(
@@ -36,11 +36,11 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
     )
     const { isOtherSelected: isOtherFinancialProject, otherResetPatch: projectResetPatch } = useOtherSpecify(projectOptions, formData.financialProjectId)
 
-    const agencyOptions = useMemo(
-        () => createMasterDataOptions(fundingAgencies, 'fundingAgencyId', 'agencyName', { flagKey: 'isOther' }),
-        [fundingAgencies]
+    const fundingSourceOptions = useMemo(
+        () => createMasterDataOptions(fundingSources, 'fundingSourceId', 'name', { flagKey: 'isOther' }),
+        [fundingSources]
     )
-    const { isOtherSelected: isOtherFundingAgency, otherResetPatch: agencyResetPatch } = useOtherSpecify(agencyOptions, formData.fundingAgencyId)
+    const { isOtherSelected: isOtherFundingSource, otherResetPatch: sourceResetPatch } = useOtherSpecify(fundingSourceOptions, formData.sourceOfFundingId)
 
     const handleProjectChange = useCallback((value: string | number) => {
         const projectId = (typeof value === 'string' && value.trim() !== '') ? parseInt(value) : (typeof value === 'number' ? value : null);
@@ -50,9 +50,9 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
             
             if (projectId) {
                 const project = financialProjects.find((p: any) => p.financialProjectId === projectId);
-                // Auto-fill funding agency if project has one linked
-                if (project?.fundingAgencyId) {
-                    updates.fundingAgencyId = project.fundingAgencyId;
+                // Auto-fill source of funding if project has one linked
+                if (project?.fundingSourceId) {
+                    updates.sourceOfFundingId = project.fundingSourceId;
                 }
             }
             
@@ -433,26 +433,32 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <MasterDataDropdown
-                            label="Name of Funding agency"
+                            label="Source of Funding"
                             required
-                            value={formData.fundingAgencyId ?? ''}
+                            value={formData.sourceOfFundingId ?? ''}
                             onChange={(value) => {
                                 const id = (typeof value === 'string' && value.trim() !== '') ? parseInt(value) : (typeof value === 'number' ? value : null);
-                                setFormData((prev: any) => ({ ...prev, fundingAgencyId: id, ...agencyResetPatch(value, 'specifyAgencyName') }));
+                                setFormData((prev: any) => ({ ...prev, sourceOfFundingId: id, ...sourceResetPatch(value, 'specifyAgencyName') }));
                             }}
-                            options={agencyOptions}
-                            isLoading={isLoadingAgencies}
-                            emptyMessage="No funding agencies available"
+                            options={fundingSourceOptions}
+                            isLoading={isLoadingSources}
+                            emptyMessage="No funding sources available"
                         />
-                        {isOtherFundingAgency && (
+                        {isOtherFundingSource && (
                             <FormInput
-                                label="Specify Agency Name"
+                                label="Specify Source of Funding"
                                 required
                                 value={formData.specifyAgencyName ?? ''}
                                 onChange={handleFieldChange('specifyAgencyName')}
-                                placeholder="Enter agency name..."
+                                placeholder="Enter source of funding..."
                             />
                         )}
+                        <FormInput
+                            label="Funding Agency Name"
+                            value={formData.fundingAgencyName ?? ''}
+                            onChange={handleFieldChange('fundingAgencyName')}
+                            placeholder="Enter funding agency name"
+                        />
                         <FormInput
                             type="number"
                             label="Budget Estimate"

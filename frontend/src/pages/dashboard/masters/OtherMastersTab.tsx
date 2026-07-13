@@ -42,7 +42,7 @@ const sections: FeatureSection[] = [
             { label: 'Asset Status Master', path: '/all-master/vehicle-present-status' },
             { label: 'Vehicle Type Master', path: '/all-master/vehicle-type' },
             { label: 'Equipment Type Master', path: '/all-master/equipment-type' },
-            { label: 'Type of Funding Master', path: '/all-master/asset-funding-source' },
+            { label: 'Funding Source Master', path: '/all-master/funding-source' },
         ],
     },
     {
@@ -81,7 +81,6 @@ const sections: FeatureSection[] = [
         title: 'Project wise Budget Masters',
         icon: <IndianRupee className="w-5 h-5" />,
         items: [
-            { label: 'Funding Agency Master', path: '/all-master/funding-agency' },
             { label: 'Financial Project Master', path: '/all-master/financial-project' },
         ],
     },

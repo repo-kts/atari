@@ -2,7 +2,7 @@ import React, { useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
-import { useNicraCategories, useFundingAgencies, useEquipmentTypes } from '@/hooks/useOtherMastersData'
+import { useNicraCategories, useFundingSources, useEquipmentTypes } from '@/hooks/useOtherMastersData'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { IsOtherCheckbox } from '@/components/common/IsOtherCheckbox'
 
@@ -18,12 +18,12 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
     setFormData,
 }) => {
     const { data: nicraCategories = [] } = useNicraCategories()
-    const { data: fundingAgencies = [] } = useFundingAgencies()
+    const { data: fundingSources = [] } = useFundingSources()
     const { data: equipmentTypes = [] } = useEquipmentTypes()
 
-    const agencyOptions = React.useMemo(() =>
-        createMasterDataOptions(fundingAgencies, 'fundingAgencyId', 'agencyName'),
-        [fundingAgencies]
+    const fundingSourceOptions = React.useMemo(() =>
+        createMasterDataOptions(fundingSources, 'fundingSourceId', 'name'),
+        [fundingSources]
     )
 
     if (!entityType) return null
@@ -71,21 +71,6 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                             setFormData((prev: any) => ({ ...prev, scaleName: e.target.value }))
                         }, [setFormData])}
                         placeholder="e.g. 15600-39100"
-                    />
-                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
-                </div>
-            )}
-
-            {entityType === ENTITY_TYPES.ASSET_FUNDING_SOURCE && (
-                <div className="space-y-4">
-                    <FormInput
-                        label="Name"
-                        required
-                        value={formData.name ?? ''}
-                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
-                        }, [setFormData])}
-                        placeholder="e.g. ICAR"
                     />
                     <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
                 </div>
@@ -503,27 +488,12 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                         placeholder="Enter financial project name"
                     />
                     <FormSelect
-                        label="Default Funding Agency"
-                        value={formData.fundingAgencyId ?? ''}
+                        label="Default Funding Source"
+                        value={formData.fundingSourceId ?? ''}
                         onChange={useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-                            setFormData((prev: any) => ({ ...prev, fundingAgencyId: parseInt(e.target.value) }))
+                            setFormData((prev: any) => ({ ...prev, fundingSourceId: parseInt(e.target.value) }))
                         }, [setFormData])}
-                        options={agencyOptions}
-                    />
-                    <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
-                </div>
-            )}
-
-            {entityType === ENTITY_TYPES.FUNDING_AGENCY && (
-                <div className="space-y-4">
-                    <FormInput
-                        label="Agency Name"
-                        required
-                        value={formData.agencyName ?? ''}
-                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                            setFormData((prev: any) => ({ ...prev, agencyName: e.target.value }))
-                        }, [setFormData])}
-                        placeholder="Enter funding agency name"
+                        options={fundingSourceOptions}
                     />
                     <IsOtherCheckbox checked={Boolean(formData.isOther)} onChange={(checked) => setFormData((prev: any) => ({ ...prev, isOther: checked }))} />
                 </div>

@@ -38,8 +38,8 @@ const MASTER_CATALOG = {
         nameField: 'statusLabel',
     },
     assetFundingSource: {
-        model: 'assetFundingSourceMaster',
-        idField: 'assetFundingSourceId',
+        model: 'fundingSourceMaster',
+        idField: 'fundingSourceId',
         nameField: 'name',
     },
     // The parent vehicle, used by the vehicle-details FK picker.

@@ -16,7 +16,7 @@ model KvkEquipment {
   kvk                  Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   equipmentType        EquipmentTypeMaster?       @relation(fields: [equipmentTypeId], references: [equipmentTypeId], onDelete: SetNull)
   equipmentMaster      EquipmentMaster?           @relation(fields: [equipmentMasterId], references: [equipmentMasterId], onDelete: SetNull)
-  assetFundingSource   AssetFundingSourceMaster?  @relation(fields: [assetFundingSourceId], references: [assetFundingSourceId], onDelete: SetNull)
+  assetFundingSource   FundingSourceMaster?       @relation(fields: [assetFundingSourceId], references: [fundingSourceId], onDelete: SetNull)
   equipmentDetails     KvkEquipmentDetail[]
 
   @@index([kvkId])
@@ -41,7 +41,7 @@ model KvkEquipmentDetail {
   kvk                  Kvk                          @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   equipment            KvkEquipment                 @relation(fields: [equipmentId], references: [equipmentId], onDelete: Cascade)
   equipmentStatus      EquipmentPresentStatusMaster @relation(fields: [equipmentStatusId], references: [equipmentStatusId])
-  assetFundingSource   AssetFundingSourceMaster?    @relation(fields: [assetFundingSourceId], references: [assetFundingSourceId], onDelete: SetNull)
+  assetFundingSource   FundingSourceMaster?         @relation(fields: [assetFundingSourceId], references: [fundingSourceId], onDelete: SetNull)
 
   @@unique([equipmentId, reportingYear])
   @@index([kvkId, reportingYear])

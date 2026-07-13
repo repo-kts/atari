@@ -73,7 +73,6 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.SOIL_WATER_ANALYSIS,
         ENTITY_TYPES.VEHICLE_PRESENT_STATUS,
         ENTITY_TYPES.EQUIPMENT_PRESENT_STATUS,
-        ENTITY_TYPES.ASSET_FUNDING_SOURCE,
         ENTITY_TYPES.VEHICLE_TYPE,
         ENTITY_TYPES.EQUIPMENT_TYPE,
         ENTITY_TYPES.EQUIPMENT_MASTER,
@@ -96,7 +95,6 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.PPV_FRA_TRAINING_TYPE,
         ENTITY_TYPES.DIGNITARY_TYPE,
         ENTITY_TYPES.FINANCIAL_PROJECT,
-        ENTITY_TYPES.FUNDING_AGENCY,
     ] as ExtendedEntityType[],
     ABOUT_KVK: [
         ENTITY_TYPES.KVKS,
@@ -274,7 +272,6 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/all-master/bank-account-type': ENTITY_TYPES.BANK_ACCOUNT_TYPE,
         '/all-master/pay-level': ENTITY_TYPES.PAY_LEVEL,
         '/all-master/pay-scale': ENTITY_TYPES.PAY_SCALE,
-        '/all-master/asset-funding-source': ENTITY_TYPES.ASSET_FUNDING_SOURCE,
         '/all-master/vehicle-type': ENTITY_TYPES.VEHICLE_TYPE,
         '/all-master/equipment-type': ENTITY_TYPES.EQUIPMENT_TYPE,
         '/all-master/equipment-master': ENTITY_TYPES.EQUIPMENT_MASTER,
@@ -309,7 +306,6 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/all-master/ppv-fra-training-type': ENTITY_TYPES.PPV_FRA_TRAINING_TYPE,
         '/all-master/dignitary-type': ENTITY_TYPES.DIGNITARY_TYPE,
         '/all-master/financial-project': ENTITY_TYPES.FINANCIAL_PROJECT,
-        '/all-master/funding-agency': ENTITY_TYPES.FUNDING_AGENCY,
 
         // About KVK
         '/forms/about-kvk/bank-account': ENTITY_TYPES.KVK_BANK_ACCOUNTS,

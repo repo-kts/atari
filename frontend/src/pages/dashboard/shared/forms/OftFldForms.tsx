@@ -177,7 +177,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     // We'll call them here. React Query hooks will trigger fetches if component is mounted.
 
-    const { data: fundingSources = [] } = useFundingSources()
+    const { data: fundingSources = [], isLoading: isLoadingFundingSources } = useFundingSources()
     const { data: oftSubjects = [] } = useOftSubjects()
     const { data: fldSectors = [] } = useSectors()
     const { data: units = [] } = useUnits()
@@ -964,6 +964,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             })}
                             options={oftFundingOptions}
                             emptyMessage="No funding sources available"
+                            isLoading={isLoadingFundingSources}
                         />
                         {isOtherFunding && (
                             <SpecifyOtherInput

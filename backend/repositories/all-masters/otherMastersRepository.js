@@ -132,9 +132,9 @@ const ENTITY_CONFIG = {
             },
         },
     },
-    'asset-funding-source': {
-        model: 'assetFundingSourceMaster',
-        idField: 'assetFundingSourceId',
+    'funding-source': {
+        model: 'fundingSourceMaster',
+        idField: 'fundingSourceId',
         nameField: 'name',
         extraFields: ['isOther'],
         allowDeleteWithDependents: true, // onDelete: SetNull configured
@@ -144,6 +144,8 @@ const ENTITY_CONFIG = {
                     equipments: true,
                     equipmentDetails: true,
                     vehicleDetails: true,
+                    trainings: true,
+                    kvkOfts: true,
                 },
             },
         },
@@ -239,20 +241,6 @@ const ENTITY_CONFIG = {
             _count: {
                 select: {
                     trainings: true,
-                },
-            },
-        },
-    },
-    'funding-source': {
-        model: 'fundingSourceMaster',
-        idField: 'fundingSourceId',
-        nameField: 'name',
-        allowDeleteWithDependents: true, // onDelete: SetNull configured
-        includes: {
-            _count: {
-                select: {
-                    trainings: true,
-                    kvkOfts: true,
                 },
             },
         },
@@ -468,36 +456,23 @@ const ENTITY_CONFIG = {
         model: 'financialProject',
         idField: 'financialProjectId',
         nameField: 'projectName',
-        parentField: 'fundingAgencyId',
-        relationField: 'fundingAgency',
-        relationIdField: 'fundingAgencyId',
+        parentField: 'fundingSourceId',
+        relationField: 'fundingSource',
+        relationIdField: 'fundingSourceId',
         defaultOrderBy: [
-            { fundingAgency: { agencyName: 'asc' } },
+            { fundingSource: { name: 'asc' } },
             { projectName: 'asc' },
             { financialProjectId: 'asc' },
         ],
         includes: {
-            fundingAgency: {
+            fundingSource: {
                 select: {
-                    fundingAgencyId: true,
-                    agencyName: true,
+                    fundingSourceId: true,
+                    name: true,
                 },
             },
             _count: {
                 select: {
-                    projectBudgets: true,
-                },
-            },
-        },
-    },
-    'funding-agency': {
-        model: 'fundingAgency',
-        idField: 'fundingAgencyId',
-        nameField: 'agencyName',
-        includes: {
-            _count: {
-                select: {
-                    financialProjects: true,
                     projectBudgets: true,
                 },
             },

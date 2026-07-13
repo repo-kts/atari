@@ -260,17 +260,6 @@ export const allMastersRoutes: RouteConfig[] = [
         fields: FIELD_GROUPS.TRAINING_CLIENTELE_MASTER,
         moduleCode: 'all_masters_training_master',
     },
-    {
-        path: ENTITY_PATHS.FUNDING_SOURCE,
-        title: 'Funding Source Master',
-        category: 'All Masters',
-        subcategory: 'Training & Extension Masters',
-        parent: '/all-master',
-        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings: MASTER_SIBLING_GROUPS.TRAINING_BASIC_MASTERS,
-        fields: FIELD_GROUPS.TRAINING_CLIENTELE_MASTER,
-        moduleCode: 'all_masters_training_master',
-    },
 
     // Extension & Events
     {
@@ -506,14 +495,14 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_pay_scale_master',
     },
     {
-        path: ENTITY_PATHS.ASSET_FUNDING_SOURCE,
-        title: 'Asset Funding Source Master',
+        path: ENTITY_PATHS.FUNDING_SOURCE,
+        title: 'Funding Source Master',
         category: 'All Masters',
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: MASTER_SIBLING_GROUPS.RESOURCE_MASTERS,
-        fields: FIELD_GROUPS.ASSET_FUNDING_SOURCE_MASTER,
+        fields: FIELD_GROUPS.FUNDING_SOURCE_MASTER,
         moduleCode: 'all_masters_asset_funding_source_master',
     },
     {
@@ -837,17 +826,6 @@ export const allMastersRoutes: RouteConfig[] = [
         fields: FIELD_GROUPS.FINANCIAL_PROJECT_MASTER,
         defaultSortFields: [FIELD_NAMES.FUNDING_AGENCY_NAME, FIELD_NAMES.PROJECT_NAME],
         moduleCode: 'all_masters_financial_project_master',
-    },
-    {
-        path: ENTITY_PATHS.FUNDING_AGENCY,
-        title: 'Funding Agency Master',
-        category: 'All Masters',
-        subcategory: 'Other Masters',
-        parent: '/all-master',
-        subcategoryPath: '/all-master/other-masters',
-        siblings: MASTER_SIBLING_GROUPS.PROJECT_BUDGET_MASTERS,
-        fields: FIELD_GROUPS.FUNDING_AGENCY_MASTER,
-        moduleCode: 'all_masters_funding_agency_master',
     },
 ]
 

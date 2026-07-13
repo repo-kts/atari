@@ -20,13 +20,18 @@ const PAY_LEVELS = [
     'Level - 12', 'Level - 12R', 'Level - 13A', 'Level - 14'
 ];
 
+// Consolidated master: covers what used to be Asset Funding Source + Funding Agency.
 const ASSET_FUNDING_SOURCES = [
+    'central Government/Ministry',
+    'CSR',
+    'Host Organisation',
     'ICAR',
-    'State Govt',
-    'KVK Own Fund',
-    'World Bank',
-    'ATARI',
-    'Revolving Fund',
+    'International Organisation',
+    'NGO',
+    'Other (Please Specify)',
+    'Private Organisation',
+    'Self Funded',
+    'State Government/Department',
 ];
 
 const EQUIPMENT_TYPES = [
@@ -681,10 +686,6 @@ const FLD_SECTOR_DATA = [
     },
 ];
 
-const FUNDING_AGENCIES = [
-    'ICAR', 'State Govt. Ministry of A&FW', 'Central Govt.', 'Others'
-];
-
 const DIGNITARY_TYPES = [
     'VIP',
     'Expert'
@@ -797,10 +798,10 @@ async function seedStaffMasters() {
 }
 
 async function seedAssetFundingSources() {
-    console.log('🌱 Asset funding sources...');
+    console.log('🌱 Funding sources...');
 
     for (const name of ASSET_FUNDING_SOURCES) {
-        await prisma.assetFundingSourceMaster.upsert({
+        await prisma.fundingSourceMaster.upsert({
             where: { name },
             update: {},
             create: { name },
@@ -1484,18 +1485,6 @@ async function seedNariMasters() {
     console.log('   ✅ Done\n');
 }
 
-async function seedFundingAgencies() {
-    console.log('🌱 Funding agencies...');
-    for (const agencyName of FUNDING_AGENCIES) {
-        await prisma.fundingAgency.upsert({
-            where: { agencyName },
-            update: {},
-            create: { agencyName }
-        });
-    }
-    console.log('   ✅ Done\n');
-}
-
 async function seedDignitaryTypeMasters() {
     console.log('🌱 Dignitary type masters...');
     for (const name of DIGNITARY_TYPES) {
@@ -1622,31 +1611,31 @@ async function seedNaturalFarmingSoilParameterMasters() {
 async function seedFinancialProjects() {
     console.log('🌱 Financial projects...');
 
-    // Get all agencies to link defaults
-    const agencies = await prisma.fundingAgency.findMany();
-    const icar = agencies.find(a => a.agencyName === 'ICAR');
-    const state = agencies.find(a => a.agencyName === 'State Govt. Ministry of A&FW');
+    // Get all funding sources to link defaults
+    const sources = await prisma.fundingSourceMaster.findMany();
+    const icar = sources.find(a => a.name === 'ICAR');
+    const state = sources.find(a => a.name === 'State Govt. Ministry of A&FW');
 
     for (const projectName of FINANCIAL_PROJECTS) {
-        let fundingAgencyId = null;
+        let fundingSourceId = null;
 
         // Default mappings
         if (icar && (
             projectName.startsWith('CFLD') ||
             ['NICRA', 'ARYA', 'FPO', 'Natural Farming', 'DRMR', 'NARI', 'IIPR', 'SAP'].includes(projectName)
         )) {
-            fundingAgencyId = icar.fundingAgencyId;
+            fundingSourceId = icar.fundingSourceId;
         } else if (state && ['TSP', 'SCSP'].includes(projectName)) {
-            fundingAgencyId = state.fundingAgencyId;
+            fundingSourceId = state.fundingSourceId;
         } else if (projectName === 'Others') {
-            const othersAgency = agencies.find(a => a.agencyName === 'Others');
-            if (othersAgency) fundingAgencyId = othersAgency.fundingAgencyId;
+            const othersSource = sources.find(a => a.name === 'Others');
+            if (othersSource) fundingSourceId = othersSource.fundingSourceId;
         }
 
         await prisma.financialProject.upsert({
             where: { projectName },
-            update: { fundingAgencyId },
-            create: { projectName, fundingAgencyId }
+            update: { fundingSourceId },
+            create: { projectName, fundingSourceId }
         });
     }
     console.log('   ✅ Done\n');
@@ -1852,7 +1841,6 @@ async function run() {
     await seedUniversities();
     await seedAttachmentTypes();
     await seedNariMasters();
-    await seedFundingAgencies();
     await seedDignitaryTypeMasters();
     await seedPpvFraTrainingTypeMasters();
     await seedTspScspMasters();

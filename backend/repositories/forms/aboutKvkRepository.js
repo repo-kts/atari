@@ -165,7 +165,7 @@ const ENTITY_CONFIG = {
                 },
             },
             vehicleStatus: { select: { vehicleStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
-            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
+            assetFundingSource: { select: { fundingSourceId: true, name: true } },
         }
     },
     'kvk-equipments': {
@@ -176,7 +176,7 @@ const ENTITY_CONFIG = {
             kvk: { select: { kvkId: true, kvkName: true } },
             equipmentType: { select: { equipmentTypeId: true, name: true } },
             equipmentMaster: { select: { equipmentMasterId: true, name: true } },
-            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
+            assetFundingSource: { select: { fundingSourceId: true, name: true } },
         }
     },
     'kvk-equipment-details': {
@@ -193,7 +193,7 @@ const ENTITY_CONFIG = {
                 }
             },
             equipmentStatus: { select: { equipmentStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
-            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
+            assetFundingSource: { select: { fundingSourceId: true, name: true } },
         }
     },
     'kvk-land-details': {
