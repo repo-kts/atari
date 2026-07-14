@@ -25,6 +25,7 @@ const staffQuartersUtilizationReportRepository = require('../../repositories/rep
 const rainwaterHarvestingReportRepository = require('../../repositories/reports/rainwaterHarvestingReport/index.js');
 const agriDroneReportRepository = require('../../repositories/reports/agriDroneReport/index.js');
 const fldStateCategoryReportRepository = require('../../repositories/reports/fldStateCategoryReport/index.js');
+const fldSupplementaryReportRepository = require('../../repositories/reports/fldSupplementaryReport/index.js');
 const trainingCapacityReportRepository = require('../../repositories/reports/trainingCapacityReport/index.js');
 const extensionOutreachReportRepository = require('../../repositories/reports/extensionOutreachReport/index.js');
 const otherExtensionContentReportRepository = require('../../repositories/reports/otherExtensionContentReport/index.js');
@@ -58,6 +59,15 @@ const { normalizeReportKvkId } = require('../../utils/reportKvkId.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
 const { getSectionDataTTL, getKvkInfoTTL } = require('../../config/cacheConfig.js');
+const { createLimiter } = require('../../utils/concurrencyLimiter.js');
+
+// Report aggregation fans out one getSectionData call per (section × KVK). On a
+// cold cache that stampedes the pg pool (`max: 20` in config/prisma.js) and
+// queries start throwing "timeout exceeded when trying to connect". Funnel every
+// DB fetch through a shared limiter kept below the pool size so the burst queues
+// in-process instead of exhausting connections. Override with REPORT_DB_CONCURRENCY.
+const REPORT_DB_CONCURRENCY = Number(process.env.REPORT_DB_CONCURRENCY) || 10;
+const dbFetchLimiter = createLimiter(REPORT_DB_CONCURRENCY);
 
 /**
  * Report Data Service
@@ -92,10 +102,13 @@ class ReportDataService {
             return cached;
         }
 
-        // Fetch from database
+        // Fetch from database. Route through the shared limiter so a cold-cache
+        // aggregation (section × KVK fan-out) cannot exhaust the pg pool. Cache
+        // hits above already returned, so only real DB work is throttled here.
         let rawData;
         const dataSource = sectionConfig.dataSource;
 
+        await dbFetchLimiter(async () => {
         switch (dataSource) {
             case 'kvk':
                 rawData = await reportRepository.getKvkBasicInfo(effectiveKvkId);
@@ -306,6 +319,12 @@ class ReportDataService {
             case 'fldStateCategoryReport':
                 rawData = await fldStateCategoryReportRepository.getFldStateCategoryReportData(effectiveKvkId, sectionFilters);
                 break;
+            case 'fldExtensionTrainingReport':
+                rawData = await fldSupplementaryReportRepository.getFldExtensionTrainingReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'fldTechnicalFeedbackReport':
+                rawData = await fldSupplementaryReportRepository.getFldTechnicalFeedbackReportData(effectiveKvkId, sectionFilters);
+                break;
             case 'technicalAchievementSummary':
                 rawData = await technicalAchievementSummaryRepository.getTechnicalAchievementSummary(effectiveKvkId, sectionFilters);
                 break;
@@ -474,6 +493,7 @@ class ReportDataService {
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
+        });
 
         // OFT sections pass raw data to templates (complex nested structures)
         const skipTransform = dataSource === 'oftSummary'
@@ -525,6 +545,8 @@ class ReportDataService {
             || dataSource === 'tsp'
             || dataSource === 'scsp'
             || dataSource === 'fldStateCategoryReport'
+            || dataSource === 'fldExtensionTrainingReport'
+            || dataSource === 'fldTechnicalFeedbackReport'
             || dataSource === 'technicalAchievementSummary'
             || dataSource === 'trainingCapacityReport'
             || dataSource === 'extensionOutreachReport'
