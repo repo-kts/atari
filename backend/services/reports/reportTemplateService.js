@@ -69,6 +69,7 @@ const { renderNfSoilDataInformationSection } = require('./formsTemplate/projectT
 const { renderNfBudgetExpenditureInformationSection } = require('./formsTemplate/projectTemplates/nfBudgetExpenditureInformationTemplate.js');
 const { renderFldPageReportSection } = require('./formsTemplate/achievementTemplates/fldPageReportTemplate.js');
 const { renderFldStateCategoryReportSection } = require('./formsTemplate/achievementTemplates/fldStateCategoryReportTemplate.js');
+const { renderFldExtensionTrainingReportSection, renderFldTechnicalFeedbackReportSection } = require('./formsTemplate/achievementTemplates/fldSupplementaryReportsTemplate.js');
 const { renderTechnicalAchievementSummarySection } = require('./formsTemplate/achievementTemplates/technicalAchievementSummaryTemplate.js');
 const { renderTrainingCapacityReportSection } = require('./formsTemplate/achievementTemplates/trainingCapacityReportTemplate.js');
 const { renderTrainingsPageReportSection } = require('./formsTemplate/achievementTemplates/trainingsPageReportTemplate.js');
@@ -266,6 +267,8 @@ class ReportTemplateService {
             'nf-budget-expenditure-information': renderNfBudgetExpenditureInformationSection.bind(this),
             'fld-page-report': renderFldPageReportSection.bind(this),
             'fld-state-category-report': renderFldStateCategoryReportSection.bind(this),
+            'fld-extension-training-report': renderFldExtensionTrainingReportSection.bind(this),
+            'fld-technical-feedback-report': renderFldTechnicalFeedbackReportSection.bind(this),
             'technical-achievement-summary': renderTechnicalAchievementSummarySection.bind(this),
             'training-capacity-report': renderTrainingCapacityReportSection.bind(this),
             'trainings-page-report': renderTrainingsPageReportSection.bind(this),
