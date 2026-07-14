@@ -45,10 +45,10 @@ function formatProductName(r) {
 
 function formatQuantityCell(r) {
     const q = safeFloat(r.quantity ?? r.quantityKg);
-    const u = (r.unit && String(r.unit).trim()) || 'Kg';
+    const u = (r.unit && String(r.unit).trim()) || '';
     if (!Number.isFinite(q)) return '—';
     const s = Number.isInteger(q) ? String(q) : String(Number(q.toFixed(3)));
-    return `${s} ${u}`;
+    return u ? `${s} ${u}` : s;
 }
 
 function inferYearLabel(records) {
@@ -180,10 +180,7 @@ function buildPagePayloadFromRecords(records) {
         addToTotals(z, rows[i]);
         units.add((list[i].unit && String(list[i].unit).trim()) || '');
     }
-    const unitList = [...units].filter(Boolean);
-    const quantityGrandLabel = unitList.length === 1
-        ? `${Number.isInteger(z.quantitySum) ? z.quantitySum : Number(z.quantitySum.toFixed(3))} ${unitList[0]}`
-        : (rows.length ? `${Number.isInteger(z.quantitySum) ? z.quantitySum : Number(z.quantitySum.toFixed(3))} (mixed units)` : '—');
+    const quantityGrandLabel = quantitySumLabel(z.quantitySum, units, rows.length);
 
     const grandTotal = grandRowFromTotals(z, quantityGrandLabel);
     return { yearLabel, rows, grandTotal };
@@ -202,11 +199,7 @@ function buildBlock(list, totalLabel) {
         addToTotals(z, row);
         units.add((list[i].unit && String(list[i].unit).trim()) || '');
     });
-    const unitList = [...units].filter(Boolean);
-    const qSum = Number.isInteger(z.quantitySum) ? z.quantitySum : Number(z.quantitySum.toFixed(3));
-    const quantityLabel = unitList.length === 1
-        ? `${qSum} ${unitList[0]}`
-        : (rows.length ? `${qSum} (mixed units)` : '—');
+    const quantityLabel = quantitySumLabel(z.quantitySum, units, rows.length);
     const total = grandRowFromTotals(z, quantityLabel);
     total.productName = totalLabel;
     return { rows, total };
@@ -331,6 +324,7 @@ function quantitySumLabel(sum, unitSet, rowCount) {
     const unitList = [...unitSet].filter(Boolean);
     const qSum = Number.isInteger(sum) ? sum : Number(sum.toFixed(3));
     if (!rowCount) return '—';
+    if (unitList.length === 0) return String(qSum);
     return unitList.length === 1 ? `${qSum} ${unitList[0]}` : `${qSum} (mixed units)`;
 }
 

@@ -95,15 +95,18 @@ async function getKvkVehicleDetails(kvkId, filters = {}) {
         yearOfPurchase: d.vehicle?.yearOfPurchase ?? '',
         totalCost: d.vehicle?.totalCost ?? '',
         totalRun: d.totalRun ?? '',
-        presentStatus: d.vehicleStatus?.statusLabel ?? '',
+        presentStatus: d.vehicleStatusOther || d.vehicleStatus?.statusLabel || '',
         repairingCost: d.repairingCost ?? '',
-        sourceOfFunding: d.assetFundingSource?.name ?? '',
+        sourceOfFunding: d.assetFundingSourceOther || d.assetFundingSource?.name || '',
+        fundingAgencyName: d.fundingAgencyName || '',
     }));
 }
 
 async function getKvkEquipments(kvkId, filters = {}) {
     const where = { kvkId };
     applyCreatedAtFilters(where, filters);
+    const detailWhere = {};
+    applyDateFilters(detailWhere, filters, 'reportingYear');
 
     const rows = await prisma.kvkEquipment.findMany({
         where,
@@ -114,7 +117,11 @@ async function getKvkEquipments(kvkId, filters = {}) {
             assetFundingSource: { select: { name: true } },
             // Present Status lives on the yearly detail.
             equipmentDetails: {
-                include: { equipmentStatus: { select: { statusLabel: true } } },
+                where: detailWhere,
+                include: {
+                    equipmentStatus: { select: { statusLabel: true } },
+                    assetFundingSource: { select: { name: true } },
+                },
                 orderBy: { reportingYear: 'desc' },
             },
         },
@@ -130,8 +137,13 @@ async function getKvkEquipments(kvkId, filters = {}) {
             ...e,
             kvkName: e.kvk?.kvkName || '',
             equipmentName: e.equipmentName || e.equipmentMaster?.name || '',
-            sourceOfFunding: e.assetFundingSource?.name || '',
-            presentStatus: latest?.equipmentStatus?.statusLabel ?? '',
+            sourceOfFunding: latest?.assetFundingSourceOther
+                || latest?.assetFundingSource?.name
+                || e.assetFundingSourceOther
+                || e.assetFundingSource?.name
+                || '',
+            fundingAgencyName: latest?.fundingAgencyName || '',
+            presentStatus: latest?.equipmentStatusOther || latest?.equipmentStatus?.statusLabel || '',
         };
     });
 }
@@ -171,9 +183,10 @@ async function getKvkEquipmentRecords(kvkId, filters = {}) {
         equipmentName: d.equipment?.equipmentName || d.equipment?.equipmentMaster?.name || '',
         yearOfPurchase: d.equipment?.yearOfPurchase ?? '',
         totalCost: d.equipment?.totalCost ?? '',
-        presentStatus: d.equipmentStatus?.statusLabel ?? '',
+        presentStatus: d.equipmentStatusOther || d.equipmentStatus?.statusLabel || '',
         repairingCost: d.repairingCost ?? '',
-        sourceOfFunding: d.assetFundingSource?.name ?? '',
+        sourceOfFunding: d.assetFundingSourceOther || d.assetFundingSource?.name || '',
+        fundingAgencyName: d.fundingAgencyName || '',
     }));
 }
 
