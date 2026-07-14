@@ -116,7 +116,7 @@ const REPORT_INDEX_TAXONOMY = {
                     { label: 'Technology Week', sectionId: '2.10' },
                     { label: 'Celebration Days', sectionId: '2.11' },
                     { label: 'World Soil Day', sectionId: '2.15' },
-                    { label: 'Poshan Maaha', sectionId: '' },
+                    { label: 'Poshan Maah', sectionId: '5.8' },
                 ],
             },
             {

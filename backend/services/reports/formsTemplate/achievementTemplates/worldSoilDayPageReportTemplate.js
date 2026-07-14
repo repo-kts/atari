@@ -16,7 +16,6 @@ function fmtInt(v) {
 function tableCss() {
     return `
   .wsd-page-wrap { width:100%; font-size:6pt; line-height:1.15; }
-  .wsd-page-title { font-size:8pt; font-weight:bold; margin:0 0 4px 0; }
   .wsd-group { margin-bottom:8px; page-break-inside:avoid; break-inside:avoid; }
   .wsd-kvk-hd { font-size:7.5pt; font-weight:bold; background:#dce6f1; padding:3px 5px; border:0.35pt solid #000; border-bottom:0; margin:8px 0 0 0; page-break-after:avoid; break-after:avoid; }
   .wsd-page-tbl { width:100%; border-collapse:collapse; table-layout:fixed; }
@@ -98,11 +97,15 @@ function renderGroup(g, showKvkHeader) {
 function renderWorldSoilDayPageReportSection(section, data, sectionId, isFirstSection) {
     const payload = resolveWorldSoilDayGroupedPayload(data);
     const groups = payload.groups || [];
+    const isPromotedFeature = section.featureNumber && section.id === section.featureNumber;
+    const headingTag = isPromotedFeature ? 'h2' : 'h1';
+    const headingClass = isPromotedFeature ? 'section-subtitle' : 'section-title';
+    const headingText = `${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}`;
 
     if (groups.length === 0) {
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
+  <${headingTag} class="${headingClass}">${headingText}</${headingTag}>
   <p class="no-data">No World Soil Day celebration data for this period.</p>
 </div>`;
     }
@@ -123,8 +126,7 @@ function renderWorldSoilDayPageReportSection(section, data, sectionId, isFirstSe
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="wsd-page-wrap">
-    <div class="wsd-page-title">7. SOIL &amp; WATER TESTING</div>
-    <div class="wsd-page-title">d. Details of World Soil Day Celebration</div>
+    <${headingTag} class="${headingClass}">${headingText}</${headingTag}>
     ${groupsHtml}
     ${grandHtml}
   </div>

@@ -482,6 +482,7 @@ class ReportDataService {
             // flat field-mapping transform drops. Pass the raw record through — the
             // template already resolves both raw and display-name keys.
             || dataSource === 'kvk'
+            || dataSource === 'kvkLandDetails'
             || dataSource === 'oftDetailCards'
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'

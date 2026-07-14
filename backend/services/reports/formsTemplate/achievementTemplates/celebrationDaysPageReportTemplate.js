@@ -107,10 +107,10 @@ function renderCelebrationDaysPageReportSection(section, data, sectionId, isFirs
 
     if (groups.length === 0) {
         return `
-<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
-  <p class="no-data">No celebration days data for export.</p>
-</div>`;
+        <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
+            <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
+            <p class="no-data">No celebration days data for export.</p>
+        </div>`;
     }
 
     const showKvkHeader = payload.isMultiKvk;
@@ -118,20 +118,20 @@ function renderCelebrationDaysPageReportSection(section, data, sectionId, isFirs
 
     const grandHtml = payload.isMultiKvk
         ? `
-    <table class="cd-page-tbl">${headHtml()}
-      <tbody>${dataRow(payload.grandTotal, 'grand')}</tbody>
-    </table>`
+        <table class="cd-page-tbl">${headHtml()}
+        <tbody>${dataRow(payload.grandTotal, 'grand')}</tbody>
+        </table>`
         : '';
 
     return `
-<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <style>${tableCss()}</style>
-  <div class="cd-page-wrap">
-    <div class="cd-page-sec">D. Celebration of important days in KVKs</div>
-    ${groupsHtml}
-    ${grandHtml}
-  </div>
-</div>`;
+        <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
+            <style>${tableCss()}</style>
+            <div class="cd-page-wrap">
+                <div class="cd-page-sec">D. Celebration of important days in KVKs</div>
+                ${groupsHtml}
+                ${grandHtml}
+            </div>
+        </div>`;
 }
 
 module.exports = {

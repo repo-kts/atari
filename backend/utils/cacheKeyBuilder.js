@@ -17,9 +17,9 @@ class CacheKeyBuilder {
      */
     static sectionData(kvkId, sectionId, filters = {}) {
         const filterHash = this._hashFilters(filters);
-        // v3: bust stale entries after payload shape changes (OFT summary now
-        // carries farmer counts; older cached entries lacked them -> rendered 0s).
-        return `report:kvk:section:v3:${kvkId}:${sectionId}${filterHash ? `:${filterHash}` : ''}`;
+        // v5: bust stale entries after report index moves (Poshan Maah moved
+        // from Miscellaneous to Achievements / Special Days).
+        return `report:kvk:section:v5:${kvkId}:${sectionId}${filterHash ? `:${filterHash}` : ''}`;
     }
 
     /**
@@ -34,21 +34,21 @@ class CacheKeyBuilder {
      */
     static aggregatedReport(role, scopeId, sectionId, filters = {}) {
         const filterHash = this._hashFilters(filters);
-        return `report:${role}:aggregated:${scopeId}:${sectionId}${filterHash ? `:${filterHash}` : ''}`;
+        return `report:${role}:aggregated:v4:${scopeId}:${sectionId}${filterHash ? `:${filterHash}` : ''}`;
     }
 
     /**
      * Build pattern for invalidating all sections of a KVK
      */
     static kvkSectionsPattern(kvkId) {
-        return `report:kvk:section:v3:${kvkId}:*`;
+        return `report:kvk:section:v5:${kvkId}:*`;
     }
 
     /**
      * Build pattern for invalidating all sections of a KVK for a specific section
      */
     static kvkSectionPattern(kvkId, sectionId) {
-        return `report:kvk:section:v3:${kvkId}:${sectionId}*`;
+        return `report:kvk:section:v5:${kvkId}:${sectionId}*`;
     }
 
     /**
