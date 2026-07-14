@@ -258,7 +258,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
 
             {/* 2. Details of operational area / villages */}
             {entityType === ENTITY_TYPES.PERFORMANCE_OPERATIONAL_AREA && (
-                <div className="space-y-4 max-w-7xl mx-auto">
+                <div className="space-y-4 mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <MasterDataDropdown
                             label="Reporting Year"
@@ -329,7 +329,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
 
             {/* 3. Details of village adoption programme */}
             {entityType === ENTITY_TYPES.PERFORMANCE_VILLAGE_ADOPTION && (
-                <div className="space-y-4 max-w-7xl mx-auto">
+                <div className="space-y-4 mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <MasterDataDropdown
                             label="Reporting Year"
@@ -372,7 +372,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
 
             {/* 4. Priority thrust areas */}
             {entityType === ENTITY_TYPES.PERFORMANCE_PRIORITY_THRUST && (
-                <div className="space-y-4 max-w-7xl mx-auto">
+                <div className="space-y-4 mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <MasterDataDropdown
                             label="Reporting Year"
