@@ -155,6 +155,23 @@ function normalizeArgsForModel(model, args, mode) {
     return args;
 }
 
+function getSslConfig(databaseUrl) {
+    // Local PostgreSQL installations normally do not expose TLS.  Passing an
+    // `ssl` object to pg forces a TLS handshake, so only opt in when the URL
+    // explicitly requires it (for example, Neon).
+    try {
+        const sslMode = new URL(databaseUrl).searchParams.get('sslmode')?.toLowerCase();
+
+        if (['require', 'verify-ca', 'verify-full', 'no-verify'].includes(sslMode)) {
+            return { rejectUnauthorized: sslMode === 'verify-full' };
+        }
+    } catch {
+        // Let pg report an invalid connection string with its usual error.
+    }
+
+    return false;
+}
+
 // Check if using Prisma Accelerate or direct connection
 const isAccelerate = process.env.DATABASE_URL.startsWith('prisma+');
 
@@ -173,13 +190,11 @@ if (isAccelerate) {
         transactionOptions: { maxWait: 15000, timeout: 30000 },
     });
 } else {
-    const databaseUrl = new URL(process.env.DATABASE_URL);
-    const useSsl = databaseUrl.searchParams.get('sslmode') !== 'disable';
-
-    // Create a PostgreSQL connection pool configured for Neon serverless
+    // Use TLS only when the connection URL requests it. This supports both
+    // hosted PostgreSQL (for example `?sslmode=require`) and local dump DBs.
     const pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: useSsl ? { rejectUnauthorized: false } : false, // Allow local non-SSL Postgres
+        ssl: getSslConfig(process.env.DATABASE_URL),
         max: 20,
         min: 0, // Don't maintain idle connections — Neon suspends them
         idleTimeoutMillis: 20000, // Release idle connections before Neon drops them

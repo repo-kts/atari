@@ -64,7 +64,10 @@ class RedisCacheService {
                     console.error('Failed to connect to Redis:', error.message);
                 }
                 this.enabled = false;
-                this.client.disconnect();
+                // ioredis has already closed the failed lazy connection. Calling
+                // disconnect() here can surface a second "Connection is closed"
+                // error and obscures the original failure.
+                this.client = null;
             });
         } catch (error) {
             console.error('Failed to initialize Redis client:', error.message);
