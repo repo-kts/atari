@@ -34,11 +34,15 @@ function renderCelebrationDaysStateMatrixReportSection(section, data, sectionId,
     const stateColumns = payload.stateColumns || [];
     const matrixRows = payload.matrixRows || [];
     const y = payload.yearLabel || '';
+    const isPromotedFeature = section.featureNumber && section.id === section.featureNumber;
+    const headingTag = isPromotedFeature ? 'h2' : 'h1';
+    const headingClass = isPromotedFeature ? 'section-subtitle' : 'section-title';
+    const headingText = `${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}`;
 
     if (!matrixRows.length) {
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
+  <${headingTag} class="${headingClass}">${headingText}</${headingTag}>
   <p class="no-data">No important days celebration data for this period.</p>
 </div>`;
     }
@@ -68,7 +72,7 @@ function renderCelebrationDaysStateMatrixReportSection(section, data, sectionId,
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="cd-mx-wrap">
-    <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
+    <${headingTag} class="${headingClass}">${headingText}</${headingTag}>
     <table class="cd-mx-tbl">
       <thead>
         <tr>

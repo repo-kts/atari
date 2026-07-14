@@ -173,10 +173,13 @@ if (isAccelerate) {
         transactionOptions: { maxWait: 15000, timeout: 30000 },
     });
 } else {
+    const databaseUrl = new URL(process.env.DATABASE_URL);
+    const useSsl = databaseUrl.searchParams.get('sslmode') !== 'disable';
+
     // Create a PostgreSQL connection pool configured for Neon serverless
     const pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }, // Allow self-signed certificates
+        ssl: useSsl ? { rejectUnauthorized: false } : false, // Allow local non-SSL Postgres
         max: 20,
         min: 0, // Don't maintain idle connections — Neon suspends them
         idleTimeoutMillis: 20000, // Release idle connections before Neon drops them

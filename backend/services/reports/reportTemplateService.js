@@ -1047,6 +1047,7 @@ class ReportTemplateService {
                 landRows.push({
                     kvkName,
                     item: detail.item,
+                    description: detail.description,
                     areaHa: detail.areaHa,
                 });
             });
@@ -1061,6 +1062,7 @@ class ReportTemplateService {
                 <td class="serial-col">${index + 1}.</td>
                 ${includeKvkColumn ? `<td>${this._escapeHtml(this._toDisplayValue(row.kvkName))}</td>` : ''}
                 <td>${this._escapeHtml(this._toDisplayValue(row.item))}</td>
+                <td>${this._escapeHtml(this._toDisplayValue(row.description))}</td>
                 <td>${this._escapeHtml(this._toDisplayValue(row.areaHa))}</td>
             </tr>`)
             .join('');
@@ -1072,6 +1074,7 @@ class ReportTemplateService {
                 <th class="serial-col">S.No.</th>
                 ${includeKvkColumn ? '<th>KVK Name</th>' : ''}
                 <th>Item</th>
+                <th>Description</th>
                 <th class="area-col">Area (Ha)</th>
             </tr>
         </thead>
@@ -1090,7 +1093,10 @@ class ReportTemplateService {
             .filter(item => item && typeof item === 'object')
             .map(item => ({
                 item: item.item ?? '-',
-                areaHa: item.areaHa ?? '-'
+                description: item.description ?? '-',
+                areaHa: item.areaHa ?? '-',
+                landItemMaster: item.landItemMaster,
+                specifyItemName: item.specifyItemName
             }));
     }
 

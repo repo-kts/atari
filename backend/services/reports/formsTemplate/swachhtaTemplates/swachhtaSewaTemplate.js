@@ -29,10 +29,14 @@ function renderSwachhtaSewaSection(section, data, sectionId, isFirstSection, rep
                 <th rowspan="2" style="vertical-align:bottom;">KVK</th>`
         : `<th rowspan="2" style="vertical-align:bottom;">KVK</th>`;
     const colCount = isAgg ? 8 : 7;
+    const isPromotedFeature = section.featureNumber && section.id === section.featureNumber;
+    const headingTag = isPromotedFeature ? 'h2' : 'h1';
+    const headingClass = isPromotedFeature ? 'section-subtitle' : 'section-title';
+    const headingText = `${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}`;
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title" style="margin-bottom:10px;">${section.id} ${this._escapeHtml(section.title)}</h1>
+    <${headingTag} class="${headingClass}" style="margin-bottom:10px;">${headingText}</${headingTag}>
     <table class="data-table" style="width:100%;table-layout:fixed;">
         <thead>
             <tr>

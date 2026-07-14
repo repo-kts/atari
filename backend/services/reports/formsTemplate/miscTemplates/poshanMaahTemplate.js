@@ -71,10 +71,14 @@ function renderPoshanMaahSection(section, data, sectionId, isFirstSection) {
     const pageClass = isFirstSection
         ? 'section-page section-page-first'
         : 'section-page section-page-continued';
+    const isPromotedFeature = section.featureNumber && section.id === section.featureNumber;
+    const headingTag = isPromotedFeature ? 'h2' : 'h1';
+    const headingClass = isPromotedFeature ? 'section-subtitle' : 'section-title';
+    const headingText = `${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}`;
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title" style="margin-bottom:16px;">Poshan Maah</h1>`;
+    <${headingTag} class="${headingClass}" style="margin-bottom:16px;">${headingText}</${headingTag}>`;
 
     const grouped = _groupByKvk(records);
 
