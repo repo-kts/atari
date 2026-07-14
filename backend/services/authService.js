@@ -4,6 +4,7 @@ const permissionResolverService = require('./auth/permissionResolverService.js')
 const { comparePassword } = require('../utils/password.js');
 const { generateAccessToken, generateRefreshToken, verifyToken, decodeToken } = require('../utils/jwt.js');
 const { validateEmail } = require('../utils/validation.js');
+const { AuthenticationError, NotFoundError } = require('../utils/errorHandler.js');
 
 /**
  * Resolve the permissionsByModule map for the login / /me response.
@@ -53,7 +54,7 @@ const authService = {
     login: async (email, password, context = {}) => {
         // Validate email format
         if (!validateEmail(email)) {
-            throw new Error('Invalid email format');
+            throw new AuthenticationError('Invalid email format');
         }
 
         // Find user by email
@@ -62,14 +63,14 @@ const authService = {
         if (!user || user.deletedAt) {
             // Always run bcrypt even when user not found to prevent timing attacks
             await comparePassword(password, '$2b$10$invalidhashfortimingatttack000000000000000000');
-            throw new Error('Invalid email or password');
+            throw new AuthenticationError('Invalid email or password');
         }
 
         // Verify password
         const isPasswordValid = await comparePassword(password, user.passwordHash);
 
         if (!isPasswordValid) {
-            throw new Error('Invalid email or password');
+            throw new AuthenticationError('Invalid email or password');
         }
 
         // Build permissions via the shared resolver so the login response
@@ -152,29 +153,29 @@ const authService = {
         try {
             decoded = verifyToken(refreshToken, 'refresh');
         } catch (error) {
-            throw new Error('Invalid or expired refresh token');
+            throw new AuthenticationError('Invalid or expired refresh token');
         }
 
         // Find refresh token in database
         const tokenRecord = await authRepository.findRefreshToken(refreshToken);
         if (!tokenRecord) {
-            throw new Error('Refresh token not found');
+            throw new AuthenticationError('Refresh token not found');
         }
 
         // Check if token is valid (not revoked, not expired)
         const isValid = await authRepository.isRefreshTokenValid(refreshToken);
         if (!isValid) {
-            throw new Error('Refresh token has been revoked or expired');
+            throw new AuthenticationError('Refresh token has been revoked or expired');
         }
 
         // Verify token matches user
         if (tokenRecord.userId !== decoded.userId || tokenRecord.tokenId !== decoded.tokenId) {
-            throw new Error('Token mismatch');
+            throw new AuthenticationError('Token mismatch');
         }
 
         // Check if user still exists and is active
         if (tokenRecord.user.deletedAt) {
-            throw new Error('User account has been deleted');
+            throw new AuthenticationError('User account has been deleted');
         }
 
         // Generate compact access token (identity claims only).
@@ -291,11 +292,11 @@ const authService = {
     getCurrentUser: async (userId) => {
         const user = await authRepository.findUserById(userId);
         if (!user) {
-            throw new Error('User not found');
+            throw new NotFoundError('User');
         }
 
         if (user.deletedAt) {
-            throw new Error('User account has been deleted');
+            throw new AuthenticationError('User account has been deleted');
         }
 
         // Shared resolver — same function the middleware uses on every request,

@@ -2,6 +2,35 @@
 require('dotenv').config();
 const authService = require('../services/authService.js');
 
+// Generic, user-friendly message shown when something unexpected goes wrong
+// on our side (DB unreachable, TLS/SSL failure, Prisma errors, etc.). We never
+// leak the raw technical error to the client — it's logged server-side instead.
+const GENERIC_AUTH_ERROR =
+  "We're having trouble signing you in right now due to a temporary problem on our end. Please try again in a moment, and contact support if it keeps happening.";
+
+/**
+ * Send an auth error response.
+ *
+ * Errors we deliberately throw (bad credentials, expired session, missing user)
+ * carry a `statusCode` and a message that is safe to show. Anything else is an
+ * unexpected server/infrastructure failure: log the real error and return a
+ * generic friendly message so the end user never sees a stack trace or a raw
+ * database/Prisma error.
+ *
+ * @param {object} res - Express response
+ * @param {Error} error - Caught error
+ * @param {string} context - Short label for server logs (e.g. 'login')
+ * @param {number} unexpectedStatus - Status for unexpected failures (default 503)
+ */
+function sendAuthError(res, error, context, unexpectedStatus = 503) {
+  if (error && typeof error.statusCode === 'number') {
+    return res.status(error.statusCode).json({ error: error.message });
+  }
+
+  console.error(`[auth:${context}] Unexpected error:`, error);
+  return res.status(unexpectedStatus).json({ error: GENERIC_AUTH_ERROR });
+}
+
 /**
  * Get cookie options based on environment
  * Handles Safari, incognito, and cross-origin cookie requirements
@@ -131,7 +160,7 @@ const authController = {
         user: result.user,
       });
     } catch (error) {
-      res.status(401).json({ error: error.message });
+      sendAuthError(res, error, 'login');
     }
   },
 
@@ -168,7 +197,7 @@ const authController = {
       const clearOpts = getClearCookieOptions();
       res.clearCookie('accessToken', clearOpts);
       res.clearCookie('refreshToken', clearOpts);
-      res.status(401).json({ error: error.message });
+      sendAuthError(res, error, 'refresh');
     }
   },
 
@@ -212,7 +241,7 @@ const authController = {
       const user = await authService.getCurrentUser(req.user.userId);
       res.status(200).json(user);
     } catch (error) {
-      res.status(404).json({ error: error.message });
+      sendAuthError(res, error, 'me');
     }
   },
 };

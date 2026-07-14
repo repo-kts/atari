@@ -38,6 +38,17 @@ class UnauthorizedError extends Error {
     }
 }
 
+// Authentication failures the user CAN act on (wrong credentials, expired
+// session). The message is safe to show as-is; the status is 401.
+class AuthenticationError extends Error {
+    constructor(message = 'Authentication failed') {
+        super(message);
+        this.name = 'AuthenticationError';
+        this.code = 'AUTHENTICATION_ERROR';
+        this.statusCode = 401;
+    }
+}
+
 class ConflictError extends Error {
     constructor(message = 'Resource conflict') {
         super(message);
@@ -327,6 +338,7 @@ module.exports = {
     ValidationError,
     NotFoundError,
     UnauthorizedError,
+    AuthenticationError,
     ConflictError,
     translatePrismaError,
     formatErrorResponse,
