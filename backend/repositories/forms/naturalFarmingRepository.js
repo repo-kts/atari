@@ -860,11 +860,18 @@ const beneficiariesRepository = {
         const where = {};
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         else if (filters?.kvkId) where.kvkId = parseInt(filters.kvkId);
+        // This model stores the reporting year as `reportingYearDate` (month-level
+        // DateTime) + `year` (Int) — there is no `reportingYear` column, so DON'T
+        // pass reportingYear:true. Order the real column at the DB level;
+        // sortFormListRows regroups by YEAR in memory (via row.reportingYear below).
+        const orderBy = buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'beneficiariesDetailsId' });
+        orderBy.unshift({ reportingYearDate: 'desc' });
         const records = await prisma.beneficiariesDetails.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
-            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'beneficiariesDetailsId' })
+            orderBy
         });
+        for (const row of records) row.reportingYear = row.reportingYearDate;
         sortFormListRows(records, user, { tiebreak: 'beneficiariesDetailsId' });
 
         return records.map(r => ({
@@ -967,6 +974,11 @@ const soilDataRepository = {
         const where = {};
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         else if (filters?.kvkId) where.kvkId = parseInt(filters.kvkId);
+        // Model uses `reportingYearDate` + `year`, not `reportingYear` — don't
+        // pass reportingYear:true. Order the real column at the DB level;
+        // sortFormListRows regroups by YEAR in memory (via row.reportingYear below).
+        const orderBy = buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'soilDataInformationId' });
+        orderBy.unshift({ reportingYearDate: 'desc' });
         const records = await prisma.soilDataInformation.findMany({
             where,
             include: {
@@ -974,8 +986,9 @@ const soilDataRepository = {
                 season: true,
                 soilParameterMaster: true,
             },
-            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'soilDataInformationId' })
+            orderBy
         });
+        for (const row of records) row.reportingYear = row.reportingYearDate;
         sortFormListRows(records, user, { tiebreak: 'soilDataInformationId' });
 
         return records.map(r => ({
@@ -1128,14 +1141,20 @@ const financialInfoRepository = {
         const where = {};
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         else if (filters?.kvkId) where.kvkId = parseInt(filters.kvkId);
+        // Model uses `reportingYearDate` + `year`, not `reportingYear` — don't
+        // pass reportingYear:true. Order the real column at the DB level;
+        // sortFormListRows regroups by YEAR in memory (via row.reportingYear below).
+        const orderBy = buildFormListOrderBy(user, { kvkRelation: 'kvk', tiebreak: 'financialInformationId' });
+        orderBy.unshift({ reportingYearDate: 'desc' });
         const records = await prisma.financialInformation.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
                 activityMaster: true,
             },
-            orderBy: buildFormListOrderBy(user, { reportingYear: true, kvkRelation: 'kvk', tiebreak: 'financialInformationId' })
+            orderBy
         });
+        for (const row of records) row.reportingYear = row.reportingYearDate;
         sortFormListRows(records, user, { tiebreak: 'financialInformationId' });
 
         return records.map(r => ({
