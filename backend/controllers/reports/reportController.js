@@ -34,9 +34,17 @@ function resolveSingleKvkReportTarget(user, kvkIdFromBody, options = {}) {
     return { targetKvkId };
 }
 
+// Aggregated-only report content (e.g. State Wise OFT/FLD details) is visible to
+// above-KVK roles and hidden from KVK-bound users. Mirrors the frontend module
+// picker's rule (ReportModuleSelector `isAggregated`).
+const KVK_LEVEL_ROLES = ['kvk_admin', 'kvk_user', 'kvk_amdin'];
+function isAggregatedViewFor(user) {
+    return !KVK_LEVEL_ROLES.includes(user?.roleName);
+}
+
 /**
  * Report Controller
- * HTTP request handlers for report generation 
+ * HTTP request handlers for report generation
  */
 
 /**
@@ -71,6 +79,7 @@ const generateKvkReport = async (req, res) => {
         }
         const { targetKvkId } = resolved;
         const generatedBy = user.name || user.email || 'Unknown User';
+        const isAggregatedView = isAggregatedViewFor(user);
 
         if (format === 'excel') {
             // Structured workbook: one tab per sub-section, grouped per chapter,
@@ -79,6 +88,7 @@ const generateKvkReport = async (req, res) => {
                 sectionIds: sectionIds || [],
                 filters: filters || {},
                 generatedBy,
+                isAggregatedView,
             });
             const fileName = `kvk-report-${getCompactDateTime()}.xlsx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -93,6 +103,7 @@ const generateKvkReport = async (req, res) => {
                 sectionIds: sectionIds || [],
                 filters: filters || {},
                 generatedBy,
+                isAggregatedView,
             });
             const fileName = `kvk-report-${getCompactDateTime()}.docx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
@@ -106,6 +117,7 @@ const generateKvkReport = async (req, res) => {
             sectionIds: sectionIds || [],
             filters: filters || {},
             generatedBy,
+            isAggregatedView,
         });
         const fileName = `kvk-report-${getCompactDateTime()}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
@@ -242,6 +254,7 @@ const generateAggregatedReport = async (req, res) => {
         }
 
         const generatedBy = user.name || user.email || 'Unknown User';
+        const isAggregatedView = isAggregatedViewFor(user);
 
         if (format === 'excel') {
             // Structured workbook mirroring the PDF (tabs per sub-section).
@@ -249,6 +262,7 @@ const generateAggregatedReport = async (req, res) => {
                 sectionIds: sectionIds || [],
                 filters: filters || {},
                 generatedBy,
+                isAggregatedView,
             });
             const fileName = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.xlsx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -263,6 +277,7 @@ const generateAggregatedReport = async (req, res) => {
                 sectionIds: sectionIds || [],
                 filters: filters || {},
                 generatedBy,
+                isAggregatedView,
             });
             const fileName = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.docx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
@@ -276,6 +291,7 @@ const generateAggregatedReport = async (req, res) => {
             sectionIds: sectionIds || [],
             filters: filters || {},
             generatedBy,
+            isAggregatedView,
         });
         const fileName = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
@@ -411,12 +427,14 @@ const generateKvkReportUpdated = async (req, res) => {
         }
         const { targetKvkId } = resolved;
         const generatedBy = user.name || user.email || 'Unknown User';
+        const isAggregatedView = isAggregatedViewFor(user);
 
         // Generate report
         const result = await reportService.generateKvkReport(targetKvkId, {
             sectionIds: sectionIds || [],
             filters: filters || {},
             generatedBy,
+            isAggregatedView,
         });
 
         // Set response headers for PDF download

@@ -22,6 +22,8 @@ interface ReportModuleSelectorProps {
     allFormsSelected?: boolean;
     collapsed?: boolean;
     onToggleCollapse?: () => void;
+    /** Show aggregated-only modules (e.g. State Wise OFT Details). */
+    isAggregated?: boolean;
 }
 
 export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
@@ -33,6 +35,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     allFormsSelected = false,
     collapsed = false,
     onToggleCollapse,
+    isAggregated = false,
 }) => {
     const [activeTab, setActiveTab] = useState<string>('about');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -51,13 +54,13 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
         extraParentIds?: string[];
         icon: React.ReactNode;
     }> = [
-        { id: 'about', label: 'About KVK', parentId: '1', icon: <Building2 className="w-4 h-4" /> },
-        { id: 'achievements', label: 'Achievements', parentId: '2', icon: <ClipboardList className="w-4 h-4" /> },
-        { id: 'projects', label: 'Projects', parentId: '3', icon: <Briefcase className="w-4 h-4" /> },
-        { id: 'performance', label: 'Performance', parentId: '4', icon: <BarChart3 className="w-4 h-4" /> },
-        { id: 'meetings', label: 'Meetings', parentId: '8', icon: <Users className="w-4 h-4" /> },
-        { id: 'misc', label: 'Miscellaneous', parentId: '5', extraParentIds: ['6'], icon: <Archive className="w-4 h-4" /> },
-    ];
+            { id: 'about', label: 'About KVK', parentId: '1', icon: <Building2 className="w-4 h-4" /> },
+            { id: 'achievements', label: 'Achievements', parentId: '2', icon: <ClipboardList className="w-4 h-4" /> },
+            { id: 'projects', label: 'Projects', parentId: '3', icon: <Briefcase className="w-4 h-4" /> },
+            { id: 'performance', label: 'Performance', parentId: '4', icon: <BarChart3 className="w-4 h-4" /> },
+            { id: 'meetings', label: 'Meetings', parentId: '8', icon: <Users className="w-4 h-4" /> },
+            { id: 'misc', label: 'Miscellaneous', parentId: '5', extraParentIds: ['6'], icon: <Archive className="w-4 h-4" /> },
+        ];
 
     const availableSectionIds = useMemo(
         () => new Set(sections.map((s) => String(s.id))),
@@ -227,7 +230,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                             const category = categoryMapping.find(c => c.id === activeTab) || categoryMapping[0];
 
                             // Curated, grouped + lettered view (About KVK / Achievements).
-                            const taxonomyView = buildTaxonomyView(category.id, availableSectionIds);
+                            const taxonomyView = buildTaxonomyView(category.id, availableSectionIds, isAggregated);
                             if (taxonomyView) {
                                 const allIds = Array.from(new Set(
                                     taxonomyView.groups
@@ -392,7 +395,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                             return null;
                                         })}
                                     </div>
-                                    
+
                                     {normalizedSearchTerm && (
                                         (() => {
                                             const visibleCount = mainSections.reduce((count, parent) => {

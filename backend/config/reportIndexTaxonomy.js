@@ -85,7 +85,9 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'On Farm Trial',
                 features: [
                     { label: 'OFT Summary', sectionId: '2.2' },
-                    { label: 'State Wise OFT Details', sectionId: '2.2' },
+                    // Its own aggregated-only section (2.2.1) — excluded from the
+                    // single-KVK report, so it drops out of the KVK-side TOC too.
+                    { label: 'State Wise OFT Details', sectionId: '2.2.1', aggregatedOnly: true },
                     { label: 'KVK Wise OFT Details', sectionId: '2.3' },
                 ],
             },
@@ -93,7 +95,9 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'Front Line Demonstration',
                 features: [
                     { label: 'FLD Summary', sectionId: '2.4' },
-                    { label: 'State Wise FLD Details', sectionId: '2.4' },
+                    // Sub-block of section 2.4 (rendered only in aggregated reports);
+                    // hidden from the single-KVK-side TOC.
+                    { label: 'State Wise FLD Details', sectionId: '2.4', aggregatedOnly: true },
                     { label: 'FLD Details', sectionId: '2.4' },
                     { label: 'Extension & Training activities under FLD', sectionId: '2.5' },
                     { label: 'Technical Feedback on FLD', sectionId: '2.6' },

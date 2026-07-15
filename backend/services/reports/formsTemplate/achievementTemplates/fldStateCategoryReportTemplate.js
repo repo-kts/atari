@@ -43,24 +43,35 @@ function fitFont(colCount) {
 function renderSummary(ctx, sectionA) {
     const esc = (v) => ctx._escapeHtml(v);
     const cells = (sectionA && sectionA.totalRow && sectionA.totalRow.cells) || [];
-    const grand = (sectionA && sectionA.totalRow && sectionA.totalRow.total) || { demos: 0, area: 0, farmers: 0 };
+    const grand = (sectionA && sectionA.totalRow && sectionA.totalRow.total)
+        || { flds: 0, demos: 0, area: 0, farmers: 0, demoYield: null, checkYield: null };
+
+    const rowCells = (c) => `<td style="text-align:center;">${fmtInt(c.flds)}</td>`
+        + `<td style="text-align:center;">${fmtInt(c.demos)}</td>`
+        + `<td style="text-align:center;">${fmtNum(c.area, 2)}</td>`
+        + `<td style="text-align:center;">${fmtInt(c.farmers)}</td>`
+        + `<td style="text-align:center;">${fmtNum(c.demoYield, 2)}</td>`
+        + `<td style="text-align:center;">${fmtNum(c.checkYield, 2)}</td>`;
 
     let body = '';
     for (const c of cells) {
-        body += `<tr><td>${esc(c.sectorName)}</td><td style="text-align:center;">${fmtInt(c.demos)}</td><td style="text-align:center;">${fmtNum(c.area, 2)}</td><td style="text-align:center;">${fmtInt(c.farmers)}</td></tr>`;
+        body += `<tr><td>${esc(c.sectorName)}</td>${rowCells(c)}</tr>`;
     }
-    if (!body) body = `<tr><td colspan="4" style="text-align:center;">No data</td></tr>`;
+    if (!body) body = `<tr><td colspan="7" style="text-align:center;">No data</td></tr>`;
 
     return `<table class="data-table">
         <thead><tr>
             <th>Sector</th>
+            <th style="text-align:center;">No. of FLDs</th>
             <th style="text-align:center;">No. of Demonstrations</th>
             <th style="text-align:center;">Area (ha)</th>
-            <th style="text-align:center;">No. of Farmers</th>
+            <th style="text-align:center;">No. of benificiaries</th>
+            <th style="text-align:center;">Yield in Demo (q/ha)</th>
+            <th style="text-align:center;">Yield in Check (q/ha)</th>
         </tr></thead>
         <tbody>
             ${body}
-            <tr style="font-weight:bold;"><td>Total</td><td style="text-align:center;">${fmtInt(grand.demos)}</td><td style="text-align:center;">${fmtNum(grand.area, 2)}</td><td style="text-align:center;">${fmtInt(grand.farmers)}</td></tr>
+            <tr style="font-weight:bold;"><td>Total</td>${rowCells(grand)}</tr>
         </tbody>
     </table>`;
 }
@@ -153,12 +164,15 @@ function renderStateWise(ctx, sectionA, yearLabel) {
 }
 
 // ── C. Details (per category: crops x states, yield + economics) ─────
-function renderDetailTable(ctx, cropGroups, category) {
+function renderDetailTable(ctx, cropGroups, category, options = {}) {
     const esc = (v) => ctx._escapeHtml(v);
+    const showStateColumn = options.showStateColumn !== false;
+    const showDetailColumns = !showStateColumn;
     const firstSource = category || cropGroups?.[0]?.totalRow || cropGroups?.[0]?.rows?.[0] || {};
     const columns = getFldResultReportColumns(firstSource);
     const columnGroups = groupColumns(columns);
-    const totalColCount = 5 + columns.length;
+    const fixedColumnCount = 4 + (showStateColumn ? 1 : 0) + (showDetailColumns ? 2 : 0);
+    const totalColCount = fixedColumnCount + columns.length;
     const fs = fitFont(totalColCount);
 
     const fr = (r) => r.fldResult || {};
@@ -178,17 +192,20 @@ function renderDetailTable(ctx, cropGroups, category) {
     let body = '';
     for (const cg of cropGroups) {
         const rows = cg.rows || [];
-        const span = rows.length + (cg.totalRow ? 1 : 0);
+        const span = rows.length;
         rows.forEach((r, i) => {
             body += `<tr>`;
             if (i === 0) body += `<td rowspan="${span}" style="font-weight:bold;vertical-align:middle;">${esc(cg.cropName)}</td>`;
-            body += `<td>${esc(r.state)}</td><td style="text-align:center;">${fmtInt(r.demos)}</td><td style="text-align:center;">${fmtNum(r.areaHa, 2)}</td><td style="text-align:center;">${fmtInt(r.farmers)}</td>${detailCells(r)}</tr>`;
+            if (showStateColumn) body += `<td>${esc(r.state)}</td>`;
+            if (showDetailColumns) {
+                body += `<td>${esc(r.thematicAreaName || '—')}</td>`;
+                body += `<td>${esc(r.technology || '—')}</td>`;
+            }
+            body += `<td style="text-align:center;">${fmtInt(r.demos)}</td>`;
+            body += `<td style="text-align:center;">${fmtInt(r.farmers)}</td>`;
+            body += `<td style="text-align:center;">${fmtNum(r.areaHa, 2)}</td>`;
+            body += `${detailCells(r)}</tr>`;
         });
-        if (cg.totalRow) {
-            body += `<tr style="font-weight:bold;">`;
-            if (rows.length === 0) body += `<td style="font-weight:bold;">${esc(cg.cropName)}</td>`;
-            body += `<td>Total</td><td style="text-align:center;">${fmtInt(cg.totalRow.demos)}</td><td style="text-align:center;">${fmtNum(cg.totalRow.areaHa, 2)}</td><td style="text-align:center;">${fmtInt(cg.totalRow.farmers)}</td>${detailCells(cg.totalRow)}</tr>`;
-        }
     }
     if (!body) body = `<tr><td colspan="${totalColCount}" style="text-align:center;">No data</td></tr>`;
 
@@ -196,10 +213,12 @@ function renderDetailTable(ctx, cropGroups, category) {
         <thead>
             <tr>
                 <th rowspan="2">Crop</th>
-                <th rowspan="2">States</th>
-                <th rowspan="2" style="text-align:center;">No of Demonstration</th>
-                <th rowspan="2" style="text-align:center;">Area (ha)</th>
-                <th rowspan="2" style="text-align:center;">No of Farmers</th>
+                ${showStateColumn ? '<th rowspan="2">States</th>' : ''}
+                ${showDetailColumns ? '<th rowspan="2">Thematic Area</th>' : ''}
+                ${showDetailColumns ? '<th rowspan="2">Name of the technology demonstrated</th>' : ''}
+                <th rowspan="2" style="text-align:center;">No. of Demonstration</th>
+                <th rowspan="2" style="text-align:center;">No. of Farmers</th>
+                <th rowspan="2" style="text-align:center;">Area(ha)</th>
                 ${columnGroups.map((group) => `<th colspan="${group.columns.length}" style="text-align:center;">${esc(group.label)}</th>`).join('')}
             </tr>
             <tr>
@@ -210,20 +229,28 @@ function renderDetailTable(ctx, cropGroups, category) {
     </table>`;
 }
 
-function renderDetails(ctx, sectionB, yearLabel) {
+function renderDetails(ctx, sectionB, sectionNumber, options = {}) {
     const esc = (v) => ctx._escapeHtml(v);
     if (!sectionB || sectionB.length === 0) return '<p class="no-data">No data.</p>';
     let out = '';
-    for (const cat of sectionB) {
-        out += `<h3 class="about-kvk-subheading" style="margin-top:12px;">Details of Front-Line Demonstration on ${esc(cat.categoryName)}</h3>`;
-        out += renderDetailTable(ctx, cat.cropGroups || [], cat);
-    }
+    sectionB.forEach((sector, sectorIndex) => {
+        out += `<h3 class="about-kvk-subheading" style="margin-top:14px;font-size:8.5pt;font-weight:700;">${esc(`${sectionNumber}.C.${sectorIndex + 1}`)} ${esc(sector.sectorName || 'Other')}</h3>`;
+        const categories = sector.categories || [];
+        if (categories.length === 0) {
+            out += `<p class="no-data" style="margin:4px 0 8px 0;">No data available.</p>`;
+            return;
+        }
+        for (const cat of categories) {
+            out += `<h4 class="about-kvk-subheading" style="margin-top:8px;margin-bottom:6px;font-size:7.25pt;font-weight:600;">Details of Front-Line Demonstration on ${esc(cat.categoryName)}</h4>`;
+            out += renderDetailTable(ctx, cat.cropGroups || [], cat, options);
+        }
+    });
     out += `<p style="font-size:7pt;color:#555;margin-top:6px;">* Economics worked out on total cost of production per unit area, not on critical inputs alone.&nbsp;&nbsp;** BCR = Gross Return / Gross Cost.</p>`;
     return out;
 }
 
 // ── Section entry ────────────────────────────────────────────────────
-function renderFldStateCategoryReportSection(section, data, sectionId, isFirstSection) {
+function renderFldStateCategoryReportSection(section, data, sectionId, isFirstSection, reportContext = {}) {
     const payload = resolveFldStateCategoryPayload(data);
     const sectionA = payload.sectionA || { sectors: [], stateRows: [], totalRow: null };
     const sectionB = payload.sectionB || [];
@@ -237,18 +264,25 @@ function renderFldStateCategoryReportSection(section, data, sectionId, isFirstSe
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
     const yr = yearLabel ? ` for ${this._escapeHtml(yearLabel)}` : '';
 
+    // "B. State wise details" shows only for above-KVK (super_admin etc.) users
+    // and is hidden for KVK-bound users. The same rendered HTML feeds PDF, Excel
+    // and Word, so this hides it consistently in all three.
+    const stateWiseBlock = reportContext.isAggregatedView
+        ? `
+    <h2 class="section-subtitle" style="margin-top:14px;">${section.id}.B State wise details of Front-Line Demonstration${yr}</h2>
+    ${renderStateWise(this, sectionA, yearLabel)}`
+        : '';
+
     return `
 <div id="${sectionId}" class="${pageClass}">
     <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>
 
     <h2 class="section-subtitle">${section.id}.A FLD Summary</h2>
     ${renderSummary(this, sectionA)}
-
-    <h2 class="section-subtitle" style="margin-top:14px;">${section.id}.B State wise details of Front-Line Demonstration${yr}</h2>
-    ${renderStateWise(this, sectionA, yearLabel)}
+    ${stateWiseBlock}
 
     <h2 class="section-subtitle" style="margin-top:14px;">${section.id}.C Details of Front-Line Demonstration${yr}</h2>
-    ${renderDetails(this, sectionB, yearLabel)}
+    ${renderDetails(this, sectionB, section.id, { showStateColumn: !!reportContext.isAggregatedView })}
 </div>`;
 }
 

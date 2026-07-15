@@ -20,7 +20,7 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection,
         : `${section.id} ${this._escapeHtml(section.title)}`
     const kvkNames = Array.from(new Set(
         records
-            .map(r => this._pickValue(r, ['KVK', 'kvk.kvkName']))
+            .map(r => this._pickValue(r, ['KVK','kvkName', 'kvk.kvkName']))
             .filter(v => v && v !== '-')
             .map(v => String(v))
     ))
@@ -35,7 +35,7 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection,
         : `<h1 class="section-title">${moduleLabel}</h1>`
 
     const rows = records.map((row, index) => {
-        const kvk = this._pickValue(row, ['KVK', 'kvk.kvkName']) || '-'
+        const kvk = this._pickValue(row, ['KVK','kvkName', 'kvk.kvkName']) || '-'
         const name = this._pickValue(row, ['Equipment Name', 'equipmentName', 'equipmentMaster.name']) || '-'
         const year = dash(this._pickValue(row, ['Year of Purchase', 'yearOfPurchase']))
         const cost = dash(this._pickValue(row, ['Cost (Rs.)', 'totalCost']))

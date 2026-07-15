@@ -66,7 +66,7 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection, r
 
     records.forEach((row, index) => {
         const year = normalizeDisplay(this._pickValue(row, ['Year', 'reportingYear']))
-        const kvk = this._pickValue(row, ['KVK', 'kvk.kvkName']) || '-'
+        const kvk = row.kvkName
         const vehicle = this._pickValue(row, ['Vehicle', 'vehicleName', 'vehicle.vehicleName']) || '-'
         const registrationNo = this._pickValue(row, ['Registration No.', 'registrationNo', 'vehicle.registrationNo']) || '-'
         const yearOfPurchase = this._pickValue(row, ['Year of purchase', 'yearOfPurchase', 'vehicle.yearOfPurchase']) || '-'

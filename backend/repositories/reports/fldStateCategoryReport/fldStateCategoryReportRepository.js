@@ -27,13 +27,61 @@ function applyReportingYear(where, filters) {
     if (ry) where.startDate = ry;
 }
 
+function normalizeFldSectorName(value) {
+    const raw = String(value || '')
+        .replace(/&amp;/gi, '&')
+        .replace(/&#38;/gi, '&')
+        .trim();
+    if (!raw) return 'Other';
+    const compact = raw.replace(/\s+/g, ' ').toLowerCase();
+
+    if (/^crop production$/.test(compact)) return 'Crop Production';
+    if (/^horticultural crops?$/.test(compact) || /^horticulture crops?$/.test(compact)) {
+        return 'Horticultural Crops';
+    }
+    if (/^livestock\s*(?:&|and)\s*fisher(?:y|ies)$/.test(compact)) {
+        return 'Livestock & Fisheries';
+    }
+    if (/^other enterprises?$/.test(compact)) return 'Other Enterprises';
+    if (/^women empowerment$/.test(compact) || /^home science\s*\/\s*women empowerment$/.test(compact)) {
+        return 'Women Empowerment';
+    }
+    if (/^farm implements(?: and| &)? machinery$/.test(compact)) {
+        return 'Farm Implements and Machinery';
+    }
+    if (/^crop hybrid varieties$/.test(compact)) return 'Crop Hybrid Varieties';
+
+    return raw;
+}
+
+function inferFldSectorName(rawSectorName, categoryName) {
+    const normalizedSector = normalizeFldSectorName(rawSectorName);
+    if (normalizedSector && normalizedSector !== 'Other') return normalizedSector;
+
+    const category = String(categoryName || '').trim().toLowerCase();
+    if (!category) return normalizedSector || 'Other';
+
+    if (category.includes('crop hybrid varieties')) return 'Crop Hybrid Varieties';
+    if (category.includes('farm implements') || category.includes('machineries')) {
+        return 'Farm Implements and Machinery';
+    }
+    if (category.includes('women empowerment')) return 'Women Empowerment';
+    if (category.includes('other enterprises')) return 'Other Enterprises';
+    if (category.includes('livestock') || category.includes('fisher')) return 'Livestock & Fisheries';
+    if (category.includes('horticultural crops') || category.includes('horticulture crops')) {
+        return 'Horticultural Crops';
+    }
+
+    return normalizedSector || 'Other';
+}
+
 function normalizePrismaRow(r) {
     const stateName = (r.kvk && r.kvk.state && r.kvk.state.stateName) ? r.kvk.state.stateName : 'Unknown';
     const categoryName = r.categoryOther || (r.category && r.category.categoryName) || 'Uncategorized';
-    const sectorName = r.sectorOther
+    const sectorName = inferFldSectorName(r.sectorOther
         || (r.sector && r.sector.sectorName)
         || (r.category && r.category.sector && r.category.sector.sectorName)
-        || 'Other';
+        || 'Other', categoryName);
     return {
         kvkFldId: r.kvkFldId,
         stateName,
@@ -116,6 +164,17 @@ const FLD_SECTOR_ORDER = [
     'Crop Hybrid Varieties',
 ];
 
+function sortSectorNames(a, b) {
+    const ia = FLD_SECTOR_ORDER.indexOf(a);
+    const ib = FLD_SECTOR_ORDER.indexOf(b);
+    if (ia !== -1 || ib !== -1) {
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+    }
+    return String(a).localeCompare(String(b), undefined, { sensitivity: 'base' });
+}
+
 function buildSectionA(records) {
     // State-wise table columns are SECTORS in a fixed canonical order (#232).
     const sectors = FLD_SECTOR_ORDER;
@@ -127,22 +186,34 @@ function buildSectionA(records) {
     states.forEach((s) => {
         matrix[s] = {};
         sectors.forEach((c) => {
-            matrix[s][c] = { farmers: 0, demos: 0, area: 0 };
+            matrix[s][c] = { flds: 0, farmers: 0, demos: 0, area: 0 };
         });
     });
+
+    // Records grouped by sector so per-sector demo/check yields can be
+    // area-weighted from each FLD's fldResult (matrix cells drop the raw rows).
+    const recordsBySector = {};
+    sectors.forEach((c) => { recordsBySector[c] = []; });
 
     for (const r of records) {
         const cell = matrix[r.stateName]?.[r.sectorName];
         if (cell) {
+            cell.flds += 1;
             cell.farmers += r.farmers;
             cell.demos += r.noOfDemonstration;
             cell.area += r.areaHa;
+            recordsBySector[r.sectorName].push(r);
         }
     }
 
     const sumCells = (cells) => cells.reduce(
-        (t, c) => ({ farmers: t.farmers + c.farmers, demos: t.demos + c.demos, area: t.area + c.area }),
-        { farmers: 0, demos: 0, area: 0 },
+        (t, c) => ({
+            flds: t.flds + c.flds,
+            farmers: t.farmers + c.farmers,
+            demos: t.demos + c.demos,
+            area: t.area + c.area,
+        }),
+        { flds: 0, farmers: 0, demos: 0, area: 0 },
     );
 
     const stateRows = states.map((stateName) => {
@@ -151,20 +222,28 @@ function buildSectionA(records) {
     });
 
     const totalCells = sectors.map((c) => {
-        const agg = { sectorName: c, farmers: 0, demos: 0, area: 0 };
+        const agg = { sectorName: c, flds: 0, farmers: 0, demos: 0, area: 0 };
         states.forEach((s) => {
             const x = matrix[s][c];
+            agg.flds += x.flds;
             agg.farmers += x.farmers;
             agg.demos += x.demos;
             agg.area += x.area;
         });
+        // Area-weighted demo/check yields across this sector's FLDs.
+        agg.demoYield = weightedAvgFromFldRows(recordsBySector[c], (fr) => fr.demoYield);
+        agg.checkYield = weightedAvgFromFldRows(recordsBySector[c], (fr) => fr.checkYield);
         return agg;
     });
+
+    const grandTotal = sumCells(totalCells);
+    grandTotal.demoYield = weightedAvgFromFldRows(records, (fr) => fr.demoYield);
+    grandTotal.checkYield = weightedAvgFromFldRows(records, (fr) => fr.checkYield);
 
     return {
         sectors,
         stateRows,
-        totalRow: { stateName: 'Total', cells: totalCells, total: sumCells(totalCells) },
+        totalRow: { stateName: 'Total', cells: totalCells, total: grandTotal },
     };
 }
 
@@ -265,23 +344,35 @@ function buildPayloadFromRecords(records, filters = {}) {
     }
 
     const sectionA = buildSectionA(norm);
-    const byCategory = new Map();
+    const bySector = new Map();
     for (const r of norm) {
-        const c = r.categoryName || 'Uncategorized';
-        if (!byCategory.has(c)) byCategory.set(c, []);
-        byCategory.get(c).push(r);
+        const sectorName = r.sectorName || 'Other';
+        if (!bySector.has(sectorName)) bySector.set(sectorName, new Map());
+        const byCategory = bySector.get(sectorName);
+        const categoryName = r.categoryName || 'Uncategorized';
+        if (!byCategory.has(categoryName)) byCategory.set(categoryName, []);
+        byCategory.get(categoryName).push(r);
     }
 
-    const catOrder = [...byCategory.keys()].sort((a, b) =>
-        a.localeCompare(b, undefined, { sensitivity: 'base' }),
-    );
-
-    const sectionB = catOrder.map((categoryName) => {
-        const rows = byCategory.get(categoryName) || [];
+    const sectorOrder = [
+        ...FLD_SECTOR_ORDER,
+        ...[...bySector.keys()].filter((sectorName) => !FLD_SECTOR_ORDER.includes(sectorName)).sort(sortSectorNames),
+    ];
+    const sectionB = sectorOrder.map((sectorName) => {
+        const byCategory = bySector.get(sectorName) || new Map();
+        const categoryOrder = [...byCategory.keys()].sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: 'base' }),
+        );
         return {
-            categoryName,
-            resultTemplate: rows[0]?.resultTemplate,
-            cropGroups: buildDetailRowsForCategory(rows),
+            sectorName,
+            categories: categoryOrder.map((categoryName) => {
+                const rows = byCategory.get(categoryName) || [];
+                return {
+                    categoryName,
+                    resultTemplate: rows[0]?.resultTemplate,
+                    cropGroups: buildDetailRowsForCategory(rows),
+                };
+            }),
         };
     });
 

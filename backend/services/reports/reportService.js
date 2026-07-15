@@ -31,6 +31,8 @@ class ReportService {
 
         // Get KVK info for header
         const kvkInfo = await reportDataService.getKvkInfoForHeader(kvkId);
+        // Role-based gate for aggregated-only content (e.g. State Wise details).
+        kvkInfo.isAggregatedView = options.isAggregatedView === true;
 
         // Fetch data for all selected sections in parallel
         const sectionsData = await reportDataService.getMultipleSectionData(
@@ -65,6 +67,7 @@ class ReportService {
         validateSectionIds(sectionIds);
 
         const kvkInfo = await reportDataService.getKvkInfoForHeader(kvkId);
+        kvkInfo.isAggregatedView = options.isAggregatedView === true;
         const sectionsData = await reportDataService.getMultipleSectionData(sectionIds, kvkId, filters);
         const excelBuffer = await reportExcelService.generateReportExcel(kvkInfo, sectionsData, filters, generatedBy);
 
@@ -82,6 +85,7 @@ class ReportService {
         validateSectionIds(sectionIds);
 
         const kvkInfo = await reportDataService.getKvkInfoForHeader(kvkId);
+        kvkInfo.isAggregatedView = options.isAggregatedView === true;
         const sectionsData = await reportDataService.getMultipleSectionData(sectionIds, kvkId, filters);
         const wordBuffer = await reportWordService.generateReportWord(kvkInfo, sectionsData, filters, generatedBy);
 
@@ -172,6 +176,9 @@ class ReportService {
 
         // Build aggregated KVK info for header
         const kvkInfo = await this._buildAggregatedKvkInfo(scope, kvkIds);
+        // A KVK admin's own-KVK report also comes through this scope path, so the
+        // aggregated-only gate keys off the requesting user's role, not the path.
+        kvkInfo.isAggregatedView = options.isAggregatedView === true;
 
         // Generate PDF
         const pdfBuffer = await pdfGenerationService.generateReportPDF(
@@ -206,6 +213,7 @@ class ReportService {
 
         const sectionsData = await reportAggregationService.aggregateMultipleSections(sectionIds, kvkIds, filters);
         const kvkInfo = await this._buildAggregatedKvkInfo(scope, kvkIds);
+        kvkInfo.isAggregatedView = options.isAggregatedView === true;
         const excelBuffer = await reportExcelService.generateReportExcel(kvkInfo, sectionsData, filters, generatedBy);
 
         return { excelBuffer, kvkInfo, sectionsData, kvkCount: kvkIds.length };
@@ -228,6 +236,7 @@ class ReportService {
 
         const sectionsData = await reportAggregationService.aggregateMultipleSections(sectionIds, kvkIds, filters);
         const kvkInfo = await this._buildAggregatedKvkInfo(scope, kvkIds);
+        kvkInfo.isAggregatedView = options.isAggregatedView === true;
         const wordBuffer = await reportWordService.generateReportWord(kvkInfo, sectionsData, filters, generatedBy);
 
         return { wordBuffer, kvkInfo, sectionsData, kvkCount: kvkIds.length };
@@ -305,6 +314,9 @@ class ReportService {
         return {
             kvkId: null,
             isAggregated: true,
+            // Role-based visibility of aggregated-only content; set by the caller
+            // from the requesting user's role (defaults to hidden).
+            isAggregatedView: false,
             reportType: this._resolveReportType(scope),
             kvkCount: kvkIds.length,
             kvkList,

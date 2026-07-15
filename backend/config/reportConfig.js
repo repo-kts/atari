@@ -116,6 +116,7 @@ const reportConfig = {
                 dateFields: ['createdAt'],
             },
             fields: [
+                {dbField: 'kvkName', displayName: 'KVK Name'},
                 { dbField: 'infraMaster.name', displayName: 'Infrastructure Name' },
                 { dbField: 'notYetStarted', displayName: 'Not Yet Started', type: 'boolean' },
                 { dbField: 'completedPlinthLevel', displayName: 'Completed Plinth Level', type: 'boolean' },
@@ -283,6 +284,25 @@ const reportConfig = {
             dataSource: 'oftSummary',
             format: 'custom',
             customTemplate: 'oft-summary',
+            filters: {
+                dateFields: ['createdAt'],
+            },
+            fields: [],
+        },
+        {
+            // State-wise farmer participation — only meaningful across multiple
+            // KVKs, so it's aggregated-only: excluded from single-KVK reports
+            // (body, TOC) and hidden from the KVK-side module picker.
+            id: '2.2.1',
+            title: 'State Wise OFT Details',
+            exportTitle: 'State Wise OFT Details',
+            description: 'State-wise farmer participation in OFTs (category & gender wise)',
+            subsection: true,
+            parentSectionId: '2',
+            aggregatedOnly: true,
+            dataSource: 'oftSummary',
+            format: 'custom',
+            customTemplate: 'oft-state-wise',
             filters: {
                 dateFields: ['createdAt'],
             },
@@ -1991,7 +2011,7 @@ function _letter(i) {
  *   chapters: Array<object>                                  // TOC structure (see below)
  * }}
  */
-function buildSectionNumbering(sections) {
+function buildSectionNumbering(sections, isAggregated = false) {
     const headingById = new Map();
     const selectedById = new Map(sections.map(s => [String(s.id), s]));
     const consumed = new Set();
@@ -2003,7 +2023,7 @@ function buildSectionNumbering(sections) {
 
         if (taxonomy) {
             const chapter = _buildTaxonomyChapter(
-                parent, taxonomy, selectedById, consumed, headingById,
+                parent, taxonomy, selectedById, consumed, headingById, isAggregated,
             );
             // Append any selected sections of this parent the taxonomy missed,
             // so nothing is silently dropped from the report.
@@ -2044,7 +2064,7 @@ function buildSectionNumbering(sections) {
 }
 
 /** Build a curated chapter from taxonomy, keeping only groups/features with data. */
-function _buildTaxonomyChapter(parent, taxonomy, selectedById, consumed, headingById) {
+function _buildTaxonomyChapter(parent, taxonomy, selectedById, consumed, headingById, isAggregated = false) {
     const groups = [];
     // `originalIndex` preserves each group's slot in the full taxonomy so its
     // number (e.g. On Farm Trial = 2.2) stays stable even when an earlier group
@@ -2052,6 +2072,12 @@ function _buildTaxonomyChapter(parent, taxonomy, selectedById, consumed, heading
     (taxonomy.groups || []).forEach((group, gi) => {
         const features = (group.features || [])
             .filter(f => selectedById.has(String(f.sectionId)))
+            // aggregatedOnly TOC lines (e.g. "State Wise FLD Details", a sub-block
+            // of section 2.4) render only in aggregated reports. Safe alongside
+            // _appendLeftovers because the shared section (2.4) is still consumed
+            // by a sibling feature ("FLD Summary"); whole aggregatedOnly *sections*
+            // are handled upstream in _selectAndOrderSections instead.
+            .filter(f => isAggregated || !f.aggregatedOnly)
             .map(f => ({ label: f.label, sectionId: String(f.sectionId) }));
         if (features.length === 0) return;
         features.forEach(f => consumed.add(f.sectionId));

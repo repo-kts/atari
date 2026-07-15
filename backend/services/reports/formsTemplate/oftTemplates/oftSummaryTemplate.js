@@ -48,25 +48,6 @@ function readThematicArea(r) {
     return r.oftThematicArea?.thematicAreaName || r.thematicAreaName || 'Other';
 }
 
-const FARMER_FIELD_MAP = {
-    genM: ['farmersGeneralM', 'gen_m'],
-    genF: ['farmersGeneralF', 'gen_f'],
-    obcM: ['farmersObcM', 'obc_m'],
-    obcF: ['farmersObcF', 'obc_f'],
-    scM: ['farmersScM', 'sc_m'],
-    scF: ['farmersScF', 'sc_f'],
-    stM: ['farmersStM', 'st_m'],
-    stF: ['farmersStF', 'st_f'],
-};
-
-function readFarmer(r, key) {
-    for (const f of FARMER_FIELD_MAP[key]) {
-        const v = r[f];
-        if (v !== undefined && v !== null && v !== '') return Number(v) || 0;
-    }
-    return 0;
-}
-
 function getUniqueStates(records) {
     const set = new Set();
     for (const r of records) {
@@ -223,6 +204,10 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection, repor
         sectorList.push(...seenSubjects.values());
     }
 
+    // DB returns subjects in arbitrary order; render sectors in key order
+    // (A, B, C, D, E, then any unmapped) so the report reads A→E.
+    sectorList.sort((a, b) => String(a.key).localeCompare(String(b.key)));
+
 
     // ── Headings ────────────────────────────────────────────────
     let html = `
@@ -232,8 +217,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection, repor
     // this single section renders two labeled sub-blocks: A. OFT Summary and
     // B. State Wise OFT Details (KVK Wise OFT Details is its own section).
     html += `
-    <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>
-    <h2 class="section-subtitle">${section.id}.A OFT Summary</h2>`;
+    <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>`;
     if (isMultiState) {
         html += `
     <p style="font-size:11px;font-weight:bold;margin-bottom:12px;">Technology Assessed by KVK (Discipline wise)</p>`;
@@ -403,82 +387,13 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection, repor
         </tbody>
     </table>`;
 
-    // ── B. State Wise OFT Details ───────────────────────────────
-    // Only meaningful for aggregated (zone/state/national) reports; omit on a
-    // single-KVK report.
-    if (reportContext.isAggregatedReport) {
-        html += renderStateWiseBlock.call(this, section, records);
-    }
+    // State Wise OFT Details (formerly the 2.2.B sub-block) is now its own
+    // section — see oftStateWiseTemplate.js / section 2.2.1.
 
     html += `
 </div>`;
 
     return html;
-}
-
-/**
- * "B. State Wise OFT Details" — per-state farmer participation broken down by
- * category and gender (mirrors the FLD state-wise table). Always rendered, even
- * for a single state.
- */
-const FARMER_KEYS = ['genM', 'genF', 'obcM', 'obcF', 'scM', 'scF', 'stM', 'stF'];
-
-function renderStateWiseBlock(section, records) {
-    const byState = new Map();
-    for (const r of records) {
-        const stateName = readState(r) || r.kvk?.kvkName || r.kvkName || 'Unknown';
-        if (!byState.has(stateName)) {
-            byState.set(stateName, { genM: 0, genF: 0, obcM: 0, obcF: 0, scM: 0, scF: 0, stM: 0, stF: 0 });
-        }
-        const b = byState.get(stateName);
-        for (const k of FARMER_KEYS) b[k] += readFarmer(r, k);
-    }
-
-    const sumRow = (b) => FARMER_KEYS.reduce((acc, k) => acc + b[k], 0);
-    const total = { genM: 0, genF: 0, obcM: 0, obcF: 0, scM: 0, scF: 0, stM: 0, stF: 0 };
-    let rows = '';
-    for (const [stateName, b] of byState) {
-        for (const k of FARMER_KEYS) total[k] += b[k];
-        rows += `
-            <tr>
-                <td>${this._escapeHtml(stateName)}</td>
-                ${FARMER_KEYS.map(k => `<td style="text-align:center;">${b[k]}</td>`).join('')}
-                <td style="text-align:center;font-weight:bold;">${sumRow(b)}</td>
-            </tr>`;
-    }
-    if (!rows) {
-        rows = `<tr><td colspan="10" style="text-align:center;">No data</td></tr>`;
-    }
-
-    return `
-    <h2 class="section-subtitle" style="margin-top:14px;">${section.id}.B State Wise OFT Details</h2>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th rowspan="2" style="vertical-align:middle;">States</th>
-                <th colspan="8" style="text-align:center;">No. of Farmers</th>
-                <th rowspan="2" style="vertical-align:middle;text-align:center;">Total</th>
-            </tr>
-            <tr>
-                <th style="text-align:center;">General M</th>
-                <th style="text-align:center;">General F</th>
-                <th style="text-align:center;">OBC M</th>
-                <th style="text-align:center;">OBC F</th>
-                <th style="text-align:center;">SC M</th>
-                <th style="text-align:center;">SC F</th>
-                <th style="text-align:center;">ST M</th>
-                <th style="text-align:center;">ST F</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${rows}
-            <tr style="font-weight:bold;">
-                <td>Total</td>
-                ${FARMER_KEYS.map(k => `<td style="text-align:center;">${total[k]}</td>`).join('')}
-                <td style="text-align:center;">${sumRow(total)}</td>
-            </tr>
-        </tbody>
-    </table>`;
 }
 
 module.exports = { renderOftSummarySection };
