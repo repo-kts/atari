@@ -171,6 +171,7 @@ const reportConfig = {
                 { dbField: 'presentStatus', displayName: 'Present status' },
                 { dbField: 'repairingCost', displayName: 'Repairing Cost', optional: true },
                 { dbField: 'sourceOfFunding', displayName: 'Funding Source', optional: true },
+                { dbField: 'fundingAgencyName', displayName: 'Funding Agency', optional: true },
             ],
         },
         {
@@ -191,7 +192,6 @@ const reportConfig = {
                 { dbField: 'equipmentName', displayName: 'Equipment Name' },
                 { dbField: 'yearOfPurchase', displayName: 'Year of Purchase' },
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
-                { dbField: 'sourceOfFunding', displayName: 'Source of Funding' },
             ],
         },
         {
@@ -214,6 +214,7 @@ const reportConfig = {
                 { dbField: 'yearOfPurchase', displayName: 'Year of purchase' },
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
                 { dbField: 'sourceOfFunding', displayName: 'Source of fund' },
+                { dbField: 'fundingAgencyName', displayName: 'Funding Agency', optional: true },
                 { dbField: 'presentStatus', displayName: 'Present status' },
             ],
         },

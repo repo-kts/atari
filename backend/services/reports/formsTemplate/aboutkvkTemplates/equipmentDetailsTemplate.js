@@ -3,7 +3,7 @@
  * Details table). Present status is reporting-year data shown in the separate
  * Equipment Status table (#235).
  * Source: getKvkEquipments → { kvkName, equipmentName, yearOfPurchase,
- * totalCost, sourceOfFunding }.
+ * totalCost }.
  * Bound to reportTemplateService (`this`).
  */
 function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection, reportContext = {}) {
@@ -39,7 +39,6 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection,
         const name = this._pickValue(row, ['Equipment Name', 'equipmentName', 'equipmentMaster.name']) || '-'
         const year = dash(this._pickValue(row, ['Year of Purchase', 'yearOfPurchase']))
         const cost = dash(this._pickValue(row, ['Cost (Rs.)', 'totalCost']))
-        const funding = this._pickValue(row, ['Source of Funding', 'sourceOfFunding', 'assetFundingSource.name']) || '-'
         return `
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
                 <td class="s-no">${index + 1}</td>
@@ -47,7 +46,6 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection,
                 <td>${this._escapeHtml(String(name))}</td>
                 <td>${this._escapeHtml(String(year))}</td>
                 <td>${this._escapeHtml(String(cost))}</td>
-                <td>${this._escapeHtml(String(funding))}</td>
             </tr>`
     }).join('')
 
@@ -62,7 +60,6 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection,
                 <th>Equipment Name</th>
                 <th>Year of Purchase</th>
                 <th>Cost (Rs.)</th>
-                <th>Source of Funding</th>
             </tr>
         </thead>
         <tbody>${rows}</tbody>
