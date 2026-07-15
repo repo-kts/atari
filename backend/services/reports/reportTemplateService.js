@@ -505,11 +505,12 @@ class ReportTemplateService {
 <div class="page cover-page">
     <div class="cover-frame">
         <div class="cover-top">
-            <div class="cv-icar">ICAR</div>
+            <div class="cv-icar">ATARI ZONE-4</div>
             <div class="cv-org-line">Indian Council of Agricultural Research</div>
             <div class="cv-atari">Agricultural Technology Application<br>Research Institute (ATARI)</div>
         </div>
         <div class="cover-banner">ATARI AMS REPORT</div>
+        <div class="cover-period">${this._escapeHtml(this._formatReportPeriod(filters || {}))}</div>
         ${body}
     </div>
 </div>`;
@@ -1221,7 +1222,7 @@ class ReportTemplateService {
     /**
      * Format report period from filters
      */
-    _formatReportPeriod(filters) {
+    _formatReportPeriod(filters = {}) {
         if (filters.year) {
             return `Year: ${filters.year}`;
         }
@@ -1236,9 +1237,9 @@ class ReportTemplateService {
                 month: 'long',
                 day: 'numeric',
             });
-            return `${start} to ${end}`;
+            return `Period: ${start} to ${end}`;
         }
-        return 'All Time';
+        return 'Reporting Year: All Data';
     }
 
     /**
@@ -1339,7 +1340,14 @@ class ReportTemplateService {
         color: #2d6a2f;
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin: 5mm 0 7mm 0;
+        margin: 5mm 0 3mm 0;
+    }
+
+    .cover-period {
+        font-size: 11pt;
+        font-weight: bold;
+        color: #2d4a2f;
+        margin: 0 0 7mm 0;
     }
 
     .cover-fields {

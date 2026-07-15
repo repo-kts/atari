@@ -193,9 +193,9 @@ function formatReportPeriodWord(filters = {}) {
     if (filters.year) return `Year: ${filters.year}`;
     if (filters.startDate && filters.endDate) {
         const fmt = d => new Date(d).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
-        return `${fmt(filters.startDate)} to ${fmt(filters.endDate)}`;
+        return `Period: ${fmt(filters.startDate)} to ${fmt(filters.endDate)}`;
     }
-    return 'All Time';
+    return 'All Data';
 }
 
 /** Cover + clickable Table of Contents. */
@@ -204,6 +204,7 @@ function buildFrontMatter(kvkInfo, numbering, renderedSectionIds, filters = {}) 
     const reportType = isAggregated ? (kvkInfo?.reportType || 'All KVKs') : 'KVK';
 
     const children = [
+        new Paragraph({ children: [new TextRun({ text: 'ATARI ZONE-4', bold: true, size: 44, color: '2D6A2F' })] }),
         new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun({ text: 'ATARI AMS REPORT', bold: true })] }),
         new Paragraph({ children: [new TextRun({ text: 'Indian Council of Agricultural Research', size: 18 })] }),
         new Paragraph({ children: [new TextRun({ text: 'Agricultural Technology Application Research Institute (ATARI)', bold: true, size: 22 })] }),
