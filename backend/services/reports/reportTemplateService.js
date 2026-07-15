@@ -10,6 +10,7 @@ const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTempl
 const { renderEquipmentDetailsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentDetailsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
 const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
+const { renderOftStateWiseSection } = require('./formsTemplate/oftTemplates/oftStateWiseTemplate.js');
 const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
 const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
 const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
@@ -223,6 +224,7 @@ class ReportTemplateService {
             'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-details-table': renderEquipmentDetailsSection.bind(this),
             'oft-summary': renderOftSummarySection.bind(this),
+            'oft-state-wise': renderOftStateWiseSection.bind(this),
             'oft-detail-cards': renderOftDetailCardsSection.bind(this),
             'oft-combined': renderOftCombinedSection.bind(this),
             'cfld-combined': renderCfldCombinedSection.bind(this),
@@ -349,10 +351,13 @@ class ReportTemplateService {
      * match the curated taxonomy index. Shared by the PDF and Excel exports so
      * both use the exact same section set, order, and numbering.
      */
-    _selectAndOrderSections(sectionsData) {
+    _selectAndOrderSections(sectionsData, isAggregated = false) {
         const sections = getAllSections();
         const selectedSections = sections.filter(s => {
             if (s.hideInReport) return false;
+            // aggregatedOnly sections (e.g. State Wise OFT Details) render only in
+            // aggregated reports — never on the single-KVK side (body + TOC).
+            if (s.aggregatedOnly && !isAggregated) return false;
             const sectionData = sectionsData[s.id];
             return sectionData &&
                 !sectionData.error &&
@@ -361,7 +366,7 @@ class ReportTemplateService {
         });
 
         // Curated/clean index numbering (raw section.id values are unreliable).
-        const numbering = buildSectionNumbering(selectedSections);
+        const numbering = buildSectionNumbering(selectedSections, isAggregated);
 
         // Order to match the curated index (taxonomy), not raw section-id order —
         // otherwise e.g. HR (2.59) prints before Awards (2.56).
@@ -391,7 +396,9 @@ class ReportTemplateService {
      * (chunks joined) and the Excel export (one sheet per chunk).
      */
     async generateSectionChunks(sectionsData, reportContext = {}) {
-        const { orderedSections, numbering } = this._selectAndOrderSections(sectionsData);
+        const { orderedSections, numbering } = this._selectAndOrderSections(
+            sectionsData, reportContext.isAggregatedView,
+        );
         const chunks = await this._renderSectionChunks(
             orderedSections, sectionsData, reportContext, numbering.headingById,
         );
@@ -401,6 +408,12 @@ class ReportTemplateService {
     async generateReportHTML(kvkInfo, sectionsData, filters, generatedBy) {
         const reportContext = {
             isAggregatedReport: kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined,
+            // Role-based: aggregated-only content (e.g. State Wise details) shows
+            // for above-KVK users (super_admin, zone/state/district/org admins) and
+            // is hidden for KVK-bound users. A KVK admin's report is scope-based
+            // (kvkId null → isAggregatedReport true) yet must still hide it, so this
+            // keys off the requesting user's role, not kvkId. (#state-wise)
+            isAggregatedView: !!kvkInfo?.isAggregatedView,
             isStandalone: false,
         };
         const { numbering, chunks } = await this.generateSectionChunks(sectionsData, reportContext);

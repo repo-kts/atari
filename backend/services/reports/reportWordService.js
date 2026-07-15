@@ -371,6 +371,7 @@ class ReportWordService {
     async generateReportWord(kvkInfo, sectionsData, _filters = {}, generatedBy = 'System') {
         const reportContext = {
             isAggregatedReport: kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined,
+            isAggregatedView: !!kvkInfo?.isAggregatedView,
             isStandalone: false,
         };
         const { numbering, chunks } = await reportTemplateService.generateSectionChunks(

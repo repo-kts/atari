@@ -1,6 +1,12 @@
 const prisma = require('../../../config/prisma.js');
 const { applyCreatedAtFilters, applyDateFilters } = require('./commonFilters.js');
 
+// Coerce report rows to clean primitives so every consumer (PDF/Excel/Word) gets
+// typed data instead of Decimals-as-strings or Date-as-timestamp.
+const num = (v) => (v === null || v === undefined || v === '' ? null : Number(v));
+const yearOf = (v) =>
+    v instanceof Date ? v.getUTCFullYear() : v ? Number(v) : null;
+
 async function getKvkLandDetails(kvkId, filters = {}) {
     const where = { kvkId };
     // Land holdings are current-state (no reporting date) — no date filtering.
@@ -18,15 +24,22 @@ async function getKvkInfrastructure(kvkId, filters = {}) {
     const where = { kvkId };
     applyCreatedAtFilters(where, filters);
 
-    return await prisma.kvkInfrastructure.findMany({
+    const rows = await prisma.kvkInfrastructure.findMany({
         where,
         include: {
+            kvk: { select: { kvkId: true, kvkName: true } },
             infraMaster: {
                 select: { infraMasterId: true, name: true },
             },
         },
         orderBy: { createdAt: 'asc' },
     });
+
+    // Flatten kvkName so the report field { dbField: 'kvkName' } resolves.
+    return rows.map((r) => ({
+        ...r,
+        kvkName: r.kvk?.kvkName || '',
+    }));
 }
 
 async function getKvkVehicles(kvkId, filters = {}) {
@@ -86,17 +99,16 @@ async function getKvkVehicleDetails(kvkId, filters = {}) {
     });
 
     return rows.map((d) => ({
-        reportingYear: d.reportingYear,
+        reportingYear: yearOf(d.reportingYear),
         kvkId: d.kvkId,
-        kvk: d.kvk,
         kvkName: d.kvk?.kvkName || '',
         vehicleName: d.vehicle?.vehicleName || '',
         registrationNo: d.vehicle?.registrationNo || '',
-        yearOfPurchase: d.vehicle?.yearOfPurchase ?? '',
-        totalCost: d.vehicle?.totalCost ?? '',
-        totalRun: d.totalRun ?? '',
+        yearOfPurchase: num(d.vehicle?.yearOfPurchase),
+        totalCost: num(d.vehicle?.totalCost),
+        totalRun: num(d.totalRun),
         presentStatus: d.vehicleStatusOther || d.vehicleStatus?.statusLabel || '',
-        repairingCost: d.repairingCost ?? '',
+        repairingCost: num(d.repairingCost),
         sourceOfFunding: d.assetFundingSourceOther || d.assetFundingSource?.name || '',
         fundingAgencyName: d.fundingAgencyName || '',
     }));
@@ -176,15 +188,14 @@ async function getKvkEquipmentRecords(kvkId, filters = {}) {
     });
 
     return rows.map((d) => ({
-        reportingYear: d.reportingYear,
+        reportingYear: yearOf(d.reportingYear),
         kvkId: d.kvkId,
-        kvk: d.kvk,
         kvkName: d.kvk?.kvkName || '',
         equipmentName: d.equipment?.equipmentName || d.equipment?.equipmentMaster?.name || '',
-        yearOfPurchase: d.equipment?.yearOfPurchase ?? '',
-        totalCost: d.equipment?.totalCost ?? '',
+        yearOfPurchase: num(d.equipment?.yearOfPurchase),
+        totalCost: num(d.equipment?.totalCost),
         presentStatus: d.equipmentStatusOther || d.equipmentStatus?.statusLabel || '',
-        repairingCost: d.repairingCost ?? '',
+        repairingCost: num(d.repairingCost),
         sourceOfFunding: d.assetFundingSourceOther || d.assetFundingSource?.name || '',
         fundingAgencyName: d.fundingAgencyName || '',
     }));

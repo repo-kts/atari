@@ -9,15 +9,14 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection,
     const moduleLabel = reportContext.isStandalone
         ? (section.exportTitle || section.title)
         : `${section.id} ${this._escapeHtml(section.title)}`;
+
     const kvkNames = Array.from(new Set(
-        records
-            .map(r => this._pickValue(r, ['KVK', 'kvk.kvkName', 'kvkName']))
-            .filter(v => v && v !== '-')
-            .map(v => String(v))
+        records.map(r => r.kvkName).filter(Boolean).map(String)
     ));
     const kvkLabel = kvkNames.length === 1
         ? kvkNames[0]
         : (kvkNames.length === 0 ? '-' : `${kvkNames.length} KVKs`);
+
     const header = reportContext.isStandalone
         ? `<div class="module-report-header">
         <h1 class="module-report-title">${this._escapeHtml(moduleLabel)}</h1>
@@ -25,31 +24,10 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection,
     </div>`
         : `<h1 class="section-title">${moduleLabel}</h1>`;
 
-    const normalizeDisplay = (value, { isYear = false } = {}) => {
-        if (value === null || value === undefined || value === '') return '-';
-
-        if (value instanceof Date) {
-            return isYear ? String(value.getUTCFullYear()) : value.toISOString();
-        }
-
-        if (typeof value === 'object') {
-            const nested = this._pickValue(value, ['yearName', 'year', 'value', 'label', 'name']);
-            if (nested !== null && nested !== undefined && nested !== '') return normalizeDisplay(nested, { isYear });
-            return '-';
-        }
-
-        if (isYear) {
-            if (typeof value === 'string') {
-                const yearOnly = value.match(/^\d{4}$/);
-                if (yearOnly) return yearOnly[0];
-                const dateLike = new Date(value);
-                if (!Number.isNaN(dateLike.getTime())) return String(dateLike.getUTCFullYear());
-            }
-            if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-        }
-
-        return String(value);
-    };
+    // Rows arrive pre-cleaned from getKvkEquipmentRecords (skipTransform): stable
+    // keys, numbers as numbers, year as an integer. Just display them.
+    const cell = (v) =>
+        this._escapeHtml(v === null || v === undefined || v === '' ? '-' : String(v));
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
@@ -71,26 +49,17 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection,
         <tbody>`;
 
     records.forEach((row, index) => {
-        const year = normalizeDisplay(this._pickValue(row, ['Year', 'reportingYear']), { isYear: true });
-        const kvk = normalizeDisplay(this._pickValue(row, ['KVK', 'kvk.kvkName', 'kvkName']));
-        const equipmentName = normalizeDisplay(this._pickValue(row, ['Equipment Name', 'equipmentName', 'equipment.equipmentName', 'equipment.equipmentMaster.name']));
-        const yearOfPurchase = normalizeDisplay(this._pickValue(row, ['Year of purchase', 'yearOfPurchase', 'equipment.yearOfPurchase']));
-        const cost = normalizeDisplay(this._pickValue(row, ['Cost (Rs.)', 'totalCost', 'equipment.totalCost']));
-        const sourceOfFund = normalizeDisplay(this._pickValue(row, ['Source of fund', 'sourceOfFunding', 'assetFundingSource.name', 'equipment.assetFundingSource.name']));
-        const fundingAgency = normalizeDisplay(this._pickValue(row, ['Funding Agency', 'fundingAgencyName']));
-        const presentStatus = normalizeDisplay(this._pickValue(row, ['Present status', 'presentStatus', 'equipmentStatus.statusLabel']));
-
         html += `
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
                 <td class="s-no">${index + 1}</td>
-                <td>${this._escapeHtml(year)}</td>
-                <td>${this._escapeHtml(kvk)}</td>
-                <td>${this._escapeHtml(equipmentName)}</td>
-                <td>${this._escapeHtml(yearOfPurchase)}</td>
-                <td>${this._escapeHtml(cost)}</td>
-                <td>${this._escapeHtml(sourceOfFund)}</td>
-                <td>${this._escapeHtml(fundingAgency)}</td>
-                <td>${this._escapeHtml(presentStatus)}</td>
+                <td>${cell(row.reportingYear)}</td>
+                <td>${cell(row.kvkName)}</td>
+                <td>${cell(row.equipmentName)}</td>
+                <td>${cell(row.yearOfPurchase)}</td>
+                <td>${cell(row.totalCost)}</td>
+                <td>${cell(row.sourceOfFunding)}</td>
+                <td>${cell(row.fundingAgencyName)}</td>
+                <td>${cell(row.presentStatus)}</td>
             </tr>`;
     });
 

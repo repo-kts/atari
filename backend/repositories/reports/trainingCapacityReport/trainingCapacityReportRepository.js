@@ -66,6 +66,55 @@ function withTotals(agg) {
     };
 }
 
+function emptyCampusSplitAgg() {
+    return {
+        onCampus: emptyParticipantAgg(),
+        offCampus: emptyParticipantAgg(),
+    };
+}
+
+function cloneAgg(agg) {
+    return {
+        courses: agg.courses || 0,
+        generalM: agg.generalM || 0,
+        generalF: agg.generalF || 0,
+        obcM: agg.obcM || 0,
+        obcF: agg.obcF || 0,
+        scM: agg.scM || 0,
+        scF: agg.scF || 0,
+        stM: agg.stM || 0,
+        stF: agg.stF || 0,
+    };
+}
+
+function campusBucketFor(value) {
+    return String(value || '').trim().toUpperCase() === 'OFF_CAMPUS' ? 'offCampus' : 'onCampus';
+}
+
+function monthNumber(dateLike) {
+    const d = new Date(dateLike);
+    if (Number.isNaN(d.getTime())) return '';
+    return String(d.getMonth() + 1);
+}
+
+function durationDays(startDate, endDate) {
+    const s = new Date(startDate);
+    const e = new Date(endDate);
+    if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return 0;
+    return Math.max(0, Math.floor((e.getTime() - s.getTime()) / (24 * 60 * 60 * 1000)));
+}
+
+function isSponsoredTrainingRecord(r) {
+    return /sponsored training/i.test(String(r.clienteleName || '').trim());
+}
+
+function sponsoredClientCode(trainingTypeName) {
+    const value = String(trainingTypeName || '').trim().toLowerCase();
+    if (value === 'rural youth') return 'RY';
+    if (value === 'extension personnel') return 'EF';
+    return 'PF';
+}
+
 function inferYearLabel(records) {
     for (const r of records) {
         if (!r.startDate) continue;
@@ -100,6 +149,11 @@ function normalizePrismaRow(r) {
         : ((r.clientele && r.clientele.name)
             ? String(r.clientele.name).trim()
             : null);
+    const fundingSourceName = r.fundingSourceOther
+        ? String(r.fundingSourceOther).trim()
+        : ((r.fundingSource && r.fundingSource.name)
+            ? String(r.fundingSource.name).trim()
+            : null);
 
     const campusType = r.campusType != null ? String(r.campusType) : null;
 
@@ -112,6 +166,10 @@ function normalizePrismaRow(r) {
         trainingTypeId: r.trainingTypeId,
         trainingTypeName,
         campusType,
+        titleOfTraining: r.titleOfTraining ? String(r.titleOfTraining).trim() : '—',
+        endDate: r.endDate,
+        fundingAgencyName: r.fundingAgencyName ? String(r.fundingAgencyName).trim() : null,
+        fundingSourceName,
         trainingAreaId: r.trainingAreaId,
         trainingAreaName,
         thematicAreaId: r.thematicAreaId,
@@ -190,6 +248,251 @@ function sortTrainingType(a, b) {
         : Number.MAX_SAFE_INTEGER;
     if (ra !== rb) return ra - rb;
     return sortStr(a, b);
+}
+
+const CLIENTELE_ORDER = [
+    'Farmers and Farm Women',
+    'Rural Youth',
+    'Extension Personnel',
+    'Vocational Training',
+    'Sponsored Training',
+    'Skill Development Training',
+    'Other Training',
+];
+const CLIENTELE_RANK = new Map(
+    CLIENTELE_ORDER.map((name, i) => [name.toLowerCase(), i]),
+);
+function clienteleGroupName(r) {
+    const raw = String(r.clienteleName || '').trim();
+    if (!raw) return 'Other Training';
+    const lower = raw.toLowerCase();
+    if (lower === 'farmers' || lower === 'farm women' || lower === 'farmers and farm women') {
+        return 'Farmers and Farm Women';
+    }
+    if (lower === 'rural youth') return 'Rural Youth';
+    if (lower === 'extension personnel') return 'Extension Personnel';
+    if (lower === 'vocational training') return 'Vocational Training';
+    if (lower === 'sponsored training') return 'Sponsored Training';
+    if (lower === 'skill development training') return 'Skill Development Training';
+    if (lower === 'other training') return 'Other Training';
+    return raw;
+}
+
+function sortClientele(a, b) {
+    const ra = CLIENTELE_RANK.has(String(a || '').trim().toLowerCase())
+        ? CLIENTELE_RANK.get(String(a || '').trim().toLowerCase())
+        : Number.MAX_SAFE_INTEGER;
+    const rb = CLIENTELE_RANK.has(String(b || '').trim().toLowerCase())
+        ? CLIENTELE_RANK.get(String(b || '').trim().toLowerCase())
+        : Number.MAX_SAFE_INTEGER;
+    if (ra !== rb) return ra - rb;
+    return sortStr(a, b);
+}
+
+function thematicSortEntries(thematicMap) {
+    return [...thematicMap.keys()].sort((a, b) => {
+        const ida = thematicMap.get(a).thematicAreaId;
+        const idb = thematicMap.get(b).thematicAreaId;
+        if (ida == null && idb == null) return sortStr(thematicMap.get(a).thematicAreaName, thematicMap.get(b).thematicAreaName);
+        if (ida == null) return 1;
+        if (idb == null) return -1;
+        return idb - ida;
+    });
+}
+
+function buildAreaOrderAndMap(rows) {
+    const areaMap = new Map();
+    for (const r of rows) {
+        const ak = r.trainingAreaId != null ? `aid:${r.trainingAreaId}` : 'aid:none';
+        if (!areaMap.has(ak)) {
+            areaMap.set(ak, {
+                key: ak,
+                trainingAreaName: r.trainingAreaName || 'Not specified',
+                agg: emptyParticipantAgg(),
+            });
+        }
+        addRowToAgg(areaMap.get(ak).agg, r);
+    }
+    const areaOrder = [...areaMap.keys()]
+        .filter((ak) => ak !== 'aid:none' && areaMap.get(ak).trainingAreaName !== 'Not specified')
+        .sort((a, b) =>
+            sortTrainingArea(areaMap.get(a).trainingAreaName, areaMap.get(b).trainingAreaName),
+        );
+    return { areaMap, areaOrder };
+}
+
+function rowsForAreaKey(rows, areaKey) {
+    return rows.filter((r) => {
+        const k = r.trainingAreaId != null ? `aid:${r.trainingAreaId}` : 'aid:none';
+        return k === areaKey;
+    });
+}
+
+function buildConsolidatedKvkSections(sectionKeys, bySection, titleForKey) {
+    return sectionKeys.map((sectionKey) => {
+        const typeRows = bySection.get(sectionKey) || [];
+        const sectionTitle = titleForKey(sectionKey);
+        const { areaMap, areaOrder } = buildAreaOrderAndMap(typeRows);
+        const rows = [];
+
+        for (const ak of areaOrder) {
+            const areaName = areaMap.get(ak).trainingAreaName;
+            rows.push({ kind: 'area', trainingAreaName: areaName });
+
+            const areaRows = rowsForAreaKey(typeRows, ak);
+            const thematicMap = new Map();
+            for (const r of areaRows) {
+                const tk = r.thematicAreaId != null ? `thid:${r.thematicAreaId}` : `thn:${r.thematicAreaName || '—'}`;
+                if (!thematicMap.has(tk)) {
+                    thematicMap.set(tk, {
+                        thematicAreaId: r.thematicAreaId != null ? Number(r.thematicAreaId) : null,
+                        thematicAreaName: r.thematicAreaName || '—',
+                        agg: emptyParticipantAgg(),
+                    });
+                }
+                addRowToAgg(thematicMap.get(tk).agg, r);
+            }
+
+            thematicSortEntries(thematicMap).forEach((tk) => {
+                const entry = thematicMap.get(tk);
+                rows.push({
+                    kind: 'thematic',
+                    trainingAreaName: areaName,
+                    thematicAreaName: entry.thematicAreaName,
+                    ...withTotals(entry.agg),
+                });
+            });
+
+            rows.push({
+                kind: 'subtotal',
+                trainingAreaName: areaName,
+                label: 'Sub Total',
+                ...withTotals(areaMap.get(ak).agg),
+            });
+        }
+
+        return { trainingTypeName: sectionTitle, rows };
+    });
+}
+
+function buildCampusSplitKvkSections(sectionKeys, bySection, titleForKey) {
+    return sectionKeys.map((sectionKey) => {
+        const typeRows = bySection.get(sectionKey) || [];
+        const sectionTitle = titleForKey(sectionKey);
+        const { areaMap, areaOrder } = buildAreaOrderAndMap(typeRows);
+        const rows = [];
+
+        for (const ak of areaOrder) {
+            const areaName = areaMap.get(ak).trainingAreaName;
+            rows.push({ kind: 'area', trainingAreaName: areaName });
+            const areaRows = rowsForAreaKey(typeRows, ak);
+            const thematicMap = new Map();
+            for (const r of areaRows) {
+                const tk = r.thematicAreaId != null ? `thid:${r.thematicAreaId}` : `thn:${r.thematicAreaName || '—'}`;
+                if (!thematicMap.has(tk)) {
+                    thematicMap.set(tk, {
+                        thematicAreaId: r.thematicAreaId != null ? Number(r.thematicAreaId) : null,
+                        thematicAreaName: r.thematicAreaName || '—',
+                        split: emptyCampusSplitAgg(),
+                    });
+                }
+                addRowToAgg(thematicMap.get(tk).split[campusBucketFor(r.campusType)], r);
+            }
+
+            thematicSortEntries(thematicMap).forEach((tk) => {
+                const entry = thematicMap.get(tk);
+                rows.push({
+                    kind: 'thematic',
+                    trainingAreaName: areaName,
+                    thematicAreaName: entry.thematicAreaName,
+                    onCampus: withTotals(entry.split.onCampus),
+                    offCampus: withTotals(entry.split.offCampus),
+                });
+            });
+
+            const subtotal = emptyCampusSplitAgg();
+            areaRows.forEach((r) => addRowToAgg(subtotal[campusBucketFor(r.campusType)], r));
+            rows.push({
+                kind: 'subtotal',
+                trainingAreaName: areaName,
+                label: 'Sub Total',
+                onCampus: withTotals(subtotal.onCampus),
+                offCampus: withTotals(subtotal.offCampus),
+            });
+        }
+
+        return { trainingTypeName: sectionTitle, rows };
+    });
+}
+
+function buildSponsoredProgrammeRows(records) {
+    return records
+        .filter(isSponsoredTrainingRecord)
+        .map((r, index) => ({
+            srNo: index + 1,
+            trainingTitle: r.titleOfTraining || '—',
+            thematicAreaName: r.thematicAreaName || '—',
+            month: monthNumber(r.startDate),
+            durationDays: durationDays(r.startDate, r.endDate),
+            clientCode: sponsoredClientCode(r.trainingTypeName),
+            courses: 1,
+            sponsoringAgency: r.fundingAgencyName || r.fundingSourceName || '—',
+            ...withTotals(cloneAgg(r)),
+        }));
+}
+
+function buildSuperadminClienteleSections(records) {
+    const byClientele = new Map();
+    for (const r of records) {
+        const key = clienteleGroupName(r);
+        if (!byClientele.has(key)) byClientele.set(key, []);
+        byClientele.get(key).push(r);
+    }
+
+    const order = [...byClientele.keys()].sort(sortClientele);
+    return order.map((clienteleName) => {
+        const rows = byClientele.get(clienteleName) || [];
+        const { areaMap, areaOrder } = buildAreaOrderAndMap(rows);
+        const detailRows = [];
+
+        for (const ak of areaOrder) {
+            const areaName = areaMap.get(ak).trainingAreaName;
+            detailRows.push({ kind: 'area', trainingAreaName: areaName });
+            const areaRows = rowsForAreaKey(rows, ak);
+            const thematicMap = new Map();
+            for (const r of areaRows) {
+                const tk = r.thematicAreaId != null ? `thid:${r.thematicAreaId}` : `thn:${r.thematicAreaName || '—'}`;
+                if (!thematicMap.has(tk)) {
+                    thematicMap.set(tk, {
+                        thematicAreaId: r.thematicAreaId != null ? Number(r.thematicAreaId) : null,
+                        thematicAreaName: r.thematicAreaName || '—',
+                        agg: emptyParticipantAgg(),
+                    });
+                }
+                addRowToAgg(thematicMap.get(tk).agg, r);
+            }
+            thematicSortEntries(thematicMap).forEach((tk) => {
+                const entry = thematicMap.get(tk);
+                detailRows.push({
+                    kind: 'thematic',
+                    trainingAreaName: areaName,
+                    thematicAreaName: entry.thematicAreaName,
+                    ...withTotals(entry.agg),
+                });
+            });
+            detailRows.push({
+                kind: 'subtotal',
+                trainingAreaName: areaName,
+                label: 'Sub Total',
+                ...withTotals(areaMap.get(ak).agg),
+            });
+        }
+
+        return {
+            clienteleName,
+            rows: detailRows,
+        };
+    });
 }
 
 /** Primary section key: **training type** (`trainingTypeId` → superadmin `TrainingType`). Campus is never used for A/B. */
@@ -297,26 +600,7 @@ function buildPayloadFromRecords(records, filters = {}) {
         for (const r of typeRows) addRowToAgg(stateGrand, r);
         stateGrand = withTotals(stateGrand);
 
-        const areaMap = new Map();
-        for (const r of typeRows) {
-            const ak = r.trainingAreaId != null ? `aid:${r.trainingAreaId}` : 'aid:none';
-            if (!areaMap.has(ak)) {
-                areaMap.set(ak, {
-                    key: ak,
-                    trainingAreaName: r.trainingAreaName || 'Not specified',
-                    agg: emptyParticipantAgg(),
-                });
-            }
-            addRowToAgg(areaMap.get(ak).agg, r);
-        }
-        // Drop the "Not specified" bucket (records with no Training Area linked -
-        // a data-entry gap). It must not appear as a row, and the summary total is
-        // computed from the shown areas only so rows still add up.
-        const areaOrder = [...areaMap.keys()]
-            .filter((ak) => ak !== 'aid:none' && areaMap.get(ak).trainingAreaName !== 'Not specified')
-            .sort((a, b) =>
-                sortTrainingArea(areaMap.get(a).trainingAreaName, areaMap.get(b).trainingAreaName),
-            );
+        const { areaMap, areaOrder } = buildAreaOrderAndMap(typeRows);
         const trainingAreaSummary = areaOrder.map((ak) => {
             const entry = areaMap.get(ak);
             return {
@@ -342,10 +626,7 @@ function buildPayloadFromRecords(records, filters = {}) {
         const thematicDetailBlocks = [];
         for (const ak of areaOrder) {
             const areaName = areaMap.get(ak).trainingAreaName;
-            const rowsForArea = typeRows.filter((r) => {
-                const k = r.trainingAreaId != null ? `aid:${r.trainingAreaId}` : 'aid:none';
-                return k === ak;
-            });
+            const rowsForArea = rowsForAreaKey(typeRows, ak);
             const thematicMap = new Map();
             for (const r of rowsForArea) {
                 const tk = r.thematicAreaId != null ? `thid:${r.thematicAreaId}` : 'thid:none';
@@ -360,15 +641,7 @@ function buildPayloadFromRecords(records, filters = {}) {
             }
             // Thematic sub-topics follow the master's authored order. The seed file
             // lists them in reverse, so higher ids display earlier; null ids go last.
-            const thOrder = [...thematicMap.keys()].sort((a, b) => {
-                const ida = thematicMap.get(a).thematicAreaId;
-                const idb = thematicMap.get(b).thematicAreaId;
-                if (ida == null && idb == null) return sortStr(thematicMap.get(a).thematicAreaName, thematicMap.get(b).thematicAreaName);
-                if (ida == null) return 1;
-                if (idb == null) return -1;
-                return idb - ida;
-            });
-            const detailRows = thOrder.map((tk) => {
+            const detailRows = thematicSortEntries(thematicMap).map((tk) => {
                 const e = thematicMap.get(tk);
                 return {
                     thematicAreaName: e.thematicAreaName,
@@ -415,10 +688,22 @@ function buildPayloadFromRecords(records, filters = {}) {
     for (const r of norm) addRowToAgg(stateSummaryGrand, r);
     stateSummaryGrand = withTotals(stateSummaryGrand);
     const stateSummary = { rows: stateSummaryRows, grandTotal: stateSummaryGrand };
+    const kvkConsolidatedSections = buildConsolidatedKvkSections(sectionKeys, bySection, titleForKey);
+    const kvkCampusSections = buildCampusSplitKvkSections(sectionKeys, bySection, titleForKey);
+    const sponsoredProgrammeRows = buildSponsoredProgrammeRows(norm);
+    const superadminClienteleSections = buildSuperadminClienteleSections(norm);
 
     debugLog('buildPayloadFromRecords: done', { yearLabel, sectionCount: sections.length });
 
-    return { yearLabel, stateSummary, sections };
+    return {
+        yearLabel,
+        stateSummary,
+        sections,
+        kvkConsolidatedSections,
+        kvkCampusSections,
+        sponsoredProgrammeRows,
+        superadminClienteleSections,
+    };
 }
 
 async function fetchTrainingAchievements(kvkId, filters = {}) {
@@ -437,6 +722,7 @@ async function fetchTrainingAchievements(kvkId, filters = {}) {
                 },
             },
             clientele: { select: { name: true } },
+            fundingSource: { select: { name: true } },
             trainingType: { select: { trainingTypeName: true } },
             trainingArea: { select: { trainingAreaName: true } },
             trainingThematicArea: { select: { trainingThematicAreaName: true } },

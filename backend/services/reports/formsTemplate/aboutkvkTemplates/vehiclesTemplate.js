@@ -1,4 +1,5 @@
 function renderVehiclesSection(section, data, sectionId, isFirstSection) {
+    
     if (!data || (Array.isArray(data) && data.length === 0)) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection)
     }

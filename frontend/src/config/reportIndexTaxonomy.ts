@@ -13,6 +13,8 @@
 export interface TaxonomyFeature {
     label: string
     sectionId: string
+    /** Selectable only in aggregated (multi-KVK) reports; hidden on the KVK side. */
+    aggregatedOnly?: boolean
 }
 
 export interface TaxonomyGroup {
@@ -86,7 +88,7 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                 label: 'On Farm Trial',
                 features: [
                     { label: 'OFT Summary', sectionId: '2.2' },
-                    { label: 'State Wise OFT Details', sectionId: '2.2' },
+                    { label: 'State Wise OFT Details', sectionId: '2.2.1', aggregatedOnly: true },
                     { label: 'KVK Wise OFT Details', sectionId: '2.3' },
                 ],
             },
@@ -94,7 +96,7 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                 label: 'Front Line Demonstration',
                 features: [
                     { label: 'FLD Summary', sectionId: '2.4' },
-                    { label: 'State Wise FLD Details', sectionId: '2.4' },
+                    { label: 'State Wise FLD Details', sectionId: '2.4', aggregatedOnly: true },
                     { label: 'FLD Details', sectionId: '2.4' },
                     { label: 'Extension & Training activities under FLD', sectionId: '2.5' },
                     { label: 'Technical Feedback on FLD', sectionId: '2.6' },
@@ -384,6 +386,7 @@ export const TAXONOMY_CHAPTER_NUMBER: Record<string, number> = {
 export function buildTaxonomyView(
     tabId: string,
     availableSectionIds: Set<string>,
+    isAggregated = false,
 ) {
     const chapter = REPORT_INDEX_TAXONOMY[tabId]
     if (!chapter) return null
@@ -391,6 +394,11 @@ export function buildTaxonomyView(
 
     const groups = chapter.groups.map((group, gi) => {
         const groupNo = `${chapterNo}.${gi + 1}`
+        // aggregatedOnly features (e.g. State Wise OFT Details) are selectable
+        // only in aggregated/super-admin reports — drop them on the KVK side.
+        const roleFiltered = group.features.filter(
+            (f) => isAggregated || !f.aggregatedOnly,
+        )
         // Collapse features that map to the SAME report section into a single
         // selectable row. Several sub-views (e.g. FLD Summary / State-wise /
         // Details) are produced by one section, so listing them as separate
@@ -398,7 +406,7 @@ export function buildTaxonomyView(
         // Keep the first label for each distinct sectionId; empty-sectionId
         // (not-yet-backed) rows are always kept so they still show as disabled.
         const seen = new Set<string>()
-        const deduped = group.features.filter((f) => {
+        const deduped = roleFiltered.filter((f) => {
             if (!f.sectionId) return true
             if (seen.has(f.sectionId)) return false
             seen.add(f.sectionId)
