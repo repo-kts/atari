@@ -1400,7 +1400,7 @@ CREATE TABLE "farmers_practicing_natural_farming" (
     "address" TEXT NOT NULL,
     "no_of_indigenous_cows" INTEGER,
     "land_holding" DOUBLE PRECISION,
-    "normal_crops_grown" INTEGER,
+    "normal_crops_grown" TEXT,
     "practicing_years_of_natural_farming" TEXT,
     "area_covered_under_natural_farming" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "crop_grown_under_natural_farming" TEXT NOT NULL DEFAULT '',

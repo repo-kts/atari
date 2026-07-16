@@ -1,5 +1,5 @@
 const prisma = require('../../../config/prisma.js');
-const { applyCreatedAtFilters } = require('./commonFilters.js');
+const { applyCreatedAtFilters, applyDateFilters } = require('./commonFilters.js');
 
 async function getKvkEmployees(kvkId, filters = {}) {
     const where = {
@@ -69,33 +69,36 @@ async function getKvkEmployeeHeads(kvkId, filters = {}) {
 }
 
 async function getKvkStaffTransferred(kvkId, filters = {}) {
-    const where = {
-        transferStatus: 'TRANSFERRED',
-    };
-    applyCreatedAtFilters(where, filters);
+    // Source of truth is the transfer-history table — the same one the "Staff
+    // Transferred" management page reads. The kvkStaff row is marked ACTIVE at its
+    // new KVK after a transfer (see aboutKvkService.transferEmployee), so filtering
+    // kvkStaff by transferStatus === 'TRANSFERRED' never returned any rows and the
+    // report section came up empty.
+    //
+    // Each transfer is attributed to its origin KVK (fromKvkId), so the aggregated
+    // (superadmin) report — which fans out per-KVK and concatenates — counts a
+    // transfer between two in-scope KVKs exactly once.
+    const where = { fromKvkId: kvkId };
+    applyDateFilters(where, filters, 'transferDate');
 
-    const allTransferred = await prisma.kvkStaff.findMany({
+    const rows = await prisma.staffTransferHistory.findMany({
         where,
         include: {
-            kvk: {
-                select: { kvkId: true, kvkName: true },
-            },
-            originalKvk: {
-                select: { kvkId: true, kvkName: true },
-            },
+            staff: { select: { staffName: true, transferCount: true } },
+            fromKvk: { select: { kvkId: true, kvkName: true } },
+            toKvk: { select: { kvkId: true, kvkName: true } },
         },
-        orderBy: { staffName: 'asc' },
+        orderBy: [{ transferDate: 'desc' }, { transferId: 'desc' }],
     });
 
-    return allTransferred.filter(staff => {
-        if (staff.originalKvkId === kvkId) return true;
-        if (!staff.sourceKvkIds) return false;
-
-        const sourceIds = Array.isArray(staff.sourceKvkIds)
-            ? staff.sourceKvkIds
-            : (typeof staff.sourceKvkIds === 'string' ? JSON.parse(staff.sourceKvkIds) : []);
-        return Array.isArray(sourceIds) && sourceIds.includes(kvkId);
-    });
+    // Shape rows for the staff-transferred template: originalKvk = from, kvk = to.
+    return rows.map((row) => ({
+        staffName: row.staff?.staffName || '',
+        originalKvk: row.fromKvk,
+        kvk: row.toKvk,
+        lastTransferDate: row.transferDate,
+        transferCount: row.staff?.transferCount ?? null,
+    }));
 }
 
 module.exports = {

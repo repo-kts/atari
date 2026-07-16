@@ -24,6 +24,8 @@
     "perm:budget-item": "node scripts/add-budget-item-permission.js",
     "seed:forms": "node scripts/seed-forms-data.js",
     "seed:kvk": "node scripts/seed-kvk-data.js",
+    "seed:fld": "node scripts/fld-script-dev-2-v2-prod.js",
+    "seed:fld:dry": "DRY_RUN=1 node scripts/fld-script-dev-2-v2-prod.js",
     "build": "prisma generate",
     "install:chrome": "npx puppeteer browsers install chrome",
     "test": "echo \"Error: no test specified\" && exit 1"
