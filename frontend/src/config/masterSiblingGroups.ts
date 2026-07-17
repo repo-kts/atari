@@ -2,7 +2,9 @@
  * Master Sibling Groups
  *
  * Centralized sibling route groups for All Masters navigation.
- * These groups define which master routes should appear as tabs together.
+ * Each group corresponds to exactly ONE tile on the All Masters landing page,
+ * and its order matches the order of items shown in that tile. Opening any
+ * master renders its tile-mates as tabs, so the tab order mirrors the tile.
  *
  * Usage:
  *   import { MASTER_SIBLING_GROUPS } from '@/config/masterSiblingGroups'
@@ -12,7 +14,8 @@
 import { ENTITY_PATHS } from '../constants/entityConstants'
 
 export const MASTER_SIBLING_GROUPS = {
-    // Basic Masters
+    // ── Basic Masters ──────────────────────────────────────────────
+    // Tile: "Basic Masters"
     BASIC_MASTERS: [
         ENTITY_PATHS.ZONES,
         ENTITY_PATHS.STATES,
@@ -32,13 +35,44 @@ export const MASTER_SIBLING_GROUPS = {
         '/all-master-1/kvks',
     ],
 
-    // OFT Masters
+    // ── About KVK ──────────────────────────────────────────────────
+    // Tile: "Employee Masters"
+    EMPLOYEE_MASTERS: [
+        ENTITY_PATHS.STAFF_CATEGORY,
+        ENTITY_PATHS.SANCTIONED_POST,
+        ENTITY_PATHS.DISCIPLINE,
+        ENTITY_PATHS.PAY_LEVEL,
+        ENTITY_PATHS.PAY_SCALE,
+        ENTITY_PATHS.JOB_TYPE,
+    ],
+
+    // Tile: "Bank Masters"
+    BANK_MASTERS: [
+        ENTITY_PATHS.BANK_ACCOUNT_TYPE,
+    ],
+
+    // Tile: "Infrastructure & Land"
+    INFRASTRUCTURE_LAND_MASTERS: [
+        ENTITY_PATHS.INFRASTRUCTURE_MASTER,
+        ENTITY_PATHS.LAND_ITEM_MASTER,
+    ],
+
+    // Tile: "Assets & Equipment"
+    ASSET_EQUIPMENT_MASTERS: [
+        ENTITY_PATHS.VEHICLE_TYPE,
+        ENTITY_PATHS.EQUIPMENT_TYPE,
+        ENTITY_PATHS.EQUIPMENT_MASTER,
+        ENTITY_PATHS.VEHICLE_PRESENT_STATUS,
+    ],
+
+    // ── Achievements ───────────────────────────────────────────────
+    // Tile: "OFT Master"
     OFT_MASTERS: [
         ENTITY_PATHS.OFT_SUBJECT,
         ENTITY_PATHS.OFT_THEMATIC_AREA,
     ],
 
-    // FLD Masters
+    // Tile: "FLD Master"
     FLD_MASTERS: [
         ENTITY_PATHS.FLD_SECTOR,
         ENTITY_PATHS.FLD_THEMATIC_AREA,
@@ -48,12 +82,7 @@ export const MASTER_SIBLING_GROUPS = {
         ENTITY_PATHS.FLD_ACTIVITY,
     ],
 
-    // CFLD Masters
-    CFLD_MASTERS: [
-        ENTITY_PATHS.CFLD_CROP,
-    ],
-
-    // Training Basic Masters
+    // Tile: "Training Master"
     TRAINING_BASIC_MASTERS: [
         ENTITY_PATHS.TRAINING_TYPE,
         ENTITY_PATHS.TRAINING_AREA,
@@ -61,97 +90,112 @@ export const MASTER_SIBLING_GROUPS = {
         ENTITY_PATHS.TRAINING_CLIENTELE,
     ],
 
-    // Training Extension Masters
+    // Tile: "Extension Activities"
     TRAINING_EXTENSION_MASTERS: [
         ENTITY_PATHS.EXTENSION_ACTIVITY,
         ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
     ],
 
-    // Production & Projects Masters
+    // Tile: "Production of Seed, Planting Materials and Bio Products"
     PRODUCT_MASTERS: [
         ENTITY_PATHS.PRODUCT_CATEGORY,
         ENTITY_PATHS.PRODUCT_TYPE,
         ENTITY_PATHS.PRODUCT,
     ],
 
+    // Tile: "Soil & Celebration Masters"
+    SOIL_CELEBRATION_MASTERS: [
+        ENTITY_PATHS.SOIL_WATER_ANALYSIS,
+        ENTITY_PATHS.IMPORTANT_DAY,
+    ],
+
+    // Tile: "Publications"
+    PUBLICATION_MASTERS: [
+        ENTITY_PATHS.PUBLICATION_ITEM,
+    ],
+
+    // ── Projects ───────────────────────────────────────────────────
+    // Tile: "CFLD Master"
+    CFLD_MASTERS: [
+        ENTITY_PATHS.CFLD_CROP,
+        ENTITY_PATHS.BUDGET_ITEM_MASTER,
+    ],
+
+    // Tile: "Climate Resilient Agriculture"
     CRA_MASTERS: [
         ENTITY_PATHS.CRA_CROPPING_SYSTEM,
         ENTITY_PATHS.CRA_FARMING_SYSTEM,
     ],
 
+    // Tile: "ARYA"
     ARYA_MASTERS: [
         ENTITY_PATHS.ARYA_ENTERPRISE,
     ],
 
+    // Tile: "TSP/SCSP"
     TSP_SCSP_MASTERS: [
         ENTITY_PATHS.TSP_SCSP_TYPE,
         ENTITY_PATHS.TSP_SCSP_ACTIVITY,
     ],
 
+    // Tile: "Natural Farming"
     NATURAL_FARMING_MASTERS: [
         ENTITY_PATHS.NATURAL_FARMING_ACTIVITY,
         ENTITY_PATHS.NATURAL_FARMING_SOIL_PARAMETER,
     ],
 
-    // Employee Masters
-    EMPLOYEE_MASTERS: [
-        ENTITY_PATHS.STAFF_CATEGORY,
-        ENTITY_PATHS.JOB_TYPE,
-        ENTITY_PATHS.PAY_LEVEL,
-        ENTITY_PATHS.PAY_SCALE,
-        ENTITY_PATHS.SANCTIONED_POST,
-        ENTITY_PATHS.DISCIPLINE,
+    // Tile: "Agri-Drone"
+    AGRI_DRONE_MASTERS: [
+        ENTITY_PATHS.AGRI_DRONE_DEMONSTRATIONS_ON,
     ],
 
-    BANK_MASTERS: [
-        ENTITY_PATHS.BANK_ACCOUNT_TYPE,
-    ],
-
-    // Calendar & Context Masters
-    CALENDAR_MASTERS: [
-        ENTITY_PATHS.SEASON,
-        ENTITY_PATHS.UNIT,
-        ENTITY_PATHS.CROP_TYPE,
-        ENTITY_PATHS.IMPORTANT_DAY,
-    ],
-
-    // Analysis & Performance Masters
-    RESOURCE_MASTERS: [
-        ENTITY_PATHS.INFRASTRUCTURE_MASTER,
-        ENTITY_PATHS.LAND_ITEM_MASTER,
-        ENTITY_PATHS.SOIL_WATER_ANALYSIS,
-        ENTITY_PATHS.VEHICLE_PRESENT_STATUS,
-        ENTITY_PATHS.VEHICLE_TYPE,
-        ENTITY_PATHS.EQUIPMENT_TYPE,
-        ENTITY_PATHS.FUNDING_SOURCE,
-    ],
-
-    ANALYSIS_MASTERS: [
-        ENTITY_PATHS.IMPACT_SPECIFIC_AREA,
-        ENTITY_PATHS.ENTERPRISE_TYPE,
-        ENTITY_PATHS.ACCOUNT_TYPE,
-        ENTITY_PATHS.PROGRAMME_TYPE,
-        ENTITY_PATHS.PPV_FRA_TRAINING_TYPE,
-        ENTITY_PATHS.DIGNITARY_TYPE,
-    ],
-
-    PROJECT_BUDGET_MASTERS: [
-        ENTITY_PATHS.FINANCIAL_PROJECT,
-        ENTITY_PATHS.BUDGET_ITEM_MASTER,
-    ],
-
+    // Tile: "NARI Masters"
     NARI_MASTERS: [
         ENTITY_PATHS.NARI_ACTIVITY,
         ENTITY_PATHS.NARI_NUTRITION_GARDEN_TYPE,
         ENTITY_PATHS.NARI_CROP_CATEGORY,
     ],
 
-    // NICRA Masters
+    // Tile: "NICRA Masters"
     NICRA_MASTERS: [
         ENTITY_PATHS.NICRA_CATEGORY,
         ENTITY_PATHS.NICRA_SUB_CATEGORY,
         ENTITY_PATHS.NICRA_SEED_BANK_FODDER_BANK,
         ENTITY_PATHS.NICRA_DIGNITARY_TYPE,
         ENTITY_PATHS.NICRA_PI_TYPE,
+    ],
+
+    // Tile: "Project wise Budget Masters"
+    PROJECT_BUDGET_MASTERS: [
+        ENTITY_PATHS.FINANCIAL_PROJECT,
+    ],
+
+    // ── Performance Indicators ─────────────────────────────────────
+    // Tile: "Performance Indicator Masters"
+    PERFORMANCE_MASTERS: [
+        ENTITY_PATHS.IMPACT_SPECIFIC_AREA,
+        ENTITY_PATHS.ENTERPRISE_TYPE,
+        ENTITY_PATHS.ACCOUNT_TYPE,
+        ENTITY_PATHS.PROGRAMME_TYPE,
+    ],
+
+    // ── Miscellaneous ──────────────────────────────────────────────
+    // Tile: "Miscellaneous Masters"
+    MISC_MASTERS: [
+        ENTITY_PATHS.PPV_FRA_TRAINING_TYPE,
+        ENTITY_PATHS.DIGNITARY_TYPE,
+    ],
+
+    // ── Others Master ──────────────────────────────────────────────
+    // Tile: "Calendar & Context Masters"
+    CALENDAR_CONTEXT_MASTERS: [
+        ENTITY_PATHS.SEASON,
+        ENTITY_PATHS.UNIT,
+        ENTITY_PATHS.CROP_TYPE,
+    ],
+
+    // Tile: "Funding Source"
+    FUNDING_SOURCE_MASTERS: [
+        ENTITY_PATHS.FUNDING_SOURCE,
     ],
 } as const;

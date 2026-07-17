@@ -2,19 +2,20 @@ import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
     MapPin,
-    TestTube,
-    GraduationCap,
-    Package,
-    BookOpen,
-    Calendar,
+    Building2,
+    ClipboardList,
+    Briefcase,
+    TrendingUp,
+    Layers,
+    Boxes,
 } from 'lucide-react'
 import { BasicMastersTab } from './masters/BasicMastersTab'
-import { OFTFLDTab } from './masters/OFTFLDTab'
-import { TrainingExtensionTab } from './masters/TrainingExtensionTab'
-import { ProductionProjectsTab } from './masters/ProductionProjectsTab'
-import { PublicationsTab } from './masters/PublicationsTab'
-import { OtherMastersTab } from './masters/OtherMastersTab'
-import { NicraMastersTab } from './masters/NicraMastersTab'
+import { AboutKvkMastersTab } from './masters/AboutKvkMastersTab'
+import { AchievementsMastersTab } from './masters/AchievementsMastersTab'
+import { ProjectsMastersTab } from './masters/ProjectsMastersTab'
+import { PerformanceMastersTab } from './masters/PerformanceMastersTab'
+import { MiscellaneousMastersTab } from './masters/MiscellaneousMastersTab'
+import { OthersMastersTab } from './masters/OthersMastersTab'
 import { SidebarLayout } from '../../components/common/SidebarLayout'
 
 interface Tab {
@@ -25,6 +26,8 @@ interface Tab {
     component: React.ReactNode
 }
 
+// Tabs mirror the Form Management order:
+// Basic → About KVK → Achievements → Projects → Performance Indicators → Miscellaneous → Others
 const tabs: Tab[] = [
     {
         id: 'basic',
@@ -34,46 +37,46 @@ const tabs: Tab[] = [
         component: <BasicMastersTab />,
     },
     {
-        id: 'oft-fld',
-        label: 'OFT & FLD Masters',
-        path: '/all-master/oft-fld',
-        icon: <TestTube className="w-4 h-4" />,
-        component: <OFTFLDTab />,
+        id: 'about-kvk',
+        label: 'About KVK Master',
+        path: '/all-master/about-kvk',
+        icon: <Building2 className="w-4 h-4" />,
+        component: <AboutKvkMastersTab />,
     },
     {
-        id: 'training-extension',
-        label: 'Training & Extension',
-        path: '/all-master/training-extension',
-        icon: <GraduationCap className="w-4 h-4" />,
-        component: <TrainingExtensionTab />,
+        id: 'achievements',
+        label: 'Achievements Master',
+        path: '/all-master/achievements',
+        icon: <ClipboardList className="w-4 h-4" />,
+        component: <AchievementsMastersTab />,
     },
     {
-        id: 'production-projects',
-        label: 'Production & Projects',
-        path: '/all-master/production-projects',
-        icon: <Package className="w-4 h-4" />,
-        component: <ProductionProjectsTab />,
+        id: 'projects',
+        label: 'Projects Master',
+        path: '/all-master/projects',
+        icon: <Briefcase className="w-4 h-4" />,
+        component: <ProjectsMastersTab />,
     },
     {
-        id: 'publications',
-        label: 'Publications',
-        path: '/all-master/publications',
-        icon: <BookOpen className="w-4 h-4" />,
-        component: <PublicationsTab />,
+        id: 'performance',
+        label: 'Performance Indicators Master',
+        path: '/all-master/performance',
+        icon: <TrendingUp className="w-4 h-4" />,
+        component: <PerformanceMastersTab />,
     },
     {
-        id: 'other-masters',
-        label: 'Other Masters',
-        path: '/all-master/other-masters',
-        icon: <Calendar className="w-4 h-4" />,
-        component: <OtherMastersTab />,
+        id: 'miscellaneous',
+        label: 'Miscellaneous Master',
+        path: '/all-master/miscellaneous',
+        icon: <Layers className="w-4 h-4" />,
+        component: <MiscellaneousMastersTab />,
     },
     {
-        id: 'nicra-masters',
-        label: 'NICRA Masters',
-        path: '/all-master/nicra',
-        icon: <Calendar className="w-4 h-4" />,
-        component: <NicraMastersTab />,
+        id: 'others',
+        label: 'Others Master',
+        path: '/all-master/others',
+        icon: <Boxes className="w-4 h-4" />,
+        component: <OthersMastersTab />,
     },
 ]
 
@@ -99,50 +102,107 @@ export const AllMasters: React.FC = () => {
         navigate(`${basePath}/basic`, { replace: true })
     }, [location.pathname, navigate, basePath])
 
-    // Determine active tab based on current route
+    // Determine active tab based on current route. Each individual master URL is
+    // mapped to the form-aligned group it belongs to.
     const getActiveTab = (): string => {
         const currentPath = location.pathname.replace('/all-master-1', '/all-master')
         // Check for exact matches first
         const exactMatch = tabs.find(tab => currentPath === tab.path)
         if (exactMatch) return exactMatch.id
 
-        // Check for path prefixes to match sub-routes
-        if (currentPath.startsWith('/all-master/zones') ||
-            currentPath.startsWith('/all-master/states') ||
-            currentPath.startsWith('/all-master/organizations') ||
-            currentPath.startsWith('/all-master/universities') ||
-            currentPath.startsWith('/all-master/kvks') ||
-            currentPath.startsWith('/all-master/districts')) {
+        const startsWithAny = (prefixes: string[]): boolean =>
+            prefixes.some(p => currentPath.startsWith(p))
+
+        // Basic Masters (org hierarchy)
+        if (startsWithAny([
+            '/all-master/zones',
+            '/all-master/states',
+            '/all-master/districts',
+            '/all-master/organizations',
+            '/all-master/universities',
+            '/all-master/kvks',
+        ])) {
             return 'basic'
         }
-        if (currentPath.startsWith('/all-master/oft') ||
-            currentPath.startsWith('/all-master/fld') ||
-            currentPath.startsWith('/all-master/cfld-crop')) {
-            return 'oft-fld'
+
+        // About KVK (employee, bank, infrastructure, land, assets)
+        if (startsWithAny([
+            '/all-master/staff-category',
+            '/all-master/job-type',
+            '/all-master/pay-level',
+            '/all-master/pay-scale',
+            '/all-master/sanctioned-post',
+            '/all-master/discipline',
+            '/all-master/bank-account-type',
+            '/all-master/infrastructure-master',
+            '/all-master/land-item-master',
+            '/all-master/vehicle-type',
+            '/all-master/equipment-type',
+            '/all-master/equipment-master',
+            '/all-master/vehicle-present-status',
+            '/all-master/equipment-present-status',
+        ])) {
+            return 'about-kvk'
         }
-        if (currentPath.startsWith('/all-master/nicra')) {
-            return 'nicra-masters'
+
+        // Achievements (OFT, FLD, training, extension, product, soil water, celebration, publications)
+        if (startsWithAny([
+            '/all-master/oft',
+            '/all-master/fld',
+            '/all-master/training',
+            '/all-master/extension-activity',
+            '/all-master/other-extension-activity',
+            '/all-master/product',
+            '/all-master/soil-water-analysis',
+            '/all-master/important-day',
+            '/all-master/publication',
+        ])) {
+            return 'achievements'
         }
-        if (currentPath.startsWith('/all-master/training') ||
-            currentPath.startsWith('/all-master/extension-activity') ||
-            currentPath.startsWith('/all-master/other-extension-activity') ||
-            currentPath.startsWith('/all-master/events')) {
-            return 'training-extension'
+
+        // Projects (CFLD, CRA, ARYA, TSP/SCSP, natural farming, agri-drone, NARI, NICRA, budget)
+        if (startsWithAny([
+            '/all-master/cfld-crop',
+            '/all-master/cra',
+            '/all-master/arya-enterprise',
+            '/all-master/tsp-scsp',
+            '/all-master/natural-farming-activity',
+            '/all-master/natural-farming-soil-parameter',
+            '/all-master/agri-drone-demonstrations-on',
+            '/all-master/nari',
+            '/all-master/nicra',
+            '/all-master/financial-project',
+            '/all-master/budget-item-master',
+        ])) {
+            return 'projects'
         }
-        if (currentPath.startsWith('/all-master/product') ||
-            currentPath.startsWith('/all-master/cra') ||
-            currentPath.startsWith('/all-master/arya-enterprise') ||
-            currentPath.startsWith('/all-master/natural-farming-activity') ||
-            currentPath.startsWith('/all-master/natural-farming-soil-parameter') ||
-            currentPath.startsWith('/all-master/agri-drone-demonstrations-on')) {
-            return 'production-projects'
+
+        // Performance Indicators
+        if (startsWithAny([
+            '/all-master/impact-specific-area',
+            '/all-master/enterprise-type',
+            '/all-master/account-type',
+            '/all-master/programme-type',
+        ])) {
+            return 'performance'
         }
-        if (currentPath.startsWith('/all-master/publication')) {
-            return 'publications'
+
+        // Miscellaneous
+        if (startsWithAny([
+            '/all-master/ppv-fra-training-type',
+            '/all-master/dignitary-type',
+        ])) {
+            return 'miscellaneous'
         }
-        // Fallback: any other sub-route under /all-master/ belongs to 'other-masters'
-        if (currentPath.startsWith('/all-master/')) {
-            return 'other-masters'
+
+        // Others (calendar/context + funding source)
+        if (startsWithAny([
+            '/all-master/season',
+            '/all-master/unit',
+            '/all-master/crop-type',
+            '/all-master/funding-source',
+        ])) {
+            return 'others'
         }
 
         return tabs[0].id

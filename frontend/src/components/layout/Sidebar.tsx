@@ -79,16 +79,13 @@ const buildSubItems = (routes: SearchableRoute[]): SubItem[] => {
     return out
 }
 
-const buildSubItemsForGroup = (routes: SearchableRoute[], groupPath: string): SubItem[] =>
-    buildSubItems(routes.filter(route => route.subcategoryPath === groupPath))
+// Sub-items for each All Masters group are derived from the master routes,
+// grouped by their subcategoryPath (which equals the sidebar group path). This
+// lets the sidebar search surface individual masters (e.g. "NICRA", "Season").
+const masterSubItemsFor = (groupPath: string): SubItem[] =>
+    buildSubItems(allMastersRoutes.filter(route => route.subcategoryPath === groupPath))
 
 const SIDEBAR_SUBITEMS: Record<string, SubItem[]> = {
-    '/all-master/basic': buildSubItemsForGroup(allMastersRoutes, '/all-master/basic'),
-    '/all-master/oft-fld': buildSubItemsForGroup(allMastersRoutes, '/all-master/oft-fld'),
-    '/all-master/training': buildSubItemsForGroup(allMastersRoutes, '/all-master/training'),
-    '/all-master/production-projects': buildSubItemsForGroup(allMastersRoutes, '/all-master/production-projects'),
-    '/all-master/publications': buildSubItemsForGroup(allMastersRoutes, '/all-master/publications'),
-    '/all-master/other-masters': buildSubItemsForGroup(allMastersRoutes, '/all-master/other-masters'),
     '/forms/about-kvk': buildSubItems([
         ...aboutKvkRoutes,
         ...viewKvkRoutes,
@@ -101,6 +98,14 @@ const SIDEBAR_SUBITEMS: Record<string, SubItem[]> = {
     ),
     '/forms/meetings': buildSubItems(meetingsRoutes),
     '/forms/miscellaneous': buildSubItems([...miscellaneousRoutes, ...digitalInformationRoutes]),
+    // All Masters groups — makes each master searchable from the sidebar.
+    '/all-master/basic': masterSubItemsFor('/all-master/basic'),
+    '/all-master/about-kvk': masterSubItemsFor('/all-master/about-kvk'),
+    '/all-master/achievements': masterSubItemsFor('/all-master/achievements'),
+    '/all-master/projects': masterSubItemsFor('/all-master/projects'),
+    '/all-master/performance': masterSubItemsFor('/all-master/performance'),
+    '/all-master/miscellaneous': masterSubItemsFor('/all-master/miscellaneous'),
+    '/all-master/others': masterSubItemsFor('/all-master/others'),
 }
 
 const superAdminMenuItems: MenuItem[] = [
@@ -125,65 +130,96 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Basic Masters',
                 path: '/all-master/basic',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks'],
+                moduleCodes: [
+                    'all_masters_zone_master',
+                    'all_masters_states_master',
+                    'all_masters_districts_master',
+                    'all_masters_organization_master',
+                    'all_masters_university_master',
+                    'all_masters_kvks',
+                ],
             },
             {
-                label: 'OFT & FLD Masters',
-                path: '/all-master/oft-fld',
-                icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_oft_master', 'all_masters_fld_master', 'all_masters_cfld_master'],
-            },
-            {
-                label: 'Training & Extension Masters',
-                path: '/all-master/training',
-                icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_training_master', 'all_masters_extension_activity_master', 'all_masters_other_extension_activity_master', 'all_masters_events_master'],
-            },
-            {
-                label: 'Production Masters',
-                path: '/all-master/production-projects',
-                icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_products_master', 'all_masters_agri_drone_master', 'all_masters_climate_master', 'all_masters_arya_master', 'all_masters_tsp_scsp_master', 'all_masters_natural_farming_master'],
-            },
-            {
-                label: 'Publication Masters',
-                path: '/all-master/publications',
-                icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_publication_master'],
-            },
-            {
-                label: 'Other Masters',
-                path: '/all-master/other-masters',
+                label: 'About KVK Master',
+                path: '/all-master/about-kvk',
                 icon: <Folder className="w-4 h-4" />,
                 moduleCodes: [
-                    'all_masters_season_master',
-                    'all_masters_sanctioned_post_master',
                     'all_masters_staff_category_master',
+                    'all_masters_sanctioned_post_master',
+                    'all_masters_discipline_master',
                     'all_masters_pay_level_master',
                     'all_masters_pay_scale_master',
-                    'all_masters_discipline_master',
-                    'all_masters_crop_type_master',
-                    'all_masters_infrastructure_master',
-                    'all_masters_vehicle_present_status_master',
-                    'all_masters_equipment_present_status_master',
-                    'all_masters_events_master',
-                    'all_masters_financial_project_master',
                     'all_masters_job_type_master',
                     'all_masters_bank_account_type_master',
-                    'all_masters_asset_funding_source_master',
+                    'all_masters_infrastructure_master',
+                    'all_masters_vehicle_present_status_master',
                     'all_masters_equipment_type_master',
                     'all_masters_equipment_master',
-                    'all_masters_unit_master',
+                ],
+            },
+            {
+                label: 'Achievements Master',
+                path: '/all-master/achievements',
+                icon: <Folder className="w-4 h-4" />,
+                moduleCodes: [
+                    'all_masters_oft_master',
+                    'all_masters_fld_master',
+                    'all_masters_training_master',
+                    'all_masters_extension_activity_master',
+                    'all_masters_other_extension_activity_master',
+                    'all_masters_products_master',
                     'all_masters_soil_water_analysis_master',
+                    'all_masters_events_master',
+                    'all_masters_publication_master',
+                ],
+            },
+            {
+                label: 'Projects Master',
+                path: '/all-master/projects',
+                icon: <Folder className="w-4 h-4" />,
+                moduleCodes: [
+                    'all_masters_cfld_master',
+                    'all_masters_climate_master',
+                    'all_masters_arya_master',
+                    'all_masters_tsp_scsp_master',
+                    'all_masters_natural_farming_master',
+                    'all_masters_agri_drone_master',
                     'all_masters_nari_activity_master',
                     'all_masters_nari_garden_type_master',
                     'all_masters_nicra_master',
+                    'all_masters_financial_project_master',
+                    'all_masters_budget_item_master',
+                ],
+            },
+            {
+                label: 'Performance Indicators Master',
+                path: '/all-master/performance',
+                icon: <Folder className="w-4 h-4" />,
+                moduleCodes: [
                     'all_masters_impact_area_master',
                     'all_masters_enterprise_type_master',
                     'all_masters_account_type_master',
                     'all_masters_programme_type_master',
+                ],
+            },
+            {
+                label: 'Miscellaneous Master',
+                path: '/all-master/miscellaneous',
+                icon: <Folder className="w-4 h-4" />,
+                moduleCodes: [
                     'all_masters_ppv_fra_training_type_master',
-                    'all_masters_dignitary_type_master'
+                    'all_masters_dignitary_type_master',
+                ],
+            },
+            {
+                label: 'Others Master',
+                path: '/all-master/others',
+                icon: <Folder className="w-4 h-4" />,
+                moduleCodes: [
+                    'all_masters_season_master',
+                    'all_masters_unit_master',
+                    'all_masters_crop_type_master',
+                    'all_masters_asset_funding_source_master',
                 ],
             },
         ],
@@ -531,9 +567,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     // Mapping of route patterns to their parent dropdown paths
     const routeToParentMap: { pattern: RegExp; parentPath: string }[] = [
         { pattern: /^\/all-master\/(zones|states|organizations|universities|districts|kvks)/, parentPath: '/all-master/basic' },
-        { pattern: /^\/all-master\/(oft|fld|cfld-crop)/, parentPath: '/all-master/oft-fld' },
-        { pattern: /^\/all-master\/(training-type|training-area|training-thematic|training-clientele|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
-        { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise|natural-farming-activity|natural-farming-soil-parameter|agri-drone-demonstrations-on)/, parentPath: '/all-master/production-projects' },
+        { pattern: /^\/all-master\/(staff-category|sanctioned-post|discipline|pay-level|pay-scale|job-type|bank-account-type|infrastructure-master|land-item-master|vehicle-type|equipment-type|equipment-master|vehicle-present-status|equipment-present-status)/, parentPath: '/all-master/about-kvk' },
+        { pattern: /^\/all-master\/(season|unit|crop-type|funding-source)/, parentPath: '/all-master/others' },
+        { pattern: /^\/all-master\/(oft|fld|training-type|training-area|training-thematic|training-clientele|training-extension|extension-activity|other-extension-activity|product-category|product-type|product|soil-water-analysis|important-day|publications|publication-item)/, parentPath: '/all-master/achievements' },
+        { pattern: /^\/all-master\/(cfld-crop|cra-croping-system|cra-farming-system|arya-enterprise|tsp-scsp-type|tsp-scsp-activity|natural-farming-activity|natural-farming-soil-parameter|agri-drone-demonstrations-on|nari-activity|nari-nutrition-garden-type|nari-crop-category|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type|financial-project|budget-item-master)/, parentPath: '/all-master/projects' },
+        { pattern: /^\/all-master\/(impact-specific-area|enterprise-type|account-type|programme-type)/, parentPath: '/all-master/performance' },
+        { pattern: /^\/all-master\/(ppv-fra-training-type|dignitary-type)/, parentPath: '/all-master/miscellaneous' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
         // Digital Information forms live under the Miscellaneous group in the sidebar,
         // but their URLs sit on a separate /forms/digital-information tree.
@@ -542,10 +581,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         { pattern: /^\/forms\/swachhta-bharat-abhiyaan/, parentPath: '/forms/achievements' },
         // Staff Quarters lives under the performance URL tree but belongs to the About KVK group in the sidebar.
         { pattern: /^\/forms\/performance\/infrastructure\/staff-quarters/, parentPath: '/forms/about-kvk' },
-        { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },
-        { pattern: /^\/all-master\/(staff-category|job-type|bank-account-type|pay-level|pay-scale|funding-source|vehicle-type|equipment-type|equipment-master|sanctioned-post|discipline|season|year|unit|crop-type|infrastructure-master|vehicle-present-status|equipment-present-status|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
-        { pattern: /^\/all-master\/(nari-activity|nari-nutrition-garden-type|nari-crop-category)/, parentPath: '/all-master/other-masters' },
-        { pattern: /^\/all-master\/(impact-specific-area|enterprise-type|account-type|programme-type|ppv-fra-training-type|dignitary-type|financial-project)/, parentPath: '/all-master/other-masters' },
     ]
 
     const getEffectiveParent = (pathname: string): string | null => {
