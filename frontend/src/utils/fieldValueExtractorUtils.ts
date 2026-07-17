@@ -1704,6 +1704,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.actionTaken || null,
         priority: 6,
     },
+    [FIELD_NAMES.IN_COMPLIANCE]: {
+        extractor: (item: any) => item.inCompliance || null,
+        priority: 6,
+    },
     [FIELD_NAMES.REASON]: {
         extractor: (item: any) => item.reason || null,
         priority: 6,

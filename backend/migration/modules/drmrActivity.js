@@ -116,7 +116,9 @@ module.exports = {
             components.push({
                 activityType,
                 quantity,
-                unit: decodeEntities(cleanText(row[unitField])),
+                unit: ['AWARENESS_CAMP', 'LITERATURE_DISTRIBUTION', 'KISAN_MELA'].includes(activityType)
+                    ? 'No.'
+                    : decodeEntities(cleanText(row[unitField])),
                 specification: null,
                 ...ZERO_DEMOGRAPHICS,
             });

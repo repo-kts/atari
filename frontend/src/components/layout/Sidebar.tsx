@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import {
+    allMastersRoutes,
     aboutKvkRoutes,
     viewKvkRoutes,
     achievementsRoutes,
@@ -52,16 +53,22 @@ interface MenuItem {
 }
 
 // Super Admin menu items with dropdown support
-// Sub-item (tab) search index: maps each Form Management leaf path to the
-// tab/feature routes shown on that page. Lets the sidebar search surface deep
-// tabs (e.g. "Employee Details" under About KVK) as recommendations.
+// Deep search index: maps sidebar section paths to the routes shown within
+// those pages, including form tabs and individual master screens.
 interface SubItem {
     label: string
     path: string
     moduleCode?: string
 }
 
-const buildSubItems = (routes: { title: string; path: string; moduleCode?: string }[]): SubItem[] => {
+interface SearchableRoute {
+    title: string
+    path: string
+    moduleCode?: string
+    subcategoryPath?: string
+}
+
+const buildSubItems = (routes: SearchableRoute[]): SubItem[] => {
     const seen = new Set<string>()
     const out: SubItem[] = []
     for (const r of routes) {
@@ -72,7 +79,16 @@ const buildSubItems = (routes: { title: string; path: string; moduleCode?: strin
     return out
 }
 
+const buildSubItemsForGroup = (routes: SearchableRoute[], groupPath: string): SubItem[] =>
+    buildSubItems(routes.filter(route => route.subcategoryPath === groupPath))
+
 const SIDEBAR_SUBITEMS: Record<string, SubItem[]> = {
+    '/all-master/basic': buildSubItemsForGroup(allMastersRoutes, '/all-master/basic'),
+    '/all-master/oft-fld': buildSubItemsForGroup(allMastersRoutes, '/all-master/oft-fld'),
+    '/all-master/training': buildSubItemsForGroup(allMastersRoutes, '/all-master/training'),
+    '/all-master/production-projects': buildSubItemsForGroup(allMastersRoutes, '/all-master/production-projects'),
+    '/all-master/publications': buildSubItemsForGroup(allMastersRoutes, '/all-master/publications'),
+    '/all-master/other-masters': buildSubItemsForGroup(allMastersRoutes, '/all-master/other-masters'),
     '/forms/about-kvk': buildSubItems([
         ...aboutKvkRoutes,
         ...viewKvkRoutes,

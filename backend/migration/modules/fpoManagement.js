@@ -26,6 +26,12 @@ function floatOrZero(v) {
     return Number.isFinite(n) ? n : 0;
 }
 
+function floatOrNull(v) {
+    if (v === undefined || v === null || String(v).trim() === '' || String(v).trim() === '-') return null;
+    const n = parseFloat(String(v).replace(/[^\d.-]/g, ''));
+    return Number.isFinite(n) ? n : null;
+}
+
 function asObject(value) {
     if (value == null) return null;
     if (typeof value === 'object') return value;
@@ -93,6 +99,7 @@ module.exports = {
         // 5. Numeric fields — old strings, "-" for no value → 0.
         const totalBomMembers = intOrZero(row.total_bom_members);
         const totalFarmersAttached = intOrZero(row.total_farmers_attached);
+        const areaHa = floatOrNull(row.area_ha ?? row.area);
         const financialPositionLakh = floatOrZero(row.financial_position);
 
         const data = {
@@ -104,6 +111,7 @@ module.exports = {
             registrationDate,
             proposedActivity,
             commodityIdentified,
+            areaHa,
             totalBomMembers,
             totalFarmersAttached,
             financialPositionLakh,

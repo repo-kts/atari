@@ -489,7 +489,6 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                         {/* Species / Breed / Variety — free text */}
                         <FormInput
                             label="Species / Breed / Variety"
-                            required
                             value={formData.speciesName ?? ''}
                             onChange={handleSpeciesNameChange}
                             placeholder="Enter species / breed / variety"

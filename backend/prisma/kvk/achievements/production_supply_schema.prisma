@@ -8,7 +8,7 @@ productCategoryId  Int?             @map("product_category_id")
   productTypeOther   String?          @map("product_type_other")
   productId          Int?             @map("product_id")
   productOther       String?          @map("product_other")
-  speciesName        String           @map("species_name")
+  speciesName        String?          @map("species_name")
   // Unit is no longer stored here — it derives from the linked Product's master
   // unit (Product.unit). Edit the product's unit to change it everywhere.
   quantity           Float

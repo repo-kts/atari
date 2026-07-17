@@ -169,6 +169,13 @@ export const FpoForms: React.FC<FpoFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, commodityIdentified: e.target.value })}
                         />
                         <FormInput
+                            label="Area (ha)"
+                            type="number"
+                            step="any"
+                            value={formData.areaHa ?? ''}
+                            onChange={(e) => setFormData({ ...formData, areaHa: e.target.value })}
+                        />
+                        <FormInput
                             label="Total No. of BOM Members"
                             required
                             type="number"
@@ -186,6 +193,7 @@ export const FpoForms: React.FC<FpoFormsProps> = ({
                             label="Financial position (Rupees in lakh)"
                             required
                             type="number"
+                            step="any"
                             value={formData.financialPosition ?? ''}
                             onChange={(e) => setFormData({ ...formData, financialPosition: e.target.value })}
                         />

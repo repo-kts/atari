@@ -236,14 +236,14 @@ const KVK_GROUPED_HTML_EXPORT_TEMPLATES = new Set([
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
     { activityType: 'FRONTLINE_DEMONSTRATION', itemLabel: 'Area under FLDs', unitFallback: 'Hectare', valueKey: 'fld_count', prefix: 'fld_count_', group: 'Frontline demonstrations (FLDs) and other demonstrations' },
-    { activityType: 'AWARENESS_CAMP', itemLabel: 'Awareness camps, exposure visit etc', unitFallback: 'N/A', valueKey: 'awareness_count', prefix: 'awareness_count_' },
+    { activityType: 'AWARENESS_CAMP', itemLabel: 'Awareness camps, exposure visit etc', unitFallback: 'No.', valueKey: 'awareness_count', prefix: 'awareness_count_' },
     { activityType: 'INPUT_SEEDS', itemLabel: 'Seeds (Field Crops)', unitFallback: 'Kg', valueKey: 'seeds_qty', prefix: 'seeds_qty_', group: 'Input Distribution' },
     { activityType: 'INPUT_SMALL_EQUIPMENT', itemLabel: 'Small equipments (Upto Rs.2000)', unitFallback: 'Number', valueKey: 'small_equip_qty', prefix: 'small_equip_qty_' },
     { activityType: 'INPUT_LARGE_EQUIPMENT', itemLabel: 'Large equipments (more than Rs.2000)', unitFallback: 'Number', valueKey: 'large_equip_qty', prefix: 'large_equip_qty_' },
     { activityType: 'INPUT_FERTILIZER', itemLabel: 'Fertilizers (NPK)/ Secondary/ Micro Fertilizers', unitFallback: 'Kg', valueKey: 'fertilizer_qty', prefix: 'fertilizer_qty_' },
     { activityType: 'INPUT_PPC', itemLabel: 'Plant Protection chemicals', unitFallback: 'Lit.', valueKey: 'pp_chemicals_qty', prefix: 'pp_chemicals_qty_' },
-    { activityType: 'LITERATURE_DISTRIBUTION', itemLabel: 'Distribution of Literature', unitFallback: 'N/A', valueKey: 'lecture_count', prefix: 'lecture_count_' },
-    { activityType: 'KISAN_MELA', itemLabel: 'Kisan Mela', unitFallback: 'N/A', valueKey: 'kisan_mela_count', prefix: 'kisan_mela_count_' },
+    { activityType: 'LITERATURE_DISTRIBUTION', itemLabel: 'Distribution of Literature', unitFallback: 'No.', valueKey: 'lecture_count', prefix: 'lecture_count_' },
+    { activityType: 'KISAN_MELA', itemLabel: 'Kisan Mela', unitFallback: 'No.', valueKey: 'kisan_mela_count', prefix: 'kisan_mela_count_' },
     { activityType: 'OTHER', itemLabel: 'Any other (specify)', unitFallback: 'N/A', valueKey: 'any_other_count', prefix: 'any_other_count_' },
 ];
 
@@ -1328,6 +1328,7 @@ function buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbac
         'Date of Registration',
         'Proposed Activity',
         'Commodity identified',
+        'Area (ha)',
         'Total No. of BOM Members',
         'Total no of farmers attached',
         'Financial position (Rupees in lakh)',
@@ -1341,6 +1342,7 @@ function buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbac
         formatExportValue(row.registrationDate || '-', format),
         formatExportValue(row.proposedActivity || '-', format),
         formatExportValue(row.commodityIdentified || '-', format),
+        formatExportValue(row.areaHa ?? 0, format),
         formatExportValue(row.totalBomMembers ?? row.bomMembersCount ?? 0, format),
         formatExportValue(row.totalFarmersAttached ?? row.farmersAttachedCount ?? 0, format),
         formatExportValue(row.financialPositionLakh ?? row.financialPosition ?? 0, format),

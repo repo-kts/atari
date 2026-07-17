@@ -12,7 +12,7 @@ export interface ProductionSupply {
     prodSubCategory?: string;
     productId?: number;
     prodType?: string;
-    speciesName: string;
+    speciesName: string | null;
     unit: string;
     quantity: number;
     value: number;
@@ -65,7 +65,7 @@ export interface ProductionSupplyFormData {
     prodSubCategory?: string | number;
     productId?: number;
     prodType?: string | number;
-    speciesName: string;
+    speciesName?: string | null;
     // Unit is derived from the product master (read-only) — not submitted.
     unit?: string;
     quantity: number | string;

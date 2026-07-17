@@ -1,7 +1,7 @@
 /**
  * Details of Scientific Advisory Committee (SAC) Meetings Template
  * Columns: KVK | Start Date | End Date | No of Participants | Statutory Members Present |
- *          Salient Recommendations | Action | Reason
+ *          Salient Recommendations | Action Taken | In Compliance | Reason
  */
 
 function _formatDate(v) {
@@ -36,8 +36,9 @@ function renderSacMeetingSection(section, data, sectionId, isFirstSection) {
     <h1 class="section-title" style="margin-bottom:10px;">Details of Scientific Advisory Committee(SAC) Meetings</h1>
     <table class="data-table sac-table">
         <colgroup>
-            <col style="width:10%;"><col style="width:8%;"><col style="width:8%;"><col style="width:7%;">
-            <col style="width:9%;"><col style="width:38%;"><col style="width:6%;"><col style="width:14%;">
+            <col style="width:9%;"><col style="width:8%;"><col style="width:8%;"><col style="width:7%;">
+            <col style="width:9%;"><col style="width:32%;"><col style="width:7%;"><col style="width:8%;">
+            <col style="width:12%;">
         </colgroup>
         <thead>
             <tr>
@@ -47,17 +48,18 @@ function renderSacMeetingSection(section, data, sectionId, isFirstSection) {
                 <th rowspan="2">No of Participants</th>
                 <th rowspan="2">Total Statutory Members Present</th>
                 <th rowspan="2">Salient Recommendations</th>
-                <th colspan="2">Action</th>
+                <th colspan="3">Action</th>
             </tr>
             <tr>
                 <th>Taken</th>
+                <th>In Compliance</th>
                 <th>Reason</th>
             </tr>
         </thead>
         <tbody>`;
 
     if (records.length === 0) {
-        html += `<tr><td colspan="8" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>`;
+        html += `<tr><td colspan="9" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>`;
     }
 
     records.forEach(row => {
@@ -68,6 +70,7 @@ function renderSacMeetingSection(section, data, sectionId, isFirstSection) {
         const statutory = row.statutoryMembersPresent != null ? row.statutoryMembersPresent : 0;
         const recommendations = row.salientRecommendations || '-';
         const action = row.actionTaken === 'YES' ? 'yes' : row.actionTaken === 'NO' ? 'no' : '-';
+        const inCompliance = row.inCompliance === 'YES' ? 'yes' : row.inCompliance === 'NO' ? 'no' : '-';
         const reason = row.reason || '-';
 
         html += `
@@ -79,6 +82,7 @@ function renderSacMeetingSection(section, data, sectionId, isFirstSection) {
                 <td style="text-align:center;">${statutory}</td>
                 <td style="word-wrap:break-word;word-break:break-word;">${this._escapeHtml(recommendations)}</td>
                 <td style="text-align:center;">${action}</td>
+                <td style="text-align:center;">${inCompliance}</td>
                 <td style="word-wrap:break-word;word-break:break-word;">${this._escapeHtml(reason)}</td>
             </tr>`;
     });

@@ -18,6 +18,16 @@ import { TargetRow } from '@/services/targetsApi'
 import { apiClient } from '@/services/api'
 
 const PAGE_SIZE = 10
+const TARGET_LABELS: Record<string, string> = {
+  'Seed Production': 'Target (qt.)',
+  'Planting Material': 'Target (No.)',
+  'Livestock Strains and Fish Fingerlings Produced': 'Target (No.)',
+  'Soil Water Plants Manures Samples Tested': 'Target (No.)',
+  'OFT': 'Target (ha)',
+  'FLD': 'Target (ha)',
+  'CFLD Pulses': 'Target (ha)',
+  'CFLD Oilseed': 'Target (ha)',
+}
 
 function buildPagination(currentPage: number, totalPages: number): Array<number | 'ellipsis'> {
   if (totalPages <= 7) {
@@ -145,6 +155,7 @@ export const Targets: React.FC = () => {
     () => formTypeName ? typeOptions.find((t) => t.typeName === formTypeName) : null,
     [typeOptions, formTypeName],
   )
+  const targetLabel = TARGET_LABELS[formTypeName] ?? 'Target'
   const showFarmerTarget = !formTypeName || (selectedTypeConfig != null && selectedTypeConfig.hasFarmerTarget)
 
   // fetch seasons and crop types for CFLD dropdowns
@@ -526,7 +537,7 @@ export const Targets: React.FC = () => {
               {/* Last row: Target + secondary field */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#212121] mb-2">Target *</label>
+                  <label className="block text-sm font-medium text-[#212121] mb-2">{targetLabel} *</label>
                   <input
                     type="number"
                     min="0"

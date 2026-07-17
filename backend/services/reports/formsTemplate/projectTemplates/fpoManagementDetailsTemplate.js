@@ -32,6 +32,7 @@ function renderFpoManagementDetailsSection(section, data, sectionId, isFirstSect
             <td>${this._escapeHtml(formatDate(row.registrationDate))}</td>
             <td>${this._escapeHtml(row.proposedActivity || '-')}</td>
             <td>${this._escapeHtml(row.commodityIdentified || '-')}</td>
+            <td>${row.areaHa == null ? '-' : toNumber(row.areaHa)}</td>
             <td>${toNumber(row.totalBomMembers || row.bomMembersCount)}</td>
             <td>${toNumber(row.totalFarmersAttached || row.farmersAttachedCount)}</td>
             <td>${this._escapeHtml(formatMoney(row.financialPositionLakh || row.financialPosition))}</td>
@@ -57,6 +58,7 @@ function renderFpoManagementDetailsSection(section, data, sectionId, isFirstSect
                 <th>Date of Registration</th>
                 <th>Proposed Activity</th>
                 <th>Commodity identified</th>
+                <th>Area (ha)</th>
                 <th>Total No. of BOM Members</th>
                 <th>Total no of farmers attached</th>
                 <th>Financial position (Rupees in lakh)</th>

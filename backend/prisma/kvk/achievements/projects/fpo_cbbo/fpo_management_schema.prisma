@@ -7,6 +7,7 @@ model FpoManagement {
   registrationDate      DateTime    @map("registration_date")
   proposedActivity      String      @map("proposed_activity")
   commodityIdentified   String      @map("commodity_identified")
+  areaHa                 Float?      @map("area_ha")
   totalBomMembers       Int         @map("total_bom_members")
   totalFarmersAttached  Int         @map("total_farmers_attached")
   financialPositionLakh Float       @map("financial_position_lakh")

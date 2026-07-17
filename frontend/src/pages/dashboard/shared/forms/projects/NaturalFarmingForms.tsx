@@ -548,6 +548,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Land Holding (ha)"
                             required
                             type="number"
+                            step="any"
                             value={formData.landHolding ?? ''}
                             onChange={(e) => setFormData({ ...formData, landHolding: e.target.value })}
                         />
@@ -572,6 +573,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Area covered (ha) under Natural Farming"
                             required
                             type="number"
+                            step="any"
                             value={formData.areaCoveredUnderNaturalFarming ?? ''}
                             onChange={(e) => setFormData({ ...formData, areaCoveredUnderNaturalFarming: e.target.value })}
                         />

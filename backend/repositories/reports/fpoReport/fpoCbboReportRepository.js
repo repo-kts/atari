@@ -90,6 +90,7 @@ function mapManagementRecord(record) {
         registrationDate: record.registrationDate || null,
         proposedActivity: record.proposedActivity || '',
         commodityIdentified: record.commodityIdentified || '',
+        areaHa: record.areaHa == null ? null : Number(record.areaHa),
         totalBomMembers: Number(record.totalBomMembers || 0),
         totalFarmersAttached: Number(record.totalFarmersAttached || 0),
         financialPositionLakh: Number(record.financialPositionLakh || 0),

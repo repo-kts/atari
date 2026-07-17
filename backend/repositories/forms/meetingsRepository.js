@@ -8,6 +8,11 @@ const parseDateOrNow = (dateStr) => {
     return isNaN(d) ? new Date() : d;
 };
 
+const parseOptionalActionStatus = (value) => {
+    if (value === 'YES' || value === 'NO') return value;
+    return null;
+};
+
 const meetingsRepository = {
     sac: {
         create: async (data, user) => {
@@ -23,6 +28,7 @@ const meetingsRepository = {
                     statutoryMembersPresent: parseInt(data.statutoryMembersPresent) || 0,
                     salientRecommendations: data.salientRecommendations || '',
                     actionTaken: data.actionTaken === 'YES' ? 'YES' : 'NO',
+                    inCompliance: parseOptionalActionStatus(data.inCompliance),
                     reason: data.reason || '',
                     uploadedFile: Array.isArray(data.uploadedFile) ? data.uploadedFile[0] : (data.uploadedFile || ''),
                 }
@@ -80,6 +86,7 @@ const meetingsRepository = {
             if (data.statutoryMembersPresent !== undefined) updateData.statutoryMembersPresent = parseInt(data.statutoryMembersPresent);
             if (data.salientRecommendations !== undefined) updateData.salientRecommendations = data.salientRecommendations;
             if (data.actionTaken !== undefined) updateData.actionTaken = data.actionTaken === 'YES' ? 'YES' : 'NO';
+            if (data.inCompliance !== undefined) updateData.inCompliance = parseOptionalActionStatus(data.inCompliance);
             if (data.reason !== undefined) updateData.reason = data.reason;
             if (data.uploadedFile !== undefined) {
                 updateData.uploadedFile = Array.isArray(data.uploadedFile) ? data.uploadedFile[0] : (data.uploadedFile || '');

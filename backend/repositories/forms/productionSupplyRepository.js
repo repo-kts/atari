@@ -201,9 +201,10 @@ const productionSupplyRepository = {
                 productOther: data.productOther,
             }, { throwError: throwRepositoryValidationError });
 
-            // Validate required fields. Unit is no longer stored — it derives from
-            // the linked product's master unit at read time.
-            const speciesName = _normalizeString(data.speciesName, 'Species / Breed / Variety', false);
+            // Species / Breed / Variety is optional because it does not apply to
+            // every technological product. Unit derives from the linked product's
+            // master unit at read time.
+            const speciesName = _normalizeString(data.speciesName, 'Species / Breed / Variety', true);
             const quantity = _parseFloat(data.quantity, 'Quantity', false);
             const value = _parseFloat(data.value, 'Value', false);
             // Free-text quantity for products whose master quantity data type is
@@ -438,9 +439,9 @@ const productionSupplyRepository = {
 
             await assertOtherFieldsValid(PRODUCTION_SUPPLY_OTHER_RULES, updateData, { throwError: throwRepositoryValidationError });
 
-            // Update required fields if provided
+            // Update optional species information if provided. Blank text clears it.
             if (data.speciesName !== undefined) {
-                updateData.speciesName = _normalizeString(data.speciesName, 'Species / Breed / Variety', false);
+                updateData.speciesName = _normalizeString(data.speciesName, 'Species / Breed / Variety', true);
             }
 
             // Unit is derived from the product master — never stored/updated here.

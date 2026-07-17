@@ -3,6 +3,18 @@ const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = req
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
 const kvkRoles = ['kvk_admin', 'kvk_user'];
+const FIXED_UNIT_BY_ACTIVITY_TYPE = {
+    AWARENESS_CAMP: 'No.',
+    LITERATURE_DISTRIBUTION: 'No.',
+    KISAN_MELA: 'No.',
+};
+const OTHER_UNIT_BY_NORMALIZED_VALUE = new Map([
+    ['ha', 'ha'],
+    ['kg', 'kg'],
+    ['lt', 'lt'],
+    ['no', 'No.'],
+    ['no.', 'No.'],
+]);
 
 const ACTIVITY_CONFIG = [
     { type: 'TRAINING', quantityKey: 'training_count', unitKey: 'training_count_unit', prefix: 'training_count_' },
@@ -42,11 +54,44 @@ function getDemographics(data, prefix) {
     };
 }
 
+function canonicalOtherUnit(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return null;
+    return OTHER_UNIT_BY_NORMALIZED_VALUE.get(raw.toLowerCase()) || null;
+}
+
+function normalizeOtherUnit(value, required = false) {
+    const raw = String(value || '').trim();
+    if (!raw) {
+        if (required) {
+            throw new Error('Any Other unit must be one of: ha, kg, lt, No.');
+        }
+        return null;
+    }
+
+    const normalized = canonicalOtherUnit(raw);
+    if (!normalized) {
+        throw new Error('Any Other unit must be one of: ha, kg, lt, No.');
+    }
+    return normalized;
+}
+
+function unitForComponent(data, cfg) {
+    if (FIXED_UNIT_BY_ACTIVITY_TYPE[cfg.type]) {
+        return FIXED_UNIT_BY_ACTIVITY_TYPE[cfg.type];
+    }
+    if (cfg.type === 'OTHER') {
+        const hasSpecification = String(data[cfg.specificationKey] || '').trim().length > 0;
+        return normalizeOtherUnit(data[cfg.unitKey], hasSpecification);
+    }
+    return cfg.unitKey ? (data[cfg.unitKey] || null) : null;
+}
+
 function buildComponents(data) {
     return ACTIVITY_CONFIG.map((cfg) => ({
         activityType: cfg.type,
         quantity: cfg.quantityKey ? toFloatOrNull(data[cfg.quantityKey]) : null,
-        unit: cfg.unitKey ? (data[cfg.unitKey] || null) : null,
+        unit: unitForComponent(data, cfg),
         specification: cfg.specificationKey ? (data[cfg.specificationKey] || null) : null,
         ...getDemographics(data, cfg.prefix),
     }));
@@ -233,7 +278,7 @@ function _mapResponse(r) {
         fld_count: map.FRONTLINE_DEMONSTRATION?.quantity ?? '',
         fld_count_unit: map.FRONTLINE_DEMONSTRATION?.unit || 'Hectare',
         awareness_count: map.AWARENESS_CAMP?.specification || '',
-        awareness_count_unit: map.AWARENESS_CAMP?.unit || 'N/A',
+        awareness_count_unit: 'No.',
         seeds_qty: map.INPUT_SEEDS?.quantity ?? '',
         seeds_qty_unit: map.INPUT_SEEDS?.unit || 'Kg',
         small_equip_qty: map.INPUT_SMALL_EQUIPMENT?.quantity ?? '',
@@ -245,11 +290,11 @@ function _mapResponse(r) {
         pp_chemicals_qty: map.INPUT_PPC?.quantity ?? '',
         pp_chemicals_qty_unit: map.INPUT_PPC?.unit || 'Lit.',
         lecture_count: map.LITERATURE_DISTRIBUTION?.quantity ?? '',
-        lecture_count_unit: map.LITERATURE_DISTRIBUTION?.unit || 'N/A',
+        lecture_count_unit: 'No.',
         kisan_mela_count: map.KISAN_MELA?.quantity ?? '',
-        kisan_mela_count_unit: map.KISAN_MELA?.unit || 'N/A',
+        kisan_mela_count_unit: 'No.',
         any_other_count: map.OTHER?.specification || '',
-        any_other_count_unit: map.OTHER?.unit || 'N/A',
+        any_other_count_unit: canonicalOtherUnit(map.OTHER?.unit) || '',
     };
 
     out = _mapDemographicAliases(out, 'training_count_', map.TRAINING);
@@ -268,4 +313,3 @@ function _mapResponse(r) {
 }
 
 module.exports = drmrActivityRepository;
-

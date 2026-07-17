@@ -1,5 +1,17 @@
 const { ValidationError } = require('../utils/errorHandler.js');
 
+const DECIMAL_FIELD_KEYS = new Set([
+    // District Level Data climate and crop measurements.
+    'maxtemp',
+    'mintemp',
+    'production',
+    'productivity',
+    // Natural Farming, DRMR, and FPO measurements/monetary values.
+    'landholding',
+    'fld_count',
+    'financialposition',
+]);
+
 function parseDateOnly(dateStr) {
     if (!dateStr) return null;
 
@@ -42,6 +54,7 @@ function todayDateOnly() {
 function shouldAllowDecimal(key) {
     const k = String(key || '').toLowerCase();
     return (
+        DECIMAL_FIELD_KEYS.has(k) ||
         k.includes('ha') ||
         k.includes('area') ||
         k.includes('expenditure') ||

@@ -1,6 +1,6 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
-import { FormInput } from '../shared/FormComponents'
+import { FormInput, FormSelect } from '../shared/FormComponents'
 import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { parseDecimalInput } from '@/utils/formNumericGuards'
 
@@ -12,6 +12,13 @@ interface DrmrFormsProps {
     districts: any[]
     kvks: any[]
 }
+
+const DRMR_OTHER_UNIT_OPTIONS = [
+    { value: 'ha', label: 'ha' },
+    { value: 'kg', label: 'kg' },
+    { value: 'lt', label: 'lt' },
+    { value: 'No.', label: 'No.' },
+]
 
 const DemographicFields: React.FC<{
     prefix: string
@@ -277,6 +284,8 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             <FormInput
                                 label="Area under FLDs(Hectare)"
                                 required
+                                type="number"
+                                step="any"
                                 value={formData.fld_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, fld_count: e.target.value })}
                             />
@@ -304,8 +313,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             <FormInput
                                 label="Unit"
                                 required
-                                value={formData.awareness_count_unit || 'N/A'}
-                                onChange={(e) => setFormData({ ...formData, awareness_count_unit: e.target.value })}
+                                value="No."
                                 disabled
                             />
                         </div>
@@ -441,8 +449,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             <FormInput
                                 label="Unit"
                                 required
-                                value={formData.lecture_count_unit || 'N/A'}
-                                onChange={(e) => setFormData({ ...formData, lecture_count_unit: e.target.value })}
+                                value="No."
                                 disabled
                             />
                         </div>
@@ -463,8 +470,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             <FormInput
                                 label="Unit"
                                 required
-                                value={formData.kisan_mela_count_unit || 'N/A'}
-                                onChange={(e) => setFormData({ ...formData, kisan_mela_count_unit: e.target.value })}
+                                value="No."
                                 disabled
                             />
                         </div>
@@ -481,12 +487,12 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                                 value={formData.any_other_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, any_other_count: e.target.value })}
                             />
-                            <FormInput
+                            <FormSelect
                                 label="Unit"
                                 required
-                                value={formData.any_other_count_unit || 'N/A'}
+                                value={formData.any_other_count_unit ?? ''}
                                 onChange={(e) => setFormData({ ...formData, any_other_count_unit: e.target.value })}
-                                disabled
+                                options={DRMR_OTHER_UNIT_OPTIONS}
                             />
                         </div>
                         <DemographicFields prefix="any_other_count_" formData={formData} setFormData={setFormData} />

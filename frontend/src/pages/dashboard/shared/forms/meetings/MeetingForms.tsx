@@ -175,6 +175,14 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                                 placeholder="Select"
                             />
 
+                            <FormSelect
+                                label="In Compliance"
+                                value={formData.inCompliance ?? ''}
+                                onChange={handleFieldChange('inCompliance')}
+                                options={YES_NO_OPTIONS}
+                                placeholder="Select"
+                            />
+
                             {renderFileFields()}
                         </div>
                     </div>

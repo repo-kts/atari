@@ -13,6 +13,7 @@ export interface FpoManagementData {
     registrationDate: string | Date;
     proposedActivity: string;
     commodityIdentified: string;
+    areaHa?: number;
     totalBomMembers?: number;
     bomMembersCount?: number; // Frontend key
     totalFarmersAttached?: number;

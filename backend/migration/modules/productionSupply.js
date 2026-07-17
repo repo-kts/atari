@@ -124,9 +124,8 @@ module.exports = {
             else { productOther = prodName; warn('productId', `Product "${prodName}" not in master — parked in Other`); }
         }
 
-        // 4. Species / breed / variety (REQUIRED string) ← old `variety`.
+        // 4. Species / breed / variety (optional string) ← old `variety`.
         const speciesName = decodeEntities(cleanText(row.variety || ''));
-        if (!speciesName) warn('speciesName', 'No variety on old row');
 
         // 5. Unit — not stored on the record; derives from the Product master.
         // Prefill the editable unitId picker from the Product's current link (if
