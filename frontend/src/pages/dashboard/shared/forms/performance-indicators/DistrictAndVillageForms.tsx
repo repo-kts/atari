@@ -88,7 +88,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         />
 
                         <MasterDataDropdown
-                            label="Account Type"
+                            label="Data Type"
                             required
                             value={accountTypeValue}
                             onChange={(value) => setFormData({
@@ -98,11 +98,11 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                             })}
                             options={accountTypeOptions}
                             isLoading={isLoadingAccountTypes}
-                            emptyMessage="No account types available"
+                            emptyMessage="No data types available"
                         />
                         {isOtherAccountType && (
                             <SpecifyOtherInput
-                                label="Please specify account type"
+                                label="Please specify data type"
                                 required
                                 value={formData.accountTypeOther ?? ''}
                                 onChange={(e) => setFormData({ ...formData, accountTypeOther: e.target.value })}
@@ -389,6 +389,22 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                             required
                             value={formData.thrustArea ?? ''}
                             onChange={handleFieldChange('thrustArea')}
+                            placeholder=""
+                        />
+
+                        <FormInput
+                            label="Major Focus"
+                            required
+                            value={formData.majorFocus ?? ''}
+                            onChange={handleFieldChange('majorFocus')}
+                            placeholder=""
+                        />
+
+                        <FormInput
+                            label="Achievement"
+                            required
+                            value={formData.achievement ?? ''}
+                            onChange={handleFieldChange('achievement')}
                             placeholder=""
                         />
                     </div>

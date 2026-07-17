@@ -26,6 +26,8 @@ const sections: FeatureSection[] = [
             { label: 'Operational Area Details', path: '/forms/performance/district-village/operational-area' },
             { label: 'Village Adoption Programme', path: '/forms/performance/district-village/village-adoption' },
             { label: 'Priority Thrust Area', path: '/forms/performance/district-village/priority-thrust' },
+            { label: 'Prevalent diseases in Crops', path: '/forms/miscellaneous/diseases/crops' },
+            { label: 'Prevalent diseases in Livestock/Fishery', path: '/forms/miscellaneous/diseases/livestock' },
         ],
     },
     {

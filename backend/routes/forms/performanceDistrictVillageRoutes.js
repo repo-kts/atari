@@ -5,6 +5,7 @@ const villageAdoptionRepository = require('../../repositories/forms/villageAdopt
 const priorityThrustAreaRepository = require('../../repositories/forms/priorityThrustAreaRepository.js');
 const districtLevelDataRepository = require('../../repositories/forms/districtLevelDataRepository.js');
 const { authenticateToken, requirePermission } = require('../../middleware/auth.js');
+const { sendFormRouteError } = require('../../utils/errorHandler.js');
 
 // All routes require authentication
 router.use(authenticateToken);
@@ -16,7 +17,7 @@ const createRoutes = (router, path, repository, moduleCode) => {
             const data = await repository.findAll(req.query, req.user);
             res.json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            sendFormRouteError(res, error);
         }
     });
 
@@ -25,7 +26,7 @@ const createRoutes = (router, path, repository, moduleCode) => {
             const data = await repository.create(req.body, req.user);
             res.status(201).json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            sendFormRouteError(res, error);
         }
     });
 
@@ -34,7 +35,7 @@ const createRoutes = (router, path, repository, moduleCode) => {
             const data = await repository.update(req.params.id, req.body, req.user);
             res.json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            sendFormRouteError(res, error);
         }
     };
     router.put(`${path}/:id`, requirePermission(moduleCode, 'EDIT'), updateHandler);
@@ -45,7 +46,7 @@ const createRoutes = (router, path, repository, moduleCode) => {
             await repository.delete(req.params.id, req.user);
             res.json({ message: 'Deleted successfully' });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            sendFormRouteError(res, error);
         }
     });
 };

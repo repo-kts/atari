@@ -738,21 +738,11 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             onChange={handleNumberChange('demonstrations')}
                             placeholder="Enter number"
                         />
-
-                        <FormInput
-                            label="No. of Plant Material Produced"
-                            required
-                            type="number"
-                            value={formData.plantMaterial ?? ''}
-                            onChange={handleNumberChange('plantMaterial')}
-                            placeholder="Enter number"
-                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormInput
                             label="Visit by the Farmers (No.)"
-                            required
                             type="number"
                             value={formData.farmerVisits ?? ''}
                             onChange={handleNumberChange('farmerVisits')}
@@ -761,7 +751,6 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
 
                         <FormInput
                             label="Visit by the Officials (No.)"
-                            required
                             type="number"
                             value={formData.officialVisits ?? ''}
                             onChange={handleNumberChange('officialVisits')}

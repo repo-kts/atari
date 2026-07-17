@@ -34,6 +34,8 @@ async function getPriorityThrustAreaReportData(kvkId, filters = {}) {
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName || '',
         thrustArea: r.thrustArea || '',
+        majorFocus: r.majorFocus || '',
+        achievement: r.achievement || '',
     }));
 }
 
