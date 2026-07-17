@@ -13,7 +13,7 @@ const buildSections = (basePath: string): FeatureSection[] => [
             { label: 'Districts Master', path: `${basePath}/districts` },
             { label: 'Institute Master', path: `${basePath}/organizations` },
             { label: 'Host Master', path: `${basePath}/universities` },
-            { label: 'KVKs', path: `${basePath}/kvks` },
+            { label: 'KVKs Master', path: `${basePath}/kvks` },
         ],
     },
 ]

@@ -14,17 +14,20 @@ test('sidebar search indexes every All Masters section from route configuration'
 
     assert.match(sidebar, /allMastersRoutes/);
 
+    // Form-aligned All Masters groups (mirror the Form Management order, plus Others).
     for (const sectionPath of [
         '/all-master/basic',
-        '/all-master/oft-fld',
-        '/all-master/training',
-        '/all-master/production-projects',
-        '/all-master/publications',
-        '/all-master/other-masters',
+        '/all-master/about-kvk',
+        '/all-master/achievements',
+        '/all-master/projects',
+        '/all-master/performance',
+        '/all-master/miscellaneous',
+        '/all-master/others',
     ]) {
+        const escaped = sectionPath.replace(/\//g, '\\/');
         assert.match(
             sidebar,
-            new RegExp(`['"]${sectionPath.replace(/\//g, '\\/')}['"]:\\s*buildSubItemsForGroup\\(allMastersRoutes,\\s*['"]${sectionPath.replace(/\//g, '\\/')}['"]\\)`),
+            new RegExp(`['"]${escaped}['"]:\\s*masterSubItemsFor\\(\\s*['"]${escaped}['"]\\s*\\)`),
             `${sectionPath} should be included in sidebar deep search`,
         );
     }
@@ -33,8 +36,9 @@ test('sidebar search indexes every All Masters section from route configuration'
 test('Important Day Master remains discoverable through the indexed master routes', () => {
     const routes = read('../frontend/src/config/route/allMasters.ts');
 
+    // Important Day now lives under the Achievements master group.
     assert.match(
         routes,
-        /path:\s*ENTITY_PATHS\.IMPORTANT_DAY,[\s\S]*?title:\s*'Important Day Master',[\s\S]*?subcategoryPath:\s*ENTITY_PATHS\.OTHER_MASTERS/,
+        /path:\s*ENTITY_PATHS\.IMPORTANT_DAY,[\s\S]*?title:\s*'Important Day Master',[\s\S]*?subcategoryPath:\s*GROUP\.ACHIEVEMENTS\.path/,
     );
 });
