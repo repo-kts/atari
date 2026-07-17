@@ -223,13 +223,6 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                     {/* Header Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-gray-100">
                         <FormInput
-                            label="Reporting Year"
-                            required
-                            type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
-                        />
-                        <FormInput
                             label="Start Date"
                             required
                             type="date"

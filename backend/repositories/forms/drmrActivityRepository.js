@@ -109,14 +109,14 @@ const drmrActivityRepository = {
         const kvkId = (user && user.kvkId) ? toInt(user.kvkId) : toInt(data.kvkId, null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        const reportingYear = parseReportingYearDate(data.reportingYear);
-        ensureNotFutureDate(reportingYear);
+        // Reporting year is derived from the start date (startDate === reporting year).
+        const startDate = data.startDate ? new Date(data.startDate) : new Date();
 
         const result = await prisma.drmrActivity.create({
             data: {
                 kvkId,
-                reportingYear,
-                startDate: data.startDate ? new Date(data.startDate) : new Date(),
+                reportingYear: startDate,
+                startDate,
                 endDate: data.endDate ? new Date(data.endDate) : new Date(),
                 totalBudgetUtilized: toFloatOrNull(data.totalBudget) ?? toFloatOrNull(data.totalBudgetUtilized) ?? 0,
                 components: {
@@ -197,17 +197,14 @@ const drmrActivityRepository = {
         const existing = await prisma.drmrActivity.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
+        // Reporting year mirrors the start date (startDate === reporting year).
+        const startDate = data.startDate ? new Date(data.startDate) : existing.startDate;
+
         const result = await prisma.drmrActivity.update({
             where: { drmrActivityId: toInt(id) },
             data: {
-                reportingYear: data.reportingYear !== undefined
-                    ? (() => {
-                        const d = parseReportingYearDate(data.reportingYear);
-                        ensureNotFutureDate(d);
-                        return d;
-                    })()
-                    : existing.reportingYear,
-                startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
+                reportingYear: startDate,
+                startDate,
                 endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
                 totalBudgetUtilized: (data.totalBudget !== undefined || data.totalBudgetUtilized !== undefined)
                     ? (toFloatOrNull(data.totalBudget) ?? toFloatOrNull(data.totalBudgetUtilized) ?? 0)
