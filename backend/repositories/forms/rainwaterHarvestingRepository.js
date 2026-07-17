@@ -17,7 +17,6 @@ const rainwaterHarvestingRepository = {
                 })(),
                 trainingProgrammes: parseInt(data.trainingProgrammes || 0),
                 demonstrations: parseInt(data.demonstrations || 0),
-                plantMaterial: parseInt(data.plantMaterial || 0),
                 farmerVisits: parseInt(data.farmerVisits || 0),
                 officialVisits: parseInt(data.officialVisits || 0),
             }
@@ -76,7 +75,6 @@ const rainwaterHarvestingRepository = {
                     : existing.reportingYear,
                 trainingProgrammes: data.trainingProgrammes !== undefined ? parseInt(data.trainingProgrammes || 0) : existing.trainingProgrammes,
                 demonstrations: data.demonstrations !== undefined ? parseInt(data.demonstrations || 0) : existing.demonstrations,
-                plantMaterial: data.plantMaterial !== undefined ? parseInt(data.plantMaterial || 0) : existing.plantMaterial,
                 farmerVisits: data.farmerVisits !== undefined ? parseInt(data.farmerVisits || 0) : existing.farmerVisits,
                 officialVisits: data.officialVisits !== undefined ? parseInt(data.officialVisits || 0) : existing.officialVisits,
             }

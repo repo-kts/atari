@@ -2,6 +2,7 @@ const prisma = require('../../config/prisma.js');
 const {
     RepositoryError,
     parseInteger,
+    normalizeString,
     validateKvkExists,
 } = require('../../utils/repositoryHelpers.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
@@ -10,6 +11,15 @@ const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formList
 const _mapResponse = (r) => {
     if (!r) return null;
     return { ...r, id: r.webPortalId, yearName: formatReportingYear(r.reportingYear) };
+};
+
+/** Trims and enforces a non-empty text value; throws a 400 with a clear message. */
+const requireText = (value, label) => {
+    const text = normalizeString(value);
+    if (text === null) {
+        throw new RepositoryError(`${label} is required`, 'VALIDATION_ERROR', 400);
+    }
+    return text;
 };
 
 const webPortalRepository = {
@@ -29,6 +39,8 @@ const webPortalRepository = {
                         ensureNotFutureDate(d);
                         return d;
                     })(),
+                    webPortalName: requireText(data.webPortalName, 'Name of Web portal'),
+                    developedByKvk: requireText(data.developedByKvk, 'Developed by KVK'),
                     noOfFarmersRegistered: parseInteger(data.noOfFarmersRegistered || 0, 'noOfFarmersRegistered'),
                     noOfVisitors: parseInteger(data.noOfVisitors || 0, 'noOfVisitors'),
                 },
@@ -93,6 +105,8 @@ const webPortalRepository = {
                         return d;
                     })()
                     : existing.reportingYear,
+                webPortalName: data.webPortalName !== undefined ? requireText(data.webPortalName, 'Name of Web portal') : existing.webPortalName,
+                developedByKvk: data.developedByKvk !== undefined ? requireText(data.developedByKvk, 'Developed by KVK') : existing.developedByKvk,
                 noOfFarmersRegistered: data.noOfFarmersRegistered !== undefined ? parseInteger(data.noOfFarmersRegistered, 'noOfFarmersRegistered') : existing.noOfFarmersRegistered,
                 noOfVisitors: data.noOfVisitors !== undefined ? parseInteger(data.noOfVisitors, 'noOfVisitors') : existing.noOfVisitors,
             },

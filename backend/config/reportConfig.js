@@ -1551,7 +1551,6 @@ const reportConfig = {
             fields: [
                 { dbField: 'trainingProgrammes', displayName: 'No of training programme conducted' },
                 { dbField: 'demonstrations', displayName: 'No. of demonstrations' },
-                { dbField: 'plantMaterial', displayName: 'No. of plant material produced' },
                 { dbField: 'farmerVisits', displayName: 'Visit by the farmers (No.)' },
                 { dbField: 'officialVisits', displayName: 'Visit by the officials (No.)' },
             ],

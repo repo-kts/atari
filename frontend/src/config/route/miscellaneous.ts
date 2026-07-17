@@ -12,17 +12,17 @@ import { ROUTE_SIBLING_GROUPS } from '../routeSiblingGroups'
 import { RouteConfig } from './types'
 
 export const miscellaneousRoutes: RouteConfig[] = [
-    // Prevalent Diseases
+    // Prevalent Diseases (grouped under District & Village Performance)
     {
         path: ROUTE_PATHS.MISCELLANEOUS.DISEASES.CROPS,
         title: 'Prevalent diseases (Crops)',
         description: 'Prevalent diseases in crops',
         category: 'Form Management',
-        subcategory: 'Miscellaneous',
-        parent: ROUTE_PATHS.MISCELLANEOUS.BASE,
+        subcategory: 'Performance Indicators',
+        parent: ROUTE_PATHS.PERFORMANCE.BASE,
         moduleCode: 'misc_prevalent_diseases_crops',
         fields: FIELD_GROUPS.MISC_DISEASES_CROPS,
-        siblings: ROUTE_SIBLING_GROUPS.MISC_DISEASES,
+        siblings: ROUTE_SIBLING_GROUPS.PERFORMANCE_DISTRICT_VILLAGE,
     },
     {
         path: ROUTE_PATHS.MISCELLANEOUS.DISEASES.LIVESTOCK,
@@ -30,11 +30,11 @@ export const miscellaneousRoutes: RouteConfig[] = [
         breadcrumbLabel: 'Diseases (Livestock/Fishery)',
         description: 'Prevalent diseases in livestock and fishery',
         category: 'Form Management',
-        subcategory: 'Miscellaneous',
-        parent: ROUTE_PATHS.MISCELLANEOUS.BASE,
+        subcategory: 'Performance Indicators',
+        parent: ROUTE_PATHS.PERFORMANCE.BASE,
         moduleCode: 'misc_prevalent_diseases_livestock',
         fields: FIELD_GROUPS.MISC_DISEASES_LIVESTOCK,
-        siblings: ROUTE_SIBLING_GROUPS.MISC_DISEASES,
+        siblings: ROUTE_SIBLING_GROUPS.PERFORMANCE_DISTRICT_VILLAGE,
     },
 
     // Nehru Yuva Kendra
@@ -83,6 +83,7 @@ export const miscellaneousRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.MISCELLANEOUS.BASE,
         moduleCode: 'misc_rawe_fet',
         fields: FIELD_GROUPS.MISC_RAWE_FET,
+        siblings: ROUTE_SIBLING_GROUPS.MISC_RAWE_VIP,
     },
 
     // VIP Visitors
@@ -95,6 +96,7 @@ export const miscellaneousRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.MISCELLANEOUS.BASE,
         moduleCode: 'misc_vip_visitors',
         fields: FIELD_GROUPS.MISC_VIP_VISITORS,
+        siblings: ROUTE_SIBLING_GROUPS.MISC_RAWE_VIP,
     },
 
 ]

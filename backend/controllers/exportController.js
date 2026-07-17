@@ -3228,7 +3228,6 @@ function buildRainwaterHarvestingTabularData(rawData, format, fallbackHeaders, f
         'Sl.',
         'No of training programme conducted',
         'No. of demonstrations',
-        'No. of plant material produced',
         'Visit by the farmers (No.)',
         'Visit by the officials (No.)',
     ];
@@ -3238,7 +3237,6 @@ function buildRainwaterHarvestingTabularData(rawData, format, fallbackHeaders, f
         sl++,
         formatExportValue(row.trainingProgrammes || 0, format),
         formatExportValue(row.demonstrations || 0, format),
-        formatExportValue(row.plantMaterial || 0, format),
         formatExportValue(row.farmerVisits || 0, format),
         formatExportValue(row.officialVisits || 0, format),
     ]);

@@ -271,6 +271,8 @@ const superAdminMenuItems: MenuItem[] = [
                     'performance_indicators_demonstration_units', 'performance_indicators_instructional_farm_crops', 'performance_indicators_production_units', 'performance_indicators_instructional_farm_livestock', 'performance_indicators_hostel_facilities', 'performance_indicators_staff_quarters', 'performance_indicators_rainwater_harvesting',
                     'performance_indicators_budget_details', 'performance_indicators_project_budget', 'performance_indicators_revolving_fund', 'performance_indicators_revenue_generation', 'performance_indicators_resource_generation',
                     'performance_indicators_linkages',
+                    // Prevalent diseases relocated here from Miscellaneous
+                    'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock',
                 ],
             },
             {
@@ -287,8 +289,6 @@ const superAdminMenuItems: MenuItem[] = [
                 path: '/forms/miscellaneous',
                 icon: <FileCheck className="w-4 h-4" />,
                 moduleCodes: [
-                    'misc_prevalent_diseases_crops',
-                    'misc_prevalent_diseases_livestock',
                     'misc_nyk_training',
                     'misc_ppv_fra_training',
                     'misc_rawe_fet',
@@ -574,6 +574,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         { pattern: /^\/all-master\/(impact-specific-area|enterprise-type|account-type|programme-type)/, parentPath: '/all-master/performance' },
         { pattern: /^\/all-master\/(ppv-fra-training-type|dignitary-type)/, parentPath: '/all-master/miscellaneous' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
+        // Prevalent diseases forms keep their /forms/miscellaneous/diseases URLs,
+        // but were relocated to the Performance Indicators group in navigation.
+        { pattern: /^\/forms\/miscellaneous\/diseases/, parentPath: '/forms/performance' },
         // Digital Information forms live under the Miscellaneous group in the sidebar,
         // but their URLs sit on a separate /forms/digital-information tree.
         { pattern: /^\/forms\/digital-information/, parentPath: '/forms/miscellaneous' },

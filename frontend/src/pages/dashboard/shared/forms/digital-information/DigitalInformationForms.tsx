@@ -122,6 +122,22 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                     />
 
                     <FormInput
+                        label="Name of Web portal"
+                        required
+                        value={formData.webPortalName ?? ''}
+                        onChange={handleFieldChange('webPortalName')}
+                        placeholder="Enter web portal name"
+                    />
+
+                    <FormInput
+                        label="Developed by KVK"
+                        required
+                        value={formData.developedByKvk ?? ''}
+                        onChange={handleFieldChange('developedByKvk')}
+                        placeholder="Enter developer"
+                    />
+
+                    <FormInput
                         label="No. of visitors visited the portal"
                         required
                         type="number"

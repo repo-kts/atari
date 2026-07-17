@@ -30,6 +30,8 @@ function renderPriorityThrustAreaSection(section, data, sectionId, isFirstSectio
                 <td style="text-align:center;">${idx + 1}</td>
                 <td>${esc(kvk)}</td>
                 <td>${esc(txt(row, 'thrustArea'))}</td>
+                <td>${esc(txt(row, 'majorFocus'))}</td>
+                <td>${esc(txt(row, 'achievement'))}</td>
             </tr>`;
         })
         .join('');
@@ -46,8 +48,10 @@ function renderPriorityThrustAreaSection(section, data, sectionId, isFirstSectio
         <thead>
             <tr>
                 <th style="width:8%;">Sr. No.</th>
-                <th style="width:22%;">KVK Name</th>
-                <th style="width:70%;">Thrust area</th>
+                <th style="width:20%;">KVK Name</th>
+                <th style="width:32%;">Thrust area</th>
+                <th style="width:20%;">Major Focus</th>
+                <th style="width:20%;">Achievement</th>
             </tr>
         </thead>
         <tbody>${body}</tbody>
@@ -57,11 +61,13 @@ function renderPriorityThrustAreaSection(section, data, sectionId, isFirstSectio
 
 function buildPriorityThrustAreaTabularData(rawData) {
     const rows = Array.isArray(rawData) ? rawData : [];
-    const headers = ['Sr. No.', 'KVK Name', 'Thrust area'];
+    const headers = ['Sr. No.', 'KVK Name', 'Thrust area', 'Major Focus', 'Achievement'];
     const out = rows.map((row, idx) => [
         idx + 1,
         kvkNameOf(row) || '—',
         txt(row, 'thrustArea'),
+        txt(row, 'majorFocus'),
+        txt(row, 'achievement'),
     ]);
     return { headers, rows: out };
 }

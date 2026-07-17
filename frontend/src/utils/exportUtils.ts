@@ -26,6 +26,9 @@ const CUSTOM_LABELS: Record<string, string> = {
     'startYear': 'Reporting Year',
     'totalMale': 'Total Male',
     'totalFemale': 'Total Female',
+    'nameOfHonbleMinister': 'Name of Dignitary',
+    'webPortalName': 'Name of Web portal',
+    'developedByKvk': 'Developed by KVK',
 }
 
 export function formatHeaderLabel(field: string): string {

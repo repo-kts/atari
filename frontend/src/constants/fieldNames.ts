@@ -525,6 +525,7 @@ export const FIELD_NAMES = {
     IDENTIFIED_THRUST_AREAS: 'identifiedThrustAreas',
     ACTION_TAKEN_FOR_DEVELOPMENT: 'actionTakenForDevelopment',
     THRUST_AREA: 'thrustArea',
+    MAJOR_FOCUS: 'majorFocus',
     NAME_OF_DEMO_UNIT: 'nameOfDemoUnit',
     YEAR_OF_ESTT: 'yearOfEstt',
     AREA_SQ_MT: 'areaSqMt',
@@ -619,6 +620,8 @@ export const FIELD_NAMES = {
     NO_OF_TIMES_DOWNLOADED: 'numberOfTimesDownloaded',
     NO_OF_VISITORS_VISITED: 'noOfVisitors',
     NO_OF_FARMERS_REGISTERED: 'noOfFarmersRegistered',
+    WEB_PORTAL_NAME: 'webPortalName',
+    DEVELOPED_BY_KVK: 'developedByKvk',
     NO_OF_FARMERS_REGISTERED_KSP: 'noOfFarmersRegisteredOnKspPortal',
     PHONE_CALL_ADDRESSED: 'phoneCallAddressed',
     ANSWERED_CALL: 'phoneCallAnswered',
@@ -1475,6 +1478,8 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.KVK,
         FIELD_NAMES.REPORTING_YEAR,
         FIELD_NAMES.THRUST_AREA,
+        FIELD_NAMES.MAJOR_FOCUS,
+        FIELD_NAMES.ACHIEVEMENT,
     ] as const,
 
     // Performance Indicator Routes - Infrastructure
@@ -1522,7 +1527,6 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.REPORTING_YEAR,
         FIELD_NAMES.NO_OF_TRAINING_PROGRAMME_CONDUCTED,
         FIELD_NAMES.NO_OF_DEMONSTRATIONS,
-        FIELD_NAMES.NO_OF_PLANT_MATERIAL_PRODUCED,
         FIELD_NAMES.VISIT_BY_THE_FARMERS,
         FIELD_NAMES.VISIT_BY_THE_OFFICIALS,
     ] as const,
@@ -1690,6 +1694,8 @@ export const FIELD_GROUPS = {
     MISC_DIGITAL_WEB_PORTAL: [
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.REPORTING_YEAR,
+        FIELD_NAMES.WEB_PORTAL_NAME,
+        FIELD_NAMES.DEVELOPED_BY_KVK,
         FIELD_NAMES.NO_OF_VISITORS_VISITED,
         FIELD_NAMES.NO_OF_FARMERS_REGISTERED,
     ] as const,

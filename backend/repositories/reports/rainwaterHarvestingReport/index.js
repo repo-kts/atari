@@ -59,7 +59,6 @@ class RainwaterHarvestingReportRepository {
                 reportingYear: record.reportingYear ? new Date(record.reportingYear).getFullYear() : '-',
                 trainingProgrammes: record.trainingProgrammes || 0,
                 demonstrations: record.demonstrations || 0,
-                plantMaterial: record.plantMaterial || 0,
                 farmerVisits: record.farmerVisits || 0,
                 officialVisits: record.officialVisits || 0,
                 createdAt: record.createdAt,

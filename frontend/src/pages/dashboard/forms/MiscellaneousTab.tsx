@@ -1,21 +1,13 @@
 import React from 'react'
 import {
-    Bug,
     Users,
     Shield,
     Smartphone,
+    ClipboardList,
 } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 
 const sections: FeatureSection[] = [
-    {
-        title: 'Prevalent Diseases',
-        icon: <Bug className="w-5 h-5" />,
-        items: [
-            { label: 'Prevalent diseases in Crops', path: '/forms/miscellaneous/diseases/crops' },
-            { label: 'Prevalent diseases in Livestock/Fishery', path: '/forms/miscellaneous/diseases/livestock' },
-        ],
-    },
     {
         title: 'Nehru Yuva Kendra',
         icon: <Users className="w-5 h-5" />,
@@ -32,11 +24,17 @@ const sections: FeatureSection[] = [
         ],
     },
     {
-        title: 'Digital Information',
-        icon: <Smartphone className="w-5 h-5" />,
+        title: 'RAWE/FET & VIP Visitors',
+        icon: <ClipboardList className="w-5 h-5" />,
         items: [
             { label: 'RAWE/FET programme', path: '/forms/miscellaneous/rawe-fet' },
             { label: 'List of VIP visitors', path: '/forms/miscellaneous/vip-visitors' },
+        ],
+    },
+    {
+        title: 'Digital Information',
+        icon: <Smartphone className="w-5 h-5" />,
+        items: [
             { label: 'Details of Mobile App', path: '/forms/digital-information/mobile-app', moduleCode: 'digital_mobile_app' },
             { label: 'Details of Web Portal', path: '/forms/digital-information/web-portal', moduleCode: 'digital_web_portal' },
             { label: 'Details of Kisan Sarathi', path: '/forms/digital-information/kisan-sarathi', moduleCode: 'digital_kisan_sarthi' },
