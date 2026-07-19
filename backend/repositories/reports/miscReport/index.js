@@ -1,7 +1,6 @@
 const {
     getPrevalentDiseasesCrops,
     getPrevalentDiseasesLivestock,
-    getNykTraining,
     getPoshanMaah,
     getPpvFraPlantVarieties,
     getPpvFraTraining,
@@ -12,7 +11,6 @@ const {
 module.exports = {
     getPrevalentDiseasesCrops,
     getPrevalentDiseasesLivestock,
-    getNykTraining,
     getPoshanMaah,
     getPpvFraPlantVarieties,
     getPpvFraTraining,

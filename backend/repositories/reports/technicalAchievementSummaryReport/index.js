@@ -111,6 +111,16 @@ async function getTechnicalAchievementSummary(kvkId, filters = {}) {
         participants: sumCaste(exts, pickFarmers),
     };
 
+    // Other Extension Activities capture only the achieved activity count;
+    // the source form has no target or participant-demographic fields.
+    const otherExts = await prisma.kvkOtherExtensionActivity.findMany({
+        where: { ...kvkWhere, ...dateWhere('startDate', filters) },
+        select: { numberOfActivities: true },
+    });
+    const otherExtension = {
+        activities: otherExts.reduce((s, r) => s + Number(r.numberOfActivities || 0), 0),
+    };
+
     // Production / Supply — grouped by product category (covers Seed, Planting
     // Material, Livestock & Fish, … whatever categories exist).
     const prod = await prisma.kvkProductionSupply.findMany({
@@ -131,7 +141,7 @@ async function getTechnicalAchievementSummary(kvkId, filters = {}) {
         beneficiaries: sumCaste(rows, pickFarmers),
     }));
 
-    return { oft, fld, training, extension, production };
+    return { oft, fld, training, extension, otherExtension, production };
 }
 
 // Caste×gender keys produced by sumCaste (see EMPTY above).
@@ -156,7 +166,14 @@ function mergeCaste(list) {
 function mergeTechnicalAchievementSummaries(summaries) {
     const valid = (summaries || []).filter(Boolean);
     if (valid.length === 0) {
-        return { oft: null, fld: null, training: null, extension: null, production: [] };
+        return {
+            oft: null,
+            fld: null,
+            training: null,
+            extension: null,
+            otherExtension: null,
+            production: [],
+        };
     }
 
     const sum = (pick) => valid.reduce((s, d) => s + Number(pick(d) || 0), 0);
@@ -193,6 +210,10 @@ function mergeTechnicalAchievementSummaries(summaries) {
         participants: mergeCaste(valid.map((d) => d.extension?.participants)),
     };
 
+    const otherExtension = {
+        activities: sum((d) => d.otherExtension?.activities),
+    };
+
     // Production / Supply rows are grouped by category — merge the same category
     // across KVKs rather than listing it once per KVK.
     const byCat = new Map();
@@ -217,7 +238,7 @@ function mergeTechnicalAchievementSummaries(summaries) {
         beneficiaries: mergeCaste(agg._bene),
     }));
 
-    return { oft, fld, training, extension, production };
+    return { oft, fld, training, extension, otherExtension, production };
 }
 
 module.exports = { getTechnicalAchievementSummary, mergeTechnicalAchievementSummaries };

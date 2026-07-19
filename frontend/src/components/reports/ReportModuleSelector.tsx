@@ -147,7 +147,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                     className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${collapsed ? 'mb-0' : 'mb-4'}`}
                     onClick={onToggleCollapse}
                 >
-                    <div className="flex items-center gap-3 h-10">
+                    <div className="flex shrink-0 items-center gap-3 h-10">
                         <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}>
                             <ChevronDown className="w-4 h-4 text-[#487749]" />
                         </div>
@@ -156,14 +156,14 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                         </h3>
                     </div>
                     <div
-                        className="flex items-center gap-2"
+                        className="flex min-w-0 items-center gap-2"
                         onClick={event => event.stopPropagation()}
                     >
                         {onSelectAllForms && (
                             <button
                                 type="button"
                                 onClick={onSelectAllForms}
-                                className="h-8 px-3 rounded-lg border border-[#D8E3D8] bg-white text-[11px] font-medium text-[#487749] hover:bg-[#F5FAF5] flex items-center gap-1.5"
+                                className="h-8 shrink-0 whitespace-nowrap px-3 rounded-lg border border-[#D8E3D8] bg-white text-[11px] font-medium text-[#487749] hover:bg-[#F5FAF5] flex items-center gap-1.5"
                             >
                                 <div className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center ${allFormsSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1]'}`}>
                                     {allFormsSelected && <Check className="w-2.5 h-2.5 text-white" strokeWidth={5} />}
@@ -171,7 +171,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                 {allFormsSelected ? 'Clear all' : 'Select all'}
                             </button>
                         )}
-                        <div className={`overflow-hidden transition-all duration-200 ease-out ${isSearchOpen ? 'w-44 opacity-100' : 'w-0 opacity-0'}`}>
+                        <div className={`min-w-0 overflow-hidden transition-all duration-200 ease-out ${isSearchOpen ? `${isNarrow ? 'w-24' : 'w-44'} opacity-100` : 'w-0 opacity-0'}`}>
                             <input
                                 id={searchInputId}
                                 ref={searchInputRef}
@@ -191,7 +191,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                         <button
                             type="button"
                             onClick={handleToggleSearch}
-                            className="h-8 w-8 rounded-lg border border-[#D8E3D8] bg-white text-[#487749] hover:bg-[#F5FAF5] flex items-center justify-center"
+                            className="h-8 w-8 shrink-0 rounded-lg border border-[#D8E3D8] bg-white text-[#487749] hover:bg-[#F5FAF5] flex items-center justify-center"
                             aria-label="Toggle module search"
                             aria-expanded={isSearchOpen}
                             aria-controls={searchInputId}

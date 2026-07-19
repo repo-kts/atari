@@ -2,8 +2,8 @@
  * Miscellaneous Routes Configuration
  *
  * Contains all route configurations for the "Miscellaneous" section.
- * Includes routes for Prevalent Diseases, Nehru Yuva Kendra, PPV & FRA Sensitization,
- * RAWE/FET Programme, and VIP Visitors.
+ * Includes routes for Prevalent Diseases, PPV & FRA Sensitization, RAWE/FET
+ * Programme, and VIP Visitors.
  */
 
 import { ROUTE_PATHS } from '../../constants/routePaths'
@@ -35,18 +35,6 @@ export const miscellaneousRoutes: RouteConfig[] = [
         moduleCode: 'misc_prevalent_diseases_livestock',
         fields: FIELD_GROUPS.MISC_DISEASES_LIVESTOCK,
         siblings: ROUTE_SIBLING_GROUPS.PERFORMANCE_DISTRICT_VILLAGE,
-    },
-
-    // Nehru Yuva Kendra
-    {
-        path: ROUTE_PATHS.MISCELLANEOUS.NEHRU_YUVA_KENDRA,
-        title: 'Nehru Yuva Kendra',
-        description: 'Nehru Yuva Kendra details',
-        category: 'Form Management',
-        subcategory: 'Miscellaneous',
-        parent: ROUTE_PATHS.MISCELLANEOUS.BASE,
-        moduleCode: 'misc_nyk_training',
-        fields: FIELD_GROUPS.MISC_NEHRU_YUVA_KENDRA,
     },
 
     // PPV & FRA Sensitization

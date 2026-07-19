@@ -99,7 +99,6 @@ const REGISTRY = {
     // ── Miscellaneous ──────────────────────────────────────────────────
     'misc-prevalent-diseases-crops': { label: 'Prevalent Diseases (Crops)', models: ['PrevalentDiseasesInCrop'] },
     'misc-prevalent-diseases-livestock': { label: 'Prevalent Diseases (Livestock)', models: ['PrevalentDiseasesOnLivestock'] },
-    'misc-nyk-training': { label: 'NYK Training', models: ['NykTraining'] },
     'misc-ppv-fra-training': { label: 'PPV & FRA Training', models: ['PpvFraTraining'] },
     'misc-ppv-fra-plant-varieties': { label: 'PPV & FRA Plant Varieties', models: ['PpvFraPlantVarieties'] },
     'misc-rawe-fet': { label: 'RAWE / FET', models: ['RaweFetFitProgramme'] },

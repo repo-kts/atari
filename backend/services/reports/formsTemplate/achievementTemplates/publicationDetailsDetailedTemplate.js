@@ -1,152 +1,200 @@
 /**
- * Page report / data-management export: one row per publication entry (10 columns),
- * grouped by KVK so admins (and KVK users) can see which KVK each block belongs to.
- * Repository rows use `category`; form/API rows use `publicationItem` / `publication`.
- * Volume/issue/page/impact not stored on form — shown as "-".
+ * Publication details grouped first by KVK and then by publication item.
+ * Each publication-item table includes its expected conditional fields, plus
+ * any other optional field that is populated on the source records.
  */
 
-const COLUMNS = [
-    'Sl. No.',
-    'Category',
-    'Authors',
-    'Title',
-    'Journal Name',
-    'Volume',
-    'Issue',
-    'Page No.',
-    'Year',
-    'Impact Factor',
+const CORE_COLUMNS = [
+    { key: 'year', label: 'Publication Year', align: 'center' },
+    { key: 'title', label: 'Title' },
+    { key: 'authors', label: 'Author Name' },
+];
+
+const OPTIONAL_COLUMNS = [
+    { key: 'journal', label: 'Journal Name' },
+    { key: 'pageNo', label: 'Page Number', align: 'center' },
+    { key: 'naasRating', label: 'NAAS Rating', align: 'center' },
+    { key: 'publisher', label: 'Publisher Name' },
+    { key: 'venue', label: 'Venue' },
+    { key: 'isbnNumber', label: 'ISBN Number' },
+];
+
+const EXPECTED_FIELDS_BY_PUBLICATION = new Map([
+    ['research paper published', ['journal', 'pageNo', 'naasRating']],
+    ['abstracts published in seminar or conference or symposia', ['publisher', 'venue']],
+    ['books published', ['publisher', 'isbnNumber']],
+    ['book chapter published', ['publisher', 'isbnNumber']],
+    ['popular articles published', ['publisher', 'pageNo']],
+]);
+
+const TABULAR_COLUMNS = [
+    { key: 'category', label: 'Publication Item' },
+    ...CORE_COLUMNS,
+    ...OPTIONAL_COLUMNS,
 ];
 
 function normalizeCategory(row) {
-    if (row == null) return '-';
-    const c = row.category ?? row.publicationName ?? row.publicationItem;
-    if (c != null && String(c).trim() !== '') return String(c).trim();
-    const p = row.publication;
-    if (typeof p === 'string' && p.trim() !== '') return p.trim();
-    return '-';
+    if (row == null) return 'Not categorized';
+    const direct = row.category ?? row.publicationOther ?? row.publicationName ?? row.publicationItem;
+    if (direct != null && String(direct).trim() !== '') return String(direct).trim();
+    if (typeof row.publication === 'string' && row.publication.trim() !== '') {
+        return row.publication.trim();
+    }
+    return 'Not categorized';
 }
 
 function normalizeYear(row) {
     if (row.year != null && row.year !== '') return String(row.year);
-    if (row.reportingYear != null && row.reportingYear !== '') {
-        const y = row.reportingYear;
-        if (typeof y === 'string') {
-            const m = y.match(/^(\d{4})/);
-            if (m) return m[1];
-        }
-        const d = y instanceof Date ? y : new Date(y);
-        if (!Number.isNaN(d.getTime())) return String(d.getUTCFullYear());
+    if (row.reportingYear == null || row.reportingYear === '') return '-';
+
+    if (typeof row.reportingYear === 'string') {
+        const match = row.reportingYear.match(/^(\d{4})/);
+        if (match) return match[1];
     }
-    return '';
+
+    const date = row.reportingYear instanceof Date
+        ? row.reportingYear
+        : new Date(row.reportingYear);
+    return Number.isNaN(date.getTime()) ? String(row.reportingYear) : String(date.getUTCFullYear());
+}
+
+function present(value) {
+    return value !== null && value !== undefined && String(value).trim() !== '';
+}
+
+function displayValue(value) {
+    return present(value) ? String(value) : '-';
+}
+
+function displayRow(row) {
+    return {
+        category: normalizeCategory(row),
+        year: normalizeYear(row),
+        title: displayValue(row.title),
+        authors: displayValue(row.authorName),
+        journal: displayValue(row.journalName),
+        pageNo: displayValue(row.pageNo ?? row.pageNumber),
+        naasRating: displayValue(row.naasRating),
+        publisher: displayValue(row.publisherName),
+        venue: displayValue(row.venue),
+        isbnNumber: displayValue(row.isbnNumber),
+    };
 }
 
 function sortStr(a, b) {
     return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
 }
 
-function displayRow(row) {
-    return {
-        category: normalizeCategory(row),
-        authors: row.authorName ?? '-',
-        title: row.title ?? '-',
-        journal: row.journalName ?? '-',
-        vol: row.volume != null && row.volume !== '' ? row.volume : '-',
-        issue: row.issue != null && row.issue !== '' ? row.issue : '-',
-        pageNo: row.pageNo != null && row.pageNo !== '' ? row.pageNo : '-',
-        year: normalizeYear(row) || '-',
-        impact: row.impactFactor != null && row.impactFactor !== '' ? row.impactFactor : '-',
-    };
+function columnsForPublication(publicationItem, rows) {
+    const expected = new Set(
+        EXPECTED_FIELDS_BY_PUBLICATION.get(publicationItem.toLocaleLowerCase()) || ['publisher'],
+    );
+
+    for (const column of OPTIONAL_COLUMNS) {
+        if (rows.some((row) => row[column.key] !== '-')) expected.add(column.key);
+    }
+
+    return [
+        ...CORE_COLUMNS,
+        ...OPTIONAL_COLUMNS.filter((column) => expected.has(column.key)),
+    ];
 }
 
 /**
- * Groups publication rows by KVK. Each group's rows are Sl.No-ed within the group.
- * @returns {{ groups: {kvkName: string, rows: object[]}[], isMultiKvk: boolean }}
+ * @returns {{ groups: Array<{kvkName: string, publicationGroups: object[]}>, isMultiKvk: boolean }}
  */
 function buildPublicationGroups(rawData) {
-    const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const sourceRows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
     const byKvk = new Map();
-    for (const r of rows) {
-        const k = (r && r.kvkName && String(r.kvkName).trim()) || 'Unknown KVK';
-        if (!byKvk.has(k)) byKvk.set(k, []);
-        byKvk.get(k).push(r);
+
+    for (const sourceRow of sourceRows) {
+        const kvkName = present(sourceRow?.kvkName) ? String(sourceRow.kvkName).trim() : 'Unknown KVK';
+        const row = displayRow(sourceRow || {});
+        if (!byKvk.has(kvkName)) byKvk.set(kvkName, new Map());
+        const byPublication = byKvk.get(kvkName);
+        if (!byPublication.has(row.category)) byPublication.set(row.category, []);
+        byPublication.get(row.category).push(row);
     }
-    const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => ({
-        kvkName,
-        rows: byKvk.get(kvkName).map((r, i) => ({ sl: i + 1, ...displayRow(r) })),
-    }));
+
+    const groups = [...byKvk.entries()]
+        .sort(([a], [b]) => sortStr(a, b))
+        .map(([kvkName, byPublication]) => ({
+            kvkName,
+            publicationGroups: [...byPublication.entries()]
+                .sort(([a], [b]) => sortStr(a, b))
+                .map(([publicationItem, rows]) => ({
+                    publicationItem,
+                    columns: columnsForPublication(publicationItem, rows),
+                    rows: rows.map((row, index) => ({ sl: index + 1, ...row })),
+                })),
+        }));
+
     return { groups, isMultiKvk: groups.length > 1 };
 }
 
-/**
- * Flat tabular form (kept for any non-template caller). Single Sl.No column.
- * @returns {{ headers: string[], rows: (string|number)[][] }}
- */
 function buildPublicationDetailsTabularData(rawData) {
-    const rows = Array.isArray(rawData) ? rawData : [];
-    const out = rows.map((row, idx) => {
-        const d = displayRow(row);
-        return [idx + 1, d.category, d.authors, d.title, d.journal, d.vol, d.issue, d.pageNo, d.year, d.impact];
+    const sourceRows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const rows = sourceRows.map((sourceRow, index) => {
+        const row = displayRow(sourceRow || {});
+        return [index + 1, ...TABULAR_COLUMNS.map((column) => row[column.key])];
     });
-    return { headers: COLUMNS.slice(), rows: out };
+
+    return {
+        headers: ['Sl. No.', ...TABULAR_COLUMNS.map((column) => column.label)],
+        rows,
+    };
 }
 
 function renderPublicationDetailsDetailedSection(section, data, sectionId, isFirstSection) {
-    const { groups, isMultiKvk } = buildPublicationGroups(data);
+    const { groups } = buildPublicationGroups(data);
     if (groups.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }
 
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
-    const esc = (v) => this._escapeHtml(v ?? '');
+    const esc = (value) => this._escapeHtml(value ?? '');
 
-    const headRow = `
-            <tr>
-                <th style="width:4%;">Sl. No.</th>
-                <th style="width:14%;">Category</th>
-                <th style="width:14%;">Authors</th>
-                <th style="width:16%;">Title</th>
-                <th style="width:14%;">Journal Name</th>
-                <th style="width:6%;">Volume</th>
-                <th style="width:6%;">Issue</th>
-                <th style="width:6%;">Page No.</th>
-                <th style="width:6%;">Year</th>
-                <th style="width:10%;">Impact Factor</th>
-            </tr>`;
+    const groupsHtml = groups.map((kvkGroup) => {
+        const publicationHtml = kvkGroup.publicationGroups.map((publicationGroup) => {
+            const headers = publicationGroup.columns
+                .map((column) => `<th>${esc(column.label)}</th>`)
+                .join('');
+            const rows = publicationGroup.rows.map((row) => {
+                const cells = publicationGroup.columns.map((column) => {
+                    const align = column.align ? ` style="text-align:${column.align};"` : '';
+                    return `<td${align}>${esc(row[column.key])}</td>`;
+                }).join('');
+                return `<tr><td style="text-align:center;">${row.sl}</td>${cells}</tr>`;
+            }).join('');
 
-    const groupsHtml = groups.map((g) => {
-        const body = g.rows.map((r) => `<tr>
-                <td style="text-align:center;">${r.sl}</td>
-                <td>${esc(r.category)}</td>
-                <td>${esc(r.authors)}</td>
-                <td>${esc(r.title)}</td>
-                <td>${esc(r.journal)}</td>
-                <td style="text-align:center;">${esc(r.vol)}</td>
-                <td style="text-align:center;">${esc(r.issue)}</td>
-                <td style="text-align:center;">${esc(r.pageNo)}</td>
-                <td style="text-align:center;">${esc(r.year)}</td>
-                <td style="text-align:center;">${esc(r.impact)}</td>
-            </tr>`).join('');
+            return `
+        <div class="pub-item-group">
+            <div class="pub-item-heading">Publication Item: ${esc(publicationGroup.publicationItem)}</div>
+            <table class="data-table pub-detail-table">
+                <thead><tr><th style="width:5%;">Sl. No.</th>${headers}</tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+        }).join('');
 
         return `
-    <div class="pub-det-group">
-        <div class="pub-det-kvk-hd">${esc(g.kvkName)}</div>
-        <table class="data-table pub-det-table">
-            <thead>${headRow}</thead>
-            <tbody>${body}</tbody>
-        </table>
+    <div class="pub-kvk-group">
+        <div class="pub-kvk-heading">KVK: ${esc(kvkGroup.kvkName)}</div>
+        ${publicationHtml}
     </div>`;
     }).join('');
 
     return `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title">${section.id} ${esc(section.title)}</h1>
+    <h1 class="section-title">${esc(section.id)} ${esc(section.title)}</h1>
     <style>
-        .pub-det-group { page-break-inside: avoid; break-inside: avoid; margin-bottom: 8px; }
-        .pub-det-kvk-hd { font-size: 8pt; font-weight: bold; background: #dce6f1; padding: 3px 5px; border: 0.2px solid #000; border-bottom: 0; page-break-after: avoid; break-after: avoid; }
-        .pub-det-table { width: 100%; border-collapse: collapse; font-size: 6.5pt; table-layout: fixed; }
-        .pub-det-table th, .pub-det-table td { border: 0.2px solid #000; padding: 3px 4px; vertical-align: top; word-break: break-word; }
-        .pub-det-table thead th { background: #e8e8e8; font-weight: bold; text-align: center; }
+        .pub-kvk-group { margin-bottom: 12px; }
+        .pub-kvk-heading { font-size: 8.5pt; font-weight: bold; background: #dce6f1; border: 0.2px solid #000; padding: 4px 6px; }
+        .pub-item-group { page-break-inside: avoid; break-inside: avoid; margin: 6px 0 10px; }
+        .pub-item-heading { font-size: 7.5pt; font-weight: bold; padding: 3px 5px; background: #f3f3f3; border: 0.2px solid #000; border-bottom: 0; }
+        .pub-detail-table { width: 100%; border-collapse: collapse; font-size: 6.5pt; table-layout: fixed; }
+        .pub-detail-table th, .pub-detail-table td { border: 0.2px solid #000; padding: 3px 4px; vertical-align: top; overflow-wrap: anywhere; }
+        .pub-detail-table thead th { background: #e8e8e8; font-weight: bold; text-align: center; }
     </style>
     ${groupsHtml}
 </div>`;

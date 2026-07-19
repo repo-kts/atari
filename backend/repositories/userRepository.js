@@ -12,7 +12,7 @@ const userRepository = {
       include: {
         role: true,
       },
-      orderBy: { userId: 'asc' },
+      orderBy: [{ name: 'asc' }, { userId: 'asc' }],
     });
   },
 
@@ -130,7 +130,7 @@ const userRepository = {
         org: true,
         kvk: true,
       },
-      orderBy: { userId: 'asc' },
+      orderBy: [{ name: 'asc' }, { userId: 'asc' }],
     });
   },
 
@@ -186,7 +186,7 @@ const userRepository = {
         org: true,
         kvk: true,
       },
-      orderBy: { userId: 'asc' },
+      orderBy: [{ name: 'asc' }, { userId: 'asc' }],
     });
   },
 

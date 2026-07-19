@@ -103,7 +103,6 @@ export const WIPEABLE_ENTITY_TYPES = new Set<string>([
     // Miscellaneous
     'misc-prevalent-diseases-crops',
     'misc-prevalent-diseases-livestock',
-    'misc-nyk-training',
     'misc-ppv-fra-training',
     'misc-ppv-fra-plant-varieties',
     'misc-rawe-fet',

@@ -183,6 +183,11 @@ function buildExportTables(sections: TechnicalAchievementSummaryData['sections']
             ],
         },
         {
+            title: 'Other Extension Activities',
+            headers: ['Number of Activities'],
+            row: [sections.otherExtension?.achievement ?? 0],
+        },
+        {
             title: 'Seed Production(q)*',
             headers: ['Target', 'Quantity', 'Value', ...PARTICIPANT_EXPORT_HEADERS],
             row: [
@@ -540,6 +545,26 @@ export const TechnicalAchievementSummary: React.FC = () => {
                                         <td className={TD}>{formatInt(sections?.extension.achievement)}</td>
                                         <td className={TD}>{formatInt(sections?.extension.participants.target)}</td>
                                         <ParticipantCells value={sections?.extension.participants.achievement || emptyParticipant} />
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full max-w-md border-collapse bg-white">
+                                <thead className="text-[#2F3443]">
+                                    <tr>
+                                        <th colSpan={2} className={SECTION_TH}>Other Extension Activities</th>
+                                    </tr>
+                                    <tr>
+                                        <th className={TH}>Metric</th>
+                                        <th className={TH}>Achievement</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className={TD_PUB}>Number of Activities</td>
+                                        <td className={TD}>{formatInt(sections?.otherExtension?.achievement)}</td>
                                     </tr>
                                 </tbody>
                             </table>

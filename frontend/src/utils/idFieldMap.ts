@@ -196,7 +196,6 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     // Miscellaneous
     [ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS]: 'prevalentDiseaseId',
     [ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK]: 'prevalentLivestockDiseaseId',
-    [ENTITY_TYPES.MISC_NYK_TRAINING]: 'nykTrainingId',
     [ENTITY_TYPES.MISC_POSHAN_MAAH]: 'poshanMaahId',
     [ENTITY_TYPES.MISC_PPV_FRA_TRAINING]: 'ppvFraTrainingId',
     [ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES]: 'ppvFraPlantVarietiesID',

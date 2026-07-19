@@ -58,7 +58,6 @@ const MODULES = [
   { menuName: 'Performance Indicators', subMenuName: 'Linkages', moduleCode: 'performance_indicators_linkages' },
   { menuName: 'Miscellaneous Information', subMenuName: 'Prevalent Diseases in Crops', moduleCode: 'misc_prevalent_diseases_crops' },
   { menuName: 'Miscellaneous Information', subMenuName: 'Prevalent Diseases in Livestock', moduleCode: 'misc_prevalent_diseases_livestock' },
-  { menuName: 'Miscellaneous Information', subMenuName: 'Nehru Yuva Kendra (NYK) Training', moduleCode: 'misc_nyk_training' },
   { menuName: 'Miscellaneous Information', subMenuName: 'Poshan Maah', moduleCode: 'misc_poshan_maah' },
   { menuName: 'Miscellaneous Information', subMenuName: 'PPV & FRA Sensitization Training Programme', moduleCode: 'misc_ppv_fra_training' },
   { menuName: 'Miscellaneous Information', subMenuName: 'RAWE/FET Programme', moduleCode: 'misc_rawe_fet' },
@@ -112,7 +111,7 @@ const BASE_USER_MODULES = [
   'achievements_projects', 'achievements_publications', 'achievements_award_recognition',
   'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_infrastructure',
   'performance_indicators_financial', 'performance_indicators_linkages',
-  'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training',
+  'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock',
   'misc_poshan_maah', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors',
   'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory',
   'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada',
@@ -157,7 +156,7 @@ const ROLE_PERMISSIONS = {
   },
   kvk_admin: {
     permissions: {
-      modules: ['all_masters_nicra_master', 'all_masters_natural_farming_master', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_poshan_maah', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari'],
+      modules: ['all_masters_nicra_master', 'all_masters_natural_farming_master', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_poshan_maah', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari'],
       actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
     },
   },

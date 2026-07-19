@@ -63,7 +63,6 @@ export const ENTITY_TYPE_EXPORT_TEMPLATE_MAP: Partial<
     [ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS]: 'misc-prevalent-diseases-crops',
     [ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK]:
         'misc-prevalent-diseases-livestock',
-    [ENTITY_TYPES.MISC_NYK_TRAINING]: 'misc-nyk-training',
     [ENTITY_TYPES.MISC_PPV_FRA_TRAINING]: 'misc-ppv-fra-training',
     [ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES]:
         'misc-ppv-fra-plant-varieties',

@@ -177,7 +177,6 @@ export const ENTITY_CATEGORIES = {
     MISCELLANEOUS: [
         ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS,
         ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK,
-        ENTITY_TYPES.MISC_NYK_TRAINING,
         ENTITY_TYPES.MISC_POSHAN_MAAH,
         ENTITY_TYPES.MISC_PPV_FRA_TRAINING,
         ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES,
@@ -395,8 +394,6 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/forms/miscellaneous/diseases/livestock': ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK,
         '/forms/miscellaneous/prevalent-diseases/crops': ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS,
         '/forms/miscellaneous/prevalent-diseases/livestock': ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK,
-        '/forms/miscellaneous/nyk-training': ENTITY_TYPES.MISC_NYK_TRAINING,
-        '/forms/miscellaneous/nehru-yuva-kendra': ENTITY_TYPES.MISC_NYK_TRAINING,
         '/forms/achievements/poshan-maaha': ENTITY_TYPES.MISC_POSHAN_MAAH,
         '/forms/miscellaneous/ppv-fra/training': ENTITY_TYPES.MISC_PPV_FRA_TRAINING,
         '/forms/miscellaneous/ppv-fra/plant-varieties': ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES,

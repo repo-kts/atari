@@ -26,6 +26,8 @@ import {
 } from '../../types/formSummary'
 import { ColumnFilter, EMPTY_FILTER, type ColumnFilterState } from '../../components/common/DataTable/ColumnFilter'
 import { applyColumnFilters, uniqueValuesForField } from '../../components/common/DataTable/columnFilterUtils'
+import { ENTITY_PATHS } from '../../constants/entityConstants'
+import { ROUTE_PATHS } from '../../constants/routePaths'
 
 const THEME = {
     primary: '#487749',
@@ -36,6 +38,20 @@ const THEME = {
     mutedText: '#757575',
     neutralBg: '#F5F5F5',
 } as const
+
+// These forms were reported with missing links in Form Summary. Keep a
+// frontend fallback so independently deployed/temporarily cached API payloads
+// that omit `path` still navigate to the canonical route.
+const FORM_SUMMARY_PATH_FALLBACKS: Readonly<Record<string, string>> = {
+    'about_kvk.staff_transferred': ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
+    'achievements.soil_analysis': ROUTE_PATHS.ACHIEVEMENTS.SOIL_ANALYSIS,
+    'projects.nf_demonstration':
+        ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.DEMONSTRATION_INFORMATION,
+}
+
+function resolveFormSummaryPath(module: Pick<FormModuleMeta, 'key' | 'path'>): string | null {
+    return module.path || FORM_SUMMARY_PATH_FALLBACKS[module.key] || null
+}
 
 function progressTone(pct: number): string {
     if (pct >= 80) return THEME.primary
@@ -334,13 +350,14 @@ function SingleKvkView({ data }: { data: KvkFormSummary }) {
 
 function FormTile({ row }: { row: FormModuleRow }) {
     const isDone = row.status === 'completed'
+    const destination = resolveFormSummaryPath(row)
     const content = (
         <>
             <div className="min-w-0 flex-1 flex items-center gap-1.5">
                 <span className="text-sm font-medium text-[#2c2c2c] truncate" title={row.title}>
                     {row.title}
                 </span>
-                {row.path && (
+                {destination && (
                     <ArrowUpRight
                         className="w-3.5 h-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         style={{ color: THEME.primary }}
@@ -358,10 +375,10 @@ function FormTile({ row }: { row: FormModuleRow }) {
         border: `1px solid ${isDone ? THEME.primaryBorder : THEME.border}`,
     }
 
-    if (row.path) {
+    if (destination) {
         return (
             <Link
-                to={row.path}
+                to={destination}
                 className={`${baseClass} hover:shadow-sm hover:-translate-y-0.5`}
                 style={style}
                 onMouseEnter={e => {
@@ -665,13 +682,15 @@ function MatrixView({
             const i = categoryOrder.indexOf(c)
             return i === -1 ? categoryOrder.length : i
         }
-        return [...modules].sort((a, b) => {
-            const d = idx(a.category) - idx(b.category)
-            if (d !== 0) return d
-            const s = (a.subcategory || '').localeCompare(b.subcategory || '')
-            if (s !== 0) return s
-            return 0
-        })
+        return [...modules]
+            .sort((a, b) => {
+                const d = idx(a.category) - idx(b.category)
+                if (d !== 0) return d
+                const s = (a.subcategory || '').localeCompare(b.subcategory || '')
+                if (s !== 0) return s
+                return 0
+            })
+            .map(module => ({ ...module, path: resolveFormSummaryPath(module) }))
     }, [modules, categoryOrder])
 
     if (kvks.length === 0) {

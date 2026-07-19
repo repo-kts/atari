@@ -199,8 +199,8 @@ function resolveWorldSoilDayPagePayload(data, options = {}) {
 }
 
 // KVK-wise detail (no year sectioning, no state aggregation). Each KVK gets its
-// own detail block + sub-total; admins (multi-KVK) see every KVK separately,
-// a single KVK user sees one block. Same shape used by PDF / Excel / Word.
+// own detail block + total; admins (multi-KVK) see every KVK separately with
+// a total for each block and a grand total. Same shape used by PDF / Excel / Word.
 function sumDetailRows(rows, label) {
     const z = {
         label,
@@ -237,6 +237,7 @@ function buildKvkGroupedDetailPayload(records) {
         byKvk.get(k).push(r);
     }
 
+    const isMultiKvk = byKvk.size > 1;
     const groups = [...byKvk.keys()].sort(sortStr).map((kvkName) => {
         const list = [...byKvk.get(kvkName)].sort(
             (a, b) => safeInt(b.worldSoilCelebrationId) - safeInt(a.worldSoilCelebrationId),
@@ -264,11 +265,11 @@ function buildKvkGroupedDetailPayload(records) {
                 participants: r.participants,
             };
         });
-        return { kvkName, rows, subtotal: sumDetailRows(rows, `Sub-total — ${kvkName}`) };
+        return { kvkName, rows, subtotal: sumDetailRows(rows, 'Total') };
     });
 
     const grandTotal = sumDetailRows(groups.flatMap((g) => g.rows), 'Grand Total (all KVKs)');
-    return { groups, grandTotal, isMultiKvk: groups.length > 1 };
+    return { groups, grandTotal, isMultiKvk };
 }
 
 function resolveWorldSoilDayGroupedPayload(data) {

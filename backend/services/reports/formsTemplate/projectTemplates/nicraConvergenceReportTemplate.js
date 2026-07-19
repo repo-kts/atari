@@ -15,9 +15,16 @@ function fmtAmount(v) {
 }
 
 function fmtDate(v) {
-    if (v === null || v === undefined || v === '') return '—';
-    const d = v instanceof Date ? v : new Date(v);
-    if (Number.isNaN(d.getTime())) return String(v);
+    const s = String(v || '').trim();
+    if (!s) return '—';
+    // Stored/API values may be yyyy-mm-dd strings, ISO timestamps, or Prisma
+    // Date objects. Keep the calendar date in UTC so midnight values do not
+    // shift when reports are generated in another server timezone.
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+
+    const d = v instanceof Date ? v : new Date(s);
+    if (Number.isNaN(d.getTime())) return s;
     const dd = String(d.getUTCDate()).padStart(2, '0');
     const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
     return `${dd}-${mm}-${d.getUTCFullYear()}`;

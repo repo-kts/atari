@@ -1,6 +1,5 @@
 import React from 'react'
 import {
-    Users,
     Shield,
     Smartphone,
     ClipboardList,
@@ -8,13 +7,6 @@ import {
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 
 const sections: FeatureSection[] = [
-    {
-        title: 'Nehru Yuva Kendra',
-        icon: <Users className="w-5 h-5" />,
-        items: [
-            { label: 'Nehru Yuva Kendra (NYK) Training', path: '/forms/miscellaneous/nehru-yuva-kendra' },
-        ],
-    },
     {
         title: 'PPV & FRA Sensitization',
         icon: <Shield className="w-5 h-5" />,

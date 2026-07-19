@@ -111,7 +111,6 @@ const {
     renderPrevalentDiseasesCropsSection,
     renderPrevalentDiseasesLivestockSection,
 } = require('./formsTemplate/miscTemplates/prevalentDiseasesTemplate.js');
-const { renderNykTrainingSection } = require('./formsTemplate/miscTemplates/nykTrainingTemplate.js');
 const { renderPoshanMaahSection } = require('./formsTemplate/miscTemplates/poshanMaahTemplate.js');
 const { renderPpvFraPlantVarietiesSection } = require('./formsTemplate/miscTemplates/ppvFraPlantVarietiesTemplate.js');
 const { renderPpvFraTrainingSection } = require('./formsTemplate/miscTemplates/ppvFraTrainingTemplate.js');
@@ -163,7 +162,6 @@ const STANDALONE_KVK_GROUP_TEMPLATES = new Set([
     'financial-resource-generation-report',
     'misc-prevalent-diseases-crops',
     'misc-prevalent-diseases-livestock',
-    'misc-nyk-training',
     'misc-poshan-maah',
     'misc-ppv-fra-plant-varieties',
     'misc-ppv-fra-training',
@@ -324,7 +322,6 @@ class ReportTemplateService {
             'rainwater-harvesting': renderRainwaterHarvestingSection.bind(this),
             'misc-prevalent-diseases-crops': renderPrevalentDiseasesCropsSection.bind(this),
             'misc-prevalent-diseases-livestock': renderPrevalentDiseasesLivestockSection.bind(this),
-            'misc-nyk-training': renderNykTrainingSection.bind(this),
             'misc-poshan-maah': renderPoshanMaahSection.bind(this),
             'misc-ppv-fra-plant-varieties': renderPpvFraPlantVarietiesSection.bind(this),
             'misc-ppv-fra-training': renderPpvFraTrainingSection.bind(this),

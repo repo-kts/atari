@@ -2,7 +2,6 @@ import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { PrevalentDiseasesForms } from './PrevalentDiseasesForms'
-import { NehruYuvaKendraForms } from './NehruYuvaKendraForms'
 import { PPVFRASensitizationForms } from './PPVFRASensitizationForms'
 import { RAWEFETProgrammeForms } from './RAWEFETProgrammeForms'
 import { VIPVisitorsForms } from './VIPVisitorsForms'
@@ -28,16 +27,6 @@ export const MiscellaneousForms: React.FC<MiscellaneousFormsProps> = ({
     ) {
         return (
             <PrevalentDiseasesForms
-                entityType={entityType}
-                formData={formData}
-                setFormData={setFormData}
-            />
-        )
-    }
-
-    if (entityType === ENTITY_TYPES.MISC_NYK_TRAINING) {
-        return (
-            <NehruYuvaKendraForms
                 entityType={entityType}
                 formData={formData}
                 setFormData={setFormData}
