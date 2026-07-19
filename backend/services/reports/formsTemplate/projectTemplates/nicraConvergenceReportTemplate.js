@@ -126,7 +126,7 @@ function renderNicraConvergenceReportSection(section, data, sectionId, isFirstSe
     if (records.length === 0) {
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
+  <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
   <p class="no-data">No Convergence Programme data for export.</p>
 </div>`;
     }
@@ -156,6 +156,7 @@ function renderNicraConvergenceReportSection(section, data, sectionId, isFirstSe
     return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
+  <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
   <div class="ncv-wrap">
     <div class="ncv-sec">NICRA Others — Convergence Programme</div>
     ${groupsHtml}

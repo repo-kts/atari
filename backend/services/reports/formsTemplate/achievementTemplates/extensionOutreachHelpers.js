@@ -70,6 +70,21 @@ function theadHtml(firstColHeader) {
     </thead>`;
 }
 
+// The activity name needs enough room to remain readable.  The participant
+// breakdown columns are numeric, so they can deliberately be narrower.
+function colGroupHtml() {
+    const participantColumns = Array.from({ length: 24 }, () => '<col style="width:2.5%" />').join('');
+    return `
+    <colgroup>
+      <col style="width:17%" />
+      <col style="width:4%" />
+      ${participantColumns}
+      <col style="width:6.33%" />
+      <col style="width:6.33%" />
+      <col style="width:6.33%" />
+    </colgroup>`;
+}
+
 function renderOutreachTable(firstColHeader, rows, grandTotal, caption, yearLabel) {
     const body = (rows || []).map((r) => `
       <tr>
@@ -85,6 +100,7 @@ function renderOutreachTable(firstColHeader, rows, grandTotal, caption, yearLabe
     return `
   <div class="eox-sec">${esc(caption)}${yearLabel ? ` for ${esc(yearLabel)}` : ''}</div>
   <table class="eox-tbl">
+    ${colGroupHtml()}
     ${theadHtml(firstColHeader)}
     <tbody>${body}${grandRow}</tbody>
   </table>`;

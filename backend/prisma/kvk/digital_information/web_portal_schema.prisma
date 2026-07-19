@@ -5,8 +5,7 @@ model WebPortal {
 
   reportingYear DateTime? @map("reporting_year")
 
-  webPortalName  String @default("") @map("web_portal_name")
-  developedByKvk String @default("") @map("developed_by_kvk")
+  webPortalName String @default("") @map("web_portal_name")
 
   noOfFarmersRegistered Int @map("no_of_farmers_registered_on_the_portal")
   noOfVisitors          Int @map("no_of_visitors_visited_the_portal")

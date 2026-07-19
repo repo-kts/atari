@@ -520,7 +520,10 @@ function renderKvkTrainingCapacityReport(section, payload, sectionId, isFirstSec
 
 function renderSuperadminTrainingCapacityReport(section, payload, sectionId, isFirstSection) {
     const clienteleSections = payload.superadminClienteleSections || [];
-    const hasData = (payload.stateSummary?.rows || []).length > 0 || clienteleSections.length > 0;
+    const consolidatedSections = payload.kvkConsolidatedSections || [];
+    const hasData = (payload.stateSummary?.rows || []).length > 0
+        || consolidatedSections.length > 0
+        || clienteleSections.length > 0;
     const y = payload.yearLabel || '';
 
     if (!hasData) {
@@ -532,6 +535,7 @@ function renderSuperadminTrainingCapacityReport(section, payload, sectionId, isF
     }
 
     const stateTable = renderGlobalStateTable(payload.stateSummary, y);
+    const consolidatedHtml = (consolidatedSections || []).map((b) => renderKvkConsolidatedTable(b)).join('');
     const clienteleHtml = (clienteleSections || []).map((b) => renderSuperadminClienteleTable(b)).join('');
 
     return `
@@ -540,7 +544,9 @@ function renderSuperadminTrainingCapacityReport(section, payload, sectionId, isF
   <div class="tcap-wrap">
     <h1 class="section-title">${section.id} ${esc(section.title)}</h1>
     ${stateTable}
-    <div class="tcap-sub">${section.id}.B - Consolidate table (On & Off Campus) Clientele Wise${y ? ` for ${esc(y)}` : ''}</div>
+    <div class="tcap-sub">${section.id}.A - Consolidate table (On & Off Campus) Training Type Wise${y ? ` for ${esc(y)}` : ''}</div>
+    ${consolidatedHtml}
+    <div class="tcap-sub">${section.id}.C - Consolidate table (On & Off Campus) Clientele Wise${y ? ` for ${esc(y)}` : ''}</div>
     ${clienteleHtml}
   </div>
 </div>`;

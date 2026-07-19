@@ -130,14 +130,6 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                     />
 
                     <FormInput
-                        label="Developed by KVK"
-                        required
-                        value={formData.developedByKvk ?? ''}
-                        onChange={handleFieldChange('developedByKvk')}
-                        placeholder="Enter developer"
-                    />
-
-                    <FormInput
                         label="No. of visitors visited the portal"
                         required
                         type="number"

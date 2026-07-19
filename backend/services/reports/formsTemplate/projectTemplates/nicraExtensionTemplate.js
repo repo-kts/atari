@@ -100,6 +100,16 @@ function sumRows(rows) {
   return t;
 }
 
+// Lead (text) columns get explicit widths; the 15 caste M/F/T cells split the
+// remainder evenly so numeric columns stay narrow and text columns breathe.
+function extColGroup(leadWidths) {
+  const used = leadWidths.reduce((a, b) => a + b, 0);
+  const each = ((100 - used) / 15).toFixed(2);
+  const lead = leadWidths.map((w) => `<col style="width:${w}%" />`).join('');
+  const caste = Array.from({ length: 15 }).map(() => `<col style="width:${each}%" />`).join('');
+  return `<colgroup>${lead}${caste}</colgroup>`;
+}
+
 // --- Module-wise (standalone) layout: grouped by KVK, no State/KVK columns;
 //     the KVK (and state) is written in a header above each group. ---
 function renderGroupedLayout(ctx, section, sectionId, isFirstSection, rows) {
@@ -116,6 +126,7 @@ function renderGroupedLayout(ctx, section, sectionId, isFirstSection, rows) {
         <th rowspan="2">S.No.</th>
         <th rowspan="2" class="l">Name of the activity</th>
         <th rowspan="2">Number of Programmes</th>`);
+  const cg = extColGroup([3.5, 26, 10.5]);
 
   const groupsHtml = kvkNames.map((kvk) => {
     const grp = byKvk.get(kvk);
@@ -137,7 +148,7 @@ function renderGroupedLayout(ctx, section, sectionId, isFirstSection, rows) {
     </tr>`;
     return `
   <h2 class="nicra-ext-kvk-hd">${esc(label)}</h2>
-  <table class="nicra-ext"><thead>${head}</thead>
+  <table class="nicra-ext">${cg}<thead>${head}</thead>
     <tbody>${body}${subRow}</tbody>
   </table>`;
   }).join('');
@@ -145,7 +156,7 @@ function renderGroupedLayout(ctx, section, sectionId, isFirstSection, rows) {
   const grandHtml = isMultiKvk ? (() => {
     const g = sumRows(rows);
     return `
-  <table class="nicra-ext"><thead>${head}</thead>
+  <table class="nicra-ext">${cg}<thead>${head}</thead>
     <tbody>
       <tr class="grand">
         <td colspan="2" class="l">Grand Total (all KVKs) — ${rows.length} records</td>
@@ -181,15 +192,58 @@ function renderFlatLayout(ctx, section, sectionId, isFirstSection, rows) {
         <th rowspan="2">S.No.</th>
         <th rowspan="2">State</th>
         <th rowspan="2">KVK</th>
-        <th rowspan="2">Name of the activity</th>
+        <th rowspan="2" class="l">Name of the activity</th>
         <th rowspan="2">Number of Programmes</th>`);
+  const cg = extColGroup([3, 9, 12, 20, 9]);
 
   return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   ${SHARED_STYLE}
   <h1 class="section-title">${section.id} ${ctx._escapeHtml(section.title)}</h1>
-  <table class="nicra-ext"><thead>${head}</thead>
+  <table class="nicra-ext">${cg}<thead>${head}</thead>
     <tbody>${body}</tbody>
+  </table>
+</div>`;
+}
+
+// --- Superadmin all-report layout: state-wise participant summary. ---
+function renderStateSummaryLayout(ctx, section, sectionId, isFirstSection, rows) {
+  const byState = new Map();
+  for (const r of rows) {
+    const st = pickFirst(r.stateName, 'Unknown');
+    if (!byState.has(st)) byState.set(st, []);
+    byState.get(st).push(r);
+  }
+  const states = [...byState.keys()].sort((a, b) => String(a).localeCompare(String(b)));
+  const head = casteHeadRows(`
+        <th rowspan="2" class="l">State</th>
+        <th rowspan="2">No. of Programmes</th>`);
+  const cg = extColGroup([16, 12]);
+
+  const body = states.map((st) => {
+    const s = sumRows(byState.get(st));
+    return `
+    <tr>
+      <td class="l">${esc(st)}</td>
+      <td>${n(s.numProgrammes)}</td>
+      ${casteCells(s)}
+    </tr>`;
+  }).join('');
+
+  const g = sumRows(rows);
+  const grandRow = `
+    <tr class="grand">
+      <td class="l">Grand Total</td>
+      <td>${n(g.numProgrammes)}</td>
+      ${casteCells(g)}
+    </tr>`;
+
+  return `
+<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
+  ${SHARED_STYLE}
+  <h1 class="section-title">${section.id} ${ctx._escapeHtml(section.title)}</h1>
+  <table class="nicra-ext">${cg}<thead>${head}</thead>
+    <tbody>${body}${grandRow}</tbody>
   </table>
 </div>`;
 }
@@ -199,8 +253,11 @@ function renderNicraExtensionSection(section, data, sectionId, isFirstSection, r
   const rows = rowsRaw.map(normalizeRow);
   if (rows.length === 0) { return this._generateEmptySection(section, null, sectionId, isFirstSection); }
 
-  // Module-wise export → KVK-grouped (no State/KVK columns); comprehensive
-  // all-report keeps the flat State/KVK table.
+  // Superadmin (aggregated) → state-wise summary; module-wise export →
+  // KVK-grouped (no State/KVK columns); single-KVK all-report → flat table.
+  if (reportContext && reportContext.isAggregatedView) {
+    return renderStateSummaryLayout(this, section, sectionId, isFirstSection, rows);
+  }
   return reportContext && reportContext.isStandalone
     ? renderGroupedLayout(this, section, sectionId, isFirstSection, rows)
     : renderFlatLayout(this, section, sectionId, isFirstSection, rows);

@@ -157,6 +157,7 @@ async function getNicraBasicData(kvkId, filters = {}) {
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName || '',
         stateName: r.kvk?.state?.stateName || '',
+        reportingDate: r.reportingDate,
         rfMmDistrictNormal: Number(r.rfNormal || 0),
         rfMmDistrictReceived: Number(r.rfReceived || 0),
         maxTemperature: Number(r.tempMax || 0),
@@ -202,7 +203,7 @@ async function getNicraTrainingData(kvkId, filters = {}) {
 
     const rows = await prisma.nicraTraining.findMany({
         where,
-        include: { kvk: { select: { kvkName: true } } },
+        include: { kvk: { select: { kvkName: true, state: { select: { stateName: true } } } } },
         orderBy: [{ startDate: 'asc' }, { nicraTrainingId: 'asc' }],
     });
 
@@ -215,6 +216,7 @@ async function getNicraTrainingData(kvkId, filters = {}) {
         const totF = (r.generalF || 0) + (r.obcF || 0) + (r.scF || 0) + (r.stF || 0);
         return {
             kvkName: r.kvk?.kvkName || '',
+            stateName: r.kvk?.state?.stateName || '',
             titleOfTraining: r.titleOfTraining || '',
             campusType: r.campusType || '',
             startDate: r.startDate,

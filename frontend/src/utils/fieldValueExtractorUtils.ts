@@ -6,6 +6,7 @@
  */
 
 import { FIELD_NAMES } from '../constants/fieldNames';
+import { formatDmyUtc } from './dateLocalYmd';
 
 // ============================================
 // Type Definitions
@@ -50,7 +51,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 10,
@@ -62,7 +63,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 10,
@@ -74,7 +75,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 10,
@@ -91,7 +92,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 10,
@@ -103,7 +104,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 10,
@@ -115,7 +116,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 10,
@@ -127,7 +128,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 10,
@@ -165,7 +166,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(item.dateOfBirth);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch {
                 return null;
             }
@@ -1309,7 +1310,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
     },
@@ -1555,7 +1556,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 7,
@@ -1590,7 +1591,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 7,
@@ -1848,7 +1849,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(item.dateOfCompletion);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 6,
@@ -1921,7 +1922,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 6,
@@ -2098,7 +2099,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 6,
@@ -2110,7 +2111,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 6,
@@ -2155,7 +2156,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 10,
@@ -2236,7 +2237,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             try {
                 const date = new Date(dateVal);
                 if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return formatDmyUtc(date);
             } catch { return null; }
         },
         priority: 5,

@@ -152,18 +152,37 @@ async function buildSectionChildren(chunk, isFirst, totalWidthDxa = 9360) {
         children: [new Bookmark({ id: bookmarkIdFor(chunk.sectionId), children: [new TextRun({ text: title, bold: true })] })],
     }));
 
-    for (const h of headings) {
-        if (h === title || h === (chunk.featureTitle || chunk.sectionTitle)) continue;
-        out.push(new Paragraph({ children: [new TextRun({ text: h, italics: true, color: '555555' })] }));
-    }
-
     if (tables.length === 0 && images.length === 0) {
+        for (const h of headings) {
+            if (h === title || h === (chunk.featureTitle || chunk.sectionTitle)) continue;
+            out.push(new Paragraph({ children: [new TextRun({ text: h, italics: true, color: '555555' })] }));
+        }
         out.push(new Paragraph({ children: [new TextRun({ text: 'No data available for this section.', italics: true, color: '888888' })] }));
         return out;
     }
-    for (const table of tables) {
-        out.push(buildDocxTable(table, totalWidthDxa));
-        out.push(new Paragraph({ children: [] })); // spacer
+
+    if (tables.length > 1) {
+        // Multi-table sections (e.g. CFLD crop-type blocks) must keep each heading
+        // with its own table, so render in document order instead of all-headings-
+        // then-all-tables.
+        for (const b of parseOrderedBlocks(chunk.html)) {
+            if (b.type === 'heading') {
+                if (b.text === title || b.text === (chunk.featureTitle || chunk.sectionTitle)) continue;
+                out.push(new Paragraph({ children: [new TextRun({ text: b.text, italics: true, color: '555555' })] }));
+            } else {
+                out.push(buildDocxTable(b.table, totalWidthDxa));
+                out.push(new Paragraph({ children: [] })); // spacer
+            }
+        }
+    } else {
+        for (const h of headings) {
+            if (h === title || h === (chunk.featureTitle || chunk.sectionTitle)) continue;
+            out.push(new Paragraph({ children: [new TextRun({ text: h, italics: true, color: '555555' })] }));
+        }
+        for (const table of tables) {
+            out.push(buildDocxTable(table, totalWidthDxa));
+            out.push(new Paragraph({ children: [] })); // spacer
+        }
     }
     // Embed images (e.g. OFT result photographs) with their captions (#241).
     for (const fig of images) {

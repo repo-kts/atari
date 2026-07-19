@@ -344,24 +344,21 @@ function renderStateWiseTable(ctx, records) {
     const total = aggregateRows(records);
     const headers = `
         <tr>
-            <th>S.No.</th>
-            <th>State</th>
+            <th rowspan="2">S.No.</th>
+            <th rowspan="2">State</th>
             <th colspan="2">Target of CFLD Approved</th>
             <th colspan="2">Achievement of CFLD</th>
             <th colspan="2">Yield(q/ha)</th>
-            <th>Yield Increased(%)</th>
-            <th>Average difference of yield between Demo and Local (q/ha)</th>
+            <th rowspan="2">Yield Increased(%)</th>
+            <th rowspan="2">Average difference of yield between Demo and Local (q/ha)</th>
         </tr>
         <tr>
-            <th></th><th></th>
             <th>Area (ha)</th>
             <th>No. of Demonstration</th>
             <th>Area (ha)</th>
             <th>No. of Demonstration</th>
             <th>Local</th>
             <th>Demo</th>
-            <th></th>
-            <th></th>
         </tr>`;
     const totalRow = `
         <tr style="font-weight:700;">
@@ -380,19 +377,23 @@ function renderStateWiseTable(ctx, records) {
 
 function renderSeasonWiseTable(ctx, records) {
     const byCrop = groupBy(records, r => r.cropName || 'Unknown Crop');
-    let counter = 0;
     let rows = '';
+    let cropIndex = 0;
     byCrop.forEach((cropRecords, cropName) => {
-        const byState = groupBy(cropRecords, r => r.stateName || 'Unknown');
-        Array.from(byState.entries())
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .forEach(([state, stateRecords], idx) => {
-                counter += 1;
-                const agg = aggregateRows(stateRecords);
-                rows += `
+        cropIndex += 1;
+        const states = Array.from(groupBy(cropRecords, r => r.stateName || 'Unknown').entries())
+            .sort((a, b) => a[0].localeCompare(b[0]));
+        // S.No and Crop are merged (rowspan) across this crop's state rows plus
+        // its Total row, so they render as one cell instead of empty bordered cells.
+        const span = states.length + 1;
+        states.forEach(([state, stateRecords], idx) => {
+            const agg = aggregateRows(stateRecords);
+            const lead = idx === 0
+                ? `<td rowspan="${span}">${cropIndex}</td><td rowspan="${span}">${ctx._escapeHtml(cropName)}</td>`
+                : '';
+            rows += `
                     <tr>
-                        <td>${idx === 0 ? counter : ''}</td>
-                        <td>${idx === 0 ? ctx._escapeHtml(cropName) : ''}</td>
+                        ${lead}
                         <td>${ctx._escapeHtml(state)}</td>
                         <td>${formatNumber(agg.targetArea)}</td>
                         <td>${formatNumber(agg.targetDemo)}</td>
@@ -403,13 +404,14 @@ function renderSeasonWiseTable(ctx, records) {
                         <td>${formatNumber(agg.increase)}</td>
                         <td>${formatNumber(agg.diff)}</td>
                     </tr>`;
-            });
+        });
 
         const cropTotal = aggregateRows(cropRecords);
+        // S.No + Crop are covered by the rowspan above, so the Total label sits in
+        // the State column.
         rows += `
             <tr style="font-weight:700;">
-                <td></td>
-                <td colspan="2">Total</td>
+                <td>Total</td>
                 <td>${formatNumber(cropTotal.targetArea)}</td>
                 <td>${formatNumber(cropTotal.targetDemo)}</td>
                 <td>${formatNumber(cropTotal.achArea)}</td>
@@ -437,49 +439,62 @@ function renderSeasonWiseTable(ctx, records) {
 
     const headers = `
         <tr>
-            <th>S.No.</th>
-            <th>Crop</th>
-            <th>State</th>
+            <th rowspan="2">S.No.</th>
+            <th rowspan="2">Crop</th>
+            <th rowspan="2">State</th>
             <th colspan="2">Target of CFLD Approved</th>
             <th colspan="2">Achievement of CFLD</th>
             <th colspan="2">Yield(q/ha)</th>
-            <th>Yield Increased(%)</th>
-            <th>Average difference of yield between Demo and Local (q/ha)</th>
+            <th rowspan="2">Yield Increased(%)</th>
+            <th rowspan="2">Average difference of yield between Demo and Local (q/ha)</th>
         </tr>
         <tr>
-            <th></th><th></th><th></th>
             <th>Area (ha)</th>
             <th>No. of Demonstration</th>
             <th>Area (ha)</th>
             <th>No. of Demonstration</th>
             <th>Local</th>
             <th>Demo</th>
-            <th></th><th></th>
         </tr>`;
     return renderCfldTable(headers, rows);
 }
 
+// Oilseed first, then Pulses, then any other crop-type.
+function cropTypeRank(name) {
+    const k = String(name || '').toLowerCase();
+    if (k.includes('oilseed') || k.includes('oil seed')) return 0;
+    if (k.includes('pulse')) return 1;
+    return 9;
+}
+
 /**
- * Super-admin / aggregated layout: the SAME four tables as the KVK side, grouped
- * by state and then KVK-wise inside each state (State: X → KVK: Y blocks).
+ * Super-admin / aggregated layout: split by crop-type (1. Oilseed, 2. Pulses, …).
+ * Each crop-type shows two sections — a State-wise summary, then one Season-wise
+ * table (crop × state) per season present (Kharif, Rabi, Summer). Economic /
+ * socio-economic / perception tables are intentionally omitted on this side.
  */
 function renderSuperAdminLayout(ctx, records) {
-    const byState = groupBy(records, r => r.stateName || 'Unknown');
-    return Array.from(byState.entries())
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([state, stateRecords]) => {
-            const byKvk = groupBy(stateRecords, r => r.kvkName || 'Unknown KVK');
-            const kvkBlocks = Array.from(byKvk.entries())
-                .sort((a, b) => a[0].localeCompare(b[0]))
-                .map(([kvk, kvkRecords]) => `
-                    <h3 class="about-kvk-subheading" style="margin-top:10px;">KVK: ${ctx._escapeHtml(kvk)}</h3>
-                    ${renderFourTables(ctx, kvkRecords)}
+    const byType = groupBy(records, r => r.cropTypeName || 'Other');
+    const typeEntries = Array.from(byType.entries()).sort((a, b) => {
+        const r = cropTypeRank(a[0]) - cropTypeRank(b[0]);
+        return r !== 0 ? r : a[0].localeCompare(b[0]);
+    });
+
+    return typeEntries
+        .map(([typeName, typeRecords], idx) => {
+            const bySeason = groupBy(typeRecords, r => r.seasonName || 'Unknown');
+            const seasonBlocks = Array.from(bySeason.entries())
+                .sort((a, b) => (seasonOrder(a[0]) - seasonOrder(b[0])) || a[0].localeCompare(b[0]))
+                .map(([season, seasonRecords]) => `
+                    <h3 class="about-kvk-subheading" style="margin-top:10px;">Cluster Front Line Demonstration on ${ctx._escapeHtml(season)}</h3>
+                    ${renderSeasonWiseTable(ctx, seasonRecords)}
                 `)
                 .join('');
             return `
-                <h2 class="about-kvk-heading" style="margin-top:14px;">State: ${ctx._escapeHtml(state)}</h2>
-                <p style="margin-bottom:12px;"><strong>PERFORMANCE OF THE DEMONSTRATION UNDER CFLD ON PULSE AND OILSEED CROPS (During Kharif, Rabi and Summer)</strong></p>
-                ${kvkBlocks}
+                <h2 class="about-kvk-heading" style="margin-top:14px;">${idx + 1}. ${ctx._escapeHtml(typeName)}</h2>
+                <h3 class="about-kvk-subheading" style="margin-top:8px;">State wise details of Cluster Front Line Demonstration</h3>
+                ${renderStateWiseTable(ctx, typeRecords)}
+                ${seasonBlocks}
             `;
         })
         .join('');
@@ -494,8 +509,12 @@ function renderCfldCombinedSection(section, data, sectionId, isFirstSection, rep
 
     const uniqueStates = new Set(records.map(r => r.stateName).filter(Boolean));
     const uniqueKvks = new Set(records.map(r => r.kvkName).filter(Boolean));
-    // Explicit context-based switch keeps module export and all-report behavior stable/reusable.
-    const isSuperAdminStyle = Boolean(reportContext?.isAggregatedReport) || uniqueStates.size > 1 || uniqueKvks.size > 1;
+    // Role-based, NOT scope-based: a KVK admin's own report also runs through the
+    // aggregated scope path (isAggregatedReport true), so key the super-admin
+    // Oilseed/Pulses layout off isAggregatedView (derived from role). The
+    // multi-state/multi-KVK fallbacks cover the standalone module export, which
+    // doesn't carry isAggregatedView.
+    const isSuperAdminStyle = Boolean(reportContext?.isAggregatedView) || uniqueStates.size > 1 || uniqueKvks.size > 1;
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
     const content = isSuperAdminStyle ? renderSuperAdminLayout(this, records) : renderKvkLayout(this, records);
 

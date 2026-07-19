@@ -40,7 +40,6 @@ const webPortalRepository = {
                         return d;
                     })(),
                     webPortalName: requireText(data.webPortalName, 'Name of Web portal'),
-                    developedByKvk: requireText(data.developedByKvk, 'Developed by KVK'),
                     noOfFarmersRegistered: parseInteger(data.noOfFarmersRegistered || 0, 'noOfFarmersRegistered'),
                     noOfVisitors: parseInteger(data.noOfVisitors || 0, 'noOfVisitors'),
                 },
@@ -106,7 +105,6 @@ const webPortalRepository = {
                     })()
                     : existing.reportingYear,
                 webPortalName: data.webPortalName !== undefined ? requireText(data.webPortalName, 'Name of Web portal') : existing.webPortalName,
-                developedByKvk: data.developedByKvk !== undefined ? requireText(data.developedByKvk, 'Developed by KVK') : existing.developedByKvk,
                 noOfFarmersRegistered: data.noOfFarmersRegistered !== undefined ? parseInteger(data.noOfFarmersRegistered, 'noOfFarmersRegistered') : existing.noOfFarmersRegistered,
                 noOfVisitors: data.noOfVisitors !== undefined ? parseInteger(data.noOfVisitors, 'noOfVisitors') : existing.noOfVisitors,
             },

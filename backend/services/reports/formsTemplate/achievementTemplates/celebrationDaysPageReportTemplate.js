@@ -80,6 +80,18 @@ function headHtml() {
       </thead>`;
 }
 
+// Keep the demographic values compact so the day name remains readable. There
+// are 27 M/F/T value columns, while the first two columns contain the useful
+// descriptive content for a KVK reviewing its own report.
+function colGroupHtml() {
+    return `
+      <colgroup>
+        <col style="width:27%" />
+        <col style="width:5.5%" />
+        ${Array.from({ length: 27 }, () => '<col style="width:2.5%" />').join('')}
+      </colgroup>`;
+}
+
 function dataRow(r, cls) {
     return `
       <tr${cls ? ` class="${cls}"` : ''}>
@@ -95,7 +107,7 @@ function renderGroup(g, showKvkHeader) {
     const kvkHd = showKvkHeader ? `<div class="cd-kvk-hd">${esc(g.kvkName)}</div>` : '';
     return `
     <div class="cd-group">${kvkHd}
-      <table class="cd-page-tbl">${headHtml()}
+      <table class="cd-page-tbl">${colGroupHtml()}${headHtml()}
         <tbody>${body}${sub}</tbody>
       </table>
     </div>`;
@@ -115,10 +127,14 @@ function renderCelebrationDaysPageReportSection(section, data, sectionId, isFirs
 
     const showKvkHeader = payload.isMultiKvk;
     const groupsHtml = groups.map((g) => renderGroup(g, showKvkHeader)).join('');
+    const isPromotedFeature = section.featureNumber && section.id === section.featureNumber;
+    const headingTag = isPromotedFeature ? 'h2' : 'h1';
+    const headingClass = isPromotedFeature ? 'section-subtitle' : 'section-title';
+    const headingText = `${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}`;
 
     const grandHtml = payload.isMultiKvk
         ? `
-        <table class="cd-page-tbl">${headHtml()}
+        <table class="cd-page-tbl">${colGroupHtml()}${headHtml()}
         <tbody>${dataRow(payload.grandTotal, 'grand')}</tbody>
         </table>`
         : '';
@@ -127,7 +143,7 @@ function renderCelebrationDaysPageReportSection(section, data, sectionId, isFirs
         <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
             <style>${tableCss()}</style>
             <div class="cd-page-wrap">
-                <div class="cd-page-sec">D. Celebration of important days in KVKs</div>
+                <${headingTag} class="${headingClass}">${headingText}</${headingTag}>
                 ${groupsHtml}
                 ${grandHtml}
             </div>

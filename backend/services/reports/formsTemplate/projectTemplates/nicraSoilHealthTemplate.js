@@ -56,6 +56,16 @@ function buildNicraSoilHealthGroups(rawData){
     return { groups, isMultiKvk: groups.length > 1 };
 }
 
+// Wide sample-count columns; the 15 caste M/F/T cells are numeric → narrow.
+function colGroup(){
+    return `
+    <colgroup>
+      <col style="width:4%" />
+      <col style="width:13%" /><col style="width:13%" /><col style="width:9%" />
+      ${Array.from({ length: 15 }).map(() => '<col style="width:4.06%" />').join('')}
+    </colgroup>`;
+}
+
 function headHtml(){
     return `
     <thead>
@@ -104,7 +114,7 @@ function renderNicraSoilHealthSection(section, data, sectionId, isFirstSection){
         return `
   <div class="nicra-shc-group">
     <div class="nicra-shc-kvk-hd">${band}</div>
-    <table class="nicra-shc">${headHtml()}
+    <table class="nicra-shc">${colGroup()}${headHtml()}
       <tbody>${body}</tbody>
     </table>
   </div>`;
