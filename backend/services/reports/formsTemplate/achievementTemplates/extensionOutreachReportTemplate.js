@@ -13,7 +13,7 @@ function tableCss() {
   .wsd-page-tbl .muted { color:#444; font-size:6pt; margin:4px 0 8px 0; }
 `;
 }
-function renderExtensionOutreachReportSection(section, data, sectionId, isFirstSection) {
+function renderExtensionOutreachReportSection(section, data, sectionId, isFirstSection, reportContext = {}) {
     const payload = resolveExtensionOutreachPayload(data);
     const y = payload.yearLabel || '';
     const hasData = (payload.stateSummary && payload.stateSummary.length > 0)
@@ -30,18 +30,25 @@ function renderExtensionOutreachReportSection(section, data, sectionId, isFirstS
     const t1 = `${section.id} ${section.title}`;
     const sub = '(Including activities of FLD programmes)';
 
-    const stateBlock = renderOutreachTable(
-        'State',
-        payload.stateSummary,
-        payload.stateGrandTotal,
-        'A. State wise details of Extension Programme',
-        y,
-    );
+    // State-wise aggregation is meaningful only in the superadmin/aggregated
+    // report. A KVK sees its own activity breakdown directly.
+    const showStateDetails = Boolean(reportContext.isAggregatedView);
+    const stateBlock = showStateDetails
+        ? renderOutreachTable(
+            'State',
+            payload.stateSummary,
+            payload.stateGrandTotal,
+            'A. State wise details of Extension Programme',
+            y,
+        )
+        : '';
     const actBlock = renderOutreachTable(
         'Nature of Extension Activity',
         payload.activityDetails,
         payload.activityGrandTotal,
-        'B. Details of various extension Programmes',
+        showStateDetails
+            ? 'B. Details of various extension Programmes'
+            : 'A. Details of various extension Programmes',
         y,
     );
 

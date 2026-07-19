@@ -67,6 +67,15 @@ function inferYearLabel(records) {
     return String(new Date().getFullYear());
 }
 
+// Per-record display year, derived from the record's own reportingYear.
+function rowYearLabel(reportingYear) {
+    if (reportingYear == null || reportingYear === '') return '';
+    const m = String(reportingYear).match(/(\d{4})/);
+    if (m) return m[1];
+    const d = new Date(reportingYear);
+    return Number.isNaN(d.getTime()) ? '' : String(d.getFullYear());
+}
+
 function normalizeRow(r, stateNameFallback) {
     const stateName = (r.stateName != null && String(r.stateName).trim() !== '')
         ? String(r.stateName).trim()
@@ -85,6 +94,15 @@ function normalizeRow(r, stateNameFallback) {
         farmersBenefitted: farmersBenefittedFromRow(r),
         vipCount: vipCountFromNames(r.vipNames),
         reportingYear: r.reportingYear,
+        // category-wise farmer beneficiaries (carried through for the detail report)
+        generalM: safeInt(r.generalM),
+        generalF: safeInt(r.generalF),
+        obcM: safeInt(r.obcM),
+        obcF: safeInt(r.obcF),
+        scM: safeInt(r.scM),
+        scF: safeInt(r.scF),
+        stM: safeInt(r.stM),
+        stF: safeInt(r.stF),
     };
 }
 
@@ -188,7 +206,10 @@ function sumDetailRows(rows, label) {
         label,
         activitiesConducted: 0,
         soilHealthCards: 0,
-        farmersBenefitted: 0,
+        genM: 0, genF: 0, genT: 0,
+        obcM: 0, obcF: 0, obcT: 0,
+        scM: 0, scF: 0, scT: 0,
+        stM: 0, stF: 0, stT: 0,
         vipCount: 0,
         participants: 0,
         vipNames: '',
@@ -196,7 +217,10 @@ function sumDetailRows(rows, label) {
     for (const r of rows) {
         z.activitiesConducted += safeInt(r.activitiesConducted);
         z.soilHealthCards += safeInt(r.soilHealthCards);
-        z.farmersBenefitted += safeInt(r.farmersBenefitted);
+        z.genM += safeInt(r.genM); z.genF += safeInt(r.genF); z.genT += safeInt(r.genT);
+        z.obcM += safeInt(r.obcM); z.obcF += safeInt(r.obcF); z.obcT += safeInt(r.obcT);
+        z.scM += safeInt(r.scM); z.scF += safeInt(r.scF); z.scT += safeInt(r.scT);
+        z.stM += safeInt(r.stM); z.stF += safeInt(r.stF); z.stT += safeInt(r.stT);
         z.vipCount += safeInt(r.vipCount);
         z.participants += safeInt(r.participants);
     }
@@ -217,15 +241,29 @@ function buildKvkGroupedDetailPayload(records) {
         const list = [...byKvk.get(kvkName)].sort(
             (a, b) => safeInt(b.worldSoilCelebrationId) - safeInt(a.worldSoilCelebrationId),
         );
-        const rows = list.map((r, i) => ({
-            sl: i + 1,
-            activitiesConducted: r.activitiesConducted,
-            soilHealthCards: r.soilHealthCardDistributed,
-            farmersBenefitted: r.farmersBenefitted,
-            vipCount: r.vipCount,
-            vipNames: r.vipNames || '—',
-            participants: r.participants,
-        }));
+        const rows = list.map((r, i) => {
+            const genM = safeInt(r.generalM);
+            const genF = safeInt(r.generalF);
+            const obcM = safeInt(r.obcM);
+            const obcF = safeInt(r.obcF);
+            const scM = safeInt(r.scM);
+            const scF = safeInt(r.scF);
+            const stM = safeInt(r.stM);
+            const stF = safeInt(r.stF);
+            return {
+                sl: i + 1,
+                year: rowYearLabel(r.reportingYear),
+                activitiesConducted: r.activitiesConducted,
+                soilHealthCards: r.soilHealthCardDistributed,
+                genM, genF, genT: genM + genF,
+                obcM, obcF, obcT: obcM + obcF,
+                scM, scF, scT: scM + scF,
+                stM, stF, stT: stM + stF,
+                vipCount: r.vipCount,
+                vipNames: r.vipNames || '—',
+                participants: r.participants,
+            };
+        });
         return { kvkName, rows, subtotal: sumDetailRows(rows, `Sub-total — ${kvkName}`) };
     });
 

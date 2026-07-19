@@ -49,6 +49,17 @@ function buildNicraFarmImplementGroups(rawData){
     return { groups, isMultiKvk: groups.length > 1 };
 }
 
+// Wide Name + economic columns; the 15 caste M/F/T cells are numeric → narrow.
+function colGroup(){
+    return `
+    <colgroup>
+      <col style="width:3%" />
+      <col style="width:20%" />
+      ${Array.from({ length: 15 }).map(() => '<col style="width:2.6%" />').join('')}
+      <col style="width:9.5%" /><col style="width:9.5%" /><col style="width:9.5%" /><col style="width:9.5%" />
+    </colgroup>`;
+}
+
 function headHtml(){
     return `
     <thead>
@@ -101,7 +112,7 @@ function renderNicraFarmImplementSection(section, data, sectionId, isFirstSectio
         return `
   <div class="nicra-fi-group">
     <div class="nicra-fi-kvk-hd">${band}</div>
-    <table class="nicra-fi">${headHtml()}
+    <table class="nicra-fi">${colGroup()}${headHtml()}
       <tbody>${body}</tbody>
     </table>
   </div>`;

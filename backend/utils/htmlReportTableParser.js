@@ -140,12 +140,18 @@ function parseSectionHtml(html) {
 function parseOrderedBlocks(html) {
     const clean = String(html || '').replace(/<style[\s\S]*?<\/style>/gi, '');
     const blocks = [];
-    const re = /<(h1|h2|h3|h4)\b[^>]*>([\s\S]*?)<\/\1>|<table\b[^>]*>([\s\S]*?)<\/table>/gi;
+    // Headings (h1–h4), tables, and descriptive sub-titles/captions rendered as
+    // <div>/<p class="…subtitle|caption…">, all captured in document order so a
+    // writer can interleave them exactly as the PDF lays them out.
+    const re = /<(h1|h2|h3|h4)\b[^>]*>([\s\S]*?)<\/\1>|<table\b[^>]*>([\s\S]*?)<\/table>|<(div|p)\b[^>]*class="[^"]*(?:subtitle|sub-title|caption|page-sub|page-sec|nbf-subtitle)[^"]*"[^>]*>([\s\S]*?)<\/\4>/gi;
     let m;
     while ((m = re.exec(clean))) {
         if (m[1]) {
             const text = stripTags(m[2]);
             if (text) blocks.push({ type: 'heading', level: Number(m[1].slice(1)), text });
+        } else if (m[4]) {
+            const text = stripTags(m[5]);
+            if (text) blocks.push({ type: 'heading', level: 5, text });
         } else {
             const table = parseTable(m[3]);
             if (table) blocks.push({ type: 'table', table });

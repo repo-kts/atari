@@ -7,7 +7,12 @@ function esc(t) {
 }
 
 function fmtDate(v) {
-    return v ? esc(v) : '—';
+    if (v === null || v === undefined || v === '') return '—';
+    const d = v instanceof Date ? v : new Date(v);
+    if (Number.isNaN(d.getTime())) return esc(v);
+    const dd = String(d.getUTCDate()).padStart(2, '0');
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    return `${dd}-${mm}-${d.getUTCFullYear()}`;
 }
 
 function tableCss() {
@@ -81,7 +86,7 @@ function renderNicraDignitariesReportSection(section, data, sectionId, isFirstSe
     if (groups.length === 0) {
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
+  <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
   <p class="no-data">No dignitaries visited data for export.</p>
 </div>`;
     }
@@ -105,6 +110,7 @@ function renderNicraDignitariesReportSection(section, data, sectionId, isFirstSe
     return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
+  <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
   <div class="ndg-page-wrap">
     <div class="ndg-page-sec">NICRA Others — Dignitaries Visited</div>
     ${groupsHtml}

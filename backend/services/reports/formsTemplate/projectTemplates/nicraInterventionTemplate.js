@@ -107,12 +107,12 @@ const STYLE = `
 const COLGROUP = `
     <colgroup>
         <col style="width:5%">
-        <col style="width:14%">
         <col style="width:20%">
-        <col style="width:20%">
+        <col style="width:21%">
+        <col style="width:21%">
         <col style="width:11%">
-        <col style="width:15%">
-        <col style="width:15%">
+        <col style="width:11%">
+        <col style="width:11%">
     </colgroup>`;
 
 const THEAD = `

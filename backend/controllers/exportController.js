@@ -368,7 +368,12 @@ const exportData = async (req, res) => {
 
         let buffer;
         let contentType;
-        let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${getCompactDateTime()}`;
+        // Sanitize to a safe slug: strip everything but [a-z0-9-]. A comma in the
+        // title (e.g. "Soil, Water and Plant analysis") left in an unquoted
+        // Content-Disposition makes Chrome reject the download with
+        // ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION.
+        const safeTitleSlug = String(title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        let fileName = `${safeTitleSlug || 'export'}-${getCompactDateTime()}`;
 
         let effectiveRawData = rawData;
         if (templateKey === 'about-kvk-view' && rawData) {
@@ -656,6 +661,11 @@ const exportData = async (req, res) => {
                     buffer = await generateScspExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryExcelBuffer(effectiveRawData);
+                } else if (templateKey === 'staff-quarters' && rawData) {
+                    // Build from the SAME HTML the PDF uses so the per-KVK summary row
+                    // + Month × Quarter occupancy grid match the PDF/Word exactly.
+                    const staffQuartersHtml = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportExcelService.generateStandaloneExcelFromHtml(title, staffQuartersHtml);
                 } else if (
                     templateKey === 'success-story'
                     || templateKey === 'entrepreneurship'
@@ -806,6 +816,11 @@ const exportData = async (req, res) => {
                     buffer = await generateScspWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
                     buffer = await generateTechnicalSummaryWordBuffer(effectiveRawData);
+                } else if (templateKey === 'staff-quarters' && rawData) {
+                    // Build from the SAME HTML the PDF uses so the per-KVK summary row
+                    // + Month × Quarter occupancy grid match the PDF/Excel exactly.
+                    const staffQuartersHtmlW = await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport));
+                    buffer = await reportWordService.generateStandaloneWordFromHtml(title, staffQuartersHtmlW);
                 } else if (
                     templateKey === 'success-story'
                     || templateKey === 'entrepreneurship'
@@ -838,7 +853,7 @@ const exportData = async (req, res) => {
         }
 
         res.setHeader('Content-Type', contentType);
-        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
         res.send(buffer);
 
     } catch (error) {

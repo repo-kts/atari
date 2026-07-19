@@ -77,8 +77,8 @@ const STYLE = `
 
 const COLGROUP = `
     <colgroup>
-        <col style="width:6%"><col style="width:22%"><col style="width:42%">
-        <col style="width:15%"><col style="width:15%">
+        <col style="width:5%"><col style="width:25%"><col style="width:46%">
+        <col style="width:12%"><col style="width:12%">
     </colgroup>`;
 
 const THEAD = `

@@ -1,4 +1,5 @@
 const { resolveTechnologyWeekStateSummaryPayload } = require('../../../../repositories/reports/technologyWeekCelebrationReport/technologyWeekCelebrationReportRepository.js');
+const { renderTechnologyWeekCelebrationPageReportSection } = require('./technologyWeekCelebrationPageReportTemplate.js');
 
 function esc(t) {
   if (t === null || t === undefined) return '';
@@ -24,7 +25,15 @@ function tableCss() {
 `;
 }
 
-function renderTechnologyWeekStateSummaryReportSection(section, data, sectionId, isFirstSection) {
+function renderTechnologyWeekStateSummaryReportSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+  // A KVK should review its entered form values, not a state aggregate. The
+  // state-wise summary remains exclusively for the aggregated (superadmin) view.
+  if (!reportContext.isAggregatedView) {
+    return renderTechnologyWeekCelebrationPageReportSection.call(
+      this, section, data?.records || data, sectionId, isFirstSection, reportContext,
+    );
+  }
+
   const payload = resolveTechnologyWeekStateSummaryPayload(data);
   const summaryRows = payload.rows || [];
   const y = payload.yearLabel || '';

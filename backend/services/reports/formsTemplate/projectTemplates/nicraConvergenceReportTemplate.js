@@ -15,11 +15,12 @@ function fmtAmount(v) {
 }
 
 function fmtDate(v) {
-    const s = String(v || '').trim();
-    if (!s) return '—';
-    // stored as yyyy-mm-dd → dd-mm-yyyy
-    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    return m ? `${m[3]}-${m[2]}-${m[1]}` : s;
+    if (v === null || v === undefined || v === '') return '—';
+    const d = v instanceof Date ? v : new Date(v);
+    if (Number.isNaN(d.getTime())) return String(v);
+    const dd = String(d.getUTCDate()).padStart(2, '0');
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    return `${dd}-${mm}-${d.getUTCFullYear()}`;
 }
 
 function sortStr(a, b) {
@@ -118,7 +119,7 @@ function renderNicraConvergenceReportSection(section, data, sectionId, isFirstSe
     if (records.length === 0) {
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
+  <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
   <p class="no-data">No Convergence Programme data for export.</p>
 </div>`;
     }
@@ -148,6 +149,7 @@ function renderNicraConvergenceReportSection(section, data, sectionId, isFirstSe
     return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
+  <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
   <div class="ncv-wrap">
     <div class="ncv-sec">NICRA Others — Convergence Programme</div>
     ${groupsHtml}

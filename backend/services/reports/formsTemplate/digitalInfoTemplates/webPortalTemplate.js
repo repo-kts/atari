@@ -1,6 +1,6 @@
 /**
  * KVK Web Portal Template
- * Columns: KVK | Name of Web portal | Developed by KVK | No. of visitors visited the portal | No. of farmers registered on the portal
+ * Columns: KVK | Name of Web portal | No. of visitors visited the portal | No. of farmers registered on the portal
  */
 function pickValue(...values) {
     return values.find(value => value !== undefined && value !== null && value !== '');
@@ -22,7 +22,6 @@ function renderWebPortalSection(section, data, sectionId, isFirstSection) {
             <tr>
                 <th>KVK</th>
                 <th>Name of Web portal</th>
-                <th>Developed by KVK</th>
                 <th>No. of visitors visited the portal</th>
                 <th>No. of farmers registered on the portal</th>
             </tr>
@@ -31,13 +30,12 @@ function renderWebPortalSection(section, data, sectionId, isFirstSection) {
 
     if (records.length === 0) {
         html += `
-            <tr><td colspan="5" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>`;
+            <tr><td colspan="4" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>`;
     }
 
     records.forEach(row => {
         const kvk = getKvkName(row);
         const portalName = pickValue(row.webPortalName) || '-';
-        const developedBy = pickValue(row.developedByKvk) || '-';
         const visitorsValue = pickValue(row.noOfVisitors, row.numberOfVisitors);
         const registeredValue = pickValue(row.noOfFarmersRegistered, row.numberOfFarmersRegistered);
         const visitors = visitorsValue != null ? String(visitorsValue) : '0';
@@ -46,7 +44,6 @@ function renderWebPortalSection(section, data, sectionId, isFirstSection) {
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>
                 <td>${this._escapeHtml(portalName)}</td>
-                <td>${this._escapeHtml(developedBy)}</td>
                 <td style="text-align:center;">${this._escapeHtml(visitors)}</td>
                 <td style="text-align:center;">${this._escapeHtml(registered)}</td>
             </tr>`;

@@ -337,6 +337,197 @@ function resolveProductionSupplyCategoryGroupedPayload(data) {
     return buildCategoryGroupedPagePayload(records);
 }
 
+// ── State-wise superadmin payload (Production & Supply all-reports) ─────────
+// One block per Product Category (master order, only those with data). Inside
+// each: Table 1 (state-wise category total quantity), Table 2 (product-type ×
+// state summary), Table 3 (crops grouped by product type × state). Rows are
+// master-driven — every product type / product under the category is listed even
+// with zero data — with any free-text / unmatched entries appended after them.
+function farmersTotalOf(r) {
+    return safeInt(r.farmersGeneralM) + safeInt(r.farmersGeneralF)
+        + safeInt(r.farmersObcM) + safeInt(r.farmersObcF)
+        + safeInt(r.farmersScM) + safeInt(r.farmersScF)
+        + safeInt(r.farmersStM) + safeInt(r.farmersStF);
+}
+
+function emptyMetric() {
+    return { qty: 0, value: 0, farmers: 0 };
+}
+
+function addMetricRow(m, r) {
+    m.qty += safeFloat(r.quantity);
+    m.value += safeFloat(r.value ?? r.valueRs);
+    m.farmers += farmersTotalOf(r);
+}
+
+function accMetric(target, src) {
+    target.qty += src.qty;
+    target.value += src.value;
+    target.farmers += src.farmers;
+}
+
+function stateNameOf(r) {
+    const s = r.stateName;
+    return (s && String(s).trim()) || 'Unknown';
+}
+
+function productNameOf(r) {
+    const p = r.product || r.prodType;
+    return (p && String(p).trim()) || '—';
+}
+
+async function fetchProductionSupplyMasterHierarchy() {
+    // Ordered by ID descending to match the approved report layout (Cereals →
+    // … → Others; Paddy → … → Navane) — the reverse of insertion order.
+    const [categories, types, products] = await Promise.all([
+        prisma.productCategory.findMany({
+            orderBy: { productCategoryId: 'desc' },
+            select: { productCategoryId: true, productCategoryName: true },
+        }),
+        prisma.productType.findMany({
+            orderBy: { productTypeId: 'desc' },
+            select: { productTypeId: true, productCategoryType: true, productCategoryId: true },
+        }),
+        prisma.product.findMany({
+            orderBy: { productId: 'desc' },
+            select: { productName: true, productTypeId: true },
+        }),
+    ]);
+
+    const productsByType = new Map();
+    for (const p of products) {
+        if (p.productTypeId == null) continue;
+        if (!productsByType.has(p.productTypeId)) productsByType.set(p.productTypeId, []);
+        productsByType.get(p.productTypeId).push(p.productName);
+    }
+    const typesByCategory = new Map();
+    for (const t of types) {
+        if (t.productCategoryId == null) continue;
+        if (!typesByCategory.has(t.productCategoryId)) typesByCategory.set(t.productCategoryId, []);
+        typesByCategory.get(t.productCategoryId).push({
+            name: t.productCategoryType,
+            products: productsByType.get(t.productTypeId) || [],
+        });
+    }
+    return categories.map((c) => ({
+        name: c.productCategoryName,
+        types: typesByCategory.get(c.productCategoryId) || [],
+    }));
+}
+
+// Merge master-ordered names with any extra names present in `dataKeys` but not
+// in the master, so free-text entries still appear (appended after master rows).
+function orderedWithExtras(masterNames, dataKeys) {
+    const out = [];
+    const seen = new Set();
+    for (const n of masterNames) { out.push(n); seen.add(n); }
+    for (const n of dataKeys) if (!seen.has(n)) { out.push(n); seen.add(n); }
+    return out;
+}
+
+async function buildProductionSupplyStateReportPayload(records) {
+    const list = Array.isArray(records) ? records : [];
+    const yearLabel = inferYearLabel(list);
+
+    // category -> type -> product -> state -> metric
+    const stateSet = new Set();
+    const catMap = new Map();
+    for (const r of list) {
+        const st = stateNameOf(r);
+        stateSet.add(st);
+        const cat = categoryNameOf(r);
+        const type = productTypeNameOf(r);
+        const prod = productNameOf(r);
+        if (!catMap.has(cat)) catMap.set(cat, new Map());
+        const typeMap = catMap.get(cat);
+        if (!typeMap.has(type)) typeMap.set(type, new Map());
+        const prodMap = typeMap.get(type);
+        if (!prodMap.has(prod)) prodMap.set(prod, new Map());
+        const stateMap = prodMap.get(prod);
+        if (!stateMap.has(st)) stateMap.set(st, emptyMetric());
+        addMetricRow(stateMap.get(st), r);
+    }
+
+    const stateColumns = [...stateSet].sort(sortStr);
+    const master = await fetchProductionSupplyMasterHierarchy();
+    const masterByName = new Map(master.map((m) => [m.name, m]));
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    // Render only categories that have data, in master order (extras appended).
+    const orderedCatNames = orderedWithExtras(
+        master.map((m) => m.name).filter((n) => catMap.has(n)),
+        [...catMap.keys()],
+    );
+
+    const categories = orderedCatNames.map((catName, idx) => {
+        const typeMap = catMap.get(catName) || new Map();
+        const mc = masterByName.get(catName);
+        const masterTypes = mc ? mc.types : [];
+        const masterTypeByName = new Map(masterTypes.map((t) => [t.name, t]));
+        const orderedTypeNames = orderedWithExtras(
+            masterTypes.map((t) => t.name),
+            [...typeMap.keys()],
+        );
+
+        const catByState = new Map(stateColumns.map((s) => [s, emptyMetric()]));
+        const catTotal = emptyMetric();
+        const productTypes = []; // Table 2 rows
+        const typeGroups = []; // Table 3 groups
+
+        for (const typeName of orderedTypeNames) {
+            const prodMap = typeMap.get(typeName) || new Map();
+            const mt = masterTypeByName.get(typeName);
+            const orderedProdNames = orderedWithExtras(
+                mt ? mt.products : [],
+                [...prodMap.keys()],
+            );
+
+            const typeByState = {};
+            for (const s of stateColumns) typeByState[s] = emptyMetric();
+            const typeTotal = emptyMetric();
+            const crops = [];
+
+            for (const prodName of orderedProdNames) {
+                const stateMap = prodMap.get(prodName) || new Map();
+                const byState = {};
+                const rowTotal = emptyMetric();
+                for (const st of stateColumns) {
+                    const m = stateMap.get(st) || emptyMetric();
+                    byState[st] = { qty: m.qty, value: m.value, farmers: m.farmers };
+                    accMetric(typeByState[st], m);
+                    accMetric(catByState.get(st), m);
+                    accMetric(rowTotal, m);
+                }
+                accMetric(typeTotal, rowTotal);
+                accMetric(catTotal, rowTotal);
+                crops.push({ name: prodName, byState, total: rowTotal });
+            }
+
+            productTypes.push({ name: typeName, byState: typeByState, total: typeTotal });
+            typeGroups.push({ name: typeName, crops, typeByState, typeTotal });
+        }
+
+        const catByStateObj = {};
+        for (const st of stateColumns) catByStateObj[st] = catByState.get(st);
+
+        return {
+            categoryName: catName,
+            letter: letters[idx] || String(idx + 1),
+            productTypes,
+            typeGroups,
+            byState: catByStateObj,
+            total: catTotal,
+        };
+    });
+
+    return { yearLabel, stateColumns, categories };
+}
+
+function resolveProductionSupplyStatePayload(data) {
+    if (data && data.statePayload) return data.statePayload;
+    return { yearLabel: '', stateColumns: [], categories: [] };
+}
+
 function mapPrismaRowToReportRow(r) {
     if (!r) return null;
     const reportingYear = formatReportingYear(r.reportingYear);
@@ -344,6 +535,7 @@ function mapPrismaRowToReportRow(r) {
         ...r,
         id: r.productionSupplyId,
         kvkName: r.kvk?.kvkName || '',
+        stateName: r.kvk?.state?.stateName || '',
         reportingYear,
         productCategory: r.productCategoryOther || r.productCategory?.productCategoryName,
         productType: r.productTypeOther || r.productType?.productCategoryType,
@@ -382,7 +574,7 @@ async function fetchProductionSupplyRecordsForReport(kvkId, filters = {}) {
     const rows = await prisma.kvkProductionSupply.findMany({
         where,
         include: {
-            kvk: { select: { kvkName: true } },
+            kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
             productCategory: { select: { productCategoryName: true } },
             productType: { select: { productCategoryType: true } },
             product: { select: { productName: true, unit: { select: { unitName: true } } } },
@@ -421,6 +613,8 @@ module.exports = {
     resolveProductionSupplyPagePayload,
     resolveProductionSupplyGroupedPayload,
     resolveProductionSupplyCategoryGroupedPayload,
+    buildProductionSupplyStateReportPayload,
+    resolveProductionSupplyStatePayload,
     getProductionSupplyReportData,
     fetchProductionSupplyRecordsForReport,
     pageRowFromRecord,

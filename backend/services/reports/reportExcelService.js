@@ -134,14 +134,28 @@ async function writeSection(ws, chunk) {
     titleCell.value = title;
     titleCell.font = { bold: true, size: 13, color: { argb: 'FF1F6E43' } };
     rowIdx += 1;
-    for (const h of headings) {
-        // Skip the heading that merely repeats the title we already printed.
-        if (h === title || h === (chunk.featureTitle || chunk.sectionTitle)) continue;
-        ws.getCell(rowIdx, 1).value = h;
+    const writeHeadingLine = (text) => {
+        if (!text || text === title || text === (chunk.featureTitle || chunk.sectionTitle)) return;
+        ws.getCell(rowIdx, 1).value = text;
         ws.getCell(rowIdx, 1).font = { italic: true, color: { argb: 'FF555555' } };
         rowIdx += 1;
+    };
+    const bandBeforeTable = (table) => {
+        const span = table.rows.reduce(
+            (m, r) => Math.max(m, r.reduce((a, c) => a + c.colspan, 0)),
+            1,
+        );
+        for (let c = 1; c <= span; c += 1) {
+            ws.getCell(rowIdx, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SEPARATOR_FILL } };
+        }
+        ws.getRow(rowIdx).height = 6;
+        rowIdx += 1;
+    };
+
+    if (tables.length <= 1) {
+        for (const h of headings) writeHeadingLine(h);
+        rowIdx += 1; // spacer
     }
-    rowIdx += 1; // spacer
 
     if (tables.length === 0 && images.length === 0) {
         ws.getCell(rowIdx, 1).value = 'No data available for this section.';
@@ -150,23 +164,30 @@ async function writeSection(ws, chunk) {
         return;
     }
 
-    tables.forEach((table, tIdx) => {
-        // Coloured band between tables so stacked blocks (e.g. OFT cards) are
-        // clearly separated and not mistaken for one continuous table.
-        if (tIdx > 0) {
-            const span = table.rows.reduce(
-                (m, r) => Math.max(m, r.reduce((a, c) => a + c.colspan, 0)),
-                1,
-            );
-            for (let c = 1; c <= span; c += 1) {
-                ws.getCell(rowIdx, c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SEPARATOR_FILL } };
+    if (tables.length > 1) {
+        // Multi-table sections (e.g. CFLD crop-type blocks): keep each heading with
+        // its own table by rendering in document order.
+        rowIdx += 1; // spacer
+        let firstTable = true;
+        for (const b of parseOrderedBlocks(chunk.html)) {
+            if (b.type === 'heading') {
+                writeHeadingLine(b.text);
+            } else {
+                if (!firstTable) bandBeforeTable(b.table);
+                firstTable = false;
+                rowIdx = writeTable(ws, b.table, rowIdx, widthTracker);
+                rowIdx += 1; // blank row between tables
             }
-            ws.getRow(rowIdx).height = 6;
-            rowIdx += 1;
         }
-        rowIdx = writeTable(ws, table, rowIdx, widthTracker);
-        rowIdx += 1; // blank row between tables
-    });
+    } else {
+        tables.forEach((table, tIdx) => {
+            // Coloured band between tables so stacked blocks (e.g. OFT cards) are
+            // clearly separated and not mistaken for one continuous table.
+            if (tIdx > 0) bandBeforeTable(table);
+            rowIdx = writeTable(ws, table, rowIdx, widthTracker);
+            rowIdx += 1; // blank row between tables
+        });
+    }
 
     for (const [colStr, width] of Object.entries(widthTracker)) {
         ws.getColumn(Number(colStr)).width = width;

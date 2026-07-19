@@ -216,7 +216,7 @@ class ReportAggregationService {
         const allSectionData = await Promise.all(sectionDataPromises);
 
         // Aggregate the data
-        const aggregated = this._aggregateData(allSectionData, sectionId);
+        const aggregated = await this._aggregateData(allSectionData, sectionId);
 
         // Cache the result
         await cacheService.set(cacheKey, aggregated, ttl);
@@ -245,7 +245,7 @@ class ReportAggregationService {
     /**
      * Aggregate data from multiple KVKs
      */
-    _aggregateData(allSectionData, sectionId) {
+    async _aggregateData(allSectionData, sectionId) {
         // Filter out errors
         const validData = allSectionData.filter(sd => !sd.error && sd.data !== null);
 
@@ -447,15 +447,17 @@ class ReportAggregationService {
         }
 
         if (sectionConfig.dataSource === 'productionSupplyReport') {
+            const { buildProductionSupplyStateReportPayload } = require('../../repositories/reports/productionSupplyPageReport/productionSupplyPageReportRepository.js');
             const allRecords = [];
             validData.forEach((sd) => {
                 if (sd.data?.records && Array.isArray(sd.data.records)) {
                     allRecords.push(...sd.data.records);
                 }
             });
+            const statePayload = await buildProductionSupplyStateReportPayload(allRecords);
             return {
                 sectionId,
-                data: { records: allRecords },
+                data: { statePayload, records: allRecords },
                 metadata: {
                     recordCount: allRecords.length,
                     lastUpdated: new Date(),

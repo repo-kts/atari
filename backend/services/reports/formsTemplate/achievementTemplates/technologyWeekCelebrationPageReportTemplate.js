@@ -76,7 +76,7 @@ function renderTechnologyWeekCelebrationPageReportSection(section, data, section
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="tw-page-wrap">
-    <div class="tw-page-sec">Technology week celebration</div>
+    <h1 class="section-title">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
     <table class="tw-page-tbl">
       <thead>
         <tr>

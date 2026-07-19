@@ -29,15 +29,20 @@ function tableCss() {
 }
 
 function colGroup() {
+    // 19 columns. Number cells kept tight; VIP name(s) gets the widest share.
     return `
   <colgroup>
+    <col style="width:3%" />
     <col style="width:5%" />
-    <col style="width:13%" />
-    <col style="width:15%" />
-    <col style="width:14%" />
-    <col style="width:9%" />
-    <col style="width:30%" />
-    <col style="width:14%" />
+    <col style="width:6%" />
+    <col style="width:6%" />
+    <col style="width:3.5%" /><col style="width:3.5%" /><col style="width:3.5%" />
+    <col style="width:3.5%" /><col style="width:3.5%" /><col style="width:3.5%" />
+    <col style="width:3.5%" /><col style="width:3.5%" /><col style="width:3.5%" />
+    <col style="width:3.5%" /><col style="width:3.5%" /><col style="width:3.5%" />
+    <col style="width:4%" />
+    <col style="width:28%" />
+    <col style="width:6%" />
   </colgroup>`;
 }
 
@@ -45,13 +50,26 @@ function headHtml() {
     return `
       <thead>
         <tr>
-          <th>Sl.</th>
-          <th>No. of Activity conducted</th>
-          <th>Soil Health Cards distributed</th>
-          <th>No. of farmers benefitted</th>
-          <th>No. of VIPs</th>
-          <th class="l">Name(s) of VIP(s) involved if any</th>
-          <th>Total No. of Participants attended the program</th>
+          <th rowspan="3">Sl.</th>
+          <th rowspan="3">Year</th>
+          <th rowspan="3">No. of Activity conducted</th>
+          <th rowspan="3">Soil Health Cards distributed</th>
+          <th colspan="12">No. of Farmers Benefitted</th>
+          <th rowspan="3">No. of VIPs</th>
+          <th rowspan="3" class="l">Name(s) of VIP(s) involved if any</th>
+          <th rowspan="3">Total No. of Participants attended the program</th>
+        </tr>
+        <tr>
+          <th colspan="3">General</th>
+          <th colspan="3">OBC</th>
+          <th colspan="3">SC</th>
+          <th colspan="3">ST</th>
+        </tr>
+        <tr>
+          <th>M</th><th>F</th><th>T</th>
+          <th>M</th><th>F</th><th>T</th>
+          <th>M</th><th>F</th><th>T</th>
+          <th>M</th><th>F</th><th>T</th>
         </tr>
       </thead>`;
 }
@@ -60,9 +78,13 @@ function dataRow(r) {
     return `
       <tr>
         <td class="c">${fmtInt(r.sl)}</td>
+        <td class="c">${esc(r.year || '—')}</td>
         <td class="c">${fmtInt(r.activitiesConducted)}</td>
         <td class="c">${fmtInt(r.soilHealthCards)}</td>
-        <td class="c">${fmtInt(r.farmersBenefitted)}</td>
+        <td class="c">${fmtInt(r.genM)}</td><td class="c">${fmtInt(r.genF)}</td><td class="c">${fmtInt(r.genT)}</td>
+        <td class="c">${fmtInt(r.obcM)}</td><td class="c">${fmtInt(r.obcF)}</td><td class="c">${fmtInt(r.obcT)}</td>
+        <td class="c">${fmtInt(r.scM)}</td><td class="c">${fmtInt(r.scF)}</td><td class="c">${fmtInt(r.scT)}</td>
+        <td class="c">${fmtInt(r.stM)}</td><td class="c">${fmtInt(r.stF)}</td><td class="c">${fmtInt(r.stT)}</td>
         <td class="c">${fmtInt(r.vipCount)}</td>
         <td class="l">${esc(r.vipNames)}</td>
         <td class="c">${fmtInt(r.participants)}</td>
@@ -72,10 +94,13 @@ function dataRow(r) {
 function totalRow(r, cls) {
     return `
       <tr class="${cls}">
-        <td class="c">—</td>
-        <td class="l">${esc(r.label)}</td>
+        <td class="l" colspan="2">${esc(r.label)}</td>
+        <td class="c">${fmtInt(r.activitiesConducted)}</td>
         <td class="c">${fmtInt(r.soilHealthCards)}</td>
-        <td class="c">${fmtInt(r.farmersBenefitted)}</td>
+        <td class="c">${fmtInt(r.genM)}</td><td class="c">${fmtInt(r.genF)}</td><td class="c">${fmtInt(r.genT)}</td>
+        <td class="c">${fmtInt(r.obcM)}</td><td class="c">${fmtInt(r.obcF)}</td><td class="c">${fmtInt(r.obcT)}</td>
+        <td class="c">${fmtInt(r.scM)}</td><td class="c">${fmtInt(r.scF)}</td><td class="c">${fmtInt(r.scT)}</td>
+        <td class="c">${fmtInt(r.stM)}</td><td class="c">${fmtInt(r.stF)}</td><td class="c">${fmtInt(r.stT)}</td>
         <td class="c">${fmtInt(r.vipCount)}</td>
         <td class="l"></td>
         <td class="c">${fmtInt(r.participants)}</td>

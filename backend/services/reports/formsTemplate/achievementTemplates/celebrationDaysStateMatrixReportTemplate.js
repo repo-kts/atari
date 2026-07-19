@@ -1,4 +1,5 @@
 const { resolveCelebrationDaysMatrixPayload } = require('../../../../repositories/reports/celebrationDaysReport/celebrationDaysReportRepository.js');
+const { renderCelebrationDaysPageReportSection } = require('./celebrationDaysPageReportTemplate.js');
 
 function esc(t) {
     if (t === null || t === undefined) return '';
@@ -29,7 +30,15 @@ function subHeadRow() {
     return SUB_LABELS.map((lab) => `<th>${esc(lab)}</th>`).join('');
 }
 
-function renderCelebrationDaysStateMatrixReportSection(section, data, sectionId, isFirstSection) {
+function renderCelebrationDaysStateMatrixReportSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    // KVK reports display the detailed values from their forms. Keep the
+    // state-by-state matrix for the aggregated (superadmin) report only.
+    if (!reportContext.isAggregatedView) {
+        return renderCelebrationDaysPageReportSection.call(
+            this, section, data?.records || data, sectionId, isFirstSection, reportContext,
+        );
+    }
+
     const payload = resolveCelebrationDaysMatrixPayload(data);
     const stateColumns = payload.stateColumns || [];
     const matrixRows = payload.matrixRows || [];
