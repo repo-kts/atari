@@ -86,15 +86,26 @@ function gridBlock(esc, { title, subtitle, leftLabel, leftCols, rightLabel, farm
         </table>`;
 }
 
-function metricBlock(esc, { title, metricLabel, value }) {
+// Other Extension Activities — broken down by activity type (no target/
+// participant data exists for it), with a Total row. Same table drives PDF,
+// Word and Excel via the shared HTML parser.
+function otherExtensionBlock(esc, { title, rows, total }) {
+    const hasRows = Array.isArray(rows) && rows.length > 0;
+    const bodyRows = hasRows
+        ? rows.map((r) => `<tr><td style="text-align:left;">${esc(r.activityType)}</td><td>${n(r.count)}</td></tr>`).join('')
+        : '<tr><td colspan="2">No other extension activity records in this period.</td></tr>';
+    const totalRow = hasRows
+        ? `<tr><td style="text-align:left;font-weight:bold;">Total</td><td style="font-weight:bold;">${n(total)}</td></tr>`
+        : '';
     return `
         <table class="data-table" style="margin-top:10px;font-size:9pt;text-align:center;">
             <thead>
                 <tr><th colspan="2" style="font-size:11pt;">${esc(title)}</th></tr>
-                <tr><th>Metric</th><th>Achievement</th></tr>
+                <tr><th style="text-align:left;">Activity Type</th><th>Number of Activities</th></tr>
             </thead>
             <tbody>
-                <tr><td>${esc(metricLabel)}</td><td style="font-weight:bold;">${n(value)}</td></tr>
+                ${bodyRows}
+                ${totalRow}
             </tbody>
         </table>`;
 }
@@ -178,10 +189,10 @@ function renderTechnicalAchievementSummarySection(section, data, sectionId, isFi
     }
 
     if (d.otherExtension) {
-        html += metricBlock(esc, {
+        html += otherExtensionBlock(esc, {
             title: 'Other Extension Activities',
-            metricLabel: 'Number of Activities',
-            value: d.otherExtension.activities,
+            rows: d.otherExtension.rows,
+            total: d.otherExtension.activities,
         });
     }
 

@@ -31,6 +31,10 @@ function renderOtherProgrammesSection(section, data, sectionId, isFirstSection) 
   </style>
   <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
   <table class="other-prog">
+    <colgroup>
+      <col style="width:3%"/><col style="width:16%"/><col style="width:8%"/><col style="width:13%"/><col style="width:15%"/>
+      <col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/>
+    </colgroup>
     <thead>
       <tr>
         <th rowspan="2">Sl. No.</th>

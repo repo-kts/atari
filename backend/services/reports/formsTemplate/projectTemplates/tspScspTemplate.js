@@ -156,43 +156,6 @@ function renderLocation(locationDetails) {
         </table>`;
 }
 
-/* ── render one TSP block (a–d) ───────────────────────────────────────────── */
-
-function renderTspBlock(tsp) {
-    if (!tsp || !tsp.activities || tsp.activities.length === 0) {
-        return '<p class="no-data">No TSP data available.</p>';
-    }
-
-    let html = '';
-    html += `<p class="sub-h">a. Achievements of physical output under TSP</p>`;
-    html += renderActivities(tsp.activities, 'TSP');
-
-    html += `<p class="sub-h">b. Fund received under TSP</p>`;
-    html += tsp.fundsReceived != null
-        ? `<p class="single-val">Fund received under TSP (Rs. In lakh): <strong>${esc(tsp.fundsReceived)}</strong></p>`
-        : `<p class="no-data">No fund data available.</p>`;
-
-    html += `<p class="sub-h">c. Achievements of physical outcome under TSP</p>`;
-    html += renderOutcomes(tsp.outcomes);
-
-    html += `<p class="sub-h">d. Location and Beneficiary Details</p>`;
-    html += renderLocation(tsp.locationDetails);
-
-    return html;
-}
-
-/* ── render one SCSP block (a only) ──────────────────────────────────────── */
-
-function renderScspBlock(scsp) {
-    if (!scsp || !scsp.activities || scsp.activities.length === 0) {
-        return '<p class="no-data">No SCSP data available.</p>';
-    }
-    let html = '';
-    html += `<p class="sub-h">a. Achievements of physical output under SCSP</p>`;
-    html += renderActivities(scsp.activities, 'SCSP');
-    return html;
-}
-
 /* ── build structured data from flat form-records (module export mode) ────── */
 
 function buildStructuredFromRecords(records, type) {
@@ -238,43 +201,202 @@ function buildStructuredFromRecords(records, type) {
     };
 }
 
-/* ── main renderer ────────────────────────────────────────────────────────── */
+/* ── all-report renderer (state-wise superadmin + structured KVK) ──────────── */
+
+const STATE_STYLE = `
+<style>
+    .tsp-state-tbl { width:100%; border-collapse:collapse; font-size:8.5px; margin-bottom:10px; }
+    .tsp-state-tbl th, .tsp-state-tbl td { border:1px solid #333; padding:3px 5px; text-align:center; vertical-align:middle; }
+    .tsp-state-tbl th { background:#e8e8e8; font-weight:bold; }
+    .tsp-state-tbl td.L, .tsp-state-tbl th.L { text-align:left; }
+    .tsp-state-tbl tr.alt td { background:#f7f7f7; }
+</style>`;
+
+function sortStr(a, b) {
+    return String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' });
+}
+
+function activityKey(r) {
+    return (r.activityName && String(r.activityName).trim())
+        || (r.activityOther && String(r.activityOther).trim())
+        || 'Other activities';
+}
+
+// Master activities first (0 where no data), then any extras present in data.
+function orderedActivities(records, masterActivities) {
+    const present = [...new Set(records.map(activityKey))];
+    if (Array.isArray(masterActivities) && masterActivities.length) {
+        const seen = new Set(masterActivities);
+        return [...masterActivities, ...present.filter((a) => !seen.has(a)).sort(sortStr)];
+    }
+    return present.sort(sortStr);
+}
+
+function resolveTspScspRecords(data) {
+    // Aggregated all-report shape from reportAggregationService
+    if (data && !Array.isArray(data) && (Array.isArray(data.tspRecords) || Array.isArray(data.scspRecords))) {
+        return {
+            tspRecords: data.tspRecords || [],
+            scspRecords: data.scspRecords || [],
+            masterActivities: Array.isArray(data.activities) ? data.activities : null,
+        };
+    }
+    // Legacy combined object { type:'combined', tsp:{records}, scsp:{records} }
+    if (data && !Array.isArray(data) && (data.tsp || data.scsp)) {
+        return {
+            tspRecords: (data.tsp && data.tsp.records) || [],
+            scspRecords: (data.scsp && data.scsp.records) || [],
+            masterActivities: null,
+        };
+    }
+    // Flat array of raw records (module export)
+    const arr = Array.isArray(data) ? data : (data ? [data] : []);
+    return {
+        tspRecords: arr.filter((r) => (r.type || '').toUpperCase() === 'TSP'),
+        scspRecords: arr.filter((r) => (r.type || '').toUpperCase() === 'SCSP'),
+        masterActivities: null,
+    };
+}
+
+/* Superadmin: state-wise physical output (image #7 format). */
+function renderStatePlanTable(records, masterActivities) {
+    const states = [...new Set(records.map((r) => (r.stateName && String(r.stateName).trim()) || 'Unknown'))].sort(sortStr);
+    const activities = orderedActivities(records, masterActivities);
+    const map = new Map(); // activity -> state -> { tr, ben }
+    for (const r of records) {
+        const a = activityKey(r);
+        const st = (r.stateName && String(r.stateName).trim()) || 'Unknown';
+        if (!map.has(a)) map.set(a, new Map());
+        const sm = map.get(a);
+        if (!sm.has(st)) sm.set(st, { tr: 0, ben: 0 });
+        const c = sm.get(st);
+        c.tr += num(r.noOfTrainings);
+        c.ben += num(r.noOfBeneficiaries);
+    }
+    const stateHead = states.map((s) => `<th>${esc(s)}</th>`).join('');
+    const body = activities.map((a, i) => {
+        const sm = map.get(a) || new Map();
+        const trCells = states.map((s) => `<td>${num((sm.get(s) || {}).tr)}</td>`).join('');
+        const benCells = states.map((s) => `<td>${num((sm.get(s) || {}).ben)}</td>`).join('');
+        return `
+        <tr>
+          <td rowspan="2">${i + 1}</td>
+          <td rowspan="2" class="L">${esc(a)}</td>
+          <td class="L">No. of Trainings/Demos</td>
+          ${trCells}
+        </tr>
+        <tr class="alt">
+          <td class="L">No. of Farmers</td>
+          ${benCells}
+        </tr>`;
+    }).join('');
+    return `
+        <table class="tsp-state-tbl">
+            <thead>
+                <tr>
+                    <th>Sl. No</th>
+                    <th class="L">Name of Activities</th>
+                    <th class="L">Physical Achievement</th>
+                    ${stateHead}
+                </tr>
+            </thead>
+            <tbody>${body}</tbody>
+        </table>`;
+}
+
+/* KVK: neat per-activity physical output table. */
+function renderKvkActivitiesTable(records, masterActivities) {
+    const activities = orderedActivities(records, masterActivities);
+    const map = new Map();
+    for (const r of records) {
+        const a = activityKey(r);
+        if (!map.has(a)) map.set(a, { tr: 0, ben: 0 });
+        const c = map.get(a);
+        c.tr += num(r.noOfTrainings);
+        c.ben += num(r.noOfBeneficiaries);
+    }
+    const body = activities.map((a, i) => {
+        const c = map.get(a) || { tr: 0, ben: 0 };
+        return `<tr><td>${i + 1}</td><td class="L">${esc(a)}</td><td>${num(c.tr)}</td><td>${num(c.ben)}</td></tr>`;
+    }).join('');
+    return `
+        <table class="tsp-scsp-tbl">
+            <colgroup><col style="width:8%"><col style="width:52%"><col style="width:20%"><col style="width:20%"></colgroup>
+            <thead>
+                <tr><th>Sl. No</th><th>Name of Activities</th><th>No. of Trainings/Demos</th><th>No. of Farmers</th></tr>
+            </thead>
+            <tbody>${body}</tbody>
+        </table>`;
+}
+
+function fundFromRecords(records) {
+    const r = records.find((x) => num(x.fundsReceived) > 0);
+    return r ? num(r.fundsReceived) : null;
+}
+
+function outcomesFromRecords(records) {
+    const rec = records.find((r) => num(r.outcome1Achievement) > 0 || num(r.outcome2Achievement) > 0 || num(r.outcome3Achievement) > 0);
+    if (!rec) return null;
+    return {
+        familyIncome: { unit: rec.outcome1Unit || '%', achievement: num(rec.outcome1Achievement) },
+        consumptionLevel: { unit: rec.outcome2Unit || '%', achievement: num(rec.outcome2Achievement) },
+        implementsAvailability: { unit: rec.outcome3Unit || '%', achievement: num(rec.outcome3Achievement) },
+    };
+}
+
+function renderKvkTspBlock(records, masterActivities) {
+    let html = '';
+    html += `<p class="sub-h">a. Achievements of physical output under TSP</p>`;
+    html += renderKvkActivitiesTable(records, masterActivities);
+    const fund = fundFromRecords(records);
+    html += `<p class="sub-h">b. Fund received under TSP</p>`;
+    html += fund != null
+        ? `<p class="single-val">Fund received under TSP (Rs. In lakh): <strong>${esc(fund)}</strong></p>`
+        : `<p class="no-data">No fund data available.</p>`;
+    html += `<p class="sub-h">c. Achievements of physical outcome under TSP</p>`;
+    html += renderOutcomes(outcomesFromRecords(records));
+    html += `<p class="sub-h">d. Location and Beneficiary Details</p>`;
+    html += renderLocation(records.filter((r) => r.districtName || r.subDistrict || r.villageNames));
+    return html;
+}
+
+function renderKvkScspBlock(records, masterActivities) {
+    return `<p class="sub-h">a. Achievements of physical output under SCSP</p>${renderKvkActivitiesTable(records, masterActivities)}`;
+}
 
 /**
- * Correct signature: (section, data, sectionId, isFirstSection)
- * Called by reportTemplateService._generateCustomSection()
+ * Signature: (section, data, sectionId, isFirstSection, reportContext)
+ * Superadmin (aggregated) → state-wise physical output tables (image #7).
+ * KVK side → structured a–d (TSP) / a (SCSP) readable tables.
  */
-function renderTspScspSection(section, data, sectionId, isFirstSection) {
-    let tsp, scsp;
-
-    // Mode 1 – all-report: data is the combined structured object
-    if (data && !Array.isArray(data) && (data.type === 'combined' || data.tsp !== undefined)) {
-        tsp  = data.tsp;
-        scsp = data.scsp;
-    } else {
-        // Mode 2 – module export: data is a flat array of raw form records
-        const records = Array.isArray(data) ? data : (data ? [data] : []);
-        tsp  = buildStructuredFromRecords(records, 'TSP');
-        scsp = buildStructuredFromRecords(records, 'SCSP');
-    }
-
-    const hasTsp  = tsp  && tsp.activities  && tsp.activities.length  > 0;
-    const hasScsp = scsp && scsp.activities && scsp.activities.length > 0;
+function renderTspScspSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    const { tspRecords, scspRecords, masterActivities } = resolveTspScspRecords(data);
+    const hasTsp = tspRecords.length > 0;
+    const hasScsp = scspRecords.length > 0;
+    const heading = `<h1 class="section-title">${esc(section.id)} ${esc(section.title)}</h1>`;
 
     if (!hasTsp && !hasScsp) {
-        return `${STYLES}
-            <div class="tsp-scsp-wrap">
-                <p class="no-data">No TSP/SCSP data available for this KVK.</p>
-            </div>`;
+        return `${STYLES}${heading}<div class="tsp-scsp-wrap"><p class="no-data">No TSP/SCSP data available.</p></div>`;
     }
 
-    return `${STYLES}
+    if (reportContext.isAggregatedView) {
+        return `${STYLES}${STATE_STYLE}${heading}
         <div class="tsp-scsp-wrap">
-            <h3>2.23.1 – Details of Tribal Sub Plan (TSP)</h3>
-            ${hasTsp ? renderTspBlock(tsp) : '<p class="no-data">No TSP data available.</p>'}
+            <h3>Details of Tribal Sub Plan (TSP)</h3>
+            <p class="sub-h">a. Achievements of physical output under TSP</p>
+            ${hasTsp ? renderStatePlanTable(tspRecords, masterActivities) : '<p class="no-data">No TSP data available.</p>'}
+            <h3>Details of Scheduled Caste Sub Plan (SCSP)</h3>
+            <p class="sub-h">a. Achievements of physical output under SCSP</p>
+            ${hasScsp ? renderStatePlanTable(scspRecords, masterActivities) : '<p class="no-data">No SCSP data available.</p>'}
+        </div>`;
+    }
 
-            <h3>2.23.2 – Details of Scheduled Caste Sub Plan (SCSP)</h3>
-            ${hasScsp ? renderScspBlock(scsp) : '<p class="no-data">No SCSP data available.</p>'}
+    return `${STYLES}${heading}
+        <div class="tsp-scsp-wrap">
+            <h3>Details of Tribal Sub Plan (TSP)</h3>
+            ${hasTsp ? renderKvkTspBlock(tspRecords, masterActivities) : '<p class="no-data">No TSP data available.</p>'}
+            <h3>Details of Scheduled Caste Sub Plan (SCSP)</h3>
+            ${hasScsp ? renderKvkScspBlock(scspRecords, masterActivities) : '<p class="no-data">No SCSP data available.</p>'}
         </div>`;
 }
 

@@ -1,3 +1,5 @@
+const { renderNariActivitySummary } = require('./nariSummaryTable.js');
+
 function toNumber(value) {
     const n = Number(value);
     return Number.isFinite(n) ? n : 0;
@@ -117,6 +119,10 @@ function renderProductionRows(rows, escapeHtml) {
 function renderGardenTable(rows, escapeHtml) {
     return `
     <table class="data-table nari-garden-table">
+        <colgroup>
+            <col style="width:3%"/><col style="width:15%"/><col style="width:9%"/><col style="width:11%"/><col style="width:5%"/><col style="width:5%"/>
+            <col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/><col style="width:3.46%"/>
+        </colgroup>
         <thead>
             <tr>
                 <th rowspan="3">S.no</th>
@@ -166,8 +172,12 @@ function renderProductionTable(rows, escapeHtml) {
     </table>`;
 }
 
-function renderNariNutritionGardenSection(section, data, sectionId, isFirstSection) {
-    const groups = buildNariNutritionGardenGroups(data);
+function renderNariNutritionGardenSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    if (reportContext.isAggregatedView && data && data.statePayload) {
+        return renderNariActivitySummary(this, section, sectionId, isFirstSection, data.statePayload);
+    }
+    const records = (data && Array.isArray(data.records)) ? data.records : data;
+    const groups = buildNariNutritionGardenGroups(records);
     if (groups.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }

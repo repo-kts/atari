@@ -111,14 +111,34 @@ async function getTechnicalAchievementSummary(kvkId, filters = {}) {
         participants: sumCaste(exts, pickFarmers),
     };
 
-    // Other Extension Activities capture only the achieved activity count;
-    // the source form has no target or participant-demographic fields.
+    // Other Extension Activities have no target or participant-demographic
+    // fields, so the deepest breakdown possible is by activity type. A row
+    // linked to an "Other" master carries its real label in activityTypeOther.
     const otherExts = await prisma.kvkOtherExtensionActivity.findMany({
         where: { ...kvkWhere, ...dateWhere('startDate', filters) },
-        select: { numberOfActivities: true },
+        select: {
+            numberOfActivities: true,
+            activityTypeOther: true,
+            otherExtensionActivity: { select: { otherExtensionName: true, isOther: true } },
+        },
     });
+    const otherExtByType = new Map();
+    for (const r of otherExts) {
+        const master = r.otherExtensionActivity;
+        const specify = (r.activityTypeOther || '').trim();
+        let label;
+        if (!master) label = specify || 'Not categorized';
+        else if (master.isOther) label = specify ? `${master.otherExtensionName}: ${specify}` : master.otherExtensionName;
+        else label = master.otherExtensionName;
+        otherExtByType.set(label, (otherExtByType.get(label) || 0) + Number(r.numberOfActivities || 0));
+    }
+    const otherExtensionRows = Array.from(otherExtByType.entries())
+        .map(([activityType, count]) => ({ activityType, count }))
+        .filter((r) => r.count > 0)
+        .sort((a, b) => a.activityType.localeCompare(b.activityType));
     const otherExtension = {
-        activities: otherExts.reduce((s, r) => s + Number(r.numberOfActivities || 0), 0),
+        activities: otherExtensionRows.reduce((s, r) => s + r.count, 0),
+        rows: otherExtensionRows,
     };
 
     // Production / Supply — grouped by product category (covers Seed, Planting
@@ -210,8 +230,21 @@ function mergeTechnicalAchievementSummaries(summaries) {
         participants: mergeCaste(valid.map((d) => d.extension?.participants)),
     };
 
+    // Merge Other Extension per-type rows across KVKs — same activity type is
+    // summed once, not listed per KVK.
+    const otherExtByType = new Map();
+    for (const d of valid) {
+        for (const row of d.otherExtension?.rows || []) {
+            otherExtByType.set(row.activityType, (otherExtByType.get(row.activityType) || 0) + Number(row.count || 0));
+        }
+    }
+    const otherExtensionRows = Array.from(otherExtByType.entries())
+        .map(([activityType, count]) => ({ activityType, count }))
+        .filter((r) => r.count > 0)
+        .sort((a, b) => a.activityType.localeCompare(b.activityType));
     const otherExtension = {
         activities: sum((d) => d.otherExtension?.activities),
+        rows: otherExtensionRows,
     };
 
     // Production / Supply rows are grouped by category — merge the same category

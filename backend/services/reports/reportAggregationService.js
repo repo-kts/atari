@@ -536,6 +536,85 @@ class ReportAggregationService {
             };
         }
 
+        const NARI_SUMMARY_CONFIG = {
+            nariNutritionGarden: { countField: 'number', countLabel: 'No. of Gardens' },
+            nariBioFortified: { countField: null, countLabel: 'No. of Crops' },
+            nariValueAddition: { countField: null, countLabel: 'No. of Products' },
+            nariTraining: { countField: 'noOfCourses', countLabel: 'No. of Courses' },
+            nariExtension: { countField: 'noOfActivities', countLabel: 'No. of Activities' },
+        };
+        if (NARI_SUMMARY_CONFIG[sectionConfig.dataSource]) {
+            const { buildNariActivityStateSummary } = require('../../repositories/reports/nariReport/nariStateSummary.js');
+            const cfg = NARI_SUMMARY_CONFIG[sectionConfig.dataSource];
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (Array.isArray(sd.data)) allRecords.push(...sd.data);
+                else if (sd.data) allRecords.push(sd.data);
+            });
+            const statePayload = await buildNariActivityStateSummary(allRecords, cfg);
+            return {
+                sectionId,
+                data: { statePayload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'tspScsp') {
+            // Each KVK returns { type:'combined', tsp:{records}, scsp:{records} }.
+            // Flatten records across KVKs so the template can build both the
+            // state-wise (superadmin) and per-activity (KVK) views.
+            const tspRecords = [];
+            const scspRecords = [];
+            validData.forEach((sd) => {
+                const d = sd.data;
+                if (d && d.tsp && Array.isArray(d.tsp.records)) tspRecords.push(...d.tsp.records);
+                if (d && d.scsp && Array.isArray(d.scsp.records)) scspRecords.push(...d.scsp.records);
+            });
+            const activityMaster = await prisma.tspScspActivities.findMany({
+                orderBy: [{ isOther: 'asc' }, { tspScspActivityId: 'asc' }],
+                select: { activityName: true },
+            });
+            return {
+                sectionId,
+                data: {
+                    type: 'combined',
+                    tspRecords,
+                    scspRecords,
+                    activities: activityMaster.map((a) => a.activityName),
+                },
+                metadata: {
+                    recordCount: tspRecords.length + scspRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'aryaCurrent' || sectionConfig.dataSource === 'aryaPrevYear') {
+            const { buildAryaStateReportPayload } = require('../../repositories/reports/aryaReport/aryaStateReportPayload.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (Array.isArray(sd.data)) allRecords.push(...sd.data);
+                else if (sd.data) allRecords.push(sd.data);
+            });
+            const statePayload = await buildAryaStateReportPayload(allRecords, {
+                prevYear: sectionConfig.dataSource === 'aryaPrevYear',
+            });
+            return {
+                sectionId,
+                data: { statePayload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
         // For custom format sections (OFT, etc.), combine all array data
         if (sectionConfig.format === 'custom') {
             const allRows = [];

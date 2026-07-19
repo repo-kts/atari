@@ -45,7 +45,7 @@ function buildWhere(kvkId, filters, type) {
 }
 
 const ACTIVITY_INCLUDE = {
-    kvk: { select: { kvkName: true } },
+    kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
     tspScspType: { select: { typeName: true } },
     activity: { select: { activityName: true } },
     district: { select: { districtName: true } },
@@ -58,6 +58,7 @@ function mapRecord(r) {
         tspScspId: r.tspScspId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName || '',
+        stateName: r.kvk?.state?.stateName || '',
         reportingYear: formatReportingYear(r.reportingYear),
         type: r.type,
         typeName: r.tspScspType?.typeName || r.type,
