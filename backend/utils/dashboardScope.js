@@ -70,6 +70,31 @@ function buildFiscalYearRange(reportingYear) {
   return { start, endExclusive };
 }
 
+/** Reporting-year fields are stored as a date within the selected calendar year. */
+function buildCalendarYearRange(reportingYear) {
+  const start = new Date(Date.UTC(reportingYear, 0, 1, 0, 0, 0, 0));
+  const endExclusive = new Date(Date.UTC(reportingYear + 1, 0, 1, 0, 0, 0, 0));
+  return { start, endExclusive };
+}
+
+/**
+ * Match the year shown in OFT/FLD lists. New rows use `reportingYear`; legacy
+ * rows without it fall back to the same start date used by their response
+ * mappers.
+ */
+function buildReportingYearClause(reportingYear, fallbackDateField) {
+  if (reportingYear === 'all') return {};
+
+  const { start, endExclusive } = buildCalendarYearRange(reportingYear);
+  const range = { gte: start, lt: endExclusive };
+  return {
+    OR: [
+      { reportingYear: range },
+      { reportingYear: null, [fallbackDateField]: range },
+    ],
+  };
+}
+
 function parseYearParam(raw) {
   if (raw === undefined || raw === null || raw === '') {
     return 'all';
@@ -123,6 +148,8 @@ module.exports = {
   buildAchievementWhere,
   buildKvkListingWhere,
   buildFiscalYearRange,
+  buildCalendarYearRange,
+  buildReportingYearClause,
   parseYearParam,
   buildLoginLogWhere,
 };

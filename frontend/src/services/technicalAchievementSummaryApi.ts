@@ -68,6 +68,9 @@ export interface TechnicalAchievementSummaryData {
         achievement: ParticipantAchievement
       }
     }
+    otherExtension?: {
+      achievement: number
+    }
     seedProduction: {
       target: number
       quantity: number

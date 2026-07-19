@@ -458,6 +458,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
+    [FIELD_NAMES.PAGE_NUMBER]: {
+        extractor: (item: any) => item.pageNo ?? null,
+        priority: 6,
+    },
     [FIELD_NAMES.CROP_TYPE_NAME]: {
         extractor: (item: any) => item.cropType?.typeName || null,
         priority: 5,
@@ -1543,35 +1547,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return val || null;
         },
     },
-    // NYK Training fields
-    [FIELD_NAMES.TITLE_OF_THE_TRAINING_PROGRAMME]: {
-        extractor: (item: any) => item.titleOfTheTrainingProgramme || item.title || null,
-    },
-    [FIELD_NAMES.MALE]: {
-        extractor: (item: any) => {
-            // Sum of all male participants for NYK training
-            const total = (item.generalM || 0) + (item.obcM || 0) + (item.scM || 0) + (item.stM || 0);
-            if (total > 0) return String(total);
-            if (item.male !== undefined && item.male !== null) return String(item.male);
-            return null;
-        },
-    },
-    [FIELD_NAMES.FEMALE]: {
-        extractor: (item: any) => {
-            // Sum of all female participants for NYK training
-            const total = (item.generalF || 0) + (item.obcF || 0) + (item.scF || 0) + (item.stF || 0);
-            if (total > 0) return String(total);
-            if (item.female !== undefined && item.female !== null) return String(item.female);
-            return null;
-        },
-    },
-    [FIELD_NAMES.AMOUNT_OF_FUND_RECEIVED]: {
-        extractor: (item: any) => {
-            const val = item.amountOfFundReceived ?? item.fundReceived;
-            return val !== undefined && val !== null ? `₹${Number(val).toLocaleString('en-IN')}` : null;
-        },
-    },
-
     // VIP Visitors fields
     [FIELD_NAMES.DATE_OF_VISIT]: {
         extractor: (item: any) => {
@@ -1912,10 +1887,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.NO_OF_DEMONSTRATIONS]: {
         extractor: (item: any) => item.demonstrations !== undefined && item.demonstrations !== null ? String(item.demonstrations) : null,
-        priority: 6,
-    },
-    [FIELD_NAMES.NO_OF_PLANT_MATERIAL_PRODUCED]: {
-        extractor: (item: any) => item.plantMaterial !== undefined && item.plantMaterial !== null ? String(item.plantMaterial) : null,
         priority: 6,
     },
     [FIELD_NAMES.VISIT_BY_THE_FARMERS]: {

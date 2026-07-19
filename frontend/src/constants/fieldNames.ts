@@ -302,6 +302,7 @@ export const FIELD_NAMES = {
     TITLE: 'title',
     AUTHOR_NAME: 'authorName',
     JOURNAL_NAME: 'journalName',
+    PAGE_NUMBER: 'pageNo',
     NAAS_RATING: 'naasRating',
     PUBLISHER_NAME: 'publisherName',
     ISBN_NUMBER: 'isbnNumber',
@@ -539,7 +540,6 @@ export const FIELD_NAMES = {
     DATE_OF_COMPLETION: 'dateOfCompletion',
     NO_OF_TRAINING_PROGRAMME_CONDUCTED: 'noOfTrainingProgrammeConducted',
     NO_OF_DEMONSTRATIONS: 'noOfDemonstrations',
-    NO_OF_PLANT_MATERIAL_PRODUCED: 'noOfPlantMaterialProduced',
     VISIT_BY_THE_FARMERS: 'visitByTheFarmers',
     VISIT_BY_THE_OFFICIALS: 'visitByTheOfficials',
     VARIETY_BREED: 'varietyBreed',
@@ -600,10 +600,6 @@ export const FIELD_NAMES = {
     NUMBER_OF_DEATH: 'numberOfDeath',
     MORBIDITY_RATE: 'morbidityRate',
     NUMBER_OF_ANIMALS_VACCINATED: 'numberOfAnimalsVaccinated',
-    TITLE_OF_THE_TRAINING_PROGRAMME: 'programmeTitle',
-    MALE: 'totalMale',
-    FEMALE: 'totalFemale',
-    AMOUNT_OF_FUND_RECEIVED: 'fundReceived',
     RESOURCE_PERSON: 'resourcePerson',
     ATTACHMENT_TYPE: 'attachmentType',
     ATTACHMENT: 'attachment',
@@ -1342,6 +1338,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.TITLE,
         FIELD_NAMES.AUTHOR_NAME,
         FIELD_NAMES.JOURNAL_NAME,
+        FIELD_NAMES.PAGE_NUMBER,
         FIELD_NAMES.NAAS_RATING,
         FIELD_NAMES.PUBLISHER_NAME,
         FIELD_NAMES.VENUE,
@@ -1611,17 +1608,6 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.MORTALITY_COUNT,
         FIELD_NAMES.ANIMALS_TREATED,
         FIELD_NAMES.PREVENTIVE_MEASURES,
-    ] as const,
-
-    // Miscellaneous Routes - Nehru Yuva Kendra
-    MISC_NEHRU_YUVA_KENDRA: [
-        FIELD_NAMES.KVK_NAME,
-        FIELD_NAMES.TITLE_OF_THE_TRAINING_PROGRAMME,
-        FIELD_NAMES.START_DATE,
-        FIELD_NAMES.END_DATE,
-        FIELD_NAMES.MALE,
-        FIELD_NAMES.FEMALE,
-        FIELD_NAMES.AMOUNT_OF_FUND_RECEIVED,
     ] as const,
 
     // Miscellaneous Routes - Poshan Maah

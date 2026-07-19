@@ -5,6 +5,7 @@ const {
   buildAchievementWhere,
   buildKvkListingWhere,
   buildFiscalYearRange,
+  buildReportingYearClause,
   parseYearParam,
   buildLoginLogWhere,
 } = require('../utils/dashboardScope.js');
@@ -40,29 +41,11 @@ async function resolveKvkFilter(actor, requestedKvkId) {
 }
 
 function oftDateClause(yearMode) {
-  if (yearMode === 'all') {
-    return {};
-  }
-  const { start, endExclusive } = buildFiscalYearRange(yearMode);
-  return {
-    OR: [
-      { expectedCompletionDate: { gte: start, lt: endExclusive } },
-      { expectedCompletionDate: null, oftStartDate: { gte: start, lt: endExclusive } },
-    ],
-  };
+  return buildReportingYearClause(yearMode, 'oftStartDate');
 }
 
 function fldDateClause(yearMode) {
-  if (yearMode === 'all') {
-    return {};
-  }
-  const { start, endExclusive } = buildFiscalYearRange(yearMode);
-  return {
-    OR: [
-      { expectedCompletionDate: { gte: start, lt: endExclusive } },
-      { expectedCompletionDate: null, startDate: { gte: start, lt: endExclusive } },
-    ],
-  };
+  return buildReportingYearClause(yearMode, 'startDate');
 }
 
 function trainingDateClause(yearMode) {

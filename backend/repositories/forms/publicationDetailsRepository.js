@@ -98,6 +98,7 @@ const _mapResponse = (r) => {
         title: r.title,
         authorName: r.authorName,
         journalName: r.journalName,
+        pageNo: r.pageNo,
         kvkName: r.kvk?.kvkName,
         reportingYear: reportingYear,
         publicationItem: r.publicationOther || r.publication?.publicationName,
@@ -160,6 +161,7 @@ const publicationDetailsRepository = {
             // Type-specific fields are optional at the DB layer — which ones are
             // shown/required is driven by the selected publication type on the client.
             const journalName = _normalizeString(data.journalName, 'Journal Name', true);
+            const pageNo = _normalizeString(data.pageNo, 'Page Number', true);
             const publisherName = _normalizeString(data.publisherName, 'Name Of Publisher', true);
             const venue = _normalizeString(data.venue, 'Venue', true);
             const isbnNumber = _normalizeString(data.isbnNumber, 'ISBN Number', true);
@@ -173,6 +175,7 @@ const publicationDetailsRepository = {
                 title,
                 authorName,
                 journalName,
+                pageNo,
                 naasRating: _parseNaasRating(data.naasRating),
                 publisherName,
                 venue,
@@ -361,6 +364,9 @@ const publicationDetailsRepository = {
             }
             if (data.journalName !== undefined) {
                 updateData.journalName = _normalizeString(data.journalName, 'Journal Name', true);
+            }
+            if (data.pageNo !== undefined) {
+                updateData.pageNo = _normalizeString(data.pageNo, 'Page Number', true);
             }
             if (data.naasRating !== undefined) {
                 updateData.naasRating = _parseNaasRating(data.naasRating);

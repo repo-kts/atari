@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getRoleLabel } from '../../services/userApi'
@@ -6,7 +6,7 @@ import { useUsers, useDeleteUser } from '../../hooks/useUserManagement'
 import { CreateUserModal } from '@/components/admin/CreateUserModal'
 import { EditUserModal } from '@/components/admin/EditUserModal'
 import type { EditUser } from '@/components/admin/EditUserModal'
-import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft, UserCog } from 'lucide-react'
+import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft, UserCog, Pin } from 'lucide-react'
 import { outranks } from '../../constants/roleHierarchy'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
@@ -35,6 +35,69 @@ interface User {
     permissions?: ('VIEW' | 'ADD' | 'EDIT' | 'DELETE')[]
 }
 
+interface UserGroup {
+    key: string
+    label: string
+    users: User[]
+    showHeading: boolean
+}
+
+const USER_GROUP_DEFINITIONS = [
+    { key: 'state', label: 'State', roles: new Set(['state_admin', 'state_user']) },
+    { key: 'host', label: 'Host', roles: new Set(['host_admin']) },
+    { key: 'institute', label: 'Institute', roles: new Set(['org_admin', 'org_user']) },
+    { key: 'kvk', label: 'KVK', roles: new Set(['kvk_admin', 'kvk_user']) },
+] as const
+
+const USER_NAME_COLLATOR = new Intl.Collator('en', {
+    sensitivity: 'base',
+    numeric: true,
+})
+
+function sortUsersAlphabetically(users: User[]): User[] {
+    return [...users].sort((left, right) =>
+        USER_NAME_COLLATOR.compare(left.name, right.name) ||
+        USER_NAME_COLLATOR.compare(left.email, right.email) ||
+        left.userId - right.userId
+    )
+}
+
+function groupUsers(users: User[]): UserGroup[] {
+    const sortedUsers = sortUsersAlphabetically(users)
+    const pinnedUsers = sortedUsers.filter(user => user.roleName === 'super_admin')
+    const groupedUserIds = new Set(pinnedUsers.map(user => user.userId))
+    const groups: UserGroup[] = []
+
+    if (pinnedUsers.length > 0) {
+        groups.push({
+            key: 'super-admin',
+            label: 'Super Administrator',
+            users: pinnedUsers,
+            showHeading: false,
+        })
+    }
+
+    for (const definition of USER_GROUP_DEFINITIONS) {
+        const usersInGroup = sortedUsers.filter(user => definition.roles.has(user.roleName))
+        for (const user of usersInGroup) groupedUserIds.add(user.userId)
+        if (usersInGroup.length > 0) {
+            groups.push({ ...definition, users: usersInGroup, showHeading: true })
+        }
+    }
+
+    const otherUsers = sortedUsers.filter(user => !groupedUserIds.has(user.userId))
+    if (otherUsers.length > 0) {
+        groups.push({
+            key: 'other',
+            label: 'Other',
+            users: otherUsers,
+            showHeading: true,
+        })
+    }
+
+    return groups
+}
+
 export const UserManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
@@ -57,7 +120,11 @@ export const UserManagement: React.FC = () => {
         search: searchTerm.trim() || undefined,
     })
 
-    const users = Array.isArray(usersData) ? usersData as User[] : []
+    const users = useMemo(
+        () => Array.isArray(usersData) ? usersData as User[] : [],
+        [usersData]
+    )
+    const userGroups = useMemo(() => groupUsers(users), [users])
 
 
     // Delete user mutation
@@ -82,6 +149,7 @@ export const UserManagement: React.FC = () => {
     const showActionsColumn =
         (canEditUser || canDeleteUser) &&
         users.some(u => canActOnRole(u.roleName) || canManagePermsFor(u))
+    const tableColumnCount = showActionsColumn ? 7 : 6
 
     // Handle delete user
     const handleDelete = async (userId: number) => {
@@ -249,96 +317,121 @@ export const UserManagement: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[#E0E0E0]">
-                                        {users.map(user => (
-                                            <tr
-                                                key={user.userId}
-                                                className="hover:bg-[#F5F5F5] transition-colors"
-                                            >
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-[#212121]">
-                                                        {user.name}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-[#757575]">
-                                                        {user.email}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-[#757575]">
-                                                        {user.phoneNumber || '—'}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-2 py-1 text-xs font-medium rounded-lg bg-[#E8F5E9] text-[#487749]">
-                                                        {user.roleName ? getRoleLabel(user.roleName) : '—'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[#757575]">
-                                                    {formatDate(user.createdAt)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[#757575]">
-                                                    {formatDate(user.lastLoginAt)}
-                                                </td>
-                                                {showActionsColumn && (
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            {canManagePermsFor(user) && (
-                                                                <button
-                                                                    onClick={() =>
-                                                                        navigate(
-                                                                            `/view-users/${user.userId}/permissions`
-                                                                        )
-                                                                    }
-                                                                    className="p-1.5 text-[#487749] hover:bg-[#F5F5F5] rounded-xl border border-[#E0E0E0] transition-all duration-200"
-                                                                    aria-label="Manage permissions"
-                                                                    title="Manage permissions"
-                                                                >
-                                                                    <UserCog className="w-4 h-4" />
-                                                                </button>
-                                                            )}
-                                                            {canEditUser && canActOnRole(user.roleName) && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setEditingUser({
-                                                                            userId: user.userId,
-                                                                            name: user.name,
-                                                                            email: user.email,
-                                                                            phoneNumber: user.phoneNumber,
-                                                                            roleId: user.roleId,
-                                                                            roleName: user.roleName,
-                                                                            zoneId: user.zoneId,
-                                                                            stateId: user.stateId,
-                                                                            districtId: user.districtId,
-                                                                            orgId: user.orgId,
-                                                                            universityId: user.universityId,
-                                                                            kvkId: user.kvkId,
-                                                                            permissions: user.permissions,
-                                                                        })
-                                                                        setIsEditModalOpen(true)
-                                                                    }}
-                                                                    className="p-1.5 text-[#487749] hover:bg-[#F5F5F5] rounded-xl border border-[#E0E0E0] transition-all duration-200"
-                                                                    aria-label="Edit user"
-                                                                    title="Edit user"
-                                                                >
-                                                                    <Edit className="w-4 h-4" />
-                                                                </button>
-                                                            )}
-                                                            {canDeleteUser && canActOnRole(user.roleName) && (
-                                                                <button
-                                                                    onClick={() => handleDelete(user.userId)}
-                                                                    disabled={deleteUserMutation.isPending}
-                                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-xl border border-[#E0E0E0] hover:border-red-200 transition-all duration-200 disabled:opacity-50"
-                                                                    aria-label="Delete user"
-                                                                    title="Delete user"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </td>
+                                        {userGroups.map(group => (
+                                            <React.Fragment key={group.key}>
+                                                {group.showHeading && (
+                                                    <tr className="bg-[#F3F7F3]">
+                                                        <td colSpan={tableColumnCount} className="px-6 py-2.5">
+                                                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#487749]">
+                                                                <span>{group.label}</span>
+                                                                <span className="rounded-full bg-white px-2 py-0.5 text-[11px] text-[#757575] border border-[#DCE8DC]">
+                                                                    {group.users.length}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                                 )}
-                                            </tr>
+                                                {group.users.map(user => {
+                                                    const isPinned = user.roleName === 'super_admin'
+                                                    return (
+                                                        <tr
+                                                            key={user.userId}
+                                                            className={`${isPinned ? 'bg-[#F8FBF8]' : ''} hover:bg-[#F5F5F5] transition-colors`}
+                                                        >
+                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                <div className="flex items-center gap-2 text-sm font-medium text-[#212121]">
+                                                                    {isPinned ? (
+                                                                        <Pin
+                                                                            className="h-3.5 w-3.5 text-[#487749]"
+                                                                            aria-label="Pinned Super Administrator"
+                                                                        />
+                                                                    ) : null}
+                                                                    <span>{user.name}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                <div className="text-sm text-[#757575]">
+                                                                    {user.email}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                <div className="text-sm text-[#757575]">
+                                                                    {user.phoneNumber || '—'}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                <span className="px-2 py-1 text-xs font-medium rounded-lg bg-[#E8F5E9] text-[#487749]">
+                                                                    {user.roleName ? getRoleLabel(user.roleName) : '—'}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#757575]">
+                                                                {formatDate(user.createdAt)}
+                                                            </td>
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#757575]">
+                                                                {formatDate(user.lastLoginAt)}
+                                                            </td>
+                                                            {showActionsColumn && (
+                                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                                    <div className="flex items-center justify-end gap-2">
+                                                                        {canManagePermsFor(user) && (
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    navigate(
+                                                                                        `/view-users/${user.userId}/permissions`
+                                                                                    )
+                                                                                }
+                                                                                className="p-1.5 text-[#487749] hover:bg-[#F5F5F5] rounded-xl border border-[#E0E0E0] transition-all duration-200"
+                                                                                aria-label="Manage permissions"
+                                                                                title="Manage permissions"
+                                                                            >
+                                                                                <UserCog className="w-4 h-4" />
+                                                                            </button>
+                                                                        )}
+                                                                        {canEditUser && canActOnRole(user.roleName) && (
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setEditingUser({
+                                                                                        userId: user.userId,
+                                                                                        name: user.name,
+                                                                                        email: user.email,
+                                                                                        phoneNumber: user.phoneNumber,
+                                                                                        roleId: user.roleId,
+                                                                                        roleName: user.roleName,
+                                                                                        zoneId: user.zoneId,
+                                                                                        stateId: user.stateId,
+                                                                                        districtId: user.districtId,
+                                                                                        orgId: user.orgId,
+                                                                                        universityId: user.universityId,
+                                                                                        kvkId: user.kvkId,
+                                                                                        permissions: user.permissions,
+                                                                                    })
+                                                                                    setIsEditModalOpen(true)
+                                                                                }}
+                                                                                className="p-1.5 text-[#487749] hover:bg-[#F5F5F5] rounded-xl border border-[#E0E0E0] transition-all duration-200"
+                                                                                aria-label="Edit user"
+                                                                                title="Edit user"
+                                                                            >
+                                                                                <Edit className="w-4 h-4" />
+                                                                            </button>
+                                                                        )}
+                                                                        {canDeleteUser && canActOnRole(user.roleName) && (
+                                                                            <button
+                                                                                onClick={() => handleDelete(user.userId)}
+                                                                                disabled={deleteUserMutation.isPending}
+                                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-xl border border-[#E0E0E0] hover:border-red-200 transition-all duration-200 disabled:opacity-50"
+                                                                                aria-label="Delete user"
+                                                                                title="Delete user"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                            )}
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </React.Fragment>
                                         ))}
                                     </tbody>
                                 </table>

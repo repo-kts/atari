@@ -202,7 +202,7 @@ const REPORT_INDEX_TAXONOMY = {
                 ],
             },
             {
-                label: 'ARYA / SAFAL',
+                label: 'ARYA / SARAL',
                 features: [
                     { label: 'Current Year Details', sectionId: '2.30' },
                     { label: 'Previous Year Evaluation', sectionId: '2.31' },
@@ -342,12 +342,6 @@ const REPORT_INDEX_TAXONOMY = {
                 features: [
                     { label: 'Prevalent diseases in Crops', sectionId: '5.1' },
                     { label: 'Prevalent diseases in Livestock/Fishery', sectionId: '5.2' },
-                ],
-            },
-            {
-                label: 'Nehru Yuva Kendra',
-                features: [
-                    { label: 'Nehru Yuva Kendra (NYK) Training', sectionId: '5.3' },
                 ],
             },
             {

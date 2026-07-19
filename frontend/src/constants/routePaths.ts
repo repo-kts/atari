@@ -171,7 +171,6 @@ export const ROUTE_PATHS = {
             CROPS: '/forms/miscellaneous/diseases/crops',
             LIVESTOCK: '/forms/miscellaneous/diseases/livestock',
         },
-        NEHRU_YUVA_KENDRA: '/forms/miscellaneous/nehru-yuva-kendra',
         PPV_FRA: {
             TRAINING: '/forms/miscellaneous/ppv-fra/training',
             PLANT_VARIETIES: '/forms/miscellaneous/ppv-fra/plant-varieties',
@@ -278,7 +277,6 @@ export const ROUTE_PATHS = {
                 '/forms/miscellaneous/prevalent-diseases/crops',
             PREVALENT_DISEASES_LIVESTOCK:
                 '/forms/miscellaneous/prevalent-diseases/livestock',
-            NYK_TRAINING: '/forms/miscellaneous/nyk-training',
             POSHAN_MAAH: '/forms/miscellaneous/poshan-maah',
             PPV_FRA_TRAINING: '/forms/miscellaneous/ppv-fra/training',
             PPV_FRA_PLANT_VARIETIES:

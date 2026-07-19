@@ -251,7 +251,7 @@ const technicalAchievementSummaryService = {
       getTargetAggregate(baseWhere, year, TARGET_TYPE.SOIL_WATER),
     ]);
 
-    const [oftAgg, fldAgg, trainingAgg, extensionAgg, seedAgg, plantingAgg, livestockAgg, soilAgg, publicationGroupBy] =
+    const [oftAgg, fldAgg, trainingAgg, extensionAgg, otherExtensionAgg, seedAgg, plantingAgg, livestockAgg, soilAgg, publicationGroupBy] =
         await Promise.all([
       prisma.kvkoft.aggregate({
         where: {
@@ -345,6 +345,16 @@ const technicalAchievementSummaryService = {
           officialsScF: true,
           officialsStM: true,
           officialsStF: true,
+        },
+      }),
+
+      prisma.kvkOtherExtensionActivity.aggregate({
+        where: {
+          ...baseWhere,
+          startDate: { gte: start, lt: endExclusive },
+        },
+        _sum: {
+          numberOfActivities: true,
         },
       }),
 
@@ -533,6 +543,10 @@ const technicalAchievementSummaryService = {
             target: extensionTarget.farmerTarget,
             achievement: extensionBreakdown,
           },
+        },
+
+        otherExtension: {
+          achievement: toNumber(otherExtensionAgg?._sum?.numberOfActivities),
         },
 
         seedProduction: {

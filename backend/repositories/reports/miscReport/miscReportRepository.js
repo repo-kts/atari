@@ -27,19 +27,6 @@ async function getPrevalentDiseasesLivestock(kvkId, filters = {}) {
     });
 }
 
-async function getNykTraining(kvkId, filters = {}) {
-    const where = { kvkId };
-    applyDateFilters(where, filters, 'startDate');
-
-    return await prisma.nykTraining.findMany({
-        where,
-        include: {
-            kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
-        },
-        orderBy: [{ startDate: 'desc' }, { title: 'asc' }],
-    });
-}
-
 async function getPoshanMaah(kvkId, filters = {}) {
     const where = { kvkId };
     applyDateFilters(where, filters, 'activityDate');
@@ -111,7 +98,6 @@ async function getPpvFraTraining(kvkId, filters = {}) {
 module.exports = {
     getPrevalentDiseasesCrops,
     getPrevalentDiseasesLivestock,
-    getNykTraining,
     getPoshanMaah,
     getPpvFraPlantVarieties,
     getPpvFraTraining,

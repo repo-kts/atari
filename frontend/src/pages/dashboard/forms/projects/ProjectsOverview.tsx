@@ -53,7 +53,7 @@ const sections: FeatureSection[] = [
         ],
     },
     {
-        title: 'ARYA / SAFAL',
+        title: 'ARYA / SARAL',
         icon: <UserCheck className="w-5 h-5" />,
         items: [
             { label: 'Current Year Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.ARYA.CURRENT },

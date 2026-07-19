@@ -51,15 +51,16 @@ async function getKvPublicationDetailsReportData(kvkId, filters = {}) {
         kvkName: r.kvk?.kvkName || '',
         stateName: r.kvk?.state?.stateName || '',
         districtName: r.kvk?.district?.districtName || '',
-        category: r.publication?.publicationName || '-',
+        category: r.publicationOther || r.publication?.publicationName || '-',
         title: r.title || '',
         authorName: r.authorName || '',
         journalName: r.journalName || '',
+        pageNo: r.pageNo || '',
+        naasRating: r.naasRating,
+        publisherName: r.publisherName || '',
+        venue: r.venue || '',
+        isbnNumber: r.isbnNumber || '',
         year: yearFromReportingYear(r.reportingYear),
-        volume: '',
-        issue: '',
-        pageNo: '',
-        impactFactor: '',
     }));
 }
 

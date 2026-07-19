@@ -130,7 +130,6 @@ const REGISTRY = [
   // ── Miscellaneous ────────────────────────────────────────────────────────
   { key: 'misc.diseases_crops', title: 'Prevalent Diseases (Crops)', category: 'Miscellaneous', moduleCode: 'misc_prevalent_diseases_crops', model: 'prevalentDiseasesInCrop', path: '/forms/miscellaneous/diseases/crops' },
   { key: 'misc.diseases_livestock', title: 'Prevalent Diseases (Livestock)', category: 'Miscellaneous', moduleCode: 'misc_prevalent_diseases_livestock', model: 'prevalentDiseasesOnLivestock', path: '/forms/miscellaneous/diseases/livestock' },
-  { key: 'misc.nyk_training', title: 'Nehru Yuva Kendra', category: 'Miscellaneous', moduleCode: 'misc_nyk_training', model: 'nykTraining', path: '/forms/miscellaneous/nehru-yuva-kendra' },
   { key: 'misc.poshan_maah', title: 'Poshan Maah', category: 'Miscellaneous', moduleCode: 'misc_poshan_maah', model: 'poshanMaah', path: '/forms/miscellaneous/poshan-maah' },
   { key: 'misc.ppv_fra_training', title: 'PPV & FRA Training', category: 'Miscellaneous', moduleCode: 'misc_ppv_fra_training', model: 'ppvFraTraining', path: '/forms/miscellaneous/ppv-fra/training' },
   { key: 'misc.ppv_fra_plants', title: 'PPV & FRA Plant Varieties', category: 'Miscellaneous', moduleCode: 'misc_ppv_fra_training', model: 'ppvFraPlantVarieties', path: '/forms/miscellaneous/ppv-fra/plant-varieties' },

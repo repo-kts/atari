@@ -105,8 +105,8 @@ export const achievementsRoutes: RouteConfig[] = [
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.POSHAN_MAAHA,
-        title: 'Poshan Maaha',
-        description: 'Datewise report of events/programmes conducted during Poshan Maaha',
+        title: 'Poshan Maah',
+        description: 'Datewise report of events/programmes conducted during Poshan Maah',
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,

@@ -216,7 +216,6 @@ const KVK_GROUPED_HTML_EXPORT_TEMPLATES = new Set([
     'financial-resource-generation-report',
     'misc-prevalent-diseases-crops',
     'misc-prevalent-diseases-livestock',
-    'misc-nyk-training',
     'misc-ppv-fra-plant-varieties',
     'misc-ppv-fra-training',
     'misc-vip-visitors',

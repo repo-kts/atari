@@ -86,12 +86,26 @@ function gridBlock(esc, { title, subtitle, leftLabel, leftCols, rightLabel, farm
         </table>`;
 }
 
+function metricBlock(esc, { title, metricLabel, value }) {
+    return `
+        <table class="data-table" style="margin-top:10px;font-size:9pt;text-align:center;">
+            <thead>
+                <tr><th colspan="2" style="font-size:11pt;">${esc(title)}</th></tr>
+                <tr><th>Metric</th><th>Achievement</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>${esc(metricLabel)}</td><td style="font-weight:bold;">${n(value)}</td></tr>
+            </tbody>
+        </table>`;
+}
+
 function renderTechnicalAchievementSummarySection(section, data, sectionId, isFirstSection) {
     const esc = (v) => this._escapeHtml(v != null ? String(v) : '');
     const d = data || {};
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
 
-    const hasAny = d.oft || d.fld || d.training || d.extension || (d.production && d.production.length);
+    const hasAny = d.oft || d.fld || d.training || d.extension || d.otherExtension
+        || (d.production && d.production.length);
     if (!hasAny) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }
@@ -160,6 +174,14 @@ function renderTechnicalAchievementSummarySection(section, data, sectionId, isFi
             rightLabel: 'Number of Participants',
             farmerTarget: d.extension.farmerTarget,
             demo: d.extension.participants,
+        });
+    }
+
+    if (d.otherExtension) {
+        html += metricBlock(esc, {
+            title: 'Other Extension Activities',
+            metricLabel: 'Number of Activities',
+            value: d.otherExtension.activities,
         });
     }
 

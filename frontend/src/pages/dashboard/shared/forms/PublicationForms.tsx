@@ -70,6 +70,12 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                     ...prev,
                     publication: value,
                     publicationId: value,
+                    journalName: '',
+                    pageNo: '',
+                    naasRating: '',
+                    publisherName: '',
+                    venue: '',
+                    isbnNumber: '',
                     ...publicationResetPatch(value, 'publicationOther'),
                     publicationName:
                         selectedPublication?.publicationName ||
@@ -99,6 +105,13 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
     const handleJournalNameChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             setFormData((prev: any) => ({ ...prev, journalName: e.target.value }))
+        },
+        [setFormData]
+    )
+
+    const handlePageNumberChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, pageNo: e.target.value }))
         },
         [setFormData]
     )
@@ -154,14 +167,16 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
         const name = String(selectedPublicationName ?? '').trim()
         switch (name) {
             case 'Research Paper Published':
-                return { journal: true, naas: true, publisher: false, venue: false, isbn: false }
+                return { journal: true, pageNo: true, naas: true, publisher: false, venue: false, isbn: false }
             case 'Abstracts Published in Seminar or Conference or Symposia':
-                return { journal: false, naas: false, publisher: true, venue: true, isbn: false }
+                return { journal: false, pageNo: false, naas: false, publisher: true, venue: true, isbn: false }
             case 'Books Published':
             case 'Book Chapter Published':
-                return { journal: false, naas: false, publisher: true, venue: false, isbn: true }
+                return { journal: false, pageNo: false, naas: false, publisher: true, venue: false, isbn: true }
+            case 'Popular Articles Published':
+                return { journal: false, pageNo: true, naas: false, publisher: true, venue: false, isbn: false }
             default:
-                return { journal: false, naas: false, publisher: true, venue: false, isbn: false }
+                return { journal: false, pageNo: false, naas: false, publisher: true, venue: false, isbn: false }
         }
     }, [selectedPublicationName])
 
@@ -225,6 +240,15 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                                 required
                                 value={formData.journalName ?? ''}
                                 onChange={handleJournalNameChange}
+                            />
+                        )}
+                        {fieldConfig.pageNo && (
+                            <FormInput
+                                label="Page Number"
+                                required
+                                value={formData.pageNo ?? ''}
+                                onChange={handlePageNumberChange}
+                                placeholder="e.g. 101-108"
                             />
                         )}
                         {fieldConfig.naas && (

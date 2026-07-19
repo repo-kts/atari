@@ -289,7 +289,6 @@ const superAdminMenuItems: MenuItem[] = [
                 path: '/forms/miscellaneous',
                 icon: <FileCheck className="w-4 h-4" />,
                 moduleCodes: [
-                    'misc_nyk_training',
                     'misc_ppv_fra_training',
                     'misc_rawe_fet',
                     'misc_vip_visitors',
