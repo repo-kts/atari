@@ -107,8 +107,100 @@ function renderGroup(kvkName, stateName, rows) {
     </table>`;
 }
 
-function renderAryaPrevYearSection(section, data, sectionId, isFirstSection) {
-    const rows = Array.isArray(data) ? data : (data ? [data] : []);
+// ── Superadmin state view: date columns dropped (can't aggregate) ───────────
+function stateColGroup() {
+    return `
+      <colgroup>
+        <col style="width:3%" />
+        <col style="width:12%" />
+        <col style="width:4%" /><col style="width:4%" />
+        <col style="width:6%" /><col style="width:6%" />
+        <col style="width:5%" /><col style="width:6%" />
+        <col style="width:6%" /><col style="width:6%" /><col style="width:7%" /><col style="width:6%" /><col style="width:6%" /><col style="width:6%" />
+        <col style="width:4%" /><col style="width:5%" /><col style="width:4%" />
+        <col style="width:4%" />
+      </colgroup>`;
+}
+
+function stateHeadRows() {
+    return `
+      <thead>
+        <tr>
+          <th rowspan="2">Sl. No</th>
+          <th rowspan="2">Name of Enterprise</th>
+          <th colspan="2">No. of entrepreneurial units established (up to previous year progressive)</th>
+          <th rowspan="2">No. of non-functional entrepreneurial unit closed</th>
+          <th rowspan="2">No. of non-functional entrepreneurial unit restarted (i.e. previously closed)</th>
+          <th colspan="2">Entrepreneurial Unit Size (capacity per year)</th>
+          <th colspan="6">Entrepreneurial Establishment Cost / unit</th>
+          <th colspan="3">Employment generated/ year (mandays)</th>
+          <th rowspan="2">No. of persons visited entrepreneur unit</th>
+        </tr>
+        <tr>
+          <th>Male</th><th>Female</th>
+          <th>No. of Unit</th><th>Unit capacity</th>
+          <th>Fixed cost</th><th>Variable cost</th><th>Total production/unit/year</th><th>Gross cost of production/unit/year</th><th>Gross return per unit/year</th><th>Net benefit / unit/year</th>
+          <th>Family</th><th>Other than Family</th><th>Total</th>
+        </tr>
+      </thead>`;
+}
+
+function stateBodyRow(row, sno) {
+    return `
+        <tr>
+            <td>${sno}</td>
+            <td class="l">${esc(row.enterpriseName || '-')}</td>
+            <td>${num(row.unitsMale)}</td>
+            <td>${num(row.unitsFemale)}</td>
+            <td>${num(row.nonFunctionalUnitsClosed)}</td>
+            <td>${num(row.nonFunctionalUnitsRestarted)}</td>
+            <td>${num(row.numberOfUnits)}</td>
+            <td>${num(row.unitCapacity)}</td>
+            <td>${num(row.fixedCost)}</td>
+            <td>${num(row.variableCost)}</td>
+            <td>${num(row.totalProductionPerUnitYear)}</td>
+            <td>${num(row.grossCostPerUnitYear)}</td>
+            <td>${num(row.grossReturnPerUnitYear)}</td>
+            <td>${num(row.netBenefitPerUnitYear)}</td>
+            <td>${num(row.employmentFamilyMandays)}</td>
+            <td>${num(row.employmentOtherMandays)}</td>
+            <td>${num(row.employmentTotalMandays)}</td>
+            <td>${num(row.personsVisitedUnit)}</td>
+        </tr>`;
+}
+
+function renderStateView(ctx, section, sectionId, isFirstSection, statePayload) {
+    const states = statePayload.states || [];
+    const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+    const blocks = states.map((s) => {
+        const body = s.enterprises.map((r, i) => stateBodyRow(r, i + 1)).join('');
+        return `
+    <h2 class="arya-prev-kvk-hd">State: ${esc(s.stateName)}</h2>
+    <table class="arya-prev-table">${stateColGroup()}${stateHeadRows()}
+      <tbody>${body}</tbody>
+    </table>`;
+    }).join('');
+    return `
+<div id="${sectionId}" class="${pageClass}">
+    <style>${tableCss()}</style>
+    <div class="arya-prev-wrap">
+      <h1 class="section-title">${ctx._escapeHtml(section.id)} ${ctx._escapeHtml(section.title)}</h1>
+      ${blocks}
+    </div>
+</div>`;
+}
+
+function renderAryaPrevYearSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    if (reportContext.isAggregatedView && data && data.statePayload) {
+        if (!data.statePayload.states || data.statePayload.states.length === 0) {
+            return this._generateEmptySection(section, null, sectionId, isFirstSection);
+        }
+        return renderStateView(this, section, sectionId, isFirstSection, data.statePayload);
+    }
+
+    const rows = (data && Array.isArray(data.records))
+        ? data.records
+        : (Array.isArray(data) ? data : (data ? [data] : []));
     if (rows.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }

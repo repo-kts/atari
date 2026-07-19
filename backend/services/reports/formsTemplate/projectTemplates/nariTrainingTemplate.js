@@ -17,6 +17,8 @@
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 
+const { renderNariActivitySummary } = require('./nariSummaryTable.js');
+
 function esc(text) {
     if (text === null || text === undefined) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
@@ -70,8 +72,13 @@ const STYLE = `
 
 /* ── section renderer (bound to ReportTemplateService via .bind(this)) ─────── */
 
-function renderNariTrainingSection(section, data, sectionId, isFirstSection) {
-    const rows = Array.isArray(data) ? data : (data ? [data] : []);
+function renderNariTrainingSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    if (reportContext.isAggregatedView && data && data.statePayload) {
+        return renderNariActivitySummary(this, section, sectionId, isFirstSection, data.statePayload);
+    }
+    const rows = (data && Array.isArray(data.records))
+        ? data.records
+        : (Array.isArray(data) ? data : (data ? [data] : []));
 
     if (rows.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
@@ -132,6 +139,10 @@ function renderNariTrainingSection(section, data, sectionId, isFirstSection) {
     <div class="ntp-section">
         <p style="font-size:8pt;font-weight:bold;margin-bottom:4px;">Training Programmes in Nutri-Smart Village</p>
         <table class="ntp-table">
+            <colgroup>
+                <col style="width:3%"/><col style="width:12%"/><col style="width:7%"/><col style="width:7%"/><col style="width:12%"/><col style="width:6%"/><col style="width:8%"/><col style="width:4%"/><col style="width:4%"/>
+                <col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/><col style="width:2.46%"/>
+            </colgroup>
             <thead>
                 <tr>
                     <th rowspan="3" class="sno">S.no.</th>

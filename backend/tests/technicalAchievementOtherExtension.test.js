@@ -27,7 +27,7 @@ test('web technical summary includes scoped Other Extension activity totals', as
     ['kvkFldIntroduction', 'aggregate'],
     ['trainingAchievement', 'aggregate'],
     ['kvkExtensionActivity', 'aggregate'],
-    ['kvkOtherExtensionActivity', 'aggregate'],
+    ['kvkOtherExtensionActivity', 'findMany'],
     ['kvkProductionSupply', 'aggregate'],
     ['kkvSoilWaterAnalysis', 'aggregate'],
     ['kvkPublicationDetails', 'groupBy'],
@@ -42,9 +42,13 @@ test('web technical summary includes scoped Other Extension activity totals', as
   prisma.kvkFldIntroduction.aggregate = async () => zeroAggregate();
   prisma.trainingAchievement.aggregate = async () => zeroAggregate();
   prisma.kvkExtensionActivity.aggregate = async () => zeroAggregate();
-  prisma.kvkOtherExtensionActivity.aggregate = async (args) => {
+  // Two activity types (one an "Other" free-text) — grouped and totalled.
+  prisma.kvkOtherExtensionActivity.findMany = async (args) => {
     capturedOtherExtensionWhere = args.where;
-    return { _sum: { numberOfActivities: 7 } };
+    return [
+      { numberOfActivities: 4, activityTypeOther: null, otherExtensionActivity: { otherExtensionName: 'Field Day', isOther: false } },
+      { numberOfActivities: 3, activityTypeOther: 'Radio talk', otherExtensionActivity: { otherExtensionName: 'Other', isOther: true } },
+    ];
   };
   prisma.kvkProductionSupply.aggregate = async () => zeroAggregate();
   prisma.kkvSoilWaterAnalysis.aggregate = async () => zeroAggregate();
@@ -57,8 +61,12 @@ test('web technical summary includes scoped Other Extension activity totals', as
     );
 
     assert.equal(result.sections.otherExtension.achievement, 7);
-    assert.equal(capturedOtherExtensionWhere.startDate.gte.toISOString(), '2025-04-01T00:00:00.000Z');
-    assert.equal(capturedOtherExtensionWhere.startDate.lt.toISOString(), '2026-04-01T00:00:00.000Z');
+    assert.deepEqual(result.sections.otherExtension.rows, [
+      { activityType: 'Field Day', count: 4 },
+      { activityType: 'Other: Radio talk', count: 3 },
+    ]);
+    assert.equal(capturedOtherExtensionWhere.startDate.gte.toISOString(), '2025-01-01T00:00:00.000Z');
+    assert.equal(capturedOtherExtensionWhere.startDate.lt.toISOString(), '2026-01-01T00:00:00.000Z');
   } finally {
     for (const [name, method] of methods) {
       prisma[name][method] = originals.get(`${name}.${method}`);
@@ -110,18 +118,32 @@ test('report and standalone export layouts include Other Extension Activities', 
       _generateEmptySection: () => 'empty',
     },
     { id: '2.1', title: 'Technical Achievement Summary' },
-    { otherExtension: { activities: 9 }, production: [] },
+    {
+      otherExtension: {
+        activities: 9,
+        rows: [
+          { activityType: 'Field Day', count: 6 },
+          { activityType: 'Radio Talks', count: 3 },
+        ],
+      },
+      production: [],
+    },
     'section-2-1',
     true,
   );
 
   assert.match(html, /Other Extension Activities/);
   assert.match(html, /Number of Activities/);
-  assert.match(html, />9</);
+  assert.match(html, /Field Day/);
+  assert.match(html, /Radio Talks/);
 
   const parsed = parseSectionHtml(html);
+  // rows: [section title], [Activity Type|Number], [Field Day|6], [Radio Talks|3], [Total|9]
   assert.equal(parsed.tables[0].rows[0][0].text, 'Other Extension Activities');
-  assert.equal(parsed.tables[0].rows[2][1].text, '9');
+  assert.equal(parsed.tables[0].rows[2][0].text, 'Field Day');
+  assert.equal(parsed.tables[0].rows[2][1].text, '6');
+  assert.equal(parsed.tables[0].rows[4][0].text, 'Total');
+  assert.equal(parsed.tables[0].rows[4][1].text, '9');
 
   const frontend = fs.readFileSync(
     path.resolve(__dirname, '../../frontend/src/pages/dashboard/forms/TechnicalAchievementSummary.tsx'),
@@ -129,6 +151,6 @@ test('report and standalone export layouts include Other Extension Activities', 
   );
   assert.match(
     frontend,
-    /title:\s*'Other Extension Activities',[\s\S]*?headers:\s*\['Number of Activities'\],[\s\S]*?sections\.otherExtension\?\.achievement/,
+    /title:\s*'Other Extension Activities',[\s\S]*?headers:\s*\['Activity Type', 'Number of Activities'\],[\s\S]*?sections\.otherExtension\?\.rows[\s\S]*?sections\.otherExtension\?\.achievement/,
   );
 });

@@ -117,6 +117,11 @@ function renderCsisaSection(section, data, sectionId, isFirstSection) {
             Details of Cereal Systems Initiative for South Asia (CSISA)
         </p>
         <table class="csisa-table">
+            <colgroup>
+                <col style="width:3%"/><col style="width:5%"/><col style="width:4%"/><col style="width:4%"/><col style="width:4%"/><col style="width:4%"/>
+                <col style="width:8%"/><col style="width:4%"/><col style="width:7%"/><col style="width:7%"/><col style="width:7%"/><col style="width:4%"/>
+                <col style="width:6%"/><col style="width:6%"/><col style="width:4%"/><col style="width:4%"/><col style="width:5%"/><col style="width:5%"/><col style="width:5%"/><col style="width:4%"/>
+            </colgroup>
             <thead>
                 <tr>
                     <th class="sno">Sr.No.</th>

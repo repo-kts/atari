@@ -85,17 +85,42 @@ function bodyRow(row, sno) {
         </tr>`;
 }
 
-function renderGroup(kvkName, rows) {
+function renderGroup(headerLabel, rows) {
     const body = rows.map((r, i) => bodyRow(r, i + 1)).join('');
     return `
-    <h2 class="arya-current-kvk-hd">KVK: ${esc(kvkName)}</h2>
+    <h2 class="arya-current-kvk-hd">${esc(headerLabel)}</h2>
     <table class="arya-current-table">${colGroup()}${headRows()}
         <tbody>${body}</tbody>
     </table>`;
 }
 
-function renderAryaCurrentSection(section, data, sectionId, isFirstSection) {
-    const rows = Array.isArray(data) ? data : (data ? [data] : []);
+// Superadmin: one block per state; rows = enterprises summed across the state's
+// KVKs (master-driven). No KVK breakdown.
+function renderStateView(ctx, section, sectionId, isFirstSection, statePayload) {
+    const states = statePayload.states || [];
+    const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+    const blocks = states.map((s) => renderGroup(`State: ${s.stateName}`, s.enterprises)).join('');
+    return `
+<div id="${sectionId}" class="${pageClass}">
+    <style>${tableCss()}</style>
+    <div class="arya-current-wrap">
+      <h1 class="section-title">${ctx._escapeHtml(section.id)} ${ctx._escapeHtml(section.title)}</h1>
+      ${blocks}
+    </div>
+</div>`;
+}
+
+function renderAryaCurrentSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    if (reportContext.isAggregatedView && data && data.statePayload) {
+        if (!data.statePayload.states || data.statePayload.states.length === 0) {
+            return this._generateEmptySection(section, null, sectionId, isFirstSection);
+        }
+        return renderStateView(this, section, sectionId, isFirstSection, data.statePayload);
+    }
+
+    const rows = (data && Array.isArray(data.records))
+        ? data.records
+        : (Array.isArray(data) ? data : (data ? [data] : []));
     if (rows.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }
@@ -109,7 +134,7 @@ function renderAryaCurrentSection(section, data, sectionId, isFirstSection) {
         byKvk.get(kvk).push(r);
     }
     const kvkNames = [...byKvk.keys()].sort(sortStr);
-    const groupsHtml = kvkNames.map((kvk) => renderGroup(kvk, byKvk.get(kvk))).join('');
+    const groupsHtml = kvkNames.map((kvk) => renderGroup(`KVK: ${kvk}`, byKvk.get(kvk))).join('');
 
     return `
 <div id="${sectionId}" class="${pageClass}">
