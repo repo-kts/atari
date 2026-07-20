@@ -52,4 +52,12 @@ test('rainwater harvesting reports omit plant material from every output path', 
     );
     assert.ok(exportBuilder, 'rainwater harvesting export builder should exist');
     assert.doesNotMatch(exportBuilder[0], /plant material|plantMaterial/i);
+
+    const migration = read(
+        'prisma/migrations/20260720010000_drop_rainwater_plant_material/migration.sql',
+    );
+    assert.match(
+        migration,
+        /ALTER TABLE "rainwater_harvesting"[\s\S]*DROP COLUMN IF EXISTS "plant_material"/,
+    );
 });
