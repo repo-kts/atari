@@ -184,8 +184,14 @@ function buildExportTables(sections: TechnicalAchievementSummaryData['sections']
         },
         {
             title: 'Other Extension Activities',
-            headers: ['Number of Activities'],
-            row: [sections.otherExtension?.achievement ?? 0],
+            headers: ['Activity Type', 'Number of Activities'],
+            rows:
+                (sections.otherExtension?.rows ?? []).length > 0
+                    ? [
+                          ...(sections.otherExtension?.rows ?? []).map((r) => [r.activityType, r.count]),
+                          ['Total', sections.otherExtension?.achievement ?? 0],
+                      ]
+                    : [['—', 0]],
         },
         {
             title: 'Seed Production(q)*',
@@ -357,72 +363,74 @@ export const TechnicalAchievementSummary: React.FC = () => {
 
             <Card className="bg-[#FAF9F6]">
                 <CardContent className="p-6">
-                    <h2 className="text-[44px] font-semibold text-[#212121] mb-4 leading-tight">Technical Achievement Summary</h2>
+                    <h2 className="text-2xl font-semibold text-[#212121] mb-4">Technical Achievement Summary</h2>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end mb-4">
-                        <div>
-                            <label className="block text-sm font-medium text-[#212121] mb-2">Reporting Year</label>
-                            <select
-                                value={selectedYear}
-                                onChange={(e) => setSelectedYear(e.target.value)}
-                                className="w-full px-3 py-2 border border-[#E0E0E0] rounded-lg bg-white"
-                                disabled={isFilterLoading}
-                            >
-                                {(filterOptions?.years || []).map((year) => (
-                                    <option key={year} value={year}>
-                                        {year}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {canFilterByKvk && (
+                    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-[#212121] mb-2">KVK</label>
+                                <label className="block text-sm font-medium text-[#212121] mb-2">Reporting Year</label>
                                 <select
-                                    value={selectedKvkId}
-                                    onChange={(e) => setSelectedKvkId(e.target.value)}
+                                    value={selectedYear}
+                                    onChange={(e) => setSelectedYear(e.target.value)}
                                     className="w-full px-3 py-2 border border-[#E0E0E0] rounded-lg bg-white"
                                     disabled={isFilterLoading}
                                 >
-                                    <option value="">All</option>
-                                    {(filterOptions?.kvks || []).map((kvk) => (
-                                        <option key={kvk.kvkId} value={kvk.kvkId}>{kvk.kvkName}</option>
+                                    {(filterOptions?.years || []).map((year) => (
+                                        <option key={year} value={year}>
+                                            {year}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
-                        )}
+
+                            {canFilterByKvk && (
+                                <div>
+                                    <label className="block text-sm font-medium text-[#212121] mb-2">KVK</label>
+                                    <select
+                                        value={selectedKvkId}
+                                        onChange={(e) => setSelectedKvkId(e.target.value)}
+                                        className="w-full px-3 py-2 border border-[#E0E0E0] rounded-lg bg-white"
+                                        disabled={isFilterLoading}
+                                    >
+                                        <option value="">All</option>
+                                        {(filterOptions?.kvks || []).map((kvk) => (
+                                            <option key={kvk.kvkId} value={kvk.kvkId}>{kvk.kvkName}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            <div className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleApplyFilter}
+                                    className="px-4 py-2 bg-[#487749] text-white rounded-lg text-sm font-medium hover:bg-[#3d6540] transition-colors"
+                                >
+                                    Filter
+                                </button>
+                            </div>
+                        </div>
 
                         <div className="flex gap-3">
-                            <button
-                                type="button"
-                                onClick={handleApplyFilter}
-                                className="px-4 py-2 bg-[#487749] text-white rounded-lg text-sm font-medium hover:bg-[#3d6540] transition-colors"
-                            >
-                                Filter
-                            </button>
+                            {(
+                                [
+                                    { format: 'pdf', label: 'PDF' },
+                                    { format: 'excel', label: 'Excel' },
+                                    { format: 'word', label: 'Word' },
+                                ] as const
+                            ).map(({ format, label }) => (
+                                <button
+                                    key={format}
+                                    type="button"
+                                    onClick={() => handleExport(format)}
+                                    disabled={!summaryData || exportingFormat !== null}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#E0E0E0] bg-white text-[#487749] text-sm font-medium hover:bg-[#F5F5F5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    {exportingFormat === format ? `${label}…` : label}
+                                </button>
+                            ))}
                         </div>
-                    </div>
-
-                    <div className="flex gap-3 mb-4">
-                        {(
-                            [
-                                { format: 'pdf', label: 'PDF' },
-                                { format: 'excel', label: 'Excel' },
-                                { format: 'word', label: 'Word' },
-                            ] as const
-                        ).map(({ format, label }) => (
-                            <button
-                                key={format}
-                                type="button"
-                                onClick={() => handleExport(format)}
-                                disabled={!summaryData || exportingFormat !== null}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#E0E0E0] bg-white text-[#487749] text-sm font-medium hover:bg-[#F5F5F5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                <Download className="w-4 h-4" />
-                                {exportingFormat === format ? `${label}…` : label}
-                            </button>
-                        ))}
                     </div>
 
                     {(filterError || summaryError) && (
@@ -557,15 +565,31 @@ export const TechnicalAchievementSummary: React.FC = () => {
                                         <th colSpan={2} className={SECTION_TH}>Other Extension Activities</th>
                                     </tr>
                                     <tr>
-                                        <th className={TH}>Metric</th>
-                                        <th className={TH}>Achievement</th>
+                                        <th className={`${TH} text-left`}>Activity Type</th>
+                                        <th className={TH}>Number of Activities</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td className={TD_PUB}>Number of Activities</td>
-                                        <td className={TD}>{formatInt(sections?.otherExtension?.achievement)}</td>
-                                    </tr>
+                                    {(sections?.otherExtension?.rows ?? []).length > 0 ? (
+                                        (sections?.otherExtension?.rows ?? []).map((r) => (
+                                            <tr key={r.activityType}>
+                                                <td className={TD_PUB}>{r.activityType}</td>
+                                                <td className={TD}>{formatInt(r.count)}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={2} className={`${TD_PUB} text-center text-[#757575]`}>
+                                                No other extension activity records in this period.
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {(sections?.otherExtension?.rows ?? []).length > 0 && (
+                                        <tr>
+                                            <td className={`${TD_PUB} font-semibold`}>Total</td>
+                                            <td className={`${TD} font-semibold`}>{formatInt(sections?.otherExtension?.achievement)}</td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>

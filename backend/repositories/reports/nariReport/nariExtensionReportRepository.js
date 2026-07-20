@@ -51,6 +51,7 @@ function mapRecord(record) {
         stateName: record.kvk?.state?.stateName || '',
         districtName: record.kvk?.district?.districtName || '',
         nameOfNutriSmartVillage: record.nameOfNutriSmartVillage || '',
+        activityName: record.activity?.activityName || '',
         titleOrTypeOfActivity: record.nameOfActivity || record.activity?.activityName || '',
         noOfActivities: Number(record.noOfActivities || 0),
         generalM, generalF, generalT,

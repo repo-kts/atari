@@ -39,6 +39,7 @@ function mapRecord(record) {
         aryaCurrentYearId: record.aryaCurrentYearId,
         kvkId: record.kvkId,
         kvkName: record.kvk?.kvkName || '',
+        stateName: record.kvk?.state?.stateName || '',
         enterpriseName: record.enterprise?.enterpriseName || '',
         trainingsConducted: Number(record.trainingsConducted || 0),
         unitsMale,
@@ -62,7 +63,7 @@ async function getAryaCurrentData(kvkId, filters = {}) {
     const rows = await prisma.aryaCurrentYear.findMany({
         where,
         include: {
-            kvk: { select: { kvkName: true } },
+            kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
             enterprise: { select: { enterpriseName: true } },
         },
         orderBy: [{ reportingYear: 'asc' }, { aryaCurrentYearId: 'asc' }],

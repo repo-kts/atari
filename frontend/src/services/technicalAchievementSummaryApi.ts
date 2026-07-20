@@ -70,6 +70,7 @@ export interface TechnicalAchievementSummaryData {
     }
     otherExtension?: {
       achievement: number
+      rows?: Array<{ activityType: string; count: number }>
     }
     seedProduction: {
       target: number

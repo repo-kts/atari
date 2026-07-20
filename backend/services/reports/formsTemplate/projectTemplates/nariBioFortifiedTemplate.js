@@ -18,6 +18,8 @@
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 
+const { renderNariActivitySummary } = require('./nariSummaryTable.js');
+
 function esc(text) {
     if (text === null || text === undefined) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
@@ -145,6 +147,10 @@ function buildTable1(rows, escFn) {
     return `
 <p class="nbf-subtitle">Details of Bio-fortified Crops used in Nutri-Smart Village</p>
 <table class="nbf-table">
+  <colgroup>
+    <col style="width:3%"/><col style="width:11%"/><col style="width:6%"/><col style="width:7%"/><col style="width:7%"/><col style="width:10%"/><col style="width:6%"/><col style="width:4%"/>
+    <col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/><col style="width:3.06%"/>
+  </colgroup>
   <thead>
     <tr>
       <th rowspan="2" class="sno-col">S.no.</th>
@@ -226,8 +232,12 @@ function buildTable2(rows, escFn) {
 
 /* ── main section renderer (bound to ReportTemplateService via .bind(this)) ── */
 
-function renderNariBioFortifiedSection(section, data, sectionId, isFirstSection) {
-    const groups = buildNariBioFortifiedKvkGroups(data);
+function renderNariBioFortifiedSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    if (reportContext.isAggregatedView && data && data.statePayload) {
+        return renderNariActivitySummary(this, section, sectionId, isFirstSection, data.statePayload);
+    }
+    const records = (data && Array.isArray(data.records)) ? data.records : data;
+    const groups = buildNariBioFortifiedKvkGroups(records);
 
     if (groups.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);

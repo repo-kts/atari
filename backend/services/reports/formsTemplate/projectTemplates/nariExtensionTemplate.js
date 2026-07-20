@@ -1,3 +1,5 @@
+const { renderNariActivitySummary } = require('./nariSummaryTable.js');
+
 function esc(text) {
     if (text === null || text === undefined) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
@@ -34,8 +36,13 @@ const STYLE = `
   .nea-table tbody td.l { text-align: left; }
 </style>`;
 
-function renderNariExtensionSection(section, data, sectionId, isFirstSection) {
-    const rows = Array.isArray(data) ? data : (data ? [data] : []);
+function renderNariExtensionSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    if (reportContext.isAggregatedView && data && data.statePayload) {
+        return renderNariActivitySummary(this, section, sectionId, isFirstSection, data.statePayload);
+    }
+    const rows = (data && Array.isArray(data.records))
+        ? data.records
+        : (Array.isArray(data) ? data : (data ? [data] : []));
     if (rows.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }
@@ -72,6 +79,10 @@ function renderNariExtensionSection(section, data, sectionId, isFirstSection) {
     ${STYLE}
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
     <table class="nea-table">
+        <colgroup>
+            <col style="width:4%"/><col style="width:20%"/><col style="width:20%"/><col style="width:8%"/>
+            <col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/><col style="width:3.2%"/>
+        </colgroup>
         <thead>
             <tr>
                 <th rowspan="3">S.no.</th>

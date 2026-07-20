@@ -1,3 +1,5 @@
+const { renderNariActivitySummary } = require('./nariSummaryTable.js');
+
 function esc(text) {
     if (text === null || text === undefined) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
@@ -67,6 +69,10 @@ function buildTable1(rows, escFn) {
     return `
 <p class="nva-subtitle">Details of Value Addition in Nutri-Smart Village</p>
 <table class="nva-table">
+  <colgroup>
+    <col style="width:3%"/><col style="width:15%"/><col style="width:12%"/><col style="width:15%"/><col style="width:10%"/>
+    <col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/><col style="width:3%"/>
+  </colgroup>
   <thead>
     <tr>
       <th rowspan="2">S.no.</th>
@@ -124,7 +130,7 @@ function buildTable2(rows, escFn) {
     const bodyRows = lines.join('');
 
     const emptyRow = lines.length === 0
-        ? `<tr><td colspan="8" class="nva-empty">No records found.</td></tr>`
+        ? `<tr><td colspan="7" class="nva-empty">No records found.</td></tr>`
         : '';
 
     return `
@@ -148,8 +154,13 @@ function buildTable2(rows, escFn) {
 </table>`;
 }
 
-function renderNariValueAdditionSection(section, data, sectionId, isFirstSection) {
-    const rows = Array.isArray(data) ? data : (data ? [data] : []);
+function renderNariValueAdditionSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    if (reportContext.isAggregatedView && data && data.statePayload) {
+        return renderNariActivitySummary(this, section, sectionId, isFirstSection, data.statePayload);
+    }
+    const rows = (data && Array.isArray(data.records))
+        ? data.records
+        : (Array.isArray(data) ? data : (data ? [data] : []));
     if (rows.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }

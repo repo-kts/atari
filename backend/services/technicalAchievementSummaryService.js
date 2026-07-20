@@ -64,15 +64,9 @@ function parseReportingYear(inputYear) {
   return parsed;
 }
 
-function buildFiscalYearRange(reportingYear) {
-  const start = new Date(Date.UTC(reportingYear, 3, 1, 0, 0, 0, 0));
-  const endExclusive = new Date(Date.UTC(reportingYear + 1, 3, 1, 0, 0, 0, 0));
-  return { start, endExclusive };
-}
-
-// Tables tagged with a `reportingYear` date carry a year label (the forms store
-// it as Jan 1 of the chosen year), not an activity date — match them by
-// calendar year, like every other report does, instead of the fiscal window.
+// The whole report matches by calendar year (Jan–Dec): year-labelled tables
+// store Jan 1 of the chosen year, and the activity tables carry real calendar
+// dates the KVKs enter for that year.
 function buildCalendarYearRange(reportingYear) {
   const start = new Date(Date.UTC(reportingYear, 0, 1, 0, 0, 0, 0));
   const endExclusive = new Date(Date.UTC(reportingYear + 1, 0, 1, 0, 0, 0, 0));
@@ -225,9 +219,13 @@ const technicalAchievementSummaryService = {
   getSummary: async (actor, { reportingYear, kvkId }) => {
     const year = parseReportingYear(reportingYear);
     const resolvedKvkId = await resolveKvkFilter(actor, kvkId);
-    const { start, endExclusive } = buildFiscalYearRange(year);
-    const calendarYear = buildCalendarYearRange(year);
-    const reportingYearWindow = { gte: calendarYear.start, lt: calendarYear.endExclusive };
+    // All activity tables (OFT/FLD/Training/Extension/Other Extension) are
+    // matched by calendar year (Jan–Dec), same as the year-labelled tables
+    // (Production/Soil/Publications). KVKs enter these rows on real calendar
+    // dates, so a fiscal (Apr–Mar) window pushed Jan–Mar entries into the
+    // previous report year and undercounted the selected year.
+    const { start, endExclusive } = buildCalendarYearRange(year);
+    const reportingYearWindow = { gte: start, lt: endExclusive };
 
     const baseWhere = buildKvkScopedWhere(actor, resolvedKvkId);
 
@@ -251,7 +249,7 @@ const technicalAchievementSummaryService = {
       getTargetAggregate(baseWhere, year, TARGET_TYPE.SOIL_WATER),
     ]);
 
-    const [oftAgg, fldAgg, trainingAgg, extensionAgg, otherExtensionAgg, seedAgg, plantingAgg, livestockAgg, soilAgg, publicationGroupBy] =
+    const [oftAgg, fldAgg, trainingAgg, extensionAgg, otherExtensionRows, seedAgg, plantingAgg, livestockAgg, soilAgg, publicationGroupBy] =
         await Promise.all([
       prisma.kvkoft.aggregate({
         where: {
@@ -348,13 +346,19 @@ const technicalAchievementSummaryService = {
         },
       }),
 
-      prisma.kvkOtherExtensionActivity.aggregate({
+      // Other Extension Activities have no target or participant demographics
+      // (the form captures neither), so the deepest breakdown possible is by
+      // activity type. Pull each row with its master name + free-text "other"
+      // label and group in JS.
+      prisma.kvkOtherExtensionActivity.findMany({
         where: {
           ...baseWhere,
           startDate: { gte: start, lt: endExclusive },
         },
-        _sum: {
+        select: {
           numberOfActivities: true,
+          activityTypeOther: true,
+          otherExtensionActivity: { select: { otherExtensionName: true, isOther: true } },
         },
       }),
 
@@ -464,6 +468,28 @@ const technicalAchievementSummaryService = {
       .filter((r) => r.count > 0)
       .sort((a, b) => a.publication.localeCompare(b.publication));
 
+    // Group Other Extension Activities by activity type. A row linked to an
+    // "Other" master carries its real label in activityTypeOther.
+    const otherExtensionByType = new Map();
+    for (const row of otherExtensionRows) {
+      const master = row.otherExtensionActivity;
+      const specify = (row.activityTypeOther || '').trim();
+      let label;
+      if (!master) {
+        label = specify || 'Not categorized';
+      } else if (master.isOther) {
+        label = specify ? `${master.otherExtensionName}: ${specify}` : master.otherExtensionName;
+      } else {
+        label = master.otherExtensionName;
+      }
+      otherExtensionByType.set(label, (otherExtensionByType.get(label) || 0) + toNumber(row.numberOfActivities));
+    }
+    const otherExtensionSummaryRows = Array.from(otherExtensionByType.entries())
+      .map(([activityType, count]) => ({ activityType, count }))
+      .filter((r) => r.count > 0)
+      .sort((a, b) => a.activityType.localeCompare(b.activityType));
+    const otherExtensionTotal = otherExtensionSummaryRows.reduce((sum, r) => sum + r.count, 0);
+
     const extensionBreakdown = buildBreakdown({
       generalM: toNumber(extensionAgg?._sum?.farmersGeneralM) + toNumber(extensionAgg?._sum?.officialsGeneralM),
       generalF: toNumber(extensionAgg?._sum?.farmersGeneralF) + toNumber(extensionAgg?._sum?.officialsGeneralF),
@@ -546,7 +572,8 @@ const technicalAchievementSummaryService = {
         },
 
         otherExtension: {
-          achievement: toNumber(otherExtensionAgg?._sum?.numberOfActivities),
+          achievement: otherExtensionTotal,
+          rows: otherExtensionSummaryRows,
         },
 
         seedProduction: {
