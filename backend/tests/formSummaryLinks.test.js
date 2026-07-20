@@ -19,3 +19,12 @@ test('BLA-32 forms expose their canonical Form Summary links', () => {
     assert.equal(entry.path, expectedPath, `${key} should link to its form page`);
   }
 });
+
+test('BLA-32 Staff Transferred counts transfer history for both involved KVKs', () => {
+  const entry = REGISTRY.find((item) => item.key === 'about_kvk.staff_transferred');
+
+  assert.ok(entry);
+  assert.equal(entry.model, 'staffTransferHistory');
+  assert.deepEqual(entry.kvkFields, ['fromKvkId', 'toKvkId']);
+  assert.equal(entry.where, undefined);
+});

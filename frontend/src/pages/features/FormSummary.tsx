@@ -414,10 +414,32 @@ function AllKvkView({ data }: { data: AllKvkFormSummary }) {
     const [formNameFilter, setFormNameFilter] = useState<ColumnFilterState>(EMPTY_FILTER)
     const [kvkNameFilter, setKvkNameFilter] = useState<ColumnFilterState>(EMPTY_FILTER)
 
-    const filtered = useMemo(() => {
+    const searchResults = useMemo(() => {
         const q = query.trim().toLowerCase()
-        let rows = data.kvks
-        if (q) rows = rows.filter(k => k.kvkName.toLowerCase().includes(q))
+        if (!q) return { kvks: data.kvks, modules: data.modules }
+
+        const kvks = data.kvks.filter(k => k.kvkName.toLowerCase().includes(q))
+        const modules = data.modules.filter(
+            m =>
+                m.title.toLowerCase().includes(q) ||
+                m.category.toLowerCase().includes(q) ||
+                (m.subcategory?.toLowerCase().includes(q) ?? false),
+        )
+
+        // Search both dimensions without making one dimension erase a valid
+        // match in the other. "soil", for example, keeps all KVK columns and
+        // narrows the form rows; a KVK name keeps all form rows.
+        if (modules.length > 0 && kvks.length === 0) {
+            return { kvks: data.kvks, modules }
+        }
+        if (kvks.length > 0 && modules.length === 0) {
+            return { kvks, modules: data.modules }
+        }
+        return { kvks, modules }
+    }, [data.kvks, data.modules, query])
+
+    const filtered = useMemo(() => {
+        let rows = searchResults.kvks
         if (progressFilter.size > 0) {
             rows = rows.filter(k =>
                 Array.from(progressFilter).some(bucket => inProgressBucket(k.progress, bucket)),
@@ -425,14 +447,14 @@ function AllKvkView({ data }: { data: AllKvkFormSummary }) {
         }
         rows = applyColumnFilters(rows, ['kvkName'], { kvkName: kvkNameFilter })
         return rows
-    }, [data.kvks, query, progressFilter, kvkNameFilter])
+    }, [searchResults.kvks, progressFilter, kvkNameFilter])
 
     const moduleTitles = useMemo(() => uniqueValuesForField(data.modules, 'title'), [data.modules])
     const kvkNameOptions = useMemo(() => uniqueValuesForField(data.kvks, 'kvkName'), [data.kvks])
 
     const visibleModules = useMemo(
-        () => applyColumnFilters(data.modules, ['title'], { title: formNameFilter }),
-        [data.modules, formNameFilter],
+        () => applyColumnFilters(searchResults.modules, ['title'], { title: formNameFilter }),
+        [searchResults.modules, formNameFilter],
     )
 
     const overall = useMemo(() => {
@@ -486,7 +508,7 @@ function AllKvkView({ data }: { data: AllKvkFormSummary }) {
                             type="text"
                             value={query}
                             onChange={e => setQuery(e.target.value)}
-                            placeholder={view === 'matrix' ? 'Filter KVKs (columns)…' : 'Filter KVKs…'}
+                            placeholder="Filter forms or KVKs…"
                             className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-white border focus:outline-none focus:ring-2"
                             style={{
                                 borderColor: THEME.border,
@@ -1062,8 +1084,9 @@ function ErrorState({ error, isSuperAdmin }: { error: unknown; isSuperAdmin: boo
 
 export const FormSummary: React.FC = () => {
     const { user } = useAuth()
-    // Default to the latest (current) reporting year rather than "All years".
-    const [year, setYear] = useState<number | undefined>(() => new Date().getFullYear())
+    // Show every submitted record by default. Users can still narrow the
+    // summary to a reporting year explicitly from the selector.
+    const [year, setYear] = useState<number | undefined>(undefined)
     const { data, isPending, isFetching, isError, error } = useFormSummary(
         undefined,
         year,

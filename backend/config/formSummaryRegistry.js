@@ -12,9 +12,11 @@
  *   moduleCode:  permission gate; row hidden for users lacking VIEW on this code
  *   model:       Prisma delegate name (prisma[model])
  *   path:        browser route for the form — lets the summary tile link to it
- *   where:       optional extra filter merged into groupBy (e.g. transferStatus)
+ *   where:       optional extra filter merged into the count query
+ *   kvkFields:   optional KVK foreign-key fields when a model has no `kvkId`
  *
- * All listed models have `kvkId Int` — verified via grep of prisma/.
+ * Most listed models have `kvkId Int`. Entries such as staff-transfer history
+ * can declare multiple KVK fields so the same form-page scope is respected.
  * To add a new form: append one entry. Nothing else needs to change.
  */
 
@@ -22,7 +24,7 @@ const REGISTRY = [
   // ── About KVK ────────────────────────────────────────────────────────────
   { key: 'about_kvk.bank_accounts', title: 'Bank Account Details', category: 'About KVK', moduleCode: 'about_kvks_bank_account_details', model: 'kvkBankAccount', path: '/forms/about-kvk/bank-account' },
   { key: 'about_kvk.employees', title: 'Employee Details', category: 'About KVK', moduleCode: 'about_kvks_employee_details', model: 'kvkStaff', where: { transferStatus: 'ACTIVE' }, path: '/forms/about-kvk/employee-details' },
-  { key: 'about_kvk.staff_transferred', title: 'Staff Transferred', category: 'About KVK', moduleCode: 'about_kvks_staff_details', model: 'kvkStaff', where: { NOT: { transferStatus: 'ACTIVE' } }, path: '/forms/about-kvk/staff-transferred' },
+  { key: 'about_kvk.staff_transferred', title: 'Staff Transferred', category: 'About KVK', moduleCode: 'about_kvks_staff_details', model: 'staffTransferHistory', kvkFields: ['fromKvkId', 'toKvkId'], path: '/forms/about-kvk/staff-transferred' },
   { key: 'about_kvk.infrastructure', title: 'Infrastructure Details', category: 'About KVK', moduleCode: 'about_kvks_infrastructure_details', model: 'kvkInfrastructure', path: '/forms/about-kvk/infrastructure' },
   { key: 'about_kvk.vehicles', title: 'View Vehicles', category: 'About KVK', moduleCode: 'about_kvks_view_vehicles', model: 'kvkVehicle', path: '/forms/about-kvk/vehicles' },
   { key: 'about_kvk.vehicle_details', title: 'Vehicle Details', category: 'About KVK', moduleCode: 'about_kvks_vehicle_details', model: 'kvkVehicleDetail', path: '/forms/about-kvk/vehicle-details' },

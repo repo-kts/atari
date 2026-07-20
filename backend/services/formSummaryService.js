@@ -30,6 +30,7 @@ const YEAR_FIELD_PRIORITY = [
   'publicationDate',
   'awardDate',
   'trialDate',
+  'transferDate',
   'dateOfOutbreak',
   'dateOfCompletion',
 ];
@@ -87,6 +88,11 @@ function isValidDelegate(modelName) {
  */
 async function countForEntry(entry, scopeWhere, dateRange) {
   if (!isValidDelegate(entry.model)) return new Map();
+
+  if (Array.isArray(entry.kvkFields) && entry.kvkFields.length > 0) {
+    return countForMultiKvkEntry(entry, scopeWhere, dateRange);
+  }
+
   const where = { ...scopeWhere, ...(entry.where || {}) };
   // Apply the year filter only when the model has a date column to bind to;
   // static forms (no such column) are left unfiltered.
@@ -108,6 +114,48 @@ async function countForEntry(entry, scopeWhere, dateRange) {
     return m;
   } catch (err) {
     console.error(`[formSummary] groupBy failed for ${entry.model}:`, err.message);
+    return new Map();
+  }
+}
+
+/**
+ * Count records whose form scope can involve more than one KVK foreign key.
+ * Staff transfers, for example, are visible to both the source and destination
+ * KVK and therefore contribute one entry to each involved KVK's summary.
+ */
+async function countForMultiKvkEntry(entry, scopeWhere, dateRange) {
+  const kvkScope = scopeWhere?.kvkId;
+  const constraints = [];
+
+  if (entry.where) constraints.push(entry.where);
+  if (kvkScope !== undefined) {
+    constraints.push({
+      OR: entry.kvkFields.map(field => ({ [field]: kvkScope })),
+    });
+  }
+
+  if (dateRange) {
+    const yearField = resolveYearField(entry.model);
+    if (yearField) constraints.push({ [yearField]: dateRange });
+  }
+
+  const where = constraints.length > 0 ? { AND: constraints } : {};
+  const select = Object.fromEntries(entry.kvkFields.map(field => [field, true]));
+
+  try {
+    const rows = await prisma[entry.model].findMany({ where, select });
+    const counts = new Map();
+    for (const row of rows) {
+      const involvedKvkIds = new Set(
+        entry.kvkFields.map(field => row[field]).filter(id => id != null),
+      );
+      for (const kvkId of involvedKvkIds) {
+        counts.set(kvkId, (counts.get(kvkId) || 0) + 1);
+      }
+    }
+    return counts;
+  } catch (err) {
+    console.error(`[formSummary] multi-KVK count failed for ${entry.model}:`, err.message);
     return new Map();
   }
 }
@@ -199,7 +247,14 @@ async function getAllKvkSummary(actor, dateRange = null) {
     };
   }
 
-  const counts = await batchedCount(REGISTRY, listWhere, dateRange);
+  // Registry models are scoped by their KVK foreign keys, while `listWhere`
+  // targets the Kvk model itself (stateId, zoneId, etc.). Resolve the allowed
+  // KVK IDs first so every form count uses the same actor scope correctly.
+  const counts = await batchedCount(
+    REGISTRY,
+    { kvkId: { in: kvks.map(kvk => kvk.kvkId) } },
+    dateRange,
+  );
   const total = REGISTRY.length;
 
   const kvkRows = kvks.map(kvk => {
