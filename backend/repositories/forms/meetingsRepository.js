@@ -8,9 +8,27 @@ const parseDateOrNow = (dateStr) => {
     return isNaN(d) ? new Date() : d;
 };
 
-const parseOptionalActionStatus = (value) => {
-    if (value === 'YES' || value === 'NO') return value;
-    return null;
+const ACTION_STATUSES = new Set(['YES', 'NO', 'IN_COMPLIANCE']);
+
+const resolveSacActionStatus = (data, fallback = 'NO') => {
+    // Backward compatibility for payloads produced while In Compliance was a
+    // separate dropdown. New clients send IN_COMPLIANCE as actionTaken.
+    if (data && data.inCompliance === 'YES') return 'IN_COMPLIANCE';
+    if (data && ACTION_STATUSES.has(data.actionTaken)) return data.actionTaken;
+    return fallback;
+};
+
+const mapSacMeeting = (item) => {
+    const actionTaken = item.inCompliance === 'YES'
+        ? 'IN_COMPLIANCE'
+        : item.actionTaken;
+    return {
+        ...item,
+        actionTaken,
+        noOfParticipantsPerf: item.numberOfParticipants,
+        totalStatutoryMembersPresent: item.statutoryMembersPresent,
+        file: item.uploadedFile
+    };
 };
 
 const meetingsRepository = {
@@ -27,8 +45,7 @@ const meetingsRepository = {
                     numberOfParticipants: parseInt(data.numberOfParticipants) || 0,
                     statutoryMembersPresent: parseInt(data.statutoryMembersPresent) || 0,
                     salientRecommendations: data.salientRecommendations || '',
-                    actionTaken: data.actionTaken === 'YES' ? 'YES' : 'NO',
-                    inCompliance: parseOptionalActionStatus(data.inCompliance),
+                    actionTaken: resolveSacActionStatus(data),
                     reason: data.reason || '',
                     uploadedFile: Array.isArray(data.uploadedFile) ? data.uploadedFile[0] : (data.uploadedFile || ''),
                 }
@@ -47,12 +64,7 @@ const meetingsRepository = {
                 orderBy: buildFormListOrderBy(user, { kvkRelation: 'kvk', createdAt: true, tiebreak: 'sacMeetingId' })
             });
 
-            return data.map(item => ({
-                ...item,
-                noOfParticipantsPerf: item.numberOfParticipants,
-                totalStatutoryMembersPresent: item.statutoryMembersPresent,
-                file: item.uploadedFile
-            }));
+            return data.map(mapSacMeeting);
         },
         findById: async (id, user) => {
             const where = { sacMeetingId: parseInt(id) };
@@ -64,12 +76,7 @@ const meetingsRepository = {
                 include: { kvk: { select: { kvkName: true } } }
             });
             if (!item) return null;
-            return {
-                ...item,
-                noOfParticipantsPerf: item.numberOfParticipants,
-                totalStatutoryMembersPresent: item.statutoryMembersPresent,
-                file: item.uploadedFile
-            };
+            return mapSacMeeting(item);
         },
         update: async (id, data, user) => {
             const where = { sacMeetingId: parseInt(id) };
@@ -85,8 +92,11 @@ const meetingsRepository = {
             if (data.numberOfParticipants !== undefined) updateData.numberOfParticipants = parseInt(data.numberOfParticipants);
             if (data.statutoryMembersPresent !== undefined) updateData.statutoryMembersPresent = parseInt(data.statutoryMembersPresent);
             if (data.salientRecommendations !== undefined) updateData.salientRecommendations = data.salientRecommendations;
-            if (data.actionTaken !== undefined) updateData.actionTaken = data.actionTaken === 'YES' ? 'YES' : 'NO';
-            if (data.inCompliance !== undefined) updateData.inCompliance = parseOptionalActionStatus(data.inCompliance);
+            if (data.actionTaken !== undefined || data.inCompliance === 'YES') {
+                updateData.actionTaken = resolveSacActionStatus(data, existing.actionTaken);
+                // Clear any legacy selection after it has been merged into Action Taken.
+                updateData.inCompliance = null;
+            }
             if (data.reason !== undefined) updateData.reason = data.reason;
             if (data.uploadedFile !== undefined) {
                 updateData.uploadedFile = Array.isArray(data.uploadedFile) ? data.uploadedFile[0] : (data.uploadedFile || '');

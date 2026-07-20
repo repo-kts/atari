@@ -1901,7 +1901,6 @@ const reportConfig = {
                 { dbField: 'statutoryMembersPresent', displayName: 'Total statutory members present' },
                 { dbField: 'salientRecommendations', displayName: 'Salient recommendations' },
                 { dbField: 'actionTaken', displayName: 'Action Taken' },
-                { dbField: 'inCompliance', displayName: 'In Compliance' },
                 { dbField: 'reason', displayName: 'If not, State reason' },
             ],
         },

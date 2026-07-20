@@ -1677,11 +1677,13 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 6,
     },
     [FIELD_NAMES.ACTION_TAKEN]: {
-        extractor: (item: any) => item.actionTaken || null,
-        priority: 6,
-    },
-    [FIELD_NAMES.IN_COMPLIANCE]: {
-        extractor: (item: any) => item.inCompliance || null,
+        extractor: (item: any) => {
+            const action = item.inCompliance === 'YES' ? 'IN_COMPLIANCE' : item.actionTaken
+            if (action === 'YES') return 'Yes'
+            if (action === 'NO') return 'No'
+            if (action === 'IN_COMPLIANCE') return 'In Compliance'
+            return null
+        },
         priority: 6,
     },
     [FIELD_NAMES.REASON]: {

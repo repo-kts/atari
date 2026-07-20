@@ -15,10 +15,10 @@ interface MeetingFormsProps {
     setFormData: (data: any) => void
 }
 
-// Yes/No options
-const YES_NO_OPTIONS = [
+const SAC_ACTION_OPTIONS = [
     { value: 'YES', label: 'Yes' },
     { value: 'NO', label: 'No' },
+    { value: 'IN_COMPLIANCE', label: 'In Compliance' },
 ]
 
 export const MeetingForms: React.FC<MeetingFormsProps> = ({
@@ -171,15 +171,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                                 required
                                 value={formData.actionTaken ?? ''}
                                 onChange={handleFieldChange('actionTaken')}
-                                options={YES_NO_OPTIONS}
-                                placeholder="Select"
-                            />
-
-                            <FormSelect
-                                label="In Compliance"
-                                value={formData.inCompliance ?? ''}
-                                onChange={handleFieldChange('inCompliance')}
-                                options={YES_NO_OPTIONS}
+                                options={SAC_ACTION_OPTIONS}
                                 placeholder="Select"
                             />
 
