@@ -125,7 +125,7 @@ export const AllMasters: React.FC = () => {
             return 'basic'
         }
 
-        // About KVK (employee, bank, infrastructure, land, assets)
+        // About KVK (employee, bank, infrastructure, assets)
         if (startsWithAny([
             '/all-master/staff-category',
             '/all-master/job-type',
@@ -135,7 +135,7 @@ export const AllMasters: React.FC = () => {
             '/all-master/discipline',
             '/all-master/bank-account-type',
             '/all-master/infrastructure-master',
-            '/all-master/land-item-master',
+            // BLA-49: '/all-master/land-item-master' is intentionally hidden.
             '/all-master/vehicle-type',
             '/all-master/equipment-type',
             '/all-master/equipment-master',

@@ -284,17 +284,19 @@ export const allMastersRoutes: RouteConfig[] = [
         fields: FIELD_GROUPS.TRAINING_CLIENTELE_MASTER,
         moduleCode: 'all_masters_infrastructure_master',
     },
-    {
-        path: ENTITY_PATHS.LAND_ITEM_MASTER,
-        title: 'Land Item Master',
-        category: 'All Masters',
-        subcategory: GROUP.ABOUT_KVK.label,
-        parent: '/all-master',
-        subcategoryPath: GROUP.ABOUT_KVK.path,
-        siblings: MASTER_SIBLING_GROUPS.INFRASTRUCTURE_LAND_MASTERS,
-        fields: FIELD_GROUPS.LAND_ITEM_MASTER,
-        moduleCode: 'all_masters_infrastructure_master',
-    },
+    // BLA-49: Land Item Master is intentionally hidden from All Masters.
+    // Its form, API, seed data, model, and historical records are retained.
+    // {
+    //     path: ENTITY_PATHS.LAND_ITEM_MASTER,
+    //     title: 'Land Item Master',
+    //     category: 'All Masters',
+    //     subcategory: GROUP.ABOUT_KVK.label,
+    //     parent: '/all-master',
+    //     subcategoryPath: GROUP.ABOUT_KVK.path,
+    //     siblings: MASTER_SIBLING_GROUPS.INFRASTRUCTURE_LAND_MASTERS,
+    //     fields: FIELD_GROUPS.LAND_ITEM_MASTER,
+    //     moduleCode: 'all_masters_infrastructure_master',
+    // },
     {
         path: ENTITY_PATHS.VEHICLE_PRESENT_STATUS,
         title: 'Asset Status Master',

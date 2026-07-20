@@ -23,11 +23,12 @@ const sections: FeatureSection[] = [
         ],
     },
     {
-        title: 'Infrastructure & Land Master',
+        title: 'Infrastructure Master',
         icon: <Building2 className="w-5 h-5" />,
         items: [
             { label: 'Infrastructure Master', path: '/all-master/infrastructure-master' },
-            { label: 'Land Item Master', path: '/all-master/land-item-master' },
+            // BLA-49: Land Item Master is intentionally hidden.
+            // { label: 'Land Item Master', path: '/all-master/land-item-master' },
         ],
     },
     {
@@ -46,7 +47,7 @@ export const AboutKvkMastersTab: React.FC = () => {
     return (
         <FeatureTabLayout
             title="About KVK Master"
-            description="Manage employee, bank, infrastructure, land, and asset master data"
+            description="Manage employee, bank, infrastructure, and asset master data"
             sections={sections}
         />
     )

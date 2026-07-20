@@ -51,10 +51,10 @@ export const MASTER_SIBLING_GROUPS = {
         ENTITY_PATHS.BANK_ACCOUNT_TYPE,
     ],
 
-    // Tile: "Infrastructure & Land"
+    // Tile: "Infrastructure"
     INFRASTRUCTURE_LAND_MASTERS: [
         ENTITY_PATHS.INFRASTRUCTURE_MASTER,
-        ENTITY_PATHS.LAND_ITEM_MASTER,
+        // BLA-49: ENTITY_PATHS.LAND_ITEM_MASTER is intentionally hidden.
     ],
 
     // Tile: "Assets & Equipment"

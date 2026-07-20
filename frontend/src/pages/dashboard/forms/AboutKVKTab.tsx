@@ -32,7 +32,7 @@ const sections: FeatureSection[] = [
         icon: <Map className="w-5 h-5" />,
         items: [
             { label: 'Infrastructure Details', path: '/forms/about-kvk/infrastructure' },
-            // BLA-49: Land Details is hidden; Land Item Master remains available.
+            // BLA-49: Land Details is hidden together with its Land Item Master entry.
             // { label: 'Land Details', path: '/forms/about-kvk/land-details' },
             { label: 'Staff Quarters', path: '/forms/performance/infrastructure/staff-quarters', moduleCode: 'performance_indicators_staff_quarters' },
         ],

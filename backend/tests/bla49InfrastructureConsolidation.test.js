@@ -41,7 +41,7 @@ test('BLA-49 infrastructure form and list expose the requested fields', () => {
     );
 });
 
-test('BLA-49 hides only the Land Details UI/report while retaining its master and implementation', () => {
+test('BLA-49 hides Land Details and Land Item Master navigation while retaining their implementations', () => {
     const { getSectionConfig } = require('../config/reportConfig.js');
     const { REPORT_INDEX_TAXONOMY } = require('../config/reportIndexTaxonomy.js');
     const infrastructure = getSectionConfig('1.5');
@@ -64,7 +64,13 @@ test('BLA-49 hides only the Land Details UI/report while retaining its master an
     const routes = read('backend/routes/forms/aboutKvkRoutes.js');
     const form = read('frontend/src/pages/dashboard/shared/forms/AboutKvkForms.tsx');
     const masters = read('frontend/src/config/route/allMasters.ts');
+    const mastersTab = read('frontend/src/pages/dashboard/masters/AboutKvkMastersTab.tsx');
+    const masterForm = read('frontend/src/pages/dashboard/shared/forms/OtherMastersForms.tsx');
+    const masterApi = read('frontend/src/services/otherMastersApi.ts');
     assert.match(routes, /router\.get\('\/land-details'/);
     assert.match(form, /entityType === ENTITY_TYPES\.KVK_LAND_DETAILS/);
-    assert.match(masters, /ENTITY_PATHS\.LAND_ITEM_MASTER/);
+    assert.match(masters, /BLA-49: Land Item Master is intentionally hidden/);
+    assert.match(mastersTab, /\/\/ \{ label: 'Land Item Master'/);
+    assert.match(masterForm, /entityType === ENTITY_TYPES\.LAND_ITEM_MASTER/);
+    assert.match(masterApi, /\/land-item-master/);
 });
