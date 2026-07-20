@@ -28,11 +28,12 @@ const sections: FeatureSection[] = [
         ],
     },
     {
-        title: 'Land & Infrastructure Information',
+        title: 'Infrastructure Information',
         icon: <Map className="w-5 h-5" />,
         items: [
             { label: 'Infrastructure Details', path: '/forms/about-kvk/infrastructure' },
-            { label: 'Land Details', path: '/forms/about-kvk/land-details' },
+            // BLA-49: Land Details is hidden; Land Item Master remains available.
+            // { label: 'Land Details', path: '/forms/about-kvk/land-details' },
             { label: 'Staff Quarters', path: '/forms/performance/infrastructure/staff-quarters', moduleCode: 'performance_indicators_staff_quarters' },
         ],
     },

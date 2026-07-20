@@ -28,6 +28,9 @@ const CUSTOM_LABELS: Record<string, string> = {
     'totalFemale': 'Total Female',
     'nameOfHonbleMinister': 'Name of Dignitary',
     'webPortalName': 'Name of Web portal',
+    'infraMasterName': 'Name of Infrastructure',
+    'underUse': 'Under use or not',
+    'totalAreaSqM': 'Total Area (m²)',
 }
 
 export function formatHeaderLabel(field: string): string {

@@ -1,0 +1,62 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const backendRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(backendRoot, '..');
+const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+
+test('BLA-49 adds total area and optional description to infrastructure storage', () => {
+    const schema = read('backend/prisma/kvk/about-kvk/infra_schema.prisma');
+    const migration = read('backend/prisma/migrations/20260721010000_consolidate_land_into_infrastructure/migration.sql');
+
+    assert.match(schema, /totalAreaSqM\s+Float\s+@default\(0\)\s+@map\("total_area_sqm"\)/);
+    assert.match(schema, /description\s+String\?/);
+    assert.match(migration, /ADD COLUMN "total_area_sqm" DOUBLE PRECISION NOT NULL DEFAULT 0/);
+    assert.match(migration, /ADD COLUMN "description" TEXT/);
+    assert.doesNotMatch(migration, /DROP TABLE|DELETE FROM "kvk_land_details"/);
+});
+
+test('BLA-49 infrastructure form and list expose the requested fields', () => {
+    const form = read('frontend/src/pages/dashboard/shared/forms/AboutKvkForms.tsx');
+    const fields = read('frontend/src/constants/fieldNames.ts');
+
+    assert.match(form, /label="Total Area \(m²\)"[\s\S]*?required/);
+    assert.match(form, /label="Description"[\s\S]*?placeholder="Enter description \(optional\)"/);
+
+    const group = fields.match(/INFRASTRUCTURE_DETAILS:\s*\[([\s\S]*?)\]\s*as const/);
+    assert.ok(group, 'Infrastructure list field group should exist');
+    assert.deepEqual(
+        [...group[1].matchAll(/FIELD_NAMES\.([A-Z0-9_]+)/g)].map((match) => match[1]),
+        ['KVK', 'INFRA_MASTER_NAME', 'UNDER_USE', 'SOURCE_OF_FUNDING', 'FUNDING_AGENCY_SPECIFY', 'TOTAL_AREA_SQ_M'],
+    );
+});
+
+test('BLA-49 hides only the Land Details UI/report while retaining its master and implementation', () => {
+    const { getSectionConfig } = require('../config/reportConfig.js');
+    const { REPORT_INDEX_TAXONOMY } = require('../config/reportIndexTaxonomy.js');
+    const infrastructure = getSectionConfig('1.5');
+    const reportFields = infrastructure.fields.map((field) => field.displayName);
+
+    assert.deepEqual(reportFields, [
+        'KVK',
+        'Name of Infrastructure',
+        'Under use or not',
+        'Source of Funding',
+        'Funding Agency Name',
+        'Total Area (m²)',
+    ]);
+    assert.equal(getSectionConfig('1.10'), undefined);
+    assert.equal(
+        REPORT_INDEX_TAXONOMY['1'].groups.flatMap((group) => group.features).some((feature) => feature.sectionId === '1.10'),
+        false,
+    );
+
+    const routes = read('backend/routes/forms/aboutKvkRoutes.js');
+    const form = read('frontend/src/pages/dashboard/shared/forms/AboutKvkForms.tsx');
+    const masters = read('frontend/src/config/route/allMasters.ts');
+    assert.match(routes, /router\.get\('\/land-details'/);
+    assert.match(form, /entityType === ENTITY_TYPES\.KVK_LAND_DETAILS/);
+    assert.match(masters, /ENTITY_PATHS\.LAND_ITEM_MASTER/);
+});

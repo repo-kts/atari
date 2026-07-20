@@ -29,7 +29,7 @@ async function getKvkInfrastructure(kvkId, filters = {}) {
         include: {
             kvk: { select: { kvkId: true, kvkName: true } },
             infraMaster: {
-                select: { infraMasterId: true, name: true },
+                select: { infraMasterId: true, name: true, isOther: true },
             },
         },
         orderBy: { createdAt: 'asc' },
@@ -39,6 +39,10 @@ async function getKvkInfrastructure(kvkId, filters = {}) {
     return rows.map((r) => ({
         ...r,
         kvkName: r.kvk?.kvkName || '',
+        infrastructureName: r.infraMaster?.isOther && r.specifyName
+            ? r.specifyName
+            : (r.infraMaster?.name || r.specifyName || ''),
+        sourceOfFunding: r.sourceOfFundingOther || r.sourceOfFunding,
     }));
 }
 

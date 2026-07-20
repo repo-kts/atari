@@ -171,10 +171,10 @@ CFLD: [
         ROUTE_PATHS.PERFORMANCE.INFRASTRUCTURE.RAINWATER_HARVESTING,
     ],
 
-    // About KVK - Infrastructure & Land Details Siblings (Staff Quarters relocated here from Performance Indicators)
+    // About KVK - Infrastructure siblings (Staff Quarters relocated here from Performance Indicators)
     ABOUT_KVK_INFRASTRUCTURE: [
         ENTITY_PATHS.KVK_INFRASTRUCTURE,
-        ENTITY_PATHS.KVK_LAND_DETAILS,
+        // BLA-49: ENTITY_PATHS.KVK_LAND_DETAILS is intentionally hidden.
         ROUTE_PATHS.PERFORMANCE.INFRASTRUCTURE.STAFF_QUARTERS,
     ],
 

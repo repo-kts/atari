@@ -86,18 +86,20 @@ export const aboutKvkRoutes: RouteConfig[] = [
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_infrastructure_details',
     },
-    {
-        path: ENTITY_PATHS.KVK_LAND_DETAILS,
-        title: 'Land Details',
-        description: 'Manage KVK land parcels and area',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: ROUTE_SIBLING_GROUPS.ABOUT_KVK_INFRASTRUCTURE,
-        fields: FIELD_GROUPS.LAND_DETAILS,
-        canCreate: ['kvk_admin', 'kvk_user'],
-        moduleCode: 'about_kvks_land_details',
-    },
+    // BLA-49: Land Details is intentionally hidden from About KVK.
+    // Its master, entity implementation, API, and historical data are retained.
+    // {
+    //     path: ENTITY_PATHS.KVK_LAND_DETAILS,
+    //     title: 'Land Details',
+    //     description: 'Manage KVK land parcels and area',
+    //     category: 'Form Management',
+    //     subcategory: 'About KVK',
+    //     parent: '/forms/about-kvk',
+    //     siblings: ROUTE_SIBLING_GROUPS.ABOUT_KVK_INFRASTRUCTURE,
+    //     fields: FIELD_GROUPS.LAND_DETAILS,
+    //     canCreate: ['kvk_admin', 'kvk_user'],
+    //     moduleCode: 'about_kvks_land_details',
+    // },
 
     // Vehicles - siblings
     {

@@ -9,11 +9,13 @@ model KvkInfrastructure {
   completedRoofLevel   Boolean                 @map("completed_roof_level")
   totallyCompleted     Boolean                 @map("totally_completed")
   plinthAreaSqM        Float                   @default(0) @map("plinth_area_sqm")
+  totalAreaSqM         Float                   @default(0) @map("total_area_sqm")
   underUse             Boolean                 @map("under_use")
   sourceOfFunding      String                  @map("source_of_funding")
   // "Other" free-text: only meaningful when the chosen funding-source row is flagged isOther.
   sourceOfFundingOther String?                 @map("source_of_funding_other")
   fundingAgencyName    String?                 @map("funding_agency_name")
+  description          String?
   createdAt            DateTime                @default(now()) @map("created_at")
   updatedAt            DateTime                @updatedAt @map("updated_at")
   infraMaster          KvkInfrastructureMaster @relation(fields: [infraMasterId], references: [infraMasterId])

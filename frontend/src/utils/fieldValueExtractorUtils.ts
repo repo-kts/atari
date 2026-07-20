@@ -878,7 +878,9 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
 
     [FIELD_NAMES.INFRA_MASTER_NAME]: {
         extractor: (item: any) => {
+            if (item.infraMaster?.isOther && item.specifyName) return item.specifyName;
             if (item.infraMaster?.name) return item.infraMaster.name;
+            if (item.specifyName) return item.specifyName;
             if (item.infraMasterName) return item.infraMasterName;
             return null;
         },
@@ -928,6 +930,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             if (item.plinthAreaSqM !== null && item.plinthAreaSqM !== undefined) {
                 return String(item.plinthAreaSqM);
+            }
+            return null;
+        },
+    },
+    [FIELD_NAMES.TOTAL_AREA_SQ_M]: {
+        extractor: (item: any) => {
+            if (item.totalAreaSqM !== null && item.totalAreaSqM !== undefined) {
+                return String(item.totalAreaSqM);
             }
             return null;
         },

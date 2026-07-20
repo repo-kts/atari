@@ -138,15 +138,17 @@ export interface KvkInfrastructure {
     completedRoofLevel: boolean;
     totallyCompleted: boolean;
     plinthAreaSqM: number;
+    totalAreaSqM: number;
     underUse: boolean;
     sourceOfFunding: string;
     // Free-text specify value shown when the chosen funding source is flagged "Other".
     sourceOfFundingOther?: string | null;
     fundingAgencyName?: string | null;
+    description?: string | null;
     createdAt?: string;
     updatedAt?: string;
     kvk?: { kvkId: number; kvkName: string };
-    infraMaster?: { infraMasterId: number; name: string };
+    infraMaster?: { infraMasterId: number; name: string; isOther?: boolean };
 }
 
 export interface KvkVehicle {

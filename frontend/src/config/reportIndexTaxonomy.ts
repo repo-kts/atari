@@ -49,10 +49,11 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                 ],
             },
             {
-                label: 'Land & Infrastructure Information',
+                label: 'Infrastructure Information',
                 features: [
                     { label: 'Infrastructure Details', sectionId: '1.5' },
-                    { label: 'Land Details', sectionId: '1.10' },
+                    // BLA-49: Land Details report section is intentionally hidden.
+                    // { label: 'Land Details', sectionId: '1.10' },
                     { label: 'Staff Quarters Details', sectionId: '4.13' },
                 ],
             },

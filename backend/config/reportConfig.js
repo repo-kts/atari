@@ -52,7 +52,7 @@ const reportConfig = {
                 { dbField: 'hostFax', displayName: 'Host Fax', optional: true },
                 { dbField: 'hostEmail', displayName: 'Host Email', optional: true },
                 { dbField: 'yearOfSanction', displayName: 'Year of Sanction' },
-                { dbField: 'landDetails', displayName: 'Land Details', type: 'raw', optional: true },
+                // BLA-49: { dbField: 'landDetails', displayName: 'Land Details', type: 'raw', optional: true },
             ],
         },
         {
@@ -116,16 +116,12 @@ const reportConfig = {
                 dateFields: ['createdAt'],
             },
             fields: [
-                {dbField: 'kvkName', displayName: 'KVK Name'},
-                { dbField: 'infraMaster.name', displayName: 'Infrastructure Name' },
-                { dbField: 'notYetStarted', displayName: 'Not Yet Started', type: 'boolean' },
-                { dbField: 'completedPlinthLevel', displayName: 'Completed Plinth Level', type: 'boolean' },
-                { dbField: 'completedLintelLevel', displayName: 'Completed Lintel Level', type: 'boolean' },
-                { dbField: 'completedRoofLevel', displayName: 'Completed Roof Level', type: 'boolean' },
-                { dbField: 'totallyCompleted', displayName: 'Totally Completed', type: 'boolean' },
-                { dbField: 'plinthAreaSqM', displayName: 'Plinth Area (sq m)' },
-                { dbField: 'underUse', displayName: 'Under Use', type: 'boolean' },
+                { dbField: 'kvkName', displayName: 'KVK' },
+                { dbField: 'infrastructureName', displayName: 'Name of Infrastructure' },
+                { dbField: 'underUse', displayName: 'Under use or not', type: 'boolean' },
                 { dbField: 'sourceOfFunding', displayName: 'Source of Funding' },
+                { dbField: 'fundingAgencyName', displayName: 'Funding Agency Name' },
+                { dbField: 'totalAreaSqM', displayName: 'Total Area (m²)' },
             ],
         },
         {
@@ -219,6 +215,7 @@ const reportConfig = {
                 { dbField: 'presentStatus', displayName: 'Present status' },
             ],
         },
+        /* BLA-49: Land Details is intentionally excluded from generated reports.
         {
             id: '1.10',
             title: 'Land Details',
@@ -238,6 +235,7 @@ const reportConfig = {
                 { dbField: 'areaHa', displayName: 'Area (ha)' },
             ],
         },
+        */
         {
             id: '1.11',
             title: 'Staff Transferred',

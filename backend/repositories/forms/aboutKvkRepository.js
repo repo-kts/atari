@@ -135,7 +135,7 @@ const ENTITY_CONFIG = {
         nameField: 'infraId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            infraMaster: { select: { infraMasterId: true, name: true } }
+            infraMaster: { select: { infraMasterId: true, name: true, isOther: true } }
         }
     },
     'kvk-vehicles': {
@@ -874,10 +874,12 @@ const KVK_INFRA_ALLOWED_FIELDS = [
     'completedRoofLevel',
     'totallyCompleted',
     'plinthAreaSqM',
+    'totalAreaSqM',
     'underUse',
     'sourceOfFunding',
     'sourceOfFundingOther',
     'fundingAgencyName',
+    'description',
 ];
 
 function isLegacyOtherValue(value) {
@@ -1228,6 +1230,17 @@ function sanitizeData(entityName, data) {
         if (sanitized.plinthAreaSqM !== undefined) {
             const numericValue = Number(safeGet(data, 'plinthAreaSqM'));
             sanitized.plinthAreaSqM = Number.isNaN(numericValue) ? 0 : numericValue;
+        }
+        if (sanitized.totalAreaSqM !== undefined) {
+            const numericValue = Number(safeGet(data, 'totalAreaSqM'));
+            if (!Number.isFinite(numericValue) || numericValue < 0) {
+                throw new ValidationError('Total area must be a non-negative number', 'totalAreaSqM');
+            }
+            sanitized.totalAreaSqM = numericValue;
+        }
+        if (sanitized.description !== undefined) {
+            const value = sanitizeString(safeGet(data, 'description'), { allowEmpty: true });
+            sanitized.description = value && value.trim() ? value.trim() : null;
         }
     }
 
