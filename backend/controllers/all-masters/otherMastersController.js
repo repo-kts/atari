@@ -362,6 +362,16 @@ exports.updateImpactSpecificArea = update('impact-specific-area-master');
 exports.deleteImpactSpecificArea = deleteEntity('impact-specific-area-master');
 
 // ============================================
+// Demo Unit Name Master Controllers
+// ============================================
+
+exports.getAllDemoUnitNames = getAll('demo-unit-name-master');
+exports.getDemoUnitNameById = getById('demo-unit-name-master');
+exports.createDemoUnitName = create('demo-unit-name-master');
+exports.updateDemoUnitName = update('demo-unit-name-master');
+exports.deleteDemoUnitName = deleteEntity('demo-unit-name-master');
+
+// ============================================
 // Enterprise Type Master Controllers
 // ============================================
 

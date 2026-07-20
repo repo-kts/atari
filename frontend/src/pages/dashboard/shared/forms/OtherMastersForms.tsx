@@ -519,6 +519,18 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                 </>
             )}
 
+            {entityType === ENTITY_TYPES.DEMO_UNIT_NAME && (
+                <FormInput
+                    label="Name of Demo Unit"
+                    required
+                    value={formData.demoUnitName ?? ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, demoUnitName: e.target.value }))
+                    }}
+                    placeholder="Enter demo unit name"
+                />
+            )}
+
             {entityType === ENTITY_TYPES.ENTERPRISE_TYPE && (
                 <>
                     <FormInput label="Enterprise Type Name" required value={formData.enterpriseTypeName ?? ''} onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => { setFormData((prev: any) => ({ ...prev, enterpriseTypeName: e.target.value })) }, [setFormData])} placeholder="Enter enterprise type name" />

@@ -263,6 +263,16 @@ router.put('/impact-specific-area-master/:id', requirePermission('all_masters_im
 router.delete('/impact-specific-area-master/:id', requirePermission('all_masters_impact_area_master', 'DELETE'), otherMastersController.deleteImpactSpecificArea);
 
 // ============================================
+// Demo Unit Name Master Routes
+// ============================================
+
+router.get('/demo-unit-name-master', otherMastersController.getAllDemoUnitNames);
+router.get('/demo-unit-name-master/:id', otherMastersController.getDemoUnitNameById);
+router.post('/demo-unit-name-master', requirePermission('all_masters_demo_unit_name_master', 'ADD'), otherMastersController.createDemoUnitName);
+router.put('/demo-unit-name-master/:id', requirePermission('all_masters_demo_unit_name_master', 'EDIT'), otherMastersController.updateDemoUnitName);
+router.delete('/demo-unit-name-master/:id', requirePermission('all_masters_demo_unit_name_master', 'DELETE'), otherMastersController.deleteDemoUnitName);
+
+// ============================================
 // Enterprise Type Master Routes
 // ============================================
 

@@ -799,6 +799,17 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_impact_area_master',
     },
     {
+        path: ENTITY_PATHS.DEMO_UNIT_NAME,
+        title: 'Name of Demo Unit Master',
+        category: 'All Masters',
+        subcategory: GROUP.PERFORMANCE.label,
+        parent: '/all-master',
+        subcategoryPath: GROUP.PERFORMANCE.path,
+        siblings: MASTER_SIBLING_GROUPS.PERFORMANCE_MASTERS,
+        fields: FIELD_GROUPS.DEMO_UNIT_NAME_MASTER,
+        moduleCode: 'all_masters_demo_unit_name_master',
+    },
+    {
         path: ENTITY_PATHS.ENTERPRISE_TYPE,
         title: 'Enterprises',
         category: 'All Masters',

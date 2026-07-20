@@ -58,12 +58,7 @@ class DemonstrationUnitReportRepository {
                 demoUnitName: record.demoUnitName || '-',
                 yearOfEstablishment: record.yearOfEstablishment || '-',
                 area: record.area || 0,
-                varietyBreed: record.varietyBreed || '-',
-                produce: record.produce || '-',
-                quantity: record.quantity || 0,
-                costOfInputs: record.costOfInputs || 0,
-                grossIncome: record.grossIncome || 0,
-                remarks: record.remarks || '-',
+                status: record.status || 'Functional',
                 createdAt: record.createdAt,
                 updatedAt: record.updatedAt
             };

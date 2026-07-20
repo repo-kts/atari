@@ -472,6 +472,15 @@ export interface ImpactSpecificAreaFormData {
     specificAreaName: string;
 }
 
+export interface DemoUnitName {
+    demoUnitNameId: number;
+    demoUnitName: string;
+}
+
+export interface DemoUnitNameFormData {
+    demoUnitName: string;
+}
+
 export interface EnterpriseType {
     enterpriseTypeId: number;
     enterpriseTypeName: string;
@@ -925,6 +934,18 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<ImpactSpecificArea>>(`${BASE_URL}/impact-specific-area-master/${id}`, data),
     deleteImpactSpecificArea: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/impact-specific-area-master/${id}`),
+
+    // Demo Unit Names
+    getDemoUnitNames: () =>
+        apiClient.get<PaginatedResponse<DemoUnitName>>(`${BASE_URL}/demo-unit-name-master`),
+    getDemoUnitNameById: (id: number) =>
+        apiClient.get<ApiResponse<DemoUnitName>>(`${BASE_URL}/demo-unit-name-master/${id}`),
+    createDemoUnitName: (data: DemoUnitNameFormData) =>
+        apiClient.post<ApiResponse<DemoUnitName>>(`${BASE_URL}/demo-unit-name-master`, data),
+    updateDemoUnitName: (id: number, data: Partial<DemoUnitNameFormData>) =>
+        apiClient.put<ApiResponse<DemoUnitName>>(`${BASE_URL}/demo-unit-name-master/${id}`, data),
+    deleteDemoUnitName: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/demo-unit-name-master/${id}`),
 
     // Enterprise Types
     getEnterpriseTypes: () =>

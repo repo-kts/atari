@@ -197,6 +197,7 @@ const superAdminMenuItems: MenuItem[] = [
                 icon: <Folder className="w-4 h-4" />,
                 moduleCodes: [
                     'all_masters_impact_area_master',
+                    'all_masters_demo_unit_name_master',
                     'all_masters_enterprise_type_master',
                     'all_masters_account_type_master',
                     'all_masters_programme_type_master',
@@ -570,7 +571,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         { pattern: /^\/all-master\/(season|unit|crop-type|funding-source)/, parentPath: '/all-master/others' },
         { pattern: /^\/all-master\/(oft|fld|training-type|training-area|training-thematic|training-clientele|training-extension|extension-activity|other-extension-activity|product-category|product-type|product|soil-water-analysis|important-day|publications|publication-item)/, parentPath: '/all-master/achievements' },
         { pattern: /^\/all-master\/(cfld-crop|cra-croping-system|cra-farming-system|arya-enterprise|tsp-scsp-type|tsp-scsp-activity|natural-farming-activity|natural-farming-soil-parameter|agri-drone-demonstrations-on|nari-activity|nari-nutrition-garden-type|nari-crop-category|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type|financial-project|budget-item-master)/, parentPath: '/all-master/projects' },
-        { pattern: /^\/all-master\/(impact-specific-area|enterprise-type|account-type|programme-type)/, parentPath: '/all-master/performance' },
+        { pattern: /^\/all-master\/(impact-specific-area|demo-unit-name|enterprise-type|account-type|programme-type)/, parentPath: '/all-master/performance' },
         { pattern: /^\/all-master\/(ppv-fra-training-type|dignitary-type)/, parentPath: '/all-master/miscellaneous' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
         // Prevalent diseases forms keep their /forms/miscellaneous/diseases URLs,

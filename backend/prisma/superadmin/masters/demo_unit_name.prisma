@@ -1,0 +1,8 @@
+model DemoUnitNameMaster {
+  demoUnitNameId Int      @id @default(autoincrement()) @map("demo_unit_name_id")
+  demoUnitName   String   @unique @map("demo_unit_name")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("demo_unit_name_master")
+}

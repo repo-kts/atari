@@ -417,6 +417,12 @@ const ENTITY_CONFIG = {
         nameField: 'specificAreaName',
         includes: {},
     },
+    'demo-unit-name-master': {
+        model: 'demoUnitNameMaster',
+        idField: 'demoUnitNameId',
+        nameField: 'demoUnitName',
+        includes: {},
+    },
     'enterprise-type': {
         model: 'enterpriseTypeMaster',
         idField: 'enterpriseTypeId',

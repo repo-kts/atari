@@ -180,6 +180,7 @@ export const AllMasters: React.FC = () => {
         // Performance Indicators
         if (startsWithAny([
             '/all-master/impact-specific-area',
+            '/all-master/demo-unit-name',
             '/all-master/enterprise-type',
             '/all-master/account-type',
             '/all-master/programme-type',

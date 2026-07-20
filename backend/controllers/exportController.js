@@ -3073,12 +3073,7 @@ function buildDemonstrationUnitTabularData(rawData, format, fallbackHeaders, fal
         'Name of Demo Unit',
         'Year of Estt.',
         'Area (Sq. mt)',
-        'Variety/Breed',
-        'Produce',
-        'Qty.',
-        'Cost of Inputs',
-        'Gross Income',
-        'Remarks',
+        'Status',
     ];
 
     const rows = normalizedData.map((row, idx) => [
@@ -3086,12 +3081,7 @@ function buildDemonstrationUnitTabularData(rawData, format, fallbackHeaders, fal
         formatExportValue(row.demoUnitName || '-', format),
         formatExportValue(row.yearOfEstablishment || '-', format),
         formatExportValue(row.area || 0, format),
-        formatExportValue(row.varietyBreed || '-', format),
-        formatExportValue(row.produce || '-', format),
-        formatExportValue(row.quantity || 0, format),
-        formatExportValue(row.costOfInputs || 0, format),
-        formatExportValue(row.grossIncome || 0, format),
-        formatExportValue(row.remarks || '-', format),
+        formatExportValue(row.status || 'Functional', format),
     ]);
 
     return { headers, rows };

@@ -411,6 +411,7 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.NICRA_PI_TYPE]: ['nicra-pi-types'],
     [ENTITY_TYPES.ENTERPRISE_TYPE]: ['enterprise-types'],
     [ENTITY_TYPES.IMPACT_SPECIFIC_AREA]: ['impact-specific-areas'],
+    [ENTITY_TYPES.DEMO_UNIT_NAME]: ['demo-unit-names'],
     [ENTITY_TYPES.ACCOUNT_TYPE]: ['account-types'],
     [ENTITY_TYPES.PROGRAMME_TYPE]: ['programme-types'],
     [ENTITY_TYPES.PPV_FRA_TRAINING_TYPE]: ['ppv-fra-training-types'],

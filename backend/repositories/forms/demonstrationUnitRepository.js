@@ -1,12 +1,46 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 const { parseYearOfEstablishment } = require('../../utils/formIntValidation.js');
+const { ValidationError } = require('../../utils/errorHandler.js');
 
 const { buildFormListOrderBy, sortFormListRows } = require('../../utils/formListOrderBy.js');
+
+const DEMO_UNIT_STATUSES = new Map([
+    ['functional', 'Functional'],
+    ['non-functional', 'Non-Functional'],
+    ['non functional', 'Non-Functional'],
+]);
+
+async function resolveDemoUnitName(value) {
+    const demoUnitName = String(value || '').trim();
+    if (!demoUnitName) {
+        throw new ValidationError('Name of Demo Unit is required', 'demoUnitName');
+    }
+
+    const master = await prisma.demoUnitNameMaster.findUnique({
+        where: { demoUnitName },
+        select: { demoUnitName: true },
+    });
+    if (!master) {
+        throw new ValidationError('Select a valid Name of Demo Unit from the master', 'demoUnitName');
+    }
+    return master.demoUnitName;
+}
+
+function resolveDemoUnitStatus(value) {
+    const normalized = String(value || 'Functional').trim().toLowerCase();
+    const status = DEMO_UNIT_STATUSES.get(normalized);
+    if (!status) {
+        throw new ValidationError('Status must be Functional or Non-Functional', 'status');
+    }
+    return status;
+}
+
 const demonstrationUnitRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
+        const demoUnitName = await resolveDemoUnitName(data.demoUnitName);
 
         return await prisma.demonstrationUnit.create({
             data: {
@@ -16,15 +50,10 @@ const demonstrationUnitRepository = {
                     ensureNotFutureDate(d);
                     return d;
                 })(),
-                demoUnitName: data.demoUnitName,
+                demoUnitName,
                 yearOfEstablishment: parseYearOfEstablishment(data.yearOfEstablishment, 'Year of establishment'),
                 area: parseFloat(data.area || 0),
-                varietyBreed: data.varietyBreed,
-                produce: data.produce,
-                quantity: parseFloat(data.quantity || 0),
-                costOfInputs: parseFloat(data.costOfInputs || 0),
-                grossIncome: parseFloat(data.grossIncome || 0),
-                remarks: data.remarks,
+                status: resolveDemoUnitStatus(data.status),
             }
         });
     },
@@ -68,6 +97,9 @@ const demonstrationUnitRepository = {
 
         const existing = await prisma.demonstrationUnit.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        const demoUnitName = data.demoUnitName !== undefined
+            ? await resolveDemoUnitName(data.demoUnitName)
+            : existing.demoUnitName;
 
         return await prisma.demonstrationUnit.update({
             where: { demonstrationUnitId: id },
@@ -79,17 +111,14 @@ const demonstrationUnitRepository = {
                         return d;
                     })()
                     : existing.reportingYear,
-                demoUnitName: data.demoUnitName !== undefined ? data.demoUnitName : existing.demoUnitName,
+                demoUnitName,
                 yearOfEstablishment: data.yearOfEstablishment !== undefined
                     ? parseYearOfEstablishment(data.yearOfEstablishment, 'Year of establishment')
                     : existing.yearOfEstablishment,
                 area: data.area !== undefined ? parseFloat(data.area || 0) : existing.area,
-                varietyBreed: data.varietyBreed !== undefined ? data.varietyBreed : existing.varietyBreed,
-                produce: data.produce !== undefined ? data.produce : existing.produce,
-                quantity: data.quantity !== undefined ? parseFloat(data.quantity || 0) : existing.quantity,
-                costOfInputs: data.costOfInputs !== undefined ? parseFloat(data.costOfInputs || 0) : existing.costOfInputs,
-                grossIncome: data.grossIncome !== undefined ? parseFloat(data.grossIncome || 0) : existing.grossIncome,
-                remarks: data.remarks !== undefined ? data.remarks : existing.remarks,
+                status: data.status !== undefined
+                    ? resolveDemoUnitStatus(data.status)
+                    : existing.status,
             }
         });
     },

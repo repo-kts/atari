@@ -4,6 +4,7 @@ const prisma = require('../config/prisma.js');
 const PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
 const NEW_MODULES = [
   { menuName: 'All Masters', subMenuName: 'Impact Specific Area Master', moduleCode: 'all_masters_impact_area_master' },
+  { menuName: 'All Masters', subMenuName: 'Name of Demo Unit Master', moduleCode: 'all_masters_demo_unit_name_master' },
   { menuName: 'All Masters', subMenuName: 'Enterprise Type Master', moduleCode: 'all_masters_enterprise_type_master' },
   { menuName: 'All Masters', subMenuName: 'Account Type Master', moduleCode: 'all_masters_account_type_master' },
   { menuName: 'All Masters', subMenuName: 'Programme Type Master', moduleCode: 'all_masters_programme_type_master' },

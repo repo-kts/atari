@@ -1,7 +1,7 @@
 /**
  * Demonstration Unit Template
  * Handles rendering the Performance of Demonstration Units section (Section 10.8)
- * Layout matches: multi-level header with "Details of Production" and "Amount(Rs.)" colspan groups
+ * BLA-50 layout: master-backed name, establishment details, area and status.
  */
 
 function renderDemonstrationUnitTable(ctx, records) {
@@ -11,12 +11,7 @@ function renderDemonstrationUnitTable(ctx, records) {
             <th>Name of Demo Unit</th>
             <th>Year of Estt.</th>
             <th>Area (Sq. mt)</th>
-            <th>Variety/Breed</th>
-            <th>Produce</th>
-            <th>Qty.</th>
-            <th>Cost of Inputs</th>
-            <th>Gross Income</th>
-            <th>Remarks</th>
+            <th>Status</th>
         </tr>`;
 
     const rows = records.map((record, index) => `
@@ -25,12 +20,7 @@ function renderDemonstrationUnitTable(ctx, records) {
             <td>${ctx._escapeHtml(record.demoUnitName)}</td>
             <td style="text-align: center;">${record.yearOfEstablishment}</td>
             <td style="text-align: center;">${record.area}</td>
-            <td>${ctx._escapeHtml(record.varietyBreed)}</td>
-            <td>${ctx._escapeHtml(record.produce)}</td>
-            <td style="text-align: center;">${record.quantity}</td>
-            <td style="text-align: right;">${record.costOfInputs}</td>
-            <td style="text-align: right;">${record.grossIncome}</td>
-            <td>${ctx._escapeHtml(record.remarks)}</td>
+            <td>${ctx._escapeHtml(record.status)}</td>
         </tr>`).join('');
 
     return `

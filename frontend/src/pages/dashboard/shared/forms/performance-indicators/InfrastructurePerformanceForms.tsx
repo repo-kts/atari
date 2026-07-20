@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from '../shared/FormComponents'
-import { useYears, useSeasons } from '@/hooks/useOtherMastersData'
+import { useYears, useSeasons, useDemoUnitNames } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { parseEstablishmentYearInput } from '@/utils/formNumericGuards'
@@ -19,6 +19,11 @@ interface InfrastructurePerformanceFormsProps {
 const YES_NO_OPTIONS = [
     { value: 'Yes', label: 'Yes' },
     { value: 'No', label: 'No' },
+]
+
+const DEMO_UNIT_STATUS_OPTIONS = [
+    { value: 'Functional', label: 'Functional' },
+    { value: 'Non-Functional', label: 'Non-Functional' },
 ]
 
 // Months for the table and dropdown
@@ -138,6 +143,9 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
     }, [entityType, formData, setFormData, parseOccupancyData])
     const { data: years = [], isLoading: isLoadingYears } = useYears()
     const { data: seasons = [], isLoading: isLoadingSeasons } = useSeasons()
+    const isDemoUnitForm = entityType === ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS
+    const { data: demoUnitNames = [], isLoading: isLoadingDemoUnitNames } =
+        useDemoUnitNames({ enabled: isDemoUnitForm })
 
     // Memoize options
     const yearOptions = useMemo(
@@ -148,6 +156,11 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
     const seasonOptions = useMemo(
         () => createMasterDataOptions(seasons, 'seasonId', 'seasonName', { flagKey: 'isOther' }),
         [seasons]
+    )
+
+    const demoUnitNameOptions = useMemo(
+        () => createMasterDataOptions(demoUnitNames, 'demoUnitName', 'demoUnitName'),
+        [demoUnitNames]
     )
     const { isOtherSelected: isOtherSeason, otherResetPatch: seasonResetPatch } = useOtherSpecify(seasonOptions, formData.seasonId)
 
@@ -232,12 +245,14 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             emptyMessage="No reporting years available"
                         />
 
-                        <FormInput
+                        <MasterDataDropdown
                             label="Name of Demo Unit"
                             required
                             value={formData.demoUnitName ?? ''}
-                            onChange={handleFieldChange('demoUnitName')}
-                            placeholder="Enter demo unit name"
+                            onChange={(value) => setFormData({ ...formData, demoUnitName: value })}
+                            options={demoUnitNameOptions}
+                            isLoading={isLoadingDemoUnitNames}
+                            emptyMessage="No demo unit names available. Add one in Performance Indicators Master."
                         />
                     </div>
 
@@ -263,67 +278,15 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         />
                     </div>
 
-                    <FormSection title="Details of Production" noGrid>
-                        <div className="grid grid-cols-3 gap-4">
-                            <FormInput
-                                label="Variety/Breed"
-                                required
-                                value={formData.varietyBreed || ''}
-                                onChange={handleFieldChange('varietyBreed')}
-                                placeholder="Enter variety/breed"
-                            />
-
-                            <FormInput
-                                label="Produce"
-                                required
-                                value={formData.produce || ''}
-                                onChange={handleFieldChange('produce')}
-                                placeholder="Enter produce"
-                            />
-
-                            <FormInput
-                                label="Quantity"
-                                required
-                                type="number"
-                                step="0.01"
-                                value={formData.quantity ?? ''}
-                                onChange={handleNumberChange('quantity')}
-                                placeholder="Enter quantity"
-                            />
-                        </div>
-                    </FormSection>
-
-                    <FormSection title="Amount (Rs.)" noGrid>
-                        <div className="grid grid-cols-3 gap-4">
-                            <FormInput
-                                label="Cost of Inputs"
-                                required
-                                type="number"
-                                step="0.01"
-                                value={formData.costOfInputs ?? ''}
-                                onChange={handleNumberChange('costOfInputs')}
-                                placeholder="Enter cost"
-                            />
-
-                            <FormInput
-                                label="Gross Income"
-                                required
-                                type="number"
-                                step="0.01"
-                                value={formData.grossIncome ?? ''}
-                                onChange={handleNumberChange('grossIncome')}
-                                placeholder="Enter gross income"
-                            />
-
-                            <FormInput
-                                label="Remarks"
-                                required
-                                value={formData.remarks || ''}
-                                onChange={handleFieldChange('remarks')}
-                                placeholder="Enter remarks"
-                            />
-                        </div>
-                    </FormSection>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <FormSelect
+                            label="Status"
+                            required
+                            value={formData.status ?? 'Functional'}
+                            onChange={handleFieldChange('status')}
+                            options={DEMO_UNIT_STATUS_OPTIONS}
+                        />
+                    </div>
                 </div>
             )}
 

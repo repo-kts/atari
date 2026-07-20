@@ -1424,12 +1424,7 @@ const reportConfig = {
                 { dbField: 'demoUnitName', displayName: 'Name of Demo Unit' },
                 { dbField: 'yearOfEstablishment', displayName: 'Year of Estt.' },
                 { dbField: 'area', displayName: 'Area (Sq. mt)' },
-                { dbField: 'varietyBreed', displayName: 'Variety/Breed' },
-                { dbField: 'produce', displayName: 'Produce' },
-                { dbField: 'quantity', displayName: 'Qty.' },
-                { dbField: 'costOfInputs', displayName: 'Cost of Inputs' },
-                { dbField: 'grossIncome', displayName: 'Gross Income' },
-                { dbField: 'remarks', displayName: 'Remarks' },
+                { dbField: 'status', displayName: 'Status' },
             ],
         },
         {

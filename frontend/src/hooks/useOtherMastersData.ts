@@ -34,6 +34,7 @@ import type {
     NicraDignitaryTypeFormData,
     NicraPiTypeFormData,
     ImpactSpecificAreaFormData,
+    DemoUnitNameFormData,
     EnterpriseTypeFormData,
     AccountTypeFormData,
     ProgrammeTypeFormData,
@@ -1554,6 +1555,55 @@ export function useImpactSpecificAreas() {
         mutationFn: (id: number) => otherMastersApi.deleteImpactSpecificArea(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.IMPACT_SPECIFIC_AREA);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+// ============================================
+// Demo Unit Name Hooks
+// ============================================
+
+export function useDemoUnitNames(options?: { enabled?: boolean }) {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['demo-unit-names'],
+        queryFn: () => otherMastersApi.getDemoUnitNames().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+        enabled: options?.enabled ?? true,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: DemoUnitNameFormData) => otherMastersApi.createDemoUnitName(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.DEMO_UNIT_NAME);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<DemoUnitNameFormData> }) =>
+            otherMastersApi.updateDemoUnitName(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.DEMO_UNIT_NAME);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteDemoUnitName(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.DEMO_UNIT_NAME);
         },
     });
 
