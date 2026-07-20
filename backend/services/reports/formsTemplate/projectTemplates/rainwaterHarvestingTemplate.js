@@ -2,7 +2,7 @@
  * Rainwater Harvesting Template
  * Handles rendering the Rainwater Harvesting (Section 10.14) section
  * Title: "E. Activities under Rain Water Harvesting structure and micro irrigation system"
- * Layout: Sl. | KVK (Optional) | No of training programme conducted | No. of demonstrations | Visit by the farmers (No.) | Visit by the officials (No.)
+ * Layout: Sl. | KVK (Optional) | No of training programme conducted | No. of demonstrations | Area (ha) | Visit by the farmers (No.) | Visit by the officials (No.)
  */
 
 function renderRainwaterHarvestingTable(ctx, records, showKvkColumn) {
@@ -12,6 +12,7 @@ function renderRainwaterHarvestingTable(ctx, records, showKvkColumn) {
             ${showKvkColumn ? '<th>KVK</th>' : ''}
             <th>No of training programme conducted</th>
             <th>No. of demonstrations</th>
+            <th>Area (ha)</th>
             <th>Visit by the farmers (No.)</th>
             <th>Visit by the officials (No.)</th>
         </tr>`;
@@ -23,6 +24,7 @@ function renderRainwaterHarvestingTable(ctx, records, showKvkColumn) {
             ${showKvkColumn ? `<td>${ctx._escapeHtml(record.kvkName)}</td>` : ''}
             <td style="text-align: center;">${record.trainingProgrammes}</td>
             <td style="text-align: center;">${record.demonstrations}</td>
+            <td style="text-align: center;">${record.areaHa}</td>
             <td style="text-align: center;">${record.farmerVisits}</td>
             <td style="text-align: center;">${record.officialVisits}</td>
         </tr>`).join('');

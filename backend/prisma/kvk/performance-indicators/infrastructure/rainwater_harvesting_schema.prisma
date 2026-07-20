@@ -1,9 +1,10 @@
 model RainwaterHarvesting {
   rainwaterHarvestingId String      @id @default(uuid()) @map("rainwater_harvesting_id")
   kvkId                 Int
-  reportingYear DateTime? @map("reporting_year")
-trainingProgrammes    Int         @map("training_programmes")
+  reportingYear         DateTime?   @map("reporting_year")
+  trainingProgrammes    Int         @map("training_programmes")
   demonstrations        Int         @map("demonstrations")
+  areaHa                 Float       @default(0) @map("area_ha")
   farmerVisits          Int         @default(0) @map("farmer_visits")
   officialVisits        Int         @default(0) @map("official_visits")
   createdAt             DateTime    @default(now()) @map("created_at")

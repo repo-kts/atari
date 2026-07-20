@@ -701,6 +701,17 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             onChange={handleNumberChange('demonstrations')}
                             placeholder="Enter number"
                         />
+
+                        <FormInput
+                            label="Area (ha)"
+                            required
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={formData.areaHa ?? ''}
+                            onChange={handleNumberChange('areaHa')}
+                            placeholder="Enter area"
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
