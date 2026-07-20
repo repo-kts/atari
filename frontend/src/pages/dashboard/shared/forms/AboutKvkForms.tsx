@@ -638,33 +638,44 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
 
             {entityType === ENTITY_TYPES.KVK_INFRASTRUCTURE && (
                 <div className="space-y-4">
-                    <FormSelect
-                        label="Name of Infrastructure"
-                        required
-                        value={formData.infraMasterId ?? ''}
-                        onChange={(e) => {
-                            const infraMasterId = parseInt(e.target.value)
-                            const selected = (infraMasters as any[]).find(
-                                (m) => String(m.infraMasterId) === String(infraMasterId),
-                            )
-                            const isOther = Boolean(selected?.isOther)
-                            setFormData({
-                                ...formData,
-                                infraMasterId,
-                                // Clear the specify text whenever it's not "Others".
-                                specifyName: isOther ? formData.specifyName : '',
-                            })
-                        }}
-                        options={infraMasterOptions}
-                    />
-                    {isOtherInfraSelected && (
-                        <FormInput
-                            label="Please specify"
-                            required
-                            value={formData.specifyName ?? ''}
-                            onChange={(e) => setFormData({ ...formData, specifyName: e.target.value })}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-4">
+                            <FormSelect
+                                label="Name of Infrastructure"
+                                required
+                                value={formData.infraMasterId ?? ''}
+                                onChange={(e) => {
+                                    const infraMasterId = parseInt(e.target.value)
+                                    const selected = (infraMasters as any[]).find(
+                                        (m) => String(m.infraMasterId) === String(infraMasterId),
+                                    )
+                                    const isOther = Boolean(selected?.isOther)
+                                    setFormData({
+                                        ...formData,
+                                        infraMasterId,
+                                        // Clear the specify text whenever it's not "Others".
+                                        specifyName: isOther ? formData.specifyName : '',
+                                    })
+                                }}
+                                options={infraMasterOptions}
+                            />
+                            {isOtherInfraSelected && (
+                                <FormInput
+                                    label="Please specify"
+                                    required
+                                    value={formData.specifyName ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, specifyName: e.target.value })}
+                                />
+                            )}
+                        </div>
+                        <FormTextArea
+                            label="Description"
+                            value={formData.description ?? ''}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            placeholder="Enter description (optional)"
+                            rows={3}
                         />
-                    )}
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                         <FormSelect
                             label="Completed upto plinth level"
@@ -731,16 +742,31 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 { value: 'No', label: 'No' }
                             ]}
                         />
-                        <FormSelect
-                            label="Totally Completed"
-                            required
-                            value={formData.totallyCompleted !== undefined ? (formData.totallyCompleted ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, totallyCompleted: e.target.value === 'Yes' })}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
-                        />
+                        <div className="space-y-4">
+                            <FormSelect
+                                label="Totally Completed"
+                                required
+                                value={formData.totallyCompleted !== undefined ? (formData.totallyCompleted ? 'Yes' : 'No') : ''}
+                                onChange={(e) => setFormData({ ...formData, totallyCompleted: e.target.value === 'Yes' })}
+                                options={[
+                                    { value: 'Yes', label: 'Yes' },
+                                    { value: 'No', label: 'No' }
+                                ]}
+                            />
+                            <FormInput
+                                label="Total Area (m²)"
+                                required
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={formData.totalAreaSqM ?? ''}
+                                onChange={(e) => setFormData({
+                                    ...formData,
+                                    totalAreaSqM: e.target.value === '' ? '' : Number(e.target.value),
+                                })}
+                                placeholder="0.00"
+                            />
+                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <FormSelect
@@ -789,28 +815,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             value={formData.fundingAgencyName ?? ''}
                             onChange={(e) => setFormData({ ...formData, fundingAgencyName: e.target.value })}
                             placeholder="Enter funding agency name"
-                        />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormInput
-                            label="Total Area (m²)"
-                            required
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={formData.totalAreaSqM ?? ''}
-                            onChange={(e) => setFormData({
-                                ...formData,
-                                totalAreaSqM: e.target.value === '' ? '' : Number(e.target.value),
-                            })}
-                            placeholder="0.00"
-                        />
-                        <FormTextArea
-                            label="Description"
-                            value={formData.description ?? ''}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            placeholder="Enter description (optional)"
-                            rows={3}
                         />
                     </div>
                 </div>
