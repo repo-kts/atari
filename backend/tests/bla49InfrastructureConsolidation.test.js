@@ -23,15 +23,18 @@ test('BLA-49 infrastructure form and list expose the requested fields', () => {
     const fields = read('frontend/src/constants/fieldNames.ts');
 
     assert.match(form, /label="Total Area \(m²\)"[\s\S]*?required/);
-    assert.match(form, /label="Description"[\s\S]*?placeholder="Enter description \(optional\)"/);
+    assert.match(form, /<FormInput\s+label="Description"[\s\S]*?placeholder="Enter description \(optional\)"/);
     const nameIndex = form.indexOf('label="Name of Infrastructure"');
     const descriptionIndex = form.indexOf('label="Description"', nameIndex);
     const plinthIndex = form.indexOf('label="Completed upto plinth level"', nameIndex);
     const completedIndex = form.indexOf('label="Totally Completed"', nameIndex);
-    const totalAreaIndex = form.indexOf('label="Total Area (m²)"', nameIndex);
     const underUseIndex = form.indexOf('label="Under use or not"', nameIndex);
+    const totalAreaIndex = form.indexOf('label="Total Area (m²)"', nameIndex);
+    const sourceIndex = form.indexOf('label="Source of Funding"', nameIndex);
+    const fundingAgencyIndex = form.indexOf('label="Funding Agency Name"', nameIndex);
     assert.ok(nameIndex < descriptionIndex && descriptionIndex < plinthIndex, 'Description should sit with the infrastructure name');
-    assert.ok(completedIndex < totalAreaIndex && totalAreaIndex < underUseIndex, 'Total area should sit below Totally Completed');
+    assert.ok(completedIndex < underUseIndex && underUseIndex < totalAreaIndex, 'Total area should occupy the row below Totally Completed');
+    assert.ok(totalAreaIndex < sourceIndex && sourceIndex < fundingAgencyIndex, 'Funding source and agency should share the final row');
 
     const group = fields.match(/INFRASTRUCTURE_DETAILS:\s*\[([\s\S]*?)\]\s*as const/);
     assert.ok(group, 'Infrastructure list field group should exist');

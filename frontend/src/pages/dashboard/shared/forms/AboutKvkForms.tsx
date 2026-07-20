@@ -668,15 +668,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 />
                             )}
                         </div>
-                        <FormTextArea
+                        <FormInput
                             label="Description"
                             value={formData.description ?? ''}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             placeholder="Enter description (optional)"
-                            rows={3}
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormSelect
                             label="Completed upto plinth level"
                             required
@@ -709,7 +708,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, plinthAreaSqM: parseFloat(e.target.value) })}
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormSelect
                             label="Completed upto lintel level"
                             required
@@ -731,7 +730,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             ]}
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormSelect
                             label="Not Yet Started"
                             required
@@ -742,33 +741,18 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 { value: 'No', label: 'No' }
                             ]}
                         />
-                        <div className="space-y-4">
-                            <FormSelect
-                                label="Totally Completed"
-                                required
-                                value={formData.totallyCompleted !== undefined ? (formData.totallyCompleted ? 'Yes' : 'No') : ''}
-                                onChange={(e) => setFormData({ ...formData, totallyCompleted: e.target.value === 'Yes' })}
-                                options={[
-                                    { value: 'Yes', label: 'Yes' },
-                                    { value: 'No', label: 'No' }
-                                ]}
-                            />
-                            <FormInput
-                                label="Total Area (m²)"
-                                required
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={formData.totalAreaSqM ?? ''}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    totalAreaSqM: e.target.value === '' ? '' : Number(e.target.value),
-                                })}
-                                placeholder="0.00"
-                            />
-                        </div>
+                        <FormSelect
+                            label="Totally Completed"
+                            required
+                            value={formData.totallyCompleted !== undefined ? (formData.totallyCompleted ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, totallyCompleted: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
+                        />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormSelect
                             label="Under use or not"
                             required
@@ -779,37 +763,56 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 { value: 'No', label: 'No' }
                             ]}
                         />
-                        <FormSelect
-                            label="Source of Funding"
+                        <FormInput
+                            label="Total Area (m²)"
                             required
-                            value={formData.sourceOfFunding ?? ''}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={formData.totalAreaSqM ?? ''}
                             onChange={(e) => {
-                                const sourceOfFunding = e.target.value
-                                const selected = (fundingSources as any[]).find(
-                                    (source) => String(source.name) === String(sourceOfFunding),
-                                )
-                                const normalizedName = sourceOfFunding.trim().toLowerCase()
-                                const isOther = Boolean(selected?.isOther)
-                                    || normalizedName === 'other'
-                                    || normalizedName === 'others'
-                                    || normalizedName.includes('please specify')
                                 setFormData({
                                     ...formData,
-                                    sourceOfFunding,
-                                    sourceOfFundingOther: isOther ? formData.sourceOfFundingOther : '',
+                                    totalAreaSqM: e.target.value === '' ? '' : Number(e.target.value),
                                 })
                             }}
-                            options={fundingSourceNameOptions}
-                            isLoading={isLoadingFundingSources}
+                            placeholder="0.00"
                         />
-                        {isOtherInfrastructureFundingSelected && (
-                            <SpecifyOtherInput
-                                label="Please specify source of funding"
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-4">
+                            <FormSelect
+                                label="Source of Funding"
                                 required
-                                value={formData.sourceOfFundingOther ?? ''}
-                                onChange={(e) => setFormData({ ...formData, sourceOfFundingOther: e.target.value })}
+                                value={formData.sourceOfFunding ?? ''}
+                                onChange={(e) => {
+                                    const sourceOfFunding = e.target.value
+                                    const selected = (fundingSources as any[]).find(
+                                        (source) => String(source.name) === String(sourceOfFunding),
+                                    )
+                                    const normalizedName = sourceOfFunding.trim().toLowerCase()
+                                    const isOther = Boolean(selected?.isOther)
+                                        || normalizedName === 'other'
+                                        || normalizedName === 'others'
+                                        || normalizedName.includes('please specify')
+                                    setFormData({
+                                        ...formData,
+                                        sourceOfFunding,
+                                        sourceOfFundingOther: isOther ? formData.sourceOfFundingOther : '',
+                                    })
+                                }}
+                                options={fundingSourceNameOptions}
+                                isLoading={isLoadingFundingSources}
                             />
-                        )}
+                            {isOtherInfrastructureFundingSelected && (
+                                <SpecifyOtherInput
+                                    label="Please specify source of funding"
+                                    required
+                                    value={formData.sourceOfFundingOther ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, sourceOfFundingOther: e.target.value })}
+                                />
+                            )}
+                        </div>
                         <FormInput
                             label="Funding Agency Name"
                             value={formData.fundingAgencyName ?? ''}
