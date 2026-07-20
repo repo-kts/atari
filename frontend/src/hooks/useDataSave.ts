@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ExtendedEntityType } from '../utils/masterUtils';
 import { getIdField } from '../utils/masterUtils';
 import { transformDataForCreate, transformDataForUpdate, processFiles } from '../utils/dataTransformationUtils';
@@ -94,6 +95,7 @@ export function useDataSave({
     onSuccess,
     onError,
 }: UseDataSaveOptions): UseDataSaveReturn {
+    const queryClient = useQueryClient();
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
@@ -138,6 +140,14 @@ export function useDataSave({
                 });
                 await activeHook.create(createData);
             }
+
+            // Form Summary is a cross-form aggregate, so its cache must be
+            // refreshed after any successful form create or update.
+            await queryClient.invalidateQueries({
+                queryKey: ['form-summary'],
+                exact: false,
+                refetchType: 'all',
+            });
 
             onSuccess?.();
         } catch (err: any) {

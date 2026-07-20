@@ -4,6 +4,7 @@
  */
 
 import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { getIdField, type ExtendedEntityType } from '@/utils/masterUtils';
 import {
     getCascadeDeleteConfig,
@@ -36,6 +37,7 @@ export interface UseDeleteHandlerReturn {
  */
 export function useDeleteHandler(options: UseDeleteHandlerOptions): UseDeleteHandlerReturn {
     const { confirm, alert } = options;
+    const queryClient = useQueryClient();
 
     /**
      * Handles deletion of master data entities
@@ -72,6 +74,11 @@ export function useDeleteHandler(options: UseDeleteHandlerOptions): UseDeleteHan
                 async () => {
                     try {
                         await activeHook.remove(itemId, true); // Pass cascade=true
+                        await queryClient.invalidateQueries({
+                            queryKey: ['form-summary'],
+                            exact: false,
+                            refetchType: 'all',
+                        });
                         alert(createDeleteSuccessAlert(entityName));
                     } catch (err: any) {
                         alert(createDeleteErrorAlert(err, entityName));
@@ -79,7 +86,7 @@ export function useDeleteHandler(options: UseDeleteHandlerOptions): UseDeleteHan
                 }
             );
         },
-        [confirm, alert]
+        [confirm, alert, queryClient]
     );
 
     /**

@@ -6,6 +6,9 @@ export function useFormSummary(kvkId?: number, year?: number) {
     return useQuery<FormSummaryResponse>({
         queryKey: ['form-summary', kvkId ?? 'all', year ?? 'all-years'],
         queryFn: () => formSummaryApi.getSummary(kvkId, year),
-        staleTime: 60_000,
+        // Summary values are aggregates of every form. Always refresh when the
+        // page is opened so saves made through any form hook are reflected.
+        staleTime: 0,
+        refetchOnMount: 'always',
     })
 }
