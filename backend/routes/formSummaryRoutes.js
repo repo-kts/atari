@@ -12,6 +12,7 @@ router.use(authenticateToken);
  * super_admin (no kvkId): matrix across all KVKs.
  * super_admin + ?kvkId=N: single-KVK view.
  * Anyone else: their own KVK.
+ * Optional ?fromDate=YYYY-MM-DD&toDate=YYYY-MM-DD filters dated forms.
  */
 router.get(
   '/',

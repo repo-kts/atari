@@ -1,8 +1,12 @@
 const formSummaryService = require('../services/formSummaryService.js');
 const { getActorRole } = require('../utils/dashboardScope.js');
+const { parseSummaryDateRange } = require('../utils/formSummaryDateRange.js');
 
 function mapErrorToStatus(error) {
   const message = error?.message || 'Unexpected error';
+  if (error?.statusCode === 400) {
+    return { status: 400, message };
+  }
   if (
     message === 'Authentication required' ||
     message === 'User does not have permission to view dashboard' ||
@@ -14,23 +18,6 @@ function mapErrorToStatus(error) {
     return { status: 400, message };
   }
   return { status: 500, message: 'Internal server error' };
-}
-
-/**
- * Calendar-year range for a selected year: 01 Jan → 31 Dec. Records whose
- * activity/reporting date falls in that year are counted. Returns a Prisma
- * { gte, lte } range, or null when no/invalid year is given (all years).
- * NOTE: param is `summaryYear` (not `year`) so reportingYearNormalizer — which
- * validates `year`/`reportingYear` query keys as dates — leaves it untouched.
- */
-function parseYearRange(yearParam) {
-  if (yearParam == null || yearParam === '') return null;
-  const year = Number(yearParam);
-  if (!Number.isInteger(year) || year < 1900 || year > 9999) return null;
-  return {
-    gte: new Date(`${year}-01-01T00:00:00.000Z`),
-    lte: new Date(`${year}-12-31T23:59:59.999Z`),
-  };
 }
 
 const formSummaryController = {
@@ -46,7 +33,7 @@ const formSummaryController = {
     try {
       const role = getActorRole(req.user);
       const requestedKvkId = req.query.kvkId ? Number(req.query.kvkId) : null;
-      const dateRange = parseYearRange(req.query.summaryYear);
+      const dateRange = parseSummaryDateRange(req.query.fromDate, req.query.toDate);
 
       if (role === 'super_admin' && requestedKvkId == null) {
         const data = await formSummaryService.getAllKvkSummary(req.user, dateRange);

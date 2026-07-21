@@ -7,13 +7,14 @@ const {
   buildKvkListingWhere,
 } = require('../utils/dashboardScope.js');
 
-// Year filter binds to the column that represents WHEN the record's activity
+// Date filter binds to the column that represents WHEN the record's activity
 // happened. Most forms use `reportingYear`; activity forms use `startDate` or a
-// single activity-date column. Static forms (bank account, infrastructure, …)
-// have no such column — they are never year-filtered (always counted).
+// single activity-date column. Static forms (bank account, infrastructure, ...)
+// have no such column and are always counted.
 // Ordered by preference; first match on a model wins.
-const YEAR_FIELD_PRIORITY = [
+const DATE_FIELD_PRIORITY = [
   'reportingYear',
+  'reportingYearDate',
   'startDate',
   'oftStartDate',
   'eventDate',
@@ -49,16 +50,16 @@ const dmmfDateFields = (() => {
   return map;
 })();
 
-const yearFieldCache = new Map();
-/** Resolve which column a model's year filter should bind to (or null). */
-function resolveYearField(modelName) {
-  if (yearFieldCache.has(modelName)) return yearFieldCache.get(modelName);
+const dateFieldCache = new Map();
+/** Resolve which column a model's date filter should bind to (or null). */
+function resolveDateField(modelName) {
+  if (dateFieldCache.has(modelName)) return dateFieldCache.get(modelName);
   const dates = dmmfDateFields.get(modelName);
   let field = null;
   if (dates) {
-    field = YEAR_FIELD_PRIORITY.find(f => dates.has(f)) || null;
+    field = DATE_FIELD_PRIORITY.find(f => dates.has(f)) || null;
   }
-  yearFieldCache.set(modelName, field);
+  dateFieldCache.set(modelName, field);
   return field;
 }
 
@@ -94,11 +95,11 @@ async function countForEntry(entry, scopeWhere, dateRange) {
   }
 
   const where = { ...scopeWhere, ...(entry.where || {}) };
-  // Apply the year filter only when the model has a date column to bind to;
+  // Apply the range only when the model has an activity/reporting date column;
   // static forms (no such column) are left unfiltered.
   if (dateRange) {
-    const yearField = resolveYearField(entry.model);
-    if (yearField) where[yearField] = dateRange;
+    const dateField = resolveDateField(entry.model);
+    if (dateField) where[dateField] = dateRange;
   }
   try {
     const rows = await prisma[entry.model].groupBy({
@@ -135,8 +136,8 @@ async function countForMultiKvkEntry(entry, scopeWhere, dateRange) {
   }
 
   if (dateRange) {
-    const yearField = resolveYearField(entry.model);
-    if (yearField) constraints.push({ [yearField]: dateRange });
+    const dateField = resolveDateField(entry.model);
+    if (dateField) constraints.push({ [dateField]: dateRange });
   }
 
   const where = constraints.length > 0 ? { AND: constraints } : {};
@@ -286,4 +287,5 @@ module.exports = {
   getKvkSummary,
   getAllKvkSummary,
   STATUS,
+  resolveDateField,
 };

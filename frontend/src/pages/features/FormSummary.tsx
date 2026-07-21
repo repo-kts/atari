@@ -28,6 +28,8 @@ import { ColumnFilter, EMPTY_FILTER, type ColumnFilterState } from '../../compon
 import { applyColumnFilters, uniqueValuesForField } from '../../components/common/DataTable/columnFilterUtils'
 import { ENTITY_PATHS } from '../../constants/entityConstants'
 import { ROUTE_PATHS } from '../../constants/routePaths'
+import { DatePicker } from '../../components/ui/date-picker'
+import { formatLocalDateYmd } from '../../utils/dateLocalYmd'
 
 const THEME = {
     primary: '#487749',
@@ -1084,19 +1086,14 @@ function ErrorState({ error, isSuperAdmin }: { error: unknown; isSuperAdmin: boo
 
 export const FormSummary: React.FC = () => {
     const { user } = useAuth()
-    // Show every submitted record by default. Users can still narrow the
-    // summary to a reporting year explicitly from the selector.
-    const [year, setYear] = useState<number | undefined>(undefined)
+    const [fromDate, setFromDate] = useState('')
+    const [toDate, setToDate] = useState('')
+    const today = useMemo(() => formatLocalDateYmd(new Date()), [])
     const { data, isPending, isFetching, isError, error } = useFormSummary(
         undefined,
-        year,
+        fromDate || undefined,
+        toDate || undefined,
     )
-
-    // Plain calendar years, current year back 15.
-    const yearOptions = useMemo(() => {
-        const current = new Date().getFullYear()
-        return Array.from({ length: 15 }, (_, i) => current - i)
-    }, [])
 
     const title = user?.role === 'super_admin' ? 'Form Summary — All KVKs' : 'Form Summary'
     const subtitle =
@@ -1115,33 +1112,27 @@ export const FormSummary: React.FC = () => {
                         {subtitle}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-end gap-2">
                     {isFetching && !isPending && (
                         <Loader2 className="w-4 h-4 animate-spin" style={{ color: THEME.mutedText }} />
                     )}
-                    <label className="text-xs font-medium" style={{ color: THEME.mutedText }}>
-                        Reporting year
-                    </label>
-                    <select
-                        value={year ?? ''}
-                        onChange={e =>
-                            setYear(e.target.value ? Number(e.target.value) : undefined)
-                        }
-                        className="h-9 px-3 text-sm rounded-lg bg-white border focus:outline-none focus:ring-2 cursor-pointer"
-                        style={{
-                            borderColor: THEME.border,
-                            color: '#2c2c2c',
-                            // @ts-expect-error — CSS custom property
-                            '--tw-ring-color': THEME.primary,
-                        }}
-                    >
-                        <option value="">All years</option>
-                        {yearOptions.map(y => (
-                            <option key={y} value={y}>
-                                {y}
-                            </option>
-                        ))}
-                    </select>
+                    <DatePicker
+                        value={fromDate}
+                        onChange={setFromDate}
+                        max={toDate || today}
+                        placeholder="From date"
+                        ariaLabel="Form summary from date"
+                        className="h-10 px-3 py-2 text-sm w-[170px]"
+                    />
+                    <DatePicker
+                        value={toDate}
+                        onChange={setToDate}
+                        min={fromDate || undefined}
+                        max={today}
+                        placeholder="To date"
+                        ariaLabel="Form summary to date"
+                        className="h-10 px-3 py-2 text-sm w-[170px]"
+                    />
                 </div>
             </div>
 
