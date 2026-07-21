@@ -25,6 +25,22 @@ import { SpecifyOtherInput } from '@/components/common/SpecifyOtherInput'
 
 const KVK_STAFF_FORM_CODE = 'kvk_staff'
 
+const YES_NO_OPTIONS = [
+    { value: 'Yes', label: 'Yes' },
+    { value: 'No', label: 'No' },
+]
+
+const optionalBooleanSelectValue = (value: unknown): string => {
+    if (value === true) return 'Yes'
+    if (value === false) return 'No'
+    return ''
+}
+
+const parseOptionalBoolean = (value: string): boolean | null => {
+    if (value === '') return null
+    return value === 'Yes'
+}
+
 // Label resolvers — pure, hoisted outside the component so they keep stable
 // identity across renders and don't pull closures from props.
 const equipmentOptionLabel = (eq: any): string => {
@@ -678,26 +694,22 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormSelect
                             label="Completed upto plinth level"
-                            required
-                            value={formData.completedPlinthLevel !== undefined ? (formData.completedPlinthLevel ? 'Yes' : 'No') : ''}
+                            value={optionalBooleanSelectValue(formData.completedPlinthLevel)}
                             onChange={(e) => {
-                                const isYes = e.target.value === 'Yes'
+                                const completedPlinthLevel = parseOptionalBoolean(e.target.value)
                                 setFormData({
                                     ...formData,
-                                    completedPlinthLevel: isYes,
+                                    completedPlinthLevel,
                                     // When No, force plinth area to 0 (disabled input below)
-                                    plinthAreaSqM: isYes ? formData.plinthAreaSqM : 0,
+                                    plinthAreaSqM: completedPlinthLevel === false ? 0 : formData.plinthAreaSqM,
                                 })
                             }}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
+                            options={YES_NO_OPTIONS}
                         />
                         <FormInput
                             label="Plinth Area (m²)"
-                            required
                             type="number"
+                            min="0"
                             step="0.01"
                             disabled={formData.completedPlinthLevel === false}
                             value={
@@ -705,51 +717,38 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     ? 0
                                     : formData.plinthAreaSqM ?? ''
                             }
-                            onChange={(e) => setFormData({ ...formData, plinthAreaSqM: parseFloat(e.target.value) })}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                plinthAreaSqM: e.target.value === '' ? null : Number(e.target.value),
+                            })}
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormSelect
                             label="Completed upto lintel level"
-                            required
-                            value={formData.completedLintelLevel !== undefined ? (formData.completedLintelLevel ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, completedLintelLevel: e.target.value === 'Yes' })}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
+                            value={optionalBooleanSelectValue(formData.completedLintelLevel)}
+                            onChange={(e) => setFormData({ ...formData, completedLintelLevel: parseOptionalBoolean(e.target.value) })}
+                            options={YES_NO_OPTIONS}
                         />
                         <FormSelect
                             label="Completed upto roof level"
-                            required
-                            value={formData.completedRoofLevel !== undefined ? (formData.completedRoofLevel ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, completedRoofLevel: e.target.value === 'Yes' })}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
+                            value={optionalBooleanSelectValue(formData.completedRoofLevel)}
+                            onChange={(e) => setFormData({ ...formData, completedRoofLevel: parseOptionalBoolean(e.target.value) })}
+                            options={YES_NO_OPTIONS}
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormSelect
                             label="Not Yet Started"
-                            required
-                            value={formData.notYetStarted !== undefined ? (formData.notYetStarted ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, notYetStarted: e.target.value === 'Yes' })}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
+                            value={optionalBooleanSelectValue(formData.notYetStarted)}
+                            onChange={(e) => setFormData({ ...formData, notYetStarted: parseOptionalBoolean(e.target.value) })}
+                            options={YES_NO_OPTIONS}
                         />
                         <FormSelect
                             label="Totally Completed"
-                            required
-                            value={formData.totallyCompleted !== undefined ? (formData.totallyCompleted ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, totallyCompleted: e.target.value === 'Yes' })}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
+                            value={optionalBooleanSelectValue(formData.totallyCompleted)}
+                            onChange={(e) => setFormData({ ...formData, totallyCompleted: parseOptionalBoolean(e.target.value) })}
+                            options={YES_NO_OPTIONS}
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

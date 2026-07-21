@@ -3,12 +3,12 @@ model KvkInfrastructure {
   kvkId                Int
   infraMasterId        Int
   specifyName          String?                 @map("specify_name")
-  notYetStarted        Boolean                 @map("not_yet_started")
-  completedPlinthLevel Boolean                 @map("completed_plinth_level")
-  completedLintelLevel Boolean                 @map("completed_lintel_level")
-  completedRoofLevel   Boolean                 @map("completed_roof_level")
-  totallyCompleted     Boolean                 @map("totally_completed")
-  plinthAreaSqM        Float                   @default(0) @map("plinth_area_sqm")
+  notYetStarted        Boolean?                @map("not_yet_started")
+  completedPlinthLevel Boolean?                @map("completed_plinth_level")
+  completedLintelLevel Boolean?                @map("completed_lintel_level")
+  completedRoofLevel   Boolean?                @map("completed_roof_level")
+  totallyCompleted     Boolean?                @map("totally_completed")
+  plinthAreaSqM        Float?                  @map("plinth_area_sqm")
   totalAreaSqM         Float                   @default(0) @map("total_area_sqm")
   underUse             Boolean                 @map("under_use")
   sourceOfFunding      String                  @map("source_of_funding")

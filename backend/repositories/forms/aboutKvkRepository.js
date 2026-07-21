@@ -1228,8 +1228,16 @@ function sanitizeData(entityName, data) {
             sanitized.specifyName = v && v.trim() ? v.trim() : null;
         }
         if (sanitized.plinthAreaSqM !== undefined) {
-            const numericValue = Number(safeGet(data, 'plinthAreaSqM'));
-            sanitized.plinthAreaSqM = Number.isNaN(numericValue) ? 0 : numericValue;
+            const rawValue = safeGet(data, 'plinthAreaSqM');
+            if (rawValue === null || rawValue === '') {
+                sanitized.plinthAreaSqM = null;
+            } else {
+                const numericValue = Number(rawValue);
+                if (!Number.isFinite(numericValue) || numericValue < 0) {
+                    throw new ValidationError('Plinth area must be a non-negative number', 'plinthAreaSqM');
+                }
+                sanitized.plinthAreaSqM = numericValue;
+            }
         }
         if (sanitized.totalAreaSqM !== undefined) {
             const numericValue = Number(safeGet(data, 'totalAreaSqM'));

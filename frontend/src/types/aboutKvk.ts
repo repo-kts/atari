@@ -132,12 +132,12 @@ export interface KvkInfrastructure {
     kvkId: number;
     infraMasterId: number;
     specifyName?: string | null;
-    notYetStarted: boolean;
-    completedPlinthLevel: boolean;
-    completedLintelLevel: boolean;
-    completedRoofLevel: boolean;
-    totallyCompleted: boolean;
-    plinthAreaSqM: number;
+    notYetStarted: boolean | null;
+    completedPlinthLevel: boolean | null;
+    completedLintelLevel: boolean | null;
+    completedRoofLevel: boolean | null;
+    totallyCompleted: boolean | null;
+    plinthAreaSqM: number | null;
     totalAreaSqM: number;
     underUse: boolean;
     sourceOfFunding: string;
