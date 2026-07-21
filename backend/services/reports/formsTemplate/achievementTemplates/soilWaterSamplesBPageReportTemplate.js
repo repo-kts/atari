@@ -74,12 +74,12 @@ function renderSoilWaterSamplesBPageReportSection(section, data, sectionId, isFi
   <style>${tableCss()}</style>
   <div class="swb-wrap">
     <div class="swb-title">7. SOIL &amp; WATER TESTING</div>
-    <div class="swb-sub">b. Details of samples analyzed so far</div>
+    <div class="swb-sub">b. Details of samples analysed so far</div>
     ${y ? `<div class="muted">Reporting year ${esc(y)}</div>` : ''}
     <table class="swb-tbl">
       <thead>
         <tr>
-          <th colspan="${isAgg ? 4 : 3}" class="c">Total number of soil samples analyzed till now</th>
+          <th colspan="${isAgg ? 4 : 3}" class="c">Total number of soil samples analysed till now</th>
         </tr>
         ${head}
       </thead>

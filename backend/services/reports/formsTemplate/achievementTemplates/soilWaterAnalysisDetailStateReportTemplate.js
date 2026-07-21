@@ -135,7 +135,7 @@ function renderAggregatedState(section, data, sectionId, isFirstSection) {
         <tr>
           <th class="l">State</th>
           <th class="l">Analysis</th>
-          <th class="c">No. of Samples analyzed</th>
+          <th class="c">No. of Samples analysed</th>
           <th class="c">No. of Villages covered</th>
           <th class="c">No. of Farmers benefitted</th>
         </tr>

@@ -35,6 +35,7 @@ const CUSTOM_LABELS: Record<string, string> = {
     'mortalityCount': 'Mortality (%)',
     'animalsTreated': 'No. of Animals Treated',
     'trialName': 'Trial Name',
+    'noOfSamplesAnalyzed': 'No. of Samples Analysed',
 }
 
 export function formatHeaderLabel(field: string): string {

@@ -121,7 +121,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, situations: e.target.value })}
                         />
                         <FormInput
-                            label="Varieties used in Farmer Practise"
+                            label="Varieties used in Farmer Practice"
                             required
                             value={formData.varietiesFarmerPractise ?? ''}
                             onChange={(e) => setFormData({ ...formData, varietiesFarmerPractise: e.target.value })}
@@ -135,7 +135,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, yieldImproved: parseDecimalInput(e.target.value) })}
                         />
                         <FormInput
-                            label="Yield Farmer Practise(Kg/ha)"
+                            label="Yield Farmer Practice(Kg/ha)"
                             required
                             type="number"
                             step="any"

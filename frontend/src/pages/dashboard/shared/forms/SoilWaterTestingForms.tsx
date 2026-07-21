@@ -123,9 +123,9 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                         {isOtherAnalysis && (
                             <SpecifyOtherInput label="Please specify other analysis" required value={formData.analysisOther} onChange={(e) => setFormData({ ...formData, analysisOther: e.target.value })} />
                         )}
-                        {/* hard coded options for samples analyzed through */}
+                        {/* hard coded options for samples analysed through */}
                         <FormSelect
-                            label="Samples analyzed Through"
+                            label="Samples Analysed Through"
                             required
                             value={formData.samplesAnalysedThrough ?? ''}
                             onChange={(e) => {
@@ -145,14 +145,14 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                         />
                         {String(formData.samplesAnalysedThrough || '').trim().toLowerCase() === 'other' && (
                             <SpecifyOtherInput
-                                label="Please specify how samples were analyzed"
+                                label="Please specify how samples were analysed"
                                 required
                                 value={formData.samplesAnalysedThroughOther ?? ''}
                                 onChange={(e) => setFormData({ ...formData, samplesAnalysedThroughOther: e.target.value })}
                             />
                         )}
                         <FormInput
-                            label="No. of Samples analyzed"
+                            label="No. of Samples Analysed"
                             type="number"
                             required
                             value={formData.samplesAnalysed ?? ''}

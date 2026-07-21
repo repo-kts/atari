@@ -110,6 +110,28 @@ test('BLA-57 web forms and table/export labels use the requested terminology', (
     assert.match(exportUtils, /'trialName': 'Trial Name'/);
 });
 
+test('BLA-57 Soil & Water and DRMR labels use consistent spelling without changing data keys', () => {
+    const soilWaterForm = read('../frontend/src/pages/dashboard/shared/forms/SoilWaterTestingForms.tsx');
+    const drmrForm = read('../frontend/src/pages/dashboard/shared/forms/projects/DrmrForms.tsx');
+    const exportUtils = read('../frontend/src/utils/exportUtils.ts');
+    const stateReport = read('services/reports/formsTemplate/achievementTemplates/soilWaterAnalysisDetailStateReportTemplate.js');
+    const samplesReport = read('services/reports/formsTemplate/achievementTemplates/soilWaterSamplesBPageReportTemplate.js');
+
+    assert.match(soilWaterForm, /label="Samples Analysed Through"/);
+    assert.match(soilWaterForm, /label="Please specify how samples were analysed"/);
+    assert.match(soilWaterForm, /label="No\. of Samples Analysed"/);
+    assert.doesNotMatch(soilWaterForm, /analyzed/i);
+    assert.match(exportUtils, /'noOfSamplesAnalyzed': 'No\. of Samples Analysed'/);
+    assert.doesNotMatch(stateReport, /analyzed/i);
+    assert.doesNotMatch(samplesReport, /analyzed/i);
+
+    assert.match(drmrForm, /label="Varieties used in Farmer Practice"/);
+    assert.match(drmrForm, /label="Yield Farmer Practice\(Kg\/ha\)"/);
+    assert.doesNotMatch(drmrForm, /label="[^"]*Practise/);
+    assert.match(drmrForm, /formData\.varietiesFarmerPractise/);
+    assert.match(drmrForm, /formData\.yieldFarmerPractise/);
+});
+
 test('BLA-57 report and export headings use Taluka, mortality, treated-animal, and Trial terminology', () => {
     const operational = buildOperationalAreaDetailsTabularData([{ taluk: 'Patna Sadar' }]);
     assert.equal(operational.headers[2], 'Name of Taluka');
