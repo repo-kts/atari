@@ -52,7 +52,7 @@ function renderOperationalAreaDetailsSection(section, data, sectionId, isFirstSe
             <tr>
                 <th style="width:4%;">Sr. No.</th>
                 <th style="width:10%;">KVK</th>
-                <th style="width:9%;">Name of Taluk</th>
+                <th style="width:9%;">Name of Taluka</th>
                 <th style="width:9%;">Name of the block</th>
                 <th style="width:10%;">Name of the villages</th>
                 <th style="width:14%;">Major crops</th>
@@ -70,7 +70,7 @@ function buildOperationalAreaDetailsTabularData(rawData) {
     const headers = [
         'Sr. No.',
         'KVK',
-        'Name of Taluk',
+        'Name of Taluka',
         'Name of the block',
         'Name of the villages',
         'Major crops',

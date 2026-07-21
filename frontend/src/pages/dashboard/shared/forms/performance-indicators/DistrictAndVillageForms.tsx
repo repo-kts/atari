@@ -271,7 +271,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         />
 
                         <FormInput
-                            label="Taluk"
+                            label="Taluka"
                             required
                             value={formData.taluk ?? ''}
                             onChange={handleFieldChange('taluk')}

@@ -1359,7 +1359,7 @@ const reportConfig = {
             },
             fields: [
                 { dbField: 'kvkName', displayName: 'KVK' },
-                { dbField: 'taluk', displayName: 'Name of Taluk' },
+                { dbField: 'taluk', displayName: 'Name of Taluka' },
                 { dbField: 'block', displayName: 'Name of the block' },
                 { dbField: 'village', displayName: 'Name of the villages' },
                 { dbField: 'majorCrops', displayName: 'Major crops' },

@@ -78,7 +78,7 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, respondents: parseInt(e.target.value) || 0 })}
                         />
                         <FormInput
-                            label="Trall Name"
+                            label="Trial Name"
                             required
                             value={formData.trialName ?? ''}
                             onChange={(e) => setFormData({ ...formData, trialName: e.target.value })}

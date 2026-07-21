@@ -135,17 +135,17 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <FormInput
-                            label="Mortality Count"
+                            label="Mortality (%)"
                             required
                             type="number"
                             step="0.01"
                             value={formData.mortalityCount ?? ''}
                             onChange={handleNumberChange('mortalityCount')}
-                            placeholder="Enter count"
+                            placeholder="Enter mortality percentage"
                         />
 
                         <FormInput
-                            label="Animals Treated"
+                            label="No. of Animals Treated"
                             required
                             type="number"
                             value={formData.animalsTreated ?? ''}

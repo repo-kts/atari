@@ -8,6 +8,12 @@ const DECIMAL_FIELD_KEYS = new Set([
     'productivity',
     'systemproductivity',
     'systemproductivityqha',
+    'mortalitycount',
+    'revenue',
+    'farmimplementusedhours',
+    'farmimplementusedinhours',
+    'revenuegeneratedrs',
+    'revenuegeneratedbyfarmimplement',
     // Natural Farming, DRMR, and FPO measurements/monetary values.
     'landholding',
     'fld_count',

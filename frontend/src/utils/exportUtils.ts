@@ -31,6 +31,10 @@ const CUSTOM_LABELS: Record<string, string> = {
     'infraMasterName': 'Name of Infrastructure',
     'underUse': 'Under use or not',
     'totalAreaSqM': 'Total Area (m²)',
+    'taluk': 'Taluka',
+    'mortalityCount': 'Mortality (%)',
+    'animalsTreated': 'No. of Animals Treated',
+    'trialName': 'Trial Name',
 }
 
 export function formatHeaderLabel(field: string): string {

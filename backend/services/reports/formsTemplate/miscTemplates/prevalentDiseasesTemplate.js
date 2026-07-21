@@ -38,10 +38,10 @@ function _renderPrevalentDiseases(section, data, sectionId, isFirstSection, type
 
     // Column config differs slightly between crops and livestock
     const isCrops = type === 'crops';
-    const col2Label = isCrops ? 'Crop' : 'Crop';
-    const col4Label = 'Area affected (in ha)';
-    const col5Label = '% Commodity loss';
-    const col6Label = 'Preventive measures taken for area (in ha)';
+    const col2Label = isCrops ? 'Crop' : 'Livestock Type';
+    const col4Label = isCrops ? 'Area affected (in ha)' : 'Mortality (%)';
+    const col5Label = isCrops ? '% Commodity loss' : 'No. of Animals Treated';
+    const col6Label = isCrops ? 'Preventive measures taken for area (in ha)' : 'Preventive Measures Taken';
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">

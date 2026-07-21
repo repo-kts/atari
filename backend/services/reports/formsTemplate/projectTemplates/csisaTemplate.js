@@ -130,7 +130,7 @@ function renderCsisaSection(section, data, sectionId, isFirstSection) {
                     <th class="sm">Block Covered</th>
                     <th class="sm">District Covered</th>
                     <th class="sm">Respondent</th>
-                    <th class="wide">Trail Name</th>
+                    <th class="wide">Trial Name</th>
                     <th class="num">Area Covered(ha)</th>
                     <th class="med">Name of Crop</th>
                     <th class="med">Tech. Options</th>
