@@ -298,6 +298,8 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                     { label: 'Operational Area Details', sectionId: '4.5' },
                     { label: 'Village Adoption Programme', sectionId: '4.6' },
                     { label: 'Priority Thrust Area', sectionId: '4.7' },
+                    { label: 'Prevalent diseases in Crops', sectionId: '5.1' },
+                    { label: 'Prevalent diseases in Livestock/Fishery', sectionId: '5.2' },
                 ],
             },
             {
@@ -333,13 +335,6 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
         tabId: 'misc',
         title: 'Miscellaneous',
         groups: [
-            {
-                label: 'Prevalent Diseases',
-                features: [
-                    { label: 'Prevalent diseases in Crops', sectionId: '5.1' },
-                    { label: 'Prevalent diseases in Livestock/Fishery', sectionId: '5.2' },
-                ],
-            },
             {
                 label: 'PPV & FRA Sensitization',
                 features: [

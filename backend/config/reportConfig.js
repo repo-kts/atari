@@ -1675,7 +1675,9 @@ const reportConfig = {
             title: 'Prevalent Diseases in Crops',
             description: 'Prevalent diseases reported in crops by KVKs',
             subsection: true,
-            parentSectionId: '5',
+            // BLA-54: displayed under Performance → District and Village Performance.
+            // The stable section id is retained so existing report selections keep working.
+            parentSectionId: '4',
             dataSource: 'prevalentDiseasesCrops',
             format: 'custom',
             customTemplate: 'misc-prevalent-diseases-crops',
@@ -1687,7 +1689,7 @@ const reportConfig = {
             title: 'Prevalent Diseases in Livestock',
             description: 'Prevalent diseases reported in livestock by KVKs',
             subsection: true,
-            parentSectionId: '5',
+            parentSectionId: '4',
             dataSource: 'prevalentDiseasesLivestock',
             format: 'custom',
             customTemplate: 'misc-prevalent-diseases-livestock',

@@ -32,10 +32,6 @@ function _renderPrevalentDiseases(section, data, sectionId, isFirstSection, type
         ? 'section-page section-page-first'
         : 'section-page section-page-continued';
 
-    const title = type === 'crops'
-        ? 'Prevalent diseases in Crops'
-        : 'Prevalent diseases in Livestocks';
-
     // Column config differs slightly between crops and livestock
     const isCrops = type === 'crops';
     const col2Label = isCrops ? 'Crop' : 'Livestock Type';
@@ -45,7 +41,7 @@ function _renderPrevalentDiseases(section, data, sectionId, isFirstSection, type
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title" style="margin-bottom:10px;">${this._escapeHtml(title)}</h1>
+    <h1 class="section-title" style="margin-bottom:10px;">${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}</h1>
     <table class="data-table" style="width:100%;">
         <thead>
             <tr>
