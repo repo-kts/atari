@@ -1,5 +1,4 @@
 import { apiClient } from './api';
-import { API_BASE_URL } from '../config/api';
 import type {
     ReportConfig,
     ReportGenerationRequest,
@@ -37,21 +36,7 @@ class ReportApiService {
      * Generate KVK report in desired format (pdf|excel|docx)
      */
     async generateReport(request: ReportGenerationRequest, format: 'pdf' | 'excel' | 'docx' = 'pdf'): Promise<Blob> {
-        const response = await fetch(`${API_BASE_URL}/reports/kvk/generate?format=${format}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(request),
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({ error: 'Failed to generate report' }));
-            throw new Error(error.error || 'Failed to generate report');
-        }
-
-        return await response.blob();
+        return apiClient.postBlob(`/reports/kvk/generate?format=${format}`, request);
     }
 
     /**
@@ -115,21 +100,7 @@ class ReportApiService {
      * Generate aggregated report
      */
     async generateAggregatedReport(request: ReportGenerationRequest, format: 'pdf' | 'excel' | 'docx' = 'pdf'): Promise<Blob> {
-        const response = await fetch(`${API_BASE_URL}/reports/aggregated/generate?format=${format}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(request),
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({ error: 'Failed to generate aggregated report' }));
-            throw new Error(error.error || 'Failed to generate aggregated report');
-        }
-
-        return await response.blob();
+        return apiClient.postBlob(`/reports/aggregated/generate?format=${format}`, request);
     }
 }
 

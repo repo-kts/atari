@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+import { apiClient } from './api';
 
 class ExportApi {
     private getBaseUrl(pathname?: string): string {
@@ -20,21 +20,7 @@ class ExportApi {
         isAggregatedReport?: boolean;
     }, pathname?: string): Promise<Blob> {
         const baseUrl = this.getBaseUrl(pathname);
-        const response = await fetch(`${API_BASE_URL}${baseUrl}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-            credentials: 'include'
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || errorData.message || 'Export failed');
-        }
-
-        return await response.blob();
+        return apiClient.postBlob(baseUrl, data);
     }
 }
 
