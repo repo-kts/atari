@@ -7,6 +7,7 @@ import {
     File as FileIcon,
     Layers,
     Loader2,
+    XCircle,
 } from 'lucide-react';
 
 interface ReportPreviewProps {
@@ -19,6 +20,9 @@ interface ReportPreviewProps {
     selectedSectionsCount: number;
     generationProgress?: number | null;
     generationStatus?: string | null;
+    canCancelGeneration?: boolean;
+    isCancelling?: boolean;
+    onCancelGeneration?: () => void;
     embedded?: boolean; // when true, render compact body-only content (for single-card layout)
 }
 
@@ -32,6 +36,9 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
     selectedSectionsCount,
     generationProgress = null,
     generationStatus = null,
+    canCancelGeneration = false,
+    isCancelling = false,
+    onCancelGeneration,
     embedded = false,
 }) => {
     const Body = (
@@ -78,6 +85,22 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                                         style={{ width: `${Math.max(0, Math.min(100, generationProgress))}%` }}
                                     />
                                 </div>
+                            ) : null}
+                            {canCancelGeneration && onCancelGeneration ? (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="mt-4 border-red-200 bg-white text-red-700 hover:border-red-300 hover:bg-red-50"
+                                    onClick={onCancelGeneration}
+                                    disabled={isCancelling}
+                                >
+                                    {isCancelling ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                    )}
+                                    {isCancelling ? 'Cancelling…' : 'Cancel generation'}
+                                </Button>
                             ) : null}
                         </div>
                     </div>

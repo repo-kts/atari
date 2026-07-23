@@ -16,6 +16,8 @@ held open while data is collected and Chromium renders the report.
    `report-jobs/{jobId}/final/report.pdf`.
 5. `GET /api/reports/aggregated/jobs/:jobId` returns progress and short-lived
    signed preview/download URLs for the requesting user.
+6. `POST /api/reports/aggregated/jobs/:jobId/cancel` marks an active job as
+   cancelled, prevents further queue work, and removes its temporary S3 files.
 
 ## Required production configuration
 

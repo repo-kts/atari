@@ -120,6 +120,14 @@ class ReportApiService {
         return response.data;
     }
 
+    async cancelAggregatedReportJob(jobId: string): Promise<ReportJob> {
+        const response = await apiClient.post<ReportApiResponse<ReportJob>>(
+            `/reports/aggregated/jobs/${encodeURIComponent(jobId)}/cancel`,
+            {},
+        );
+        return response.data;
+    }
+
     async waitForAggregatedReportJob(
         jobId: string,
         options: {
@@ -139,6 +147,11 @@ class ReportApiService {
             if (job.status === 'completed') return job;
             if (job.status === 'failed') {
                 throw new Error(job.error || 'Report generation failed');
+            }
+            if (job.status === 'cancelled') {
+                const cancelledError = new Error('Report generation cancelled');
+                cancelledError.name = 'AbortError';
+                throw cancelledError;
             }
 
             await new Promise<void>((resolve, reject) => {

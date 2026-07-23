@@ -16,6 +16,8 @@ const {
 const REPORT_QUEUE_TOPIC = 'report-generation';
 const MESSAGE_RETENTION_SECONDS = 24 * 60 * 60;
 const RESULT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const ACTIVE_JOB_STATUSES = ['queued', 'processing', 'finalizing'];
+const TERMINAL_JOB_STATUSES = new Set(['completed', 'failed', 'cancelled']);
 const DEFAULT_SECTIONS_PER_PART = 4;
 const DEFAULT_PARALLEL_PARTS = 4;
 
@@ -224,7 +226,7 @@ async function failJob(jobId, error) {
     await prisma.reportGenerationJob.updateMany({
         where: {
             reportGenerationJobId: jobId,
-            status: { not: 'completed' },
+            status: { in: ACTIVE_JOB_STATUSES },
         },
         data: {
             status: 'failed',
@@ -238,13 +240,71 @@ async function recordPartFailure(jobId, partIndex, error) {
         where: {
             reportGenerationJobId: jobId,
             partIndex,
-            status: { not: 'completed' },
+            status: { notIn: ['completed', 'cancelled'] },
         },
         data: {
             status: 'failed',
             errorMessage: error instanceof Error ? error.message : String(error),
         },
     });
+}
+
+async function cancelJobForUser(jobId, userId) {
+    const job = await prisma.reportGenerationJob.findFirst({
+        where: {
+            reportGenerationJobId: jobId,
+            requestedBy: userId,
+        },
+        select: {
+            reportGenerationJobId: true,
+            status: true,
+            totalParts: true,
+        },
+    });
+    if (!job) return null;
+    if (TERMINAL_JOB_STATUSES.has(job.status)) {
+        return getJobForUser(jobId, userId);
+    }
+
+    const cancelled = await prisma.reportGenerationJob.updateMany({
+        where: {
+            reportGenerationJobId: jobId,
+            requestedBy: userId,
+            status: { in: ACTIVE_JOB_STATUSES },
+        },
+        data: {
+            status: 'cancelled',
+            errorMessage: null,
+        },
+    });
+    if (cancelled.count === 0) {
+        return getJobForUser(jobId, userId);
+    }
+
+    await prisma.reportGenerationJobPart.updateMany({
+        where: {
+            reportGenerationJobId: jobId,
+            status: { notIn: ['completed', 'cancelled'] },
+        },
+        data: {
+            status: 'cancelled',
+            errorMessage: null,
+        },
+    });
+
+    const storageKeys = [
+        ...Array.from(
+            { length: job.totalParts },
+            (_, partIndex) => partKey(jobId, partIndex),
+        ),
+        finalKey(jobId),
+    ];
+    await s3.deleteMany(storageKeys).catch((error) => {
+        console.warn(`Could not remove cancelled report files for ${jobId}:`, error.message);
+    });
+    console.log('[report-job] cancelled', { jobId, totalParts: job.totalParts });
+
+    return getJobForUser(jobId, userId);
 }
 
 async function processPart({ jobId, partIndex }) {
@@ -258,7 +318,7 @@ async function processPart({ jobId, partIndex }) {
             },
         },
     });
-    if (!job || job.status === 'failed' || job.status === 'completed') return;
+    if (!job || TERMINAL_JOB_STATUSES.has(job.status)) return;
 
     const part = job.parts[0];
     if (!part) throw new Error(`Report part ${partIndex} was not found`);
@@ -273,17 +333,21 @@ async function processPart({ jobId, partIndex }) {
         return;
     }
 
-    await prisma.$transaction([
-        prisma.reportGenerationJob.update({
-            where: { reportGenerationJobId: jobId },
+    const [claimedJob, claimedPart] = await prisma.$transaction([
+        prisma.reportGenerationJob.updateMany({
+            where: {
+                reportGenerationJobId: jobId,
+                status: { in: ['queued', 'processing'] },
+            },
             data: {
                 status: 'processing',
                 errorMessage: null,
             },
         }),
-        prisma.reportGenerationJobPart.update({
+        prisma.reportGenerationJobPart.updateMany({
             where: {
                 reportGenerationJobPartId: part.reportGenerationJobPartId,
+                status: { notIn: ['completed', 'cancelled'] },
             },
             data: {
                 status: 'processing',
@@ -293,6 +357,7 @@ async function processPart({ jobId, partIndex }) {
             },
         }),
     ]);
+    if (claimedJob.count === 0 || claimedPart.count === 0) return;
 
     const payload = job.requestPayload;
     const sectionIds = Array.isArray(part.sectionIds) ? part.sectionIds : [];
@@ -318,6 +383,27 @@ async function processPart({ jobId, partIndex }) {
         mimeType: 'application/pdf',
     });
 
+    const currentJob = await prisma.reportGenerationJob.findUnique({
+        where: { reportGenerationJobId: jobId },
+        select: { status: true },
+    });
+    if (!currentJob || currentJob.status === 'cancelled') {
+        await Promise.all([
+            s3.deleteOne(storageKey),
+            prisma.reportGenerationJobPart.updateMany({
+                where: {
+                    reportGenerationJobPartId: part.reportGenerationJobPartId,
+                    status: { not: 'completed' },
+                },
+                data: {
+                    status: 'cancelled',
+                    errorMessage: null,
+                },
+            }),
+        ]);
+        return;
+    }
+
     const updatedPart = await prisma.reportGenerationJobPart.updateMany({
         where: {
             reportGenerationJobPartId: part.reportGenerationJobPartId,
@@ -340,14 +426,18 @@ async function processPart({ jobId, partIndex }) {
 
     const progressJob = await prisma.reportGenerationJob.findUnique({
         where: { reportGenerationJobId: jobId },
-        select: { completedParts: true, totalParts: true },
+        select: { completedParts: true, totalParts: true, status: true },
     });
+    if (!progressJob || progressJob.status === 'cancelled') return;
     const progress = Math.min(
         95,
         Math.floor((progressJob.completedParts / progressJob.totalParts) * 90),
     );
-    await prisma.reportGenerationJob.update({
-        where: { reportGenerationJobId: jobId },
+    await prisma.reportGenerationJob.updateMany({
+        where: {
+            reportGenerationJobId: jobId,
+            status: 'processing',
+        },
         data: { progress },
     });
 
@@ -391,7 +481,7 @@ async function processFinalize({ jobId }) {
             parts: { orderBy: { partIndex: 'asc' } },
         },
     });
-    if (!job || job.status === 'failed' || job.status === 'completed') return;
+    if (!job || TERMINAL_JOB_STATUSES.has(job.status)) return;
     if (
         job.parts.length !== job.totalParts ||
         job.parts.some(part => part.status !== 'completed' || !part.resultKey)
@@ -399,14 +489,18 @@ async function processFinalize({ jobId }) {
         throw new Error('Report parts are not ready for finalization');
     }
 
-    await prisma.reportGenerationJob.update({
-        where: { reportGenerationJobId: jobId },
+    const claimedFinalize = await prisma.reportGenerationJob.updateMany({
+        where: {
+            reportGenerationJobId: jobId,
+            status: { in: ['queued', 'processing'] },
+        },
         data: {
             status: 'finalizing',
             progress: 95,
             errorMessage: null,
         },
     });
+    if (claimedFinalize.count === 0) return;
 
     const payload = job.requestPayload;
     const frontMatter = await pdfGenerationService.generateReportFrontMatterPDF(
@@ -418,14 +512,24 @@ async function processFinalize({ jobId }) {
     const merged = await mergeStoredPdfParts(frontMatter, job.parts);
     const finalPdf = await addPdfFooterPagination(merged);
     const storageKey = finalKey(jobId);
+
+    const beforeUpload = await prisma.reportGenerationJob.findUnique({
+        where: { reportGenerationJobId: jobId },
+        select: { status: true },
+    });
+    if (!beforeUpload || beforeUpload.status === 'cancelled') return;
+
     await s3.putBuffer({
         key: storageKey,
         body: finalPdf,
         mimeType: 'application/pdf',
     });
 
-    await prisma.reportGenerationJob.update({
-        where: { reportGenerationJobId: jobId },
+    const completed = await prisma.reportGenerationJob.updateMany({
+        where: {
+            reportGenerationJobId: jobId,
+            status: 'finalizing',
+        },
         data: {
             status: 'completed',
             progress: 100,
@@ -434,6 +538,10 @@ async function processFinalize({ jobId }) {
             expiresAt: new Date(Date.now() + RESULT_TTL_MS),
         },
     });
+    if (completed.count === 0) {
+        await s3.deleteOne(storageKey);
+        return;
+    }
 
     await s3.deleteMany(job.parts.map(part => part.resultKey)).catch((error) => {
         console.warn(`Could not remove temporary report parts for ${jobId}:`, error.message);
@@ -452,6 +560,7 @@ module.exports = {
     chunkSectionIds,
     createJob,
     getJobForUser,
+    cancelJobForUser,
     failJob,
     recordPartFailure,
     processPart,

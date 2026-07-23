@@ -67,3 +67,23 @@ test('aggregated jobs group sections and use bounded parallel queue lanes', () =
     assert.match(jobService, /partIndex \+ parallelParts/);
     assert.match(jobService, /job\.completedParts >= job\.totalParts/);
 });
+
+test('report jobs support owner-scoped cancellation and worker cancellation guards', () => {
+    const jobService = read('services/reports/reportGenerationJobService.js');
+    const controller = read('controllers/reports/reportController.js');
+    const routes = read('routes/reports/reportRoutes.js');
+    const reportApi = read('../frontend/src/services/reportApi.ts');
+    const reportPage = read('../frontend/src/pages/reports/KvkReportPage.tsx');
+    const reportPreview = read('../frontend/src/components/reports/ReportPreview.tsx');
+
+    assert.match(jobService, /async function cancelJobForUser\(jobId, userId\)/);
+    assert.match(jobService, /requestedBy: userId/);
+    assert.match(jobService, /status: 'cancelled'/);
+    assert.match(jobService, /TERMINAL_JOB_STATUSES\.has\(job\.status\)/);
+    assert.match(jobService, /status: 'finalizing'/);
+    assert.match(controller, /cancelAggregatedReportJob/);
+    assert.match(routes, /aggregated\/jobs\/:jobId\/cancel/);
+    assert.match(reportApi, /cancelAggregatedReportJob/);
+    assert.match(reportPage, /handleCancelReportGeneration/);
+    assert.match(reportPreview, /Cancel generation/);
+});

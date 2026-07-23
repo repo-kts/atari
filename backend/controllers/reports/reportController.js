@@ -369,6 +369,35 @@ const getAggregatedReportJob = async (req, res) => {
     }
 };
 
+const cancelAggregatedReportJob = async (req, res) => {
+    try {
+        const jobId = String(req.params.jobId || '');
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(jobId)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid report job ID',
+            });
+        }
+        const data = await reportGenerationJobService.cancelJobForUser(
+            jobId,
+            req.user.userId,
+        );
+        if (!data) {
+            return res.status(404).json({
+                success: false,
+                error: 'Report job not found',
+            });
+        }
+        return res.json({ success: true, data });
+    } catch (error) {
+        console.error('Error cancelling aggregated report job:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to cancel report job',
+        });
+    }
+};
+
 /**
  * Get scope options for current user
  * GET /api/reports/scope
@@ -523,6 +552,7 @@ module.exports = {
     generateAggregatedReport,
     createAggregatedReportJob,
     getAggregatedReportJob,
+    cancelAggregatedReportJob,
     getScopeOptions,
     getFilteredChildren,
     getFilteredKvks,

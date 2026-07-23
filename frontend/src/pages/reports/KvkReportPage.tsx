@@ -53,6 +53,8 @@ export const KvkReportPage: React.FC = () => {
     const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
     const [reportJobProgress, setReportJobProgress] = useState<number | null>(null);
     const [reportJobStatus, setReportJobStatus] = useState<string | null>(null);
+    const [activeReportJobId, setActiveReportJobId] = useState<string | null>(null);
+    const [isCancellingReport, setIsCancellingReport] = useState(false);
 
     // Draft filter states (editable in UI)
     const currentYear = new Date().getFullYear();
@@ -157,22 +159,75 @@ export const KvkReportPage: React.FC = () => {
         setReportJobStatus('Queued');
 
         const queuedJob = await reportApi.createAggregatedReportJob(request);
-        return reportApi.waitForAggregatedReportJob(queuedJob.jobId, {
-            signal: controller.signal,
-            onProgress: (job) => {
-                setReportJobProgress(job.progress);
-                setReportJobStatus(
-                    job.status === 'finalizing'
-                        ? 'Finalizing PDF'
-                        : job.status === 'processing'
-                            ? `Generating sections (${job.completedParts ?? 0}/${job.totalParts})`
-                            : job.status === 'completed'
-                                ? 'Ready'
-                                : 'Queued',
-                );
-            },
-        });
+        setActiveReportJobId(queuedJob.jobId);
+        try {
+            return await reportApi.waitForAggregatedReportJob(queuedJob.jobId, {
+                signal: controller.signal,
+                onProgress: (job) => {
+                    setReportJobProgress(job.progress);
+                    setReportJobStatus(
+                        job.status === 'finalizing'
+                            ? 'Finalizing PDF'
+                            : job.status === 'processing'
+                                ? `Generating sections (${job.completedParts ?? 0}/${job.totalParts})`
+                                : job.status === 'completed'
+                                    ? 'Ready'
+                                    : 'Queued',
+                    );
+                },
+            });
+        } finally {
+            setActiveReportJobId(current => (
+                current === queuedJob.jobId ? null : current
+            ));
+        }
     }, []);
+
+    const handleCancelReportGeneration = useCallback(async () => {
+        if (!activeReportJobId || isCancellingReport) return;
+
+        setIsCancellingReport(true);
+        try {
+            const cancelledJob = await reportApi.cancelAggregatedReportJob(activeReportJobId);
+            if (cancelledJob.status !== 'cancelled') {
+                if (cancelledJob.status === 'completed') {
+                    toast({
+                        title: 'Report already completed',
+                        message: 'The report finished before the cancellation was applied.',
+                        variant: 'success',
+                        autoCloseDelay: 2500,
+                    });
+                    return;
+                }
+                throw new Error(`This report can no longer be cancelled (${cancelledJob.status}).`);
+            }
+            reportPollAbortRef.current?.abort();
+            setReportJobStatus('Cancelled');
+            setReportJobProgress(null);
+            setActiveReportJobId(null);
+            setIsGenerating(false);
+            setDownloadingFormat(null);
+            toast({
+                title: 'Generation cancelled',
+                message: 'The report job and its temporary files were cancelled.',
+                variant: 'success',
+                autoCloseDelay: 2500,
+            });
+        } catch (err) {
+            const message = err instanceof Error
+                ? err.message
+                : 'Failed to cancel report generation';
+            setError(message);
+            toast({
+                title: 'Cancellation failed',
+                message,
+                variant: 'error',
+                autoCloseDelay: 3000,
+            });
+        } finally {
+            setIsCancellingReport(false);
+        }
+    }, [activeReportJobId, isCancellingReport, toast]);
 
     const buildFilters = useCallback((): ReportFilters => {
         const filters: ReportFilters = {};
@@ -398,8 +453,10 @@ export const KvkReportPage: React.FC = () => {
             }
             toast({ title: 'Success', message: 'Download started.', variant: 'success', autoCloseDelay: 1500 });
         } catch (err) {
-            console.error('Error downloading report:', err);
-            setError(err instanceof Error ? err.message : 'Failed to download report');
+            if (!(err instanceof Error && err.name === 'AbortError')) {
+                console.error('Error downloading report:', err);
+                setError(err instanceof Error ? err.message : 'Failed to download report');
+            }
         } finally {
             setDownloadingFormat(null);
             setReportJobProgress(null);
@@ -449,8 +506,10 @@ export const KvkReportPage: React.FC = () => {
 
             toast({ title: 'Success', message: 'Report preview loaded.', variant: 'success', autoCloseDelay: 2000 });
         } catch (err) {
-            console.error('Error previewing report:', err);
-            setError(err instanceof Error ? err.message : 'Failed to preview report');
+            if (!(err instanceof Error && err.name === 'AbortError')) {
+                console.error('Error previewing report:', err);
+                setError(err instanceof Error ? err.message : 'Failed to preview report');
+            }
         } finally {
             setIsGenerating(false);
             setReportJobProgress(null);
@@ -608,6 +667,9 @@ export const KvkReportPage: React.FC = () => {
                                             selectedSectionsCount={selectedSections.size}
                                             generationProgress={reportJobProgress}
                                             generationStatus={reportJobStatus}
+                                            canCancelGeneration={Boolean(activeReportJobId)}
+                                            isCancelling={isCancellingReport}
+                                            onCancelGeneration={handleCancelReportGeneration}
                                         />
                                     </div>
                                 </div>

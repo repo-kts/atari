@@ -68,7 +68,8 @@ export type ReportJobState =
     | 'processing'
     | 'finalizing'
     | 'completed'
-    | 'failed';
+    | 'failed'
+    | 'cancelled';
 
 export interface ReportJob {
     jobId: string;

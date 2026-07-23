@@ -63,4 +63,13 @@ router.post('/aggregated/jobs', reportController.createAggregatedReportJob);
  */
 router.get('/aggregated/jobs/:jobId', reportController.getAggregatedReportJob);
 
+/**
+ * POST /api/reports/aggregated/jobs/:jobId/cancel
+ * Cancel an active report job owned by the current user.
+ */
+router.post(
+    '/aggregated/jobs/:jobId/cancel',
+    reportController.cancelAggregatedReportJob,
+);
+
 module.exports = router;
