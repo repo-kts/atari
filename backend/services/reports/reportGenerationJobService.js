@@ -16,6 +16,39 @@ const {
 const REPORT_QUEUE_TOPIC = 'report-generation';
 const MESSAGE_RETENTION_SECONDS = 24 * 60 * 60;
 const RESULT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const DEFAULT_SECTIONS_PER_PART = 4;
+const DEFAULT_PARALLEL_PARTS = 4;
+
+function boundedInteger(value, fallback, min, max) {
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isInteger(parsed)) return fallback;
+    return Math.min(max, Math.max(min, parsed));
+}
+
+const SECTIONS_PER_PART = boundedInteger(
+    process.env.REPORT_SECTIONS_PER_PART,
+    DEFAULT_SECTIONS_PER_PART,
+    1,
+    8,
+);
+const PARALLEL_PARTS = boundedInteger(
+    process.env.REPORT_PARALLEL_PARTS,
+    DEFAULT_PARALLEL_PARTS,
+    1,
+    6,
+);
+
+function chunkSectionIds(sectionIds, size = SECTIONS_PER_PART) {
+    const chunks = [];
+    for (let index = 0; index < sectionIds.length; index += size) {
+        chunks.push(sectionIds.slice(index, index + size));
+    }
+    return chunks;
+}
+
+function getJobParallelParts(requestPayload) {
+    return boundedInteger(requestPayload?.parallelParts, 1, 1, 6);
+}
 
 function partKey(jobId, partIndex) {
     return `report-jobs/${jobId}/parts/${String(partIndex).padStart(4, '0')}.pdf`;
@@ -75,6 +108,7 @@ async function createJob({ scope, sectionIds, filters = {}, user }) {
     const kvkInfo = await reportService.buildAggregatedKvkInfo(scope, kvkIds);
     kvkInfo.isAggregatedView = isAggregatedView;
     const fileName = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.pdf`;
+    const sectionGroups = chunkSectionIds(orderedSectionIds);
     const requestPayload = {
         scope,
         filters,
@@ -83,6 +117,8 @@ async function createJob({ scope, sectionIds, filters = {}, user }) {
         isAggregatedView,
         kvkIds,
         kvkInfo,
+        parallelParts: PARALLEL_PARTS,
+        sectionsPerPart: SECTIONS_PER_PART,
     };
 
     const job = await prisma.reportGenerationJob.create({
@@ -93,11 +129,11 @@ async function createJob({ scope, sectionIds, filters = {}, user }) {
             progress: 0,
             requestPayload,
             fileName,
-            totalParts: orderedSectionIds.length,
+            totalParts: sectionGroups.length,
             parts: {
-                create: orderedSectionIds.map((sectionId, partIndex) => ({
+                create: sectionGroups.map((groupedSectionIds, partIndex) => ({
                     partIndex,
-                    sectionIds: [sectionId],
+                    sectionIds: groupedSectionIds,
                 })),
             },
         },
@@ -110,7 +146,19 @@ async function createJob({ scope, sectionIds, filters = {}, user }) {
     });
 
     try {
-        await publishPart(job.reportGenerationJobId, 0);
+        const initialPartCount = Math.min(PARALLEL_PARTS, job.totalParts);
+        await Promise.all(
+            Array.from(
+                { length: initialPartCount },
+                (_, partIndex) => publishPart(job.reportGenerationJobId, partIndex),
+            ),
+        );
+        console.log('[report-job] queued', {
+            jobId: job.reportGenerationJobId,
+            sections: orderedSectionIds.length,
+            parts: job.totalParts,
+            parallelParts: PARALLEL_PARTS,
+        });
     } catch (error) {
         await prisma.reportGenerationJob.update({
             where: { reportGenerationJobId: job.reportGenerationJobId },
@@ -200,6 +248,7 @@ async function recordPartFailure(jobId, partIndex, error) {
 }
 
 async function processPart({ jobId, partIndex }) {
+    const processStartedAt = Date.now();
     const job = await prisma.reportGenerationJob.findUnique({
         where: { reportGenerationJobId: jobId },
         include: {
@@ -213,10 +262,12 @@ async function processPart({ jobId, partIndex }) {
 
     const part = job.parts[0];
     if (!part) throw new Error(`Report part ${partIndex} was not found`);
+    const parallelParts = getJobParallelParts(job.requestPayload);
     if (part.status === 'completed') {
-        if (partIndex + 1 < job.totalParts) {
-            await publishPart(jobId, partIndex + 1);
-        } else {
+        const nextPartIndex = partIndex + parallelParts;
+        if (nextPartIndex < job.totalParts) {
+            await publishPart(jobId, nextPartIndex);
+        } else if (job.completedParts >= job.totalParts) {
             await publishFinalize(jobId);
         }
         return;
@@ -245,6 +296,12 @@ async function processPart({ jobId, partIndex }) {
 
     const payload = job.requestPayload;
     const sectionIds = Array.isArray(part.sectionIds) ? part.sectionIds : [];
+    console.log('[report-job] part started', {
+        jobId,
+        partIndex,
+        sectionCount: sectionIds.length,
+        parallelParts,
+    });
     const sectionsData = await reportAggregationService.aggregateMultipleSections(
         sectionIds,
         payload.kvkIds,
@@ -294,9 +351,18 @@ async function processPart({ jobId, partIndex }) {
         data: { progress },
     });
 
-    if (partIndex + 1 < progressJob.totalParts) {
-        await publishPart(jobId, partIndex + 1);
-    } else {
+    console.log('[report-job] part completed', {
+        jobId,
+        partIndex,
+        completedParts: progressJob.completedParts,
+        totalParts: progressJob.totalParts,
+        durationMs: Date.now() - processStartedAt,
+    });
+
+    const nextPartIndex = partIndex + parallelParts;
+    if (nextPartIndex < progressJob.totalParts) {
+        await publishPart(jobId, nextPartIndex);
+    } else if (progressJob.completedParts >= progressJob.totalParts) {
         await publishFinalize(jobId);
     }
 }
@@ -318,6 +384,7 @@ async function mergeStoredPdfParts(frontMatter, parts) {
 }
 
 async function processFinalize({ jobId }) {
+    const finalizeStartedAt = Date.now();
     const job = await prisma.reportGenerationJob.findUnique({
         where: { reportGenerationJobId: jobId },
         include: {
@@ -371,10 +438,18 @@ async function processFinalize({ jobId }) {
     await s3.deleteMany(job.parts.map(part => part.resultKey)).catch((error) => {
         console.warn(`Could not remove temporary report parts for ${jobId}:`, error.message);
     });
+    console.log('[report-job] completed', {
+        jobId,
+        parts: job.totalParts,
+        durationMs: Date.now() - finalizeStartedAt,
+    });
 }
 
 module.exports = {
     REPORT_QUEUE_TOPIC,
+    SECTIONS_PER_PART,
+    PARALLEL_PARTS,
+    chunkSectionIds,
     createJob,
     getJobForUser,
     failJob,

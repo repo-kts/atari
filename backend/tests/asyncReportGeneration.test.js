@@ -57,3 +57,13 @@ test('PDF parts disable per-part serials and pagination before global merge', ()
     assert.match(jobService, /mergeStoredPdfParts\(frontMatter, job\.parts\)/);
     assert.match(jobService, /addPdfFooterPagination\(merged\)/);
 });
+
+test('aggregated jobs group sections and use bounded parallel queue lanes', () => {
+    const jobService = read('services/reports/reportGenerationJobService.js');
+
+    assert.match(jobService, /DEFAULT_SECTIONS_PER_PART = 4/);
+    assert.match(jobService, /DEFAULT_PARALLEL_PARTS = 4/);
+    assert.match(jobService, /const sectionGroups = chunkSectionIds\(orderedSectionIds\)/);
+    assert.match(jobService, /partIndex \+ parallelParts/);
+    assert.match(jobService, /job\.completedParts >= job\.totalParts/);
+});

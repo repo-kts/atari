@@ -8,8 +8,9 @@ held open while data is collected and Chromium renders the report.
 1. `POST /api/reports/aggregated/jobs` creates a database job and one part per
    selected report section.
 2. The `report-generation` queue invokes `backend/api/report-generation.js`.
-3. Parts run sequentially for each job. Each part renders one section and is
-   stored under `report-jobs/{jobId}/parts/`.
+3. Sections are grouped into bounded PDF parts. By default each part contains
+   four sections and up to four parts run concurrently. Parts are stored under
+   `report-jobs/{jobId}/parts/`.
 4. The final queue message creates the cover and contents pages, merges all
    parts, applies global page numbering, and stores
    `report-jobs/{jobId}/final/report.pdf`.
@@ -25,6 +26,10 @@ held open while data is collected and Chromium renders the report.
   `AWS_SECRET_ACCESS_KEY` variables available to the queue consumer.
 - Vercel supplies queue authentication through project OIDC. No queue token is
   required in the deployed backend.
+- `REPORT_SECTIONS_PER_PART` can tune the number of sections rendered by one
+  Chromium invocation (default `4`, bounded from `1` to `8`).
+- `REPORT_PARALLEL_PARTS` can tune concurrent queue lanes for a job (default
+  `4`, bounded from `1` to `6`).
 
 The final object is marked as expiring after seven days in the database.
 Configure an S3 lifecycle rule for the `report-jobs/` prefix if physical object
