@@ -45,7 +45,7 @@ test('BLA-54 moves Prevalent Diseases into the Performance report hierarchy', ()
     );
     assert.deepEqual(
         misc.groups.map((group) => group.label),
-        ['PPV & FRA Sensitization', 'Digital Information'],
+        ['PPV & FRA Sensitization', 'RAWE/FET & VIP Visitors', 'Digital Information'],
     );
 });
 
