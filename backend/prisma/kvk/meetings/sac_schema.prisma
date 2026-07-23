@@ -7,7 +7,6 @@ model SacMeeting {
   statutoryMembersPresent Int          @map("statutory_members_present")
   salientRecommendations  String       @map("salient_recommendations")
   actionTaken             ActionStatus
-  inCompliance            ActionStatus? @map("in_compliance")
   reason                  String       @map("reason")
   uploadedFile            String       @map("uploaded_file")
   createdAt               DateTime     @default(now()) @map("created_at")

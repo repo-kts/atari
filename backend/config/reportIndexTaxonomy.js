@@ -348,10 +348,15 @@ const REPORT_INDEX_TAXONOMY = {
                 ],
             },
             {
-                label: 'Digital Information',
+                label: 'RAWE/FET & VIP Visitors',
                 features: [
                     { label: 'RAWE/FET programme', sectionId: '5.7' },
                     { label: 'List of VIP visitors', sectionId: '5.6' },
+                ],
+            },
+            {
+                label: 'Digital Information',
+                features: [
                     { label: 'Details of Mobile App', sectionId: '6.1' },
                     { label: 'Details of Web Portal', sectionId: '6.2' },
                     { label: 'Details of Kisan Sarathi', sectionId: '6.3' },

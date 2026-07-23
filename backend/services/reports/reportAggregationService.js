@@ -133,35 +133,39 @@ class ReportAggregationService {
     async getKvkIdsForScope(scope) {
         const { zoneIds, stateIds, districtIds, orgIds, universityIds, kvkIds } = scope;
 
-        if (kvkIds && kvkIds.length > 0) {
-            return kvkIds;
-        }
-
+        // Always resolve to a concrete id list ordered alphabetically by KVK name
+        // so every report section lists KVKs A→Z. Raw DB/selection order is
+        // otherwise arbitrary, which showed up as "random order" in reports.
         const where = {};
 
-        if (zoneIds && zoneIds.length > 0) {
-            where.zoneId = { in: zoneIds };
-        }
+        if (kvkIds && kvkIds.length > 0) {
+            where.kvkId = { in: kvkIds };
+        } else {
+            if (zoneIds && zoneIds.length > 0) {
+                where.zoneId = { in: zoneIds };
+            }
 
-        if (stateIds && stateIds.length > 0) {
-            where.stateId = { in: stateIds };
-        }
+            if (stateIds && stateIds.length > 0) {
+                where.stateId = { in: stateIds };
+            }
 
-        if (districtIds && districtIds.length > 0) {
-            where.districtId = { in: districtIds };
-        }
+            if (districtIds && districtIds.length > 0) {
+                where.districtId = { in: districtIds };
+            }
 
-        if (orgIds && orgIds.length > 0) {
-            where.orgId = { in: orgIds };
-        }
+            if (orgIds && orgIds.length > 0) {
+                where.orgId = { in: orgIds };
+            }
 
-        if (universityIds && universityIds.length > 0) {
-            where.universityId = { in: universityIds };
+            if (universityIds && universityIds.length > 0) {
+                where.universityId = { in: universityIds };
+            }
         }
 
         const kvks = await prisma.kvk.findMany({
             where,
             select: { kvkId: true },
+            orderBy: { kvkName: 'asc' },
         });
 
         return kvks.map(k => k.kvkId);
@@ -183,8 +187,10 @@ class ReportAggregationService {
             };
         }
 
-        // Build cache key
-        const scopeId = kvkIds.sort().join(',');
+        // Build cache key from a canonical (numerically sorted) COPY — sorting
+        // kvkIds in place here would clobber the alphabetical order set upstream
+        // in getKvkIdsForScope, so rows would render in kvkId order instead.
+        const scopeId = [...kvkIds].sort((a, b) => a - b).join(',');
         const role = 'aggregated';
         const cacheKey = CacheKeyBuilder.aggregatedReport(role, scopeId, sectionId, filters);
         const ttl = getAggregatedReportTTL();
