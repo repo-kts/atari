@@ -87,3 +87,15 @@ test('report jobs support owner-scoped cancellation and worker cancellation guar
     assert.match(reportPage, /handleCancelReportGeneration/);
     assert.match(reportPreview, /Cancel generation/);
 });
+
+test('local development runs report jobs without requiring Vercel OIDC', () => {
+    const packageJson = JSON.parse(read('package.json'));
+    const jobService = read('services/reports/reportGenerationJobService.js');
+
+    assert.match(packageJson.scripts.dev, /NODE_ENV=development/);
+    assert.doesNotMatch(packageJson.scripts.dev, /--watch/);
+    assert.match(packageJson.scripts['dev:watch'], /--watch/);
+    assert.match(jobService, /USE_LOCAL_REPORT_RUNNER/);
+    assert.match(jobService, /scheduleLocalMessage\(message\)/);
+    assert.match(jobService, /REPORT_USE_VERCEL_QUEUE !== 'true'/);
+});

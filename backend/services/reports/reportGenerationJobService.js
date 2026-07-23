@@ -1,4 +1,4 @@
-const { send } = require('@vercel/queue');
+const { send: sendQueueMessage } = require('@vercel/queue');
 const { PDFDocument } = require('pdf-lib');
 const prisma = require('../../config/prisma.js');
 const { validateSectionIds } = require('../../config/reportConfig.js');
@@ -20,6 +20,9 @@ const ACTIVE_JOB_STATUSES = ['queued', 'processing', 'finalizing'];
 const TERMINAL_JOB_STATUSES = new Set(['completed', 'failed', 'cancelled']);
 const DEFAULT_SECTIONS_PER_PART = 4;
 const DEFAULT_PARALLEL_PARTS = 4;
+const USE_LOCAL_REPORT_RUNNER =
+    process.env.NODE_ENV === 'development' &&
+    process.env.REPORT_USE_VERCEL_QUEUE !== 'true';
 
 function boundedInteger(value, fallback, min, max) {
     const parsed = Number.parseInt(value, 10);
@@ -61,10 +64,57 @@ function finalKey(jobId) {
 }
 
 async function publish(message, idempotencyKey) {
-    return send(REPORT_QUEUE_TOPIC, message, {
+    if (USE_LOCAL_REPORT_RUNNER) {
+        scheduleLocalMessage(message);
+        return { messageId: null };
+    }
+    return sendQueueMessage(REPORT_QUEUE_TOPIC, message, {
         idempotencyKey,
         retentionSeconds: MESSAGE_RETENTION_SECONDS,
     });
+}
+
+function scheduleLocalMessage(message, attempt = 1, delayMs = 0) {
+    const run = async () => {
+        try {
+            if (message.kind === 'part') {
+                await processPart(message);
+                return;
+            }
+            if (message.kind === 'finalize') {
+                await processFinalize(message);
+                return;
+            }
+            throw new Error(`Unsupported local report message kind: ${message.kind}`);
+        } catch (error) {
+            if (message.kind === 'part' && Number.isInteger(message.partIndex)) {
+                await recordPartFailure(message.jobId, message.partIndex, error);
+            }
+            if (attempt >= 4) {
+                await failJob(message.jobId, error);
+                console.error(
+                    `[report-job] local job ${message.jobId} failed permanently:`,
+                    error,
+                );
+                return;
+            }
+            const retryDelayMs = Math.min(10_000, 500 * (2 ** attempt));
+            console.warn('[report-job] retrying local message', {
+                jobId: message.jobId,
+                kind: message.kind,
+                partIndex: message.partIndex,
+                attempt: attempt + 1,
+                retryDelayMs,
+            });
+            scheduleLocalMessage(message, attempt + 1, retryDelayMs);
+        }
+    };
+
+    if (delayMs > 0) {
+        setTimeout(run, delayMs);
+    } else {
+        setImmediate(run);
+    }
 }
 
 async function publishPart(jobId, partIndex) {
@@ -555,6 +605,7 @@ async function processFinalize({ jobId }) {
 
 module.exports = {
     REPORT_QUEUE_TOPIC,
+    USE_LOCAL_REPORT_RUNNER,
     SECTIONS_PER_PART,
     PARALLEL_PARTS,
     chunkSectionIds,

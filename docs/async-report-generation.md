@@ -37,3 +37,16 @@ The final object is marked as expiring after seven days in the database.
 Configure an S3 lifecycle rule for the `report-jobs/` prefix if physical object
 deletion after seven days is required. Temporary part objects are deleted as
 soon as the final PDF is successfully stored.
+
+## Local development
+
+`npm run dev` sets `NODE_ENV=development` and runs report messages through an
+in-process worker. This uses the same report part, retry, finalization, S3, and
+database code without requiring a Vercel project link or OIDC token.
+The default command does not use Node's file watcher, avoiding macOS `EMFILE`
+limits; `npm run dev:watch` remains available when watch mode is desired.
+
+Set `REPORT_USE_VERCEL_QUEUE=true` only when intentionally testing against the
+real Vercel Queue service locally. That mode requires linking the backend to the
+`atari-v2-server` project with a Vercel CLI account that can access its team,
+then running the development command through `vercel env run`.

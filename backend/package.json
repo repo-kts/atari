@@ -6,7 +6,8 @@
   "scripts": {
     "setup": "bash setup.sh",
     "start": "node --watch index.js",
-    "dev": "node --watch index.js",
+    "dev": "NODE_ENV=development node index.js",
+    "dev:watch": "NODE_ENV=development node --watch index.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
