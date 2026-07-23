@@ -386,6 +386,19 @@ class ReportTemplateService {
         return { orderedSections, numbering };
     }
 
+    orderSectionIds(sectionIds, isAggregated = false) {
+        const requested = new Set((sectionIds || []).map(String));
+        const placeholderData = {};
+        getAllSections().forEach((section) => {
+            if (requested.has(String(section.id))) {
+                placeholderData[section.id] = { data: {} };
+            }
+        });
+        return this._selectAndOrderSections(placeholderData, isAggregated)
+            .orderedSections
+            .map(section => String(section.id));
+    }
+
     /**
      * Render every selected section to its own HTML chunk plus index metadata.
      * Returns { numbering, chunks: [{ sectionId, chapter, sectionNumber,
@@ -435,6 +448,58 @@ class ReportTemplateService {
 </html>`;
 
         return html;
+    }
+
+    async generateReportPartHTML(kvkInfo, sectionsData) {
+        const reportContext = {
+            isAggregatedReport: true,
+            isAggregatedView: !!kvkInfo?.isAggregatedView,
+            isStandalone: false,
+        };
+        const { chunks } = await this.generateSectionChunks(sectionsData, reportContext);
+        return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KVK Report Section</title>
+    ${this._getStyles()}
+</head>
+<body>
+    <div class="sections-container">
+        ${chunks.map(chunk => chunk.html).join('')}
+    </div>
+</body>
+</html>`;
+    }
+
+    generateReportFrontMatterHTML(kvkInfo, sectionIds, filters, generatedBy) {
+        const requested = new Set((sectionIds || []).map(String));
+        const placeholderData = {};
+        getAllSections().forEach((section) => {
+            if (requested.has(String(section.id))) {
+                placeholderData[section.id] = { data: {} };
+            }
+        });
+        const { numbering } = this._selectAndOrderSections(
+            placeholderData,
+            !!kvkInfo?.isAggregatedView,
+        );
+        return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KVK Comprehensive Report</title>
+    ${this._getStyles()}
+</head>
+<body>
+    ${this._generateCoverPage(kvkInfo, filters, generatedBy)}
+    ${this._generateTableOfContents(numbering.chapters, { clickable: false })}
+</body>
+</html>`;
     }
 
     /**
@@ -516,14 +581,17 @@ class ReportTemplateService {
     /**
      * Generate table of contents with clickable links
      */
-    _generateTableOfContents(chapters) {
+    _generateTableOfContents(chapters, options = {}) {
+        const clickable = options.clickable !== false;
         const anchorFor = (sectionId) => `section-${String(sectionId).replace(/\./g, '-')}`;
+        const tocContent = (number, title) => `
+                <span class="toc-section-id">${number}</span>
+                <span class="toc-section-title">${this._escapeHtml(title)}</span>`;
         const tocItem = (number, title, sectionId, cls) => `
         <li class="toc-item ${cls}">
-            <a href="#${anchorFor(sectionId)}" class="toc-link">
-                <span class="toc-section-id">${number}</span>
-                <span class="toc-section-title">${this._escapeHtml(title)}</span>
-            </a>
+            ${clickable
+                ? `<a href="#${anchorFor(sectionId)}" class="toc-link">${tocContent(number, title)}</a>`
+                : `<span class="toc-link">${tocContent(number, title)}</span>`}
         </li>`;
 
         let tocHtml = `

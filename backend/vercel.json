@@ -9,6 +9,17 @@
     "functions": {
         "index.js": {
             "maxDuration": 300
+        },
+        "api/report-generation.js": {
+            "maxDuration": 300,
+            "experimentalTriggers": [
+                {
+                    "type": "queue/v2beta",
+                    "topic": "report-generation",
+                    "retryAfterSeconds": 30,
+                    "initialDelaySeconds": 0
+                }
+            ]
         }
     },
     "env": {

@@ -17,6 +17,8 @@ interface ReportPreviewProps {
     onDownload: (format: 'pdf' | 'excel' | 'doc') => void;
     selectedScopeCount: number;
     selectedSectionsCount: number;
+    generationProgress?: number | null;
+    generationStatus?: string | null;
     embedded?: boolean; // when true, render compact body-only content (for single-card layout)
 }
 
@@ -28,6 +30,8 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
     onDownload,
     selectedScopeCount,
     selectedSectionsCount,
+    generationProgress = null,
+    generationStatus = null,
     embedded = false,
 }) => {
     const Body = (
@@ -59,10 +63,22 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             <span className="w-3 h-3 rounded-full bg-[#487749] animate-pulse" style={{ animationDelay: '400ms' }} />
                         </div>
                         <div>
-                            <p className="text-lg font-bold text-[#2d4a2f]">Compiling Report...</p>
-                            <p className="text-sm text-[#757575] max-w-[250px] mx-auto">
-                                Gathering data and generating the preview. This may take a few seconds.
+                            <p className="text-lg font-bold text-[#2d4a2f]">
+                                {generationStatus || 'Compiling Report...'}
                             </p>
+                            <p className="text-sm text-[#757575] max-w-[250px] mx-auto">
+                                {generationProgress !== null
+                                    ? `${generationProgress}% complete. You can keep this page open while the report is prepared.`
+                                    : 'Gathering data and generating the preview. This may take a few seconds.'}
+                            </p>
+                            {generationProgress !== null ? (
+                                <div className="mt-3 h-2 w-64 max-w-full overflow-hidden rounded-full bg-[#E2E8DE]">
+                                    <div
+                                        className="h-full rounded-full bg-[#487749] transition-[width] duration-300"
+                                        style={{ width: `${Math.max(0, Math.min(100, generationProgress))}%` }}
+                                    />
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 ) : !hasData ? (

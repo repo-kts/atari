@@ -121,6 +121,8 @@ function getReportScopeFilenamePrefix(scope) {
  */
 async function generatePDF(html, options = {}) {
     const isLandscape = Boolean(options.landscape);
+    const includeSerial = options.includeSerial !== false;
+    const includeFooter = options.includeFooter !== false;
     let browser;
     
     try {
@@ -176,8 +178,10 @@ async function generatePDF(html, options = {}) {
         // HTML (not Puppeteer's headerTemplate, which repeats on every page) as
         // the first element in <body>, so it falls on page 1 only.
         const serialNumber = generatePdfSerialNumber();
-        const serialStampHtml = `<div style="position:absolute; top:4mm; right:6mm; font-size:8px; color:#444444; font-family: Arial, Helvetica, sans-serif; z-index:9999;">${serialNumber}</div>`;
-        const htmlWithSerial = /<body[^>]*>/i.test(html)
+        const serialStampHtml = includeSerial
+            ? `<div style="position:absolute; top:4mm; right:6mm; font-size:8px; color:#444444; font-family: Arial, Helvetica, sans-serif; z-index:9999;">${serialNumber}</div>`
+            : '';
+        const htmlWithSerial = serialStampHtml && /<body[^>]*>/i.test(html)
             ? html.replace(/<body([^>]*)>/i, (match, attrs) => `<body${attrs}>${serialStampHtml}`)
             : `${serialStampHtml}${html || ''}`;
 
@@ -228,18 +232,23 @@ async function generatePDF(html, options = {}) {
             landscape: isLandscape,
             printBackground: true,
             preferCSSPageSize: false,
-            displayHeaderFooter: true,
+            displayHeaderFooter: includeFooter,
             headerTemplate: `
                 <div style="font-size:0;"></div>
             `,
-            footerTemplate: `
+            footerTemplate: includeFooter ? `
                 <div style="font-size:${footerFontSizePx}px; width:100%; padding:0 10mm 4mm 10mm; box-sizing:border-box;">
                   <div style="width:100%; color:${footerColorCss}; display:flex; justify-content:${justify};">
                     ${footerHtmlSafe}
                   </div>
                 </div>
-            `,
-            margin: { top: '6mm', right: '6mm', bottom: `${bottomMarginMm}mm`, left: '6mm' },
+            ` : '<div></div>',
+            margin: {
+                top: '6mm',
+                right: '6mm',
+                bottom: includeFooter ? `${bottomMarginMm}mm` : '6mm',
+                left: '6mm',
+            },
             timeout: 60000 // Increased timeout for PDF rendering
         });
         

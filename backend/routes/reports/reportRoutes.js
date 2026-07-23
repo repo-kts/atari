@@ -51,4 +51,16 @@ router.post('/scope/kvks', reportController.getFilteredKvks);
  */
 router.post('/aggregated/generate', reportController.generateAggregatedReport);
 
+/**
+ * POST /api/reports/aggregated/jobs
+ * Queue a durable aggregated PDF generation job.
+ */
+router.post('/aggregated/jobs', reportController.createAggregatedReportJob);
+
+/**
+ * GET /api/reports/aggregated/jobs/:jobId
+ * Read progress and signed result URLs for the current user's report job.
+ */
+router.get('/aggregated/jobs/:jobId', reportController.getAggregatedReportJob);
+
 module.exports = router;

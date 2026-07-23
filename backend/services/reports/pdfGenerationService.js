@@ -28,6 +28,40 @@ class PDFGenerationService {
             throw new Error(`Failed to generate PDF: ${error.message}`);
         }
     }
+
+    async generateReportPartPDF(kvkInfo, sectionsData) {
+        try {
+            const html = await reportTemplateService.generateReportPartHTML(
+                kvkInfo,
+                sectionsData,
+            );
+            return await generatePDF(html, {
+                includeSerial: false,
+                includeFooter: false,
+            });
+        } catch (error) {
+            console.error('PDF part generation error:', error);
+            throw new Error(`Failed to generate PDF part: ${error.message}`);
+        }
+    }
+
+    async generateReportFrontMatterPDF(kvkInfo, sectionIds, filters, generatedBy) {
+        try {
+            const html = reportTemplateService.generateReportFrontMatterHTML(
+                kvkInfo,
+                sectionIds,
+                filters,
+                generatedBy,
+            );
+            return await generatePDF(html, {
+                includeSerial: true,
+                includeFooter: false,
+            });
+        } catch (error) {
+            console.error('PDF front matter generation error:', error);
+            throw new Error(`Failed to generate PDF front matter: ${error.message}`);
+        }
+    }
 }
 
 module.exports = new PDFGenerationService();

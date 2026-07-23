@@ -1,0 +1,41 @@
+model ReportGenerationJob {
+  reportGenerationJobId String   @id @default(uuid()) @db.Uuid @map("report_generation_job_id")
+  requestedBy           Int      @map("requested_by")
+  format                String   @default("pdf")
+  status                String   @default("queued")
+  progress              Int      @default(0)
+  requestPayload        Json     @map("request_payload")
+  resultKey             String?  @map("result_key")
+  fileName              String?  @map("file_name")
+  errorMessage          String?  @map("error_message")
+  totalParts            Int      @default(0) @map("total_parts")
+  completedParts        Int      @default(0) @map("completed_parts")
+  expiresAt             DateTime? @map("expires_at")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  parts                 ReportGenerationJobPart[]
+
+  @@index([requestedBy, createdAt])
+  @@index([status, updatedAt])
+  @@map("report_generation_jobs")
+}
+
+model ReportGenerationJobPart {
+  reportGenerationJobPartId String   @id @default(uuid()) @db.Uuid @map("report_generation_job_part_id")
+  reportGenerationJobId     String   @db.Uuid @map("report_generation_job_id")
+  partIndex                  Int      @map("part_index")
+  sectionIds                Json     @map("section_ids")
+  status                    String   @default("queued")
+  resultKey                 String?  @map("result_key")
+  errorMessage              String?  @map("error_message")
+  attemptCount              Int      @default(0) @map("attempt_count")
+  startedAt                 DateTime? @map("started_at")
+  completedAt               DateTime? @map("completed_at")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+  job                       ReportGenerationJob @relation(fields: [reportGenerationJobId], references: [reportGenerationJobId], onDelete: Cascade)
+
+  @@unique([reportGenerationJobId, partIndex])
+  @@index([status, updatedAt])
+  @@map("report_generation_job_parts")
+}

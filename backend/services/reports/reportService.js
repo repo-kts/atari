@@ -328,6 +328,10 @@ class ReportService {
         };
     }
 
+    async buildAggregatedKvkInfo(scope, kvkIds) {
+        return this._buildAggregatedKvkInfo(scope, kvkIds);
+    }
+
     /**
      * Report type = the scope level the user selected, most specific first.
      * Mirrors the Report Scope tabs (Zone / State / District / Org / KVK).

@@ -1,5 +1,6 @@
 const reportService = require('../../services/reports/reportService.js');
 const reportAggregationService = require('../../services/reports/reportAggregationService.js');
+const reportGenerationJobService = require('../../services/reports/reportGenerationJobService.js');
 const { normalizeReportKvkId } = require('../../utils/reportKvkId.js');
 const { getCompactDateTime, getReportScopeFilenamePrefix } = require('../../utils/exportHelper.js');
 
@@ -307,6 +308,67 @@ const generateAggregatedReport = async (req, res) => {
     }
 };
 
+const createAggregatedReportJob = async (req, res) => {
+    try {
+        const { scope, sectionIds, filters } = req.body;
+        if (!scope) {
+            return res.status(400).json({
+                success: false,
+                error: 'Scope is required for aggregated reports',
+            });
+        }
+        if (!Array.isArray(sectionIds) || sectionIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Please select at least one report module.',
+            });
+        }
+
+        const data = await reportGenerationJobService.createJob({
+            scope,
+            sectionIds,
+            filters: filters || {},
+            user: req.user,
+        });
+        return res.status(202).json({ success: true, data });
+    } catch (error) {
+        console.error('Error creating aggregated report job:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to queue aggregated report',
+        });
+    }
+};
+
+const getAggregatedReportJob = async (req, res) => {
+    try {
+        const jobId = String(req.params.jobId || '');
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(jobId)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid report job ID',
+            });
+        }
+        const data = await reportGenerationJobService.getJobForUser(
+            jobId,
+            req.user.userId,
+        );
+        if (!data) {
+            return res.status(404).json({
+                success: false,
+                error: 'Report job not found',
+            });
+        }
+        return res.json({ success: true, data });
+    } catch (error) {
+        console.error('Error getting aggregated report job:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to get report job',
+        });
+    }
+};
+
 /**
  * Get scope options for current user
  * GET /api/reports/scope
@@ -459,6 +521,8 @@ module.exports = {
     getReportConfig,
     getReportData,
     generateAggregatedReport,
+    createAggregatedReportJob,
+    getAggregatedReportJob,
     getScopeOptions,
     getFilteredChildren,
     getFilteredKvks,

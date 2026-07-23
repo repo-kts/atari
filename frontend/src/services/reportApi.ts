@@ -4,6 +4,7 @@ import type {
     ReportGenerationRequest,
     ReportDataResponse,
     ReportApiResponse,
+    ReportJob,
 } from '../types/reports';
 import type { ScopeOption, ScopeOptions } from '../types/reportScope';
 import { getCompactDateTime } from '../utils/exportUtils';
@@ -101,6 +102,63 @@ class ReportApiService {
      */
     async generateAggregatedReport(request: ReportGenerationRequest, format: 'pdf' | 'excel' | 'docx' = 'pdf'): Promise<Blob> {
         return apiClient.postBlob(`/reports/aggregated/generate?format=${format}`, request);
+    }
+
+    async createAggregatedReportJob(request: ReportGenerationRequest): Promise<ReportJob> {
+        const response = await apiClient.post<ReportApiResponse<ReportJob>>(
+            '/reports/aggregated/jobs',
+            request,
+        );
+        return response.data;
+    }
+
+    async getAggregatedReportJob(jobId: string, signal?: AbortSignal): Promise<ReportJob> {
+        const response = await apiClient.get<ReportApiResponse<ReportJob>>(
+            `/reports/aggregated/jobs/${encodeURIComponent(jobId)}`,
+            signal ? { signal } : undefined,
+        );
+        return response.data;
+    }
+
+    async waitForAggregatedReportJob(
+        jobId: string,
+        options: {
+            signal?: AbortSignal;
+            onProgress?: (job: ReportJob) => void;
+            pollIntervalMs?: number;
+            timeoutMs?: number;
+        } = {},
+    ): Promise<ReportJob> {
+        const pollIntervalMs = options.pollIntervalMs ?? 2000;
+        const timeoutMs = options.timeoutMs ?? 30 * 60 * 1000;
+        const startedAt = Date.now();
+
+        while (Date.now() - startedAt < timeoutMs) {
+            const job = await this.getAggregatedReportJob(jobId, options.signal);
+            options.onProgress?.(job);
+            if (job.status === 'completed') return job;
+            if (job.status === 'failed') {
+                throw new Error(job.error || 'Report generation failed');
+            }
+
+            await new Promise<void>((resolve, reject) => {
+                const handleAbort = () => {
+                    window.clearTimeout(timeout);
+                    reject(new DOMException('Report polling was cancelled', 'AbortError'));
+                };
+                const timeout = window.setTimeout(() => {
+                    options.signal?.removeEventListener('abort', handleAbort);
+                    resolve();
+                }, pollIntervalMs);
+                if (options.signal?.aborted) {
+                    handleAbort();
+                    return;
+                }
+                options.signal?.addEventListener('abort', handleAbort, { once: true });
+            });
+        }
+
+        throw new Error('Report generation is taking longer than expected. You can try again shortly.');
     }
 }
 

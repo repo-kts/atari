@@ -62,3 +62,23 @@ export interface ReportApiResponse<T> {
     data: T;
     error?: string;
 }
+
+export type ReportJobState =
+    | 'queued'
+    | 'processing'
+    | 'finalizing'
+    | 'completed'
+    | 'failed';
+
+export interface ReportJob {
+    jobId: string;
+    status: ReportJobState;
+    progress: number;
+    completedParts?: number;
+    totalParts: number;
+    fileName?: string | null;
+    error?: string | null;
+    previewUrl?: string | null;
+    downloadUrl?: string | null;
+    expiresAt?: string | null;
+}

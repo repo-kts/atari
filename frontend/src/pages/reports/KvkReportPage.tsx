@@ -12,6 +12,7 @@ import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route';
 import { useReportConfig } from '../../hooks/report/useReportScope';
 import { Button } from '../../components/ui/button';
 import type { ReportFilters } from '../../types/reports';
+import type { ReportGenerationRequest, ReportJob } from '../../types/reports';
 import type { ReportScope } from '../../types/reportScope';
 import { useToast } from '@/hooks/useToast';
 import { useLayoutUI } from '@/contexts/LayoutUIContext';
@@ -50,6 +51,8 @@ export const KvkReportPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedScope, setSelectedScope] = useState<ReportScope | null>(null);
     const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+    const [reportJobProgress, setReportJobProgress] = useState<number | null>(null);
+    const [reportJobStatus, setReportJobStatus] = useState<string | null>(null);
 
     // Draft filter states (editable in UI)
     const currentYear = new Date().getFullYear();
@@ -68,6 +71,7 @@ export const KvkReportPage: React.FC = () => {
     const [leftPanelPercent, setLeftPanelPercent] = useState(DEFAULT_LEFT_PANEL_PERCENT);
 
     const splitPaneRef = useRef<HTMLDivElement | null>(null);
+    const reportPollAbortRef = useRef<AbortController | null>(null);
     const [isResizing, setIsResizing] = useState(false);
 
     // Load report configuration using TanStack Query
@@ -136,11 +140,39 @@ export const KvkReportPage: React.FC = () => {
 
     useEffect(() => {
         return () => {
-            if (previewBlobUrl) {
+            reportPollAbortRef.current?.abort();
+            if (previewBlobUrl?.startsWith('blob:')) {
                 window.URL.revokeObjectURL(previewBlobUrl);
             }
         };
     }, [previewBlobUrl]);
+
+    const runAggregatedPdfJob = useCallback(async (
+        request: ReportGenerationRequest,
+    ): Promise<ReportJob> => {
+        reportPollAbortRef.current?.abort();
+        const controller = new AbortController();
+        reportPollAbortRef.current = controller;
+        setReportJobProgress(0);
+        setReportJobStatus('Queued');
+
+        const queuedJob = await reportApi.createAggregatedReportJob(request);
+        return reportApi.waitForAggregatedReportJob(queuedJob.jobId, {
+            signal: controller.signal,
+            onProgress: (job) => {
+                setReportJobProgress(job.progress);
+                setReportJobStatus(
+                    job.status === 'finalizing'
+                        ? 'Finalizing PDF'
+                        : job.status === 'processing'
+                            ? `Generating sections (${job.completedParts ?? 0}/${job.totalParts})`
+                            : job.status === 'completed'
+                                ? 'Ready'
+                                : 'Queued',
+                );
+            },
+        });
+    }, []);
 
     const buildFilters = useCallback((): ReportFilters => {
         const filters: ReportFilters = {};
@@ -333,16 +365,30 @@ export const KvkReportPage: React.FC = () => {
             };
             if (scope && Object.keys(scope).length > 0) {
                 request.scope = scope;
-                const blob = await reportApi.generateAggregatedReport(request, format);
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                const ext = format === 'excel' ? 'xlsx' : format === 'docx' ? 'docx' : 'pdf';
-                link.download = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.${ext}`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
+                if (format === 'pdf') {
+                    const job = await runAggregatedPdfJob(request);
+                    if (!job.downloadUrl) {
+                        throw new Error('The generated report download is unavailable.');
+                    }
+                    const link = document.createElement('a');
+                    link.href = job.downloadUrl;
+                    link.download = job.fileName || `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.pdf`;
+                    link.rel = 'noopener';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    const blob = await reportApi.generateAggregatedReport(request, format);
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const ext = format === 'excel' ? 'xlsx' : 'docx';
+                    link.download = `${getReportScopeFilenamePrefix(scope)}-${getCompactDateTime()}.${ext}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                }
             } else {
                 const kvkId = user?.kvkId || undefined;
                 request.kvkId = kvkId;
@@ -356,6 +402,8 @@ export const KvkReportPage: React.FC = () => {
             setError(err instanceof Error ? err.message : 'Failed to download report');
         } finally {
             setDownloadingFormat(null);
+            setReportJobProgress(null);
+            setReportJobStatus(null);
         }
     };
 
@@ -380,11 +428,13 @@ export const KvkReportPage: React.FC = () => {
 
             if (scope && Object.keys(scope).length > 0) {
                 request.scope = scope;
-                const blob = await reportApi.generateAggregatedReport(request);
-                const url = window.URL.createObjectURL(blob);
+                const job = await runAggregatedPdfJob(request);
+                if (!job.previewUrl) {
+                    throw new Error('The generated report preview is unavailable.');
+                }
                 setPreviewBlobUrl(previousUrl => {
-                    if (previousUrl) window.URL.revokeObjectURL(previousUrl);
-                    return url;
+                    if (previousUrl?.startsWith('blob:')) window.URL.revokeObjectURL(previousUrl);
+                    return job.previewUrl || null;
                 });
             } else {
                 const kvkId = user?.kvkId || undefined;
@@ -392,7 +442,7 @@ export const KvkReportPage: React.FC = () => {
                 const blob = await reportApi.generateReport(request);
                 const url = window.URL.createObjectURL(blob);
                 setPreviewBlobUrl(previousUrl => {
-                    if (previousUrl) window.URL.revokeObjectURL(previousUrl);
+                    if (previousUrl?.startsWith('blob:')) window.URL.revokeObjectURL(previousUrl);
                     return url;
                 });
             }
@@ -403,6 +453,8 @@ export const KvkReportPage: React.FC = () => {
             setError(err instanceof Error ? err.message : 'Failed to preview report');
         } finally {
             setIsGenerating(false);
+            setReportJobProgress(null);
+            setReportJobStatus(null);
         }
     };
 
@@ -540,7 +592,7 @@ export const KvkReportPage: React.FC = () => {
                                         />
                                         <ReportPreview
                                             embedded
-                                            isGenerating={isGenerating}
+                                            isGenerating={isGenerating || downloadingFormat === 'pdf'}
                                             hasData={selectedSections.size > 0}
                                             previewUrl={previewBlobUrl}
                                             downloadingFormat={downloadingFormat === 'docx' ? 'doc' : (downloadingFormat as 'pdf' | 'excel' | null)}
@@ -554,6 +606,8 @@ export const KvkReportPage: React.FC = () => {
                                             }}
                                             selectedScopeCount={selectedScopeCount}
                                             selectedSectionsCount={selectedSections.size}
+                                            generationProgress={reportJobProgress}
+                                            generationStatus={reportJobStatus}
                                         />
                                     </div>
                                 </div>

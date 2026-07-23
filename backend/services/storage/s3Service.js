@@ -71,15 +71,48 @@ async function presignPut({ key, mimeType, expiresIn = PUT_TTL_SECONDS }) {
     return getSignedUrl(client(), cmd, { expiresIn });
 }
 
-async function presignGet({ key, downloadFileName, expiresIn = GET_TTL_SECONDS }) {
+async function presignGet({
+    key,
+    downloadFileName,
+    disposition = 'inline',
+    expiresIn = GET_TTL_SECONDS,
+}) {
+    const safeDisposition = disposition === 'attachment' ? 'attachment' : 'inline';
     const cmd = new GetObjectCommand({
         Bucket: BUCKET,
         Key: key,
         ResponseContentDisposition: downloadFileName
-            ? `inline; filename="${downloadFileName.replace(/"/g, '')}"`
+            ? `${safeDisposition}; filename="${downloadFileName.replace(/"/g, '')}"`
             : undefined,
     });
     return getSignedUrl(client(), cmd, { expiresIn });
+}
+
+async function putBuffer({ key, body, mimeType = 'application/octet-stream' }) {
+    if (!key || !body) {
+        throw new ValidationError('A storage key and body are required');
+    }
+    await client().send(new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body: body,
+        ContentType: mimeType,
+    }));
+    return key;
+}
+
+async function getBuffer(key) {
+    if (!key) {
+        throw new ValidationError('A storage key is required');
+    }
+    const response = await client().send(new GetObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+    }));
+    if (!response.Body) {
+        throw new Error(`Storage object has no body: ${key}`);
+    }
+    return Buffer.from(await response.Body.transformToByteArray());
 }
 
 async function deleteOne(key) {
@@ -106,6 +139,8 @@ module.exports = {
     buildNotificationAttachmentKey,
     presignPut,
     presignGet,
+    putBuffer,
+    getBuffer,
     deleteOne,
     deleteMany,
     isConfigured,
