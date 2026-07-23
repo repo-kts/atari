@@ -1,4 +1,8 @@
 // Use puppeteer-core for serverless compatibility
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
 let puppeteer;
 let chromium;
 
@@ -28,6 +32,46 @@ if (isServerless) {
 const ExcelJS = require('exceljs');
 const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, AlignmentType, PageOrientation } = require('docx');
 const { reportConfig } = require('../config/reportConfig.js');
+
+/**
+ * Resolve a Chrome/Chromium executable for local PDF generation.
+ * Puppeteer's postinstall download is commonly skipped in CI/dev setups, so
+ * fall back to a browser already installed on the machine before failing.
+ */
+function resolveLocalBrowserExecutable() {
+    const configuredPath = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_BIN;
+    if (configuredPath && fs.existsSync(configuredPath)) return configuredPath;
+
+    try {
+        const puppeteerPath = puppeteer?.executablePath?.();
+        if (puppeteerPath && fs.existsSync(puppeteerPath)) return puppeteerPath;
+    } catch (_) {
+        // Puppeteer throws when its expected browser revision is not cached.
+    }
+
+    const homeDir = os.homedir();
+    const joinFromEnv = (base, relativePath) => base ? path.join(base, relativePath) : '';
+    const candidates = process.platform === 'darwin'
+        ? [
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            '/Applications/Chromium.app/Contents/MacOS/Chromium',
+            path.join(homeDir, 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
+        ]
+        : process.platform === 'win32'
+            ? [
+                joinFromEnv(process.env.PROGRAMFILES, 'Google/Chrome/Application/chrome.exe'),
+                joinFromEnv(process.env['PROGRAMFILES(X86)'], 'Google/Chrome/Application/chrome.exe'),
+                joinFromEnv(process.env.LOCALAPPDATA, 'Google/Chrome/Application/chrome.exe'),
+            ]
+            : [
+                '/usr/bin/google-chrome',
+                '/usr/bin/google-chrome-stable',
+                '/usr/bin/chromium',
+                '/usr/bin/chromium-browser',
+            ];
+
+    return candidates.find((candidate) => candidate && fs.existsSync(candidate));
+}
 
 /**
  * Builds a unique "ATARI-YYYYMMDDHHMISS" serial so office staff can tell two
@@ -90,8 +134,15 @@ async function generatePDF(html, options = {}) {
             });
         } else {
             // Local development: use regular puppeteer
+            const executablePath = resolveLocalBrowserExecutable();
+            if (!executablePath) {
+                throw new Error(
+                    'No local Chrome/Chromium executable was found. Run "npm run install:chrome" in the backend directory or set PUPPETEER_EXECUTABLE_PATH.',
+                );
+            }
             browser = await puppeteer.launch({
                 headless: 'new',
+                executablePath,
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
@@ -353,5 +404,6 @@ module.exports = {
     generateExcel,
     generateWord,
     getCompactDateTime,
-    getReportScopeFilenamePrefix
+    getReportScopeFilenamePrefix,
+    resolveLocalBrowserExecutable,
 };
