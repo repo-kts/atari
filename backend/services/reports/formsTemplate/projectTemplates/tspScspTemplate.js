@@ -374,13 +374,18 @@ function renderTspScspSection(section, data, sectionId, isFirstSection, reportCo
     const hasTsp = tspRecords.length > 0;
     const hasScsp = scspRecords.length > 0;
     const heading = `<h1 class="section-title">${esc(section.id)} ${esc(section.title)}</h1>`;
+    // Wrap the section in an element carrying id="${sectionId}" so the Table of
+    // Contents link (#section-2-33) has a jump target — without it the TOC row
+    // for TSP/SCSP is not clickable. Matches every other section template.
+    const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+    const open = `<div id="${sectionId}" class="${pageClass}">`;
 
     if (!hasTsp && !hasScsp) {
-        return `${STYLES}${heading}<div class="tsp-scsp-wrap"><p class="no-data">No TSP/SCSP data available.</p></div>`;
+        return `${STYLES}${open}${heading}<div class="tsp-scsp-wrap"><p class="no-data">No TSP/SCSP data available.</p></div></div>`;
     }
 
     if (reportContext.isAggregatedView) {
-        return `${STYLES}${STATE_STYLE}${heading}
+        return `${STYLES}${STATE_STYLE}${open}${heading}
         <div class="tsp-scsp-wrap">
             <h3>Details of Tribal Sub Plan (TSP)</h3>
             <p class="sub-h">a. Achievements of physical output under TSP</p>
@@ -388,16 +393,16 @@ function renderTspScspSection(section, data, sectionId, isFirstSection, reportCo
             <h3>Details of Scheduled Caste Sub Plan (SCSP)</h3>
             <p class="sub-h">a. Achievements of physical output under SCSP</p>
             ${hasScsp ? renderStatePlanTable(scspRecords, masterActivities) : '<p class="no-data">No SCSP data available.</p>'}
-        </div>`;
+        </div></div>`;
     }
 
-    return `${STYLES}${heading}
+    return `${STYLES}${open}${heading}
         <div class="tsp-scsp-wrap">
             <h3>Details of Tribal Sub Plan (TSP)</h3>
             ${hasTsp ? renderKvkTspBlock(tspRecords, masterActivities) : '<p class="no-data">No TSP data available.</p>'}
             <h3>Details of Scheduled Caste Sub Plan (SCSP)</h3>
             ${hasScsp ? renderKvkScspBlock(scspRecords, masterActivities) : '<p class="no-data">No SCSP data available.</p>'}
-        </div>`;
+        </div></div>`;
 }
 
 /* ── module-export: KVK-wise grouped (TSP-only / SCSP-only) ────────────────────

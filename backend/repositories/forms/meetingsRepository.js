@@ -94,8 +94,6 @@ const meetingsRepository = {
             if (data.salientRecommendations !== undefined) updateData.salientRecommendations = data.salientRecommendations;
             if (data.actionTaken !== undefined || data.inCompliance === 'YES') {
                 updateData.actionTaken = resolveSacActionStatus(data, existing.actionTaken);
-                // Clear any legacy selection after it has been merged into Action Taken.
-                updateData.inCompliance = null;
             }
             if (data.reason !== undefined) updateData.reason = data.reason;
             if (data.uploadedFile !== undefined) {
