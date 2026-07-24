@@ -14,7 +14,7 @@ const CUSTOM_LABELS: Record<string, string> = {
     'rfMmDistrictReceived': 'RF (mm) district Received',
     'maxTemperature': 'Max. Temperature 0C',
     'minTemperature': 'Min. Temperature 0C',
-    'kvkName': 'KVK',
+    'kvkName': 'Name of KVK',
     'nutritionGardenCropResults': 'Crop production & consumption (results)',
     // UI rename (labels only — data keys preserved):
     // Organisation/Organization -> Institute, University -> Host
@@ -36,6 +36,10 @@ const CUSTOM_LABELS: Record<string, string> = {
     'animalsTreated': 'No. of Animals Treated',
     'trialName': 'Trial Name',
     'noOfSamplesAnalyzed': 'No. of Samples Analysed',
+    'awarenessCamps': 'Awareness Camps - Name',
+    'awarenessCampsQuantity': 'Awareness Camps - Quantity (No.)',
+    'drmrAnyOtherSpecification': 'Any Other - Specification',
+    'drmrAnyOtherQuantity': 'Any Other - Quantity (No.)',
 }
 
 export function formatHeaderLabel(field: string): string {

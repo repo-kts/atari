@@ -6,7 +6,7 @@ const reportAggregationService = require('./reportAggregationService.js');
 const reportService = require('./reportService.js');
 const reportTemplateService = require('./reportTemplateService.js');
 const pdfGenerationService = require('./pdfGenerationService.js');
-const s3 = require('../storage/s3Service.js');
+const reportStorage = require('./reportStorageService.js');
 const { addPdfFooterPagination } = require('../../utils/pdfFooterPaginator.js');
 const {
     getCompactDateTime,
@@ -137,7 +137,7 @@ async function createJob({ scope, sectionIds, filters = {}, user }) {
         throw new Error('Please select at least one report module.');
     }
     validateSectionIds(sectionIds);
-    if (!s3.isConfigured()) {
+    if (!reportStorage.isConfigured()) {
         throw new Error('Report storage is not configured');
     }
 
@@ -243,12 +243,12 @@ async function getJobForUser(jobId, userId) {
     let downloadUrl = null;
     if (job.status === 'completed' && job.resultKey) {
         [previewUrl, downloadUrl] = await Promise.all([
-            s3.presignGet({
+            reportStorage.presignGet({
                 key: job.resultKey,
                 downloadFileName: job.fileName,
                 disposition: 'inline',
             }),
-            s3.presignGet({
+            reportStorage.presignGet({
                 key: job.resultKey,
                 downloadFileName: job.fileName,
                 disposition: 'attachment',
@@ -269,6 +269,26 @@ async function getJobForUser(jobId, userId) {
         expiresAt: job.expiresAt,
         createdAt: job.createdAt,
         updatedAt: job.updatedAt,
+    };
+}
+
+async function getJobFileForUser(jobId, userId) {
+    if (!reportStorage.USE_LOCAL_REPORT_STORAGE) return null;
+    const job = await prisma.reportGenerationJob.findFirst({
+        where: {
+            reportGenerationJobId: jobId,
+            requestedBy: userId,
+            status: 'completed',
+        },
+        select: {
+            resultKey: true,
+            fileName: true,
+        },
+    });
+    if (!job?.resultKey) return null;
+    return {
+        buffer: await reportStorage.getBuffer(job.resultKey),
+        fileName: job.fileName || 'report.pdf',
     };
 }
 
@@ -349,7 +369,7 @@ async function cancelJobForUser(jobId, userId) {
         ),
         finalKey(jobId),
     ];
-    await s3.deleteMany(storageKeys).catch((error) => {
+    await reportStorage.deleteMany(storageKeys).catch((error) => {
         console.warn(`Could not remove cancelled report files for ${jobId}:`, error.message);
     });
     console.log('[report-job] cancelled', { jobId, totalParts: job.totalParts });
@@ -427,7 +447,7 @@ async function processPart({ jobId, partIndex }) {
         sectionsData,
     );
     const storageKey = partKey(jobId, partIndex);
-    await s3.putBuffer({
+    await reportStorage.putBuffer({
         key: storageKey,
         body: pdfBuffer,
         mimeType: 'application/pdf',
@@ -439,7 +459,7 @@ async function processPart({ jobId, partIndex }) {
     });
     if (!currentJob || currentJob.status === 'cancelled') {
         await Promise.all([
-            s3.deleteOne(storageKey),
+            reportStorage.deleteOne(storageKey),
             prisma.reportGenerationJobPart.updateMany({
                 where: {
                     reportGenerationJobPartId: part.reportGenerationJobPartId,
@@ -517,7 +537,7 @@ async function mergeStoredPdfParts(frontMatter, parts) {
     const merged = await PDFDocument.create();
     await appendPdfBuffer(merged, frontMatter);
     for (const part of parts) {
-        const buffer = await s3.getBuffer(part.resultKey);
+        const buffer = await reportStorage.getBuffer(part.resultKey);
         await appendPdfBuffer(merged, buffer);
     }
     return Buffer.from(await merged.save());
@@ -569,7 +589,7 @@ async function processFinalize({ jobId }) {
     });
     if (!beforeUpload || beforeUpload.status === 'cancelled') return;
 
-    await s3.putBuffer({
+    await reportStorage.putBuffer({
         key: storageKey,
         body: finalPdf,
         mimeType: 'application/pdf',
@@ -589,11 +609,11 @@ async function processFinalize({ jobId }) {
         },
     });
     if (completed.count === 0) {
-        await s3.deleteOne(storageKey);
+        await reportStorage.deleteOne(storageKey);
         return;
     }
 
-    await s3.deleteMany(job.parts.map(part => part.resultKey)).catch((error) => {
+    await reportStorage.deleteMany(job.parts.map(part => part.resultKey)).catch((error) => {
         console.warn(`Could not remove temporary report parts for ${jobId}:`, error.message);
     });
     console.log('[report-job] completed', {
@@ -611,6 +631,7 @@ module.exports = {
     chunkSectionIds,
     createJob,
     getJobForUser,
+    getJobFileForUser,
     cancelJobForUser,
     failJob,
     recordPartFailure,

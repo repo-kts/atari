@@ -22,7 +22,7 @@ interface ReportModuleSelectorProps {
     allFormsSelected?: boolean;
     collapsed?: boolean;
     onToggleCollapse?: () => void;
-    /** Show aggregated-only modules (e.g. State Wise OFT Details). */
+    /** Show aggregated-only modules (e.g. State Wise Details of Farmers). */
     isAggregated?: boolean;
 }
 

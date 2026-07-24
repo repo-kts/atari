@@ -58,13 +58,13 @@ const EQUIPMENT_MASTERS_BY_TYPE = {
 
 // Training Masters — official Training Type → Training Area mapping (KVK)
 const TRAINING_TYPES = [
-    'Extension Personnel',
+    'Extension Functionaries/ Personnel',
     'Rural Youth',
     'Farmers and Farm Women',
 ];
 
 const TRAINING_AREAS_BY_TYPE = {
-    'Extension Personnel': ['Extension Personnel'],
+    'Extension Functionaries/ Personnel': ['Extension Personnel'],
     'Rural Youth': ['Rural Youth'],
     'Farmers and Farm Women': [
         'Agro forestry',
@@ -846,7 +846,7 @@ async function seedEquipmentMasters() {
  * JSON `category` matches TrainingArea.trainingAreaName; maps to parent TrainingType.
  */
 function resolveTrainingTypeNameForAreaCategory(categoryName) {
-    if (categoryName === 'Extension Personnel') return 'Extension Personnel';
+    if (categoryName === 'Extension Personnel') return 'Extension Functionaries/ Personnel';
     if (categoryName === 'Rural Youth') return 'Rural Youth';
     return 'Farmers and Farm Women';
 }

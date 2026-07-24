@@ -1,4 +1,5 @@
 import { ENTITY_TYPES } from '../constants/entityConstants';
+import { FIELD_NAMES } from '../constants/fieldNames';
 
 // Extended entity type for all masters
 export type ExtendedEntityType = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];
@@ -49,6 +50,37 @@ export function resolveTableFields(
     // Priority 3: Default fallback
     const fields = defaultFields
     return Array.isArray(fields) ? [...fields] : [String(fields)]
+}
+
+/**
+ * Resolve list-table fields for the current user's scope.
+ *
+ * Form Management records need KVK ownership context for cross-KVK users, but
+ * repeating the KVK name adds no value for KVK-scoped users. Existing route
+ * field groups are inconsistent (`kvk`, `kvkName`, or neither), so normalize
+ * them here to one leading `kvkName` column for cross-KVK views.
+ */
+export function resolveRoleAwareTableFields(
+    routeConfig?: {
+        path?: string
+        fields?: readonly string[] | string[]
+    } | null,
+    propFields?: readonly string[] | string[] | null,
+    role?: string
+): string[] {
+    const resolvedFields = resolveTableFields(routeConfig, propFields)
+    if (!routeConfig?.path?.startsWith('/forms/')) return resolvedFields
+
+    const fieldsWithoutKvk = resolvedFields.filter(
+        field =>
+            field !== FIELD_NAMES.KVK &&
+            field !== FIELD_NAMES.KVK_NAME
+    )
+    const isKvkScopedRole = role === 'kvk_admin' || role === 'kvk_user'
+
+    return isKvkScopedRole
+        ? fieldsWithoutKvk
+        : [FIELD_NAMES.KVK_NAME, ...fieldsWithoutKvk]
 }
 
 // ============================================

@@ -1018,7 +1018,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, locations: e.target.value })}
                             />
                             <FormInput
-                                label="No. of Trial/Replication"
+                                label="No. of Trial/Replication/Farmer"
                                 required
                                 value={formData.replications ?? ''}
                                 onChange={(e) => setFormData({ ...formData, replications: e.target.value })}

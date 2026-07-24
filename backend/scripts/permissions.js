@@ -50,7 +50,7 @@ const MODULES = [
   { menuName: 'Achievements', subMenuName: 'Extension Activities', moduleCode: 'achievements_extension_activities' },
   { menuName: 'Achievements', subMenuName: 'Other Extension Activities', moduleCode: 'achievements_other_extension_activities' },
   { menuName: 'Achievements', subMenuName: 'Technology Week Celebration', moduleCode: 'achievements_technology_week_celebration' },
-  { menuName: 'Achievements', subMenuName: 'Celebration days', moduleCode: 'achievements_celebration_days' },
+  { menuName: 'Achievements', subMenuName: 'Important Events', moduleCode: 'achievements_celebration_days' },
   { menuName: 'Achievements', subMenuName: 'Production and supply of Technological products', moduleCode: 'achievements_production_supply_tech_products' },
   { menuName: 'Achievements', subMenuName: 'Soil, Water and Plant analysis', moduleCode: 'achievements_soil_water_testing' },
   { menuName: 'Achievements', subMenuName: 'World Soil Day', moduleCode: 'achievements_world_soil_day' },

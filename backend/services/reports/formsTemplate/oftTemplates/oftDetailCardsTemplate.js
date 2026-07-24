@@ -163,7 +163,7 @@ function _renderCard(record, cardNumber, base = '2.2') {
         ['Process of farmers participation and their reaction', esc(resultReport.farmersParticipationProcess)],
         ['Quantity', esc(record.quantity)],
         ['Unit', esc(record.unit)],
-        ['No. of Trial/Replication', esc(record.numberOfTrialReplication)],
+        ['No. of Trial/Replication/Farmer', esc(record.numberOfTrialReplication)],
         ['OFT Start on', this._escapeHtml(_formatMonthYear(record.oftStartDate))],
         ['OFT End on', this._escapeHtml(_formatMonthYear(record.oftEndDate))],
         ['Critical Input', esc(record.criticalInput)],

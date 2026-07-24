@@ -89,7 +89,7 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                 label: 'On Farm Trial',
                 features: [
                     { label: 'OFT Summary', sectionId: '2.2' },
-                    { label: 'State Wise OFT Details', sectionId: '2.2.1', aggregatedOnly: true },
+                    { label: 'State Wise Details of Farmers', sectionId: '2.2.1', aggregatedOnly: true },
                     { label: 'KVK Wise OFT Details', sectionId: '2.3' },
                 ],
             },
@@ -118,7 +118,7 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                 label: 'Special Days',
                 features: [
                     { label: 'Technology Week', sectionId: '2.10' },
-                    { label: 'Celebration Days', sectionId: '2.11' },
+                    { label: 'Important Events', sectionId: '2.11' },
                     { label: 'World Soil Day', sectionId: '2.15' },
                     { label: 'Poshan Maah', sectionId: '5.8' },
                 ],
@@ -389,7 +389,7 @@ export function buildTaxonomyView(
 
     const groups = chapter.groups.map((group, gi) => {
         const groupNo = `${chapterNo}.${gi + 1}`
-        // aggregatedOnly features (e.g. State Wise OFT Details) are selectable
+        // aggregatedOnly features (e.g. State Wise Details of Farmers) are selectable
         // only in aggregated/super-admin reports — drop them on the KVK side.
         const roleFiltered = group.features.filter(
             (f) => isAggregated || !f.aggregatedOnly,

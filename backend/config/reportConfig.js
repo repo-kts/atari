@@ -138,7 +138,8 @@ const reportConfig = {
             },
             fields: [
                 { dbField: 'kvk.kvkName', displayName: 'KVK' },
-                { dbField: 'vehicleName', displayName: 'Type of vehicle' },
+                { dbField: 'vehicleTypeName', displayName: 'Vehicle Type' },
+                { dbField: 'vehicleName', displayName: 'Name of vehicle' },
                 { dbField: 'registrationNo', displayName: 'Registration No.' },
                 { dbField: 'yearOfPurchase', displayName: 'Year of purchase' },
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
@@ -160,7 +161,8 @@ const reportConfig = {
             fields: [
                 { dbField: 'reportingYear', displayName: 'Year' },
                 { dbField: 'kvk.kvkName', displayName: 'KVK' },
-                { dbField: 'vehicleName', displayName: 'Vehicle' },
+                { dbField: 'vehicleTypeName', displayName: 'Vehicle Type' },
+                { dbField: 'vehicleName', displayName: 'Vehicle Name' },
                 { dbField: 'registrationNo', displayName: 'Registration No.' },
                 { dbField: 'yearOfPurchase', displayName: 'Year of purchase' },
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
@@ -186,6 +188,7 @@ const reportConfig = {
             },
             fields: [
                 { dbField: 'kvk.kvkName', displayName: 'KVK' },
+                { dbField: 'equipmentTypeName', displayName: 'Equipment Type' },
                 { dbField: 'equipmentName', displayName: 'Equipment Name' },
                 { dbField: 'yearOfPurchase', displayName: 'Year of Purchase' },
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
@@ -207,6 +210,7 @@ const reportConfig = {
             fields: [
                 { dbField: 'reportingYear', displayName: 'Year' },
                 { dbField: 'kvk.kvkName', displayName: 'KVK' },
+                { dbField: 'equipmentTypeName', displayName: 'Equipment Type' },
                 { dbField: 'equipmentName', displayName: 'Equipment Name' },
                 { dbField: 'yearOfPurchase', displayName: 'Year of purchase' },
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
@@ -292,8 +296,8 @@ const reportConfig = {
             // KVKs, so it's aggregated-only: excluded from single-KVK reports
             // (body, TOC) and hidden from the KVK-side module picker.
             id: '2.2.1',
-            title: 'State Wise OFT Details',
-            exportTitle: 'State Wise OFT Details',
+            title: 'State Wise Details of Farmers',
+            exportTitle: 'State Wise Details of Farmers',
             description: 'State-wise farmer participation in OFTs (category & gender wise)',
             subsection: true,
             parentSectionId: '2',
@@ -427,8 +431,8 @@ const reportConfig = {
         },
         {
             id: '2.11',
-            title: 'Details of Important days celebrated in KVKs.',
-            description: 'Important days by state: KVKs, activities, and participants (dynamic state columns)',
+            title: 'Important Events',
+            description: 'Important events by state: KVKs, activities, and participants (dynamic state columns)',
             subsection: true,
             parentSectionId: '2',
             dataSource: 'celebrationDaysReport',
@@ -491,7 +495,7 @@ const reportConfig = {
         {
             id: '2.15',
             title: 'World Soil Day celebration',
-            description: 'World Soil Day activity details at KVK; state-wise summary when aggregated',
+            description: 'World Soil Day details at KVK; Bihar, Jharkhand, and total summary when aggregated',
             subsection: true,
             parentSectionId: '2',
             dataSource: 'worldSoilDayReport',
@@ -596,7 +600,7 @@ const reportConfig = {
         {
             id: '2.59',
             title: 'Details of HRD programmes undergone by KVK personnel',
-            description: 'HRD programmes attended by staff (same layout in modular report and Data Management export)',
+            description: 'Detailed HRD programmes at KVK; state-wise programme, personnel, and duration summary when aggregated',
             subsection: true,
             parentSectionId: '2',
             dataSource: 'hrdProgram',

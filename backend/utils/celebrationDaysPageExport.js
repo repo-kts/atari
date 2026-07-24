@@ -12,7 +12,7 @@ const {
     PageOrientation,
 } = require('docx');
 
-const SECTION_D = 'D. Celebration of important days in KVKs';
+const SECTION_D = 'D. Important Events in KVKs';
 
 // 29 columns total: label + activities + Farmers(12) + Officials(12) + Total(3).
 const TOTAL_COLS = 29;
@@ -58,7 +58,7 @@ function writeGroupedHeader(ws, top) {
 
     // Col 1 label + col 2 activities span all 3 header rows.
     ws.mergeCells(r1, 1, r3, 1);
-    ws.getCell(r1, 1).value = 'Celebration of Important Days';
+    ws.getCell(r1, 1).value = 'Important Events';
     ws.mergeCells(r1, 2, r3, 2);
     ws.getCell(r1, 2).value = 'No. of activities';
 
@@ -115,7 +115,7 @@ function writeDataRow(ws, rowIdx, r, opts = {}) {
 
 async function generateCelebrationDaysPageExcelBuffer(reportTitle, payload) {
     const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Celebration days', {
+    const ws = wb.addWorksheet('Important Events', {
         pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
     });
 
@@ -129,7 +129,7 @@ async function generateCelebrationDaysPageExcelBuffer(reportTitle, payload) {
 
     const groups = (payload && payload.groups) || [];
     if (groups.length === 0) {
-        ws.getCell(row, 1).value = 'No celebration days data for export.';
+        ws.getCell(row, 1).value = 'No important events data for export.';
         return await wb.xlsx.writeBuffer();
     }
 
@@ -193,7 +193,7 @@ function buildHeaderRows() {
     const row1 = new TableRow({
         tableHeader: true,
         children: [
-            h('Celebration of Important Days', { rowSpan: 3, alignment: AlignmentType.LEFT }),
+            h('Important Events', { rowSpan: 3, alignment: AlignmentType.LEFT }),
             h('No. of activities', { rowSpan: 3 }),
             h('Farmers', { colSpan: 12 }),
             h('Extension Officials', { colSpan: 12 }),
@@ -256,7 +256,7 @@ async function generateCelebrationDaysPageWordBuffer(reportTitle, payload) {
     ];
 
     if (groups.length === 0) {
-        children.push(new Paragraph({ children: [tx('No celebration days data for export.')] }));
+        children.push(new Paragraph({ children: [tx('No important events data for export.')] }));
     } else {
         groups.forEach((g) => {
             if (payload.isMultiKvk) {

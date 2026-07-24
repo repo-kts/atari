@@ -10,6 +10,11 @@ function getKvkName(row) {
     return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
 }
 
+function toNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
 function renderWebPortalSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -33,13 +38,19 @@ function renderWebPortalSection(section, data, sectionId, isFirstSection) {
             <tr><td colspan="4" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>`;
     }
 
+    let totalVisitors = 0;
+    let totalRegistered = 0;
     records.forEach(row => {
         const kvk = getKvkName(row);
         const portalName = pickValue(row.webPortalName) || '-';
         const visitorsValue = pickValue(row.noOfVisitors, row.numberOfVisitors);
         const registeredValue = pickValue(row.noOfFarmersRegistered, row.numberOfFarmersRegistered);
-        const visitors = visitorsValue != null ? String(visitorsValue) : '0';
-        const registered = registeredValue != null ? String(registeredValue) : '0';
+        const visitorsNumber = toNumber(visitorsValue);
+        const registeredNumber = toNumber(registeredValue);
+        const visitors = String(visitorsNumber);
+        const registered = String(registeredNumber);
+        totalVisitors += visitorsNumber;
+        totalRegistered += registeredNumber;
         html += `
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>
@@ -48,6 +59,16 @@ function renderWebPortalSection(section, data, sectionId, isFirstSection) {
                 <td style="text-align:center;">${this._escapeHtml(registered)}</td>
             </tr>`;
     });
+
+    if (records.length > 0) {
+        html += `
+            <tr style="font-weight:bold;background:#f5f5f5;page-break-inside:avoid;">
+                <td>Total</td>
+                <td>—</td>
+                <td style="text-align:center;">${totalVisitors}</td>
+                <td style="text-align:center;">${totalRegistered}</td>
+            </tr>`;
+    }
 
     html += `
         </tbody>

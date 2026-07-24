@@ -38,7 +38,8 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection, r
                 <th class="s-no">Sl. No.</th>
                 <th>Year</th>
                 <th>KVK</th>
-                <th>Vehicle</th>
+                <th>Vehicle Type</th>
+                <th>Vehicle Name</th>
                 <th>Registration No.</th>
                 <th>Year of purchase</th>
                 <th>Cost (Rs.)</th>
@@ -54,6 +55,8 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection, r
     const normalizeDisplay = (value) => {
         if (value === null || value === undefined || value === '') return '-'
         if (value instanceof Date) return value.getUTCFullYear()
+        if (typeof value === 'number' && Number.isFinite(value)) return value
+        if (typeof value === 'string' && /^\d{4}$/.test(value.trim())) return value.trim()
         const maybeDate = new Date(value)
         if (!Number.isNaN(maybeDate.getTime())) return maybeDate.getUTCFullYear()
         if (typeof value === 'object') {
@@ -66,7 +69,8 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection, r
 
     records.forEach((row, index) => {
         const year = normalizeDisplay(this._pickValue(row, ['Year', 'reportingYear']))
-        const kvk = row.kvkName
+        const kvk = this._pickValue(row, ['KVK', 'kvkName', 'kvk.kvkName']) || '-'
+        const vehicleType = this._pickValue(row, ['Vehicle Type', 'vehicleTypeName', 'vehicle.vehicleType.name']) || '-'
         const vehicle = this._pickValue(row, ['Vehicle', 'vehicleName', 'vehicle.vehicleName']) || '-'
         const registrationNo = this._pickValue(row, ['Registration No.', 'registrationNo', 'vehicle.registrationNo']) || '-'
         const yearOfPurchase = this._pickValue(row, ['Year of purchase', 'yearOfPurchase', 'vehicle.yearOfPurchase']) || '-'
@@ -83,6 +87,7 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection, r
                 <td class="s-no">${index + 1}</td>
                 <td>${this._escapeHtml(String(year))}</td>
                 <td>${this._escapeHtml(String(kvk))}</td>
+                <td>${this._escapeHtml(String(vehicleType))}</td>
                 <td>${this._escapeHtml(String(vehicle))}</td>
                 <td>${this._escapeHtml(String(registrationNo))}</td>
                 <td>${this._escapeHtml(String(yearOfPurchase))}</td>
@@ -106,4 +111,3 @@ function renderVehicleDetailsSection(section, data, sectionId, isFirstSection, r
 module.exports = {
     renderVehicleDetailsSection,
 }
-

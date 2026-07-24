@@ -39,7 +39,7 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import {
     getEntityTypeFromPath,
     getFieldValue,
-    resolveTableFields,
+    resolveRoleAwareTableFields,
     fuzzyDedupeByName,
 } from '@/utils/masterUtils'
 import { useAuth } from '@/contexts/AuthContext'
@@ -486,8 +486,13 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Resolve fields using centralized utility function
     // This ensures fields are always available even when there's no data
     const fields = useMemo(
-        () => resolveTableFields(routeConfig, propFields),
-        [routeConfig, propFields]
+        () =>
+            resolveRoleAwareTableFields(
+                routeConfig,
+                propFields,
+                user?.role
+            ),
+        [routeConfig, propFields, user?.role]
     )
     const itemsPerPage = 10
 
@@ -2004,7 +2009,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             data: exportDataSource,
             pathname: location.pathname,
             templateKey,
-            ...(templateKey === 'world-soil-day-page-report'
+            ...((templateKey === 'world-soil-day-page-report'
+                || templateKey === 'hrd-programmes-report')
                 ? {
                     isAggregatedReport:
                         user?.role !== 'kvk_admin' &&

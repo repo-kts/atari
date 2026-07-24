@@ -64,6 +64,15 @@ router.post('/aggregated/jobs', reportController.createAggregatedReportJob);
 router.get('/aggregated/jobs/:jobId', reportController.getAggregatedReportJob);
 
 /**
+ * GET /api/reports/aggregated/jobs/:jobId/file
+ * Stream a completed report from development-only local storage.
+ */
+router.get(
+    '/aggregated/jobs/:jobId/file',
+    reportController.getAggregatedReportJobFile,
+);
+
+/**
  * POST /api/reports/aggregated/jobs/:jobId/cancel
  * Cancel an active report job owned by the current user.
  */

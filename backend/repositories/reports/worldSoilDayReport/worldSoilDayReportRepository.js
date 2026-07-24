@@ -142,33 +142,54 @@ function buildStateSummaryFromRecords(records) {
         if (!byState.has(st)) {
             byState.set(st, {
                 stateName: st,
-                kvkIds: new Set(),
+                kvks: new Set(),
+                activitiesConducted: 0,
                 farmersBenefitted: 0,
-                soilHealthCards: 0,
                 participants: 0,
-                vipsAttended: 0,
             });
         }
         const b = byState.get(st);
-        if (r.kvkId != null) b.kvkIds.add(Number(r.kvkId));
+        if (r.kvkId != null) {
+            b.kvks.add(`id:${Number(r.kvkId)}`);
+        } else if (r.kvkName && r.kvkName !== '—') {
+            b.kvks.add(`name:${String(r.kvkName).trim().toLowerCase()}`);
+        }
+        b.activitiesConducted += safeInt(r.activitiesConducted);
         b.farmersBenefitted += safeInt(r.farmersBenefitted);
-        b.soilHealthCards += safeInt(r.soilHealthCardDistributed);
         b.participants += safeInt(r.participants);
-        b.vipsAttended += safeInt(r.vipCount);
     }
 
-    const rows = [...byState.values()]
-        .sort((a, b) => sortStr(a.stateName, b.stateName))
-        .map((b) => ({
-            stateName: b.stateName,
-            noOfKvks: b.kvkIds.size,
-            farmersBenefitted: b.farmersBenefitted,
-            soilHealthCards: b.soilHealthCards,
-            participants: b.participants,
-            vipsAttended: b.vipsAttended,
-        }));
+    // BLA-60: the Zone IV summary must always present Bihar and Jharkhand in
+    // the agreed order, including a zero row when one state has no records.
+    const requestedStates = ['Bihar', 'Jharkhand'];
+    const rows = requestedStates.map((stateName) => {
+        const match = [...byState.values()].find(
+            (entry) => entry.stateName.toLowerCase() === stateName.toLowerCase(),
+        );
+        return {
+            stateName,
+            noOfKvks: match ? match.kvks.size : 0,
+            activitiesConducted: match ? match.activitiesConducted : 0,
+            farmersBenefitted: match ? match.farmersBenefitted : 0,
+            participants: match ? match.participants : 0,
+        };
+    });
 
-    return { yearLabel, rows, layout: 'state' };
+    const grandTotal = rows.reduce((total, row) => ({
+        stateName: 'Total',
+        noOfKvks: total.noOfKvks + safeInt(row.noOfKvks),
+        activitiesConducted: total.activitiesConducted + safeInt(row.activitiesConducted),
+        farmersBenefitted: total.farmersBenefitted + safeInt(row.farmersBenefitted),
+        participants: total.participants + safeInt(row.participants),
+    }), {
+        stateName: 'Total',
+        noOfKvks: 0,
+        activitiesConducted: 0,
+        farmersBenefitted: 0,
+        participants: 0,
+    });
+
+    return { yearLabel, rows, grandTotal, layout: 'state' };
 }
 
 function buildPagePayloadFromRecords(records, isAggregatedReport) {
@@ -277,6 +298,13 @@ function resolveWorldSoilDayGroupedPayload(data) {
     return buildKvkGroupedDetailPayload(records);
 }
 
+function resolveWorldSoilDayStateSummaryPayload(data) {
+    if (!data) return buildStateSummaryFromRecords([]);
+    if (data.stateSummaryPayload) return data.stateSummaryPayload;
+    if (data.data && data.data.stateSummaryPayload) return data.data.stateSummaryPayload;
+    return buildStateSummaryFromRecords(extractRecords(data));
+}
+
 async function fetchWorldSoilDayRecordsForReport(kvkId, filters = {}) {
     const user = kvkId != null ? { kvkId: String(kvkId) } : null;
     const list = await soilWaterRepository.findAllWorldSoilDay(user);
@@ -324,5 +352,6 @@ module.exports = {
     buildKvkGroupedDetailPayload,
     resolveWorldSoilDayPagePayload,
     resolveWorldSoilDayGroupedPayload,
+    resolveWorldSoilDayStateSummaryPayload,
     normalizeRow,
 };

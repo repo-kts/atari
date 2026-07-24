@@ -175,7 +175,7 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            equipmentType: { select: { equipmentTypeId: true, name: true } },
+            equipmentType: { select: { equipmentTypeId: true, name: true, isOther: true } },
             equipmentMaster: { select: { equipmentMasterId: true, name: true } },
             assetFundingSource: { select: { fundingSourceId: true, name: true } },
         }
@@ -189,8 +189,8 @@ const ENTITY_CONFIG = {
             equipment: {
                 select: {
                     equipmentId: true, equipmentName: true, companyBrandModel: true, identifierCode: true,
-                    yearOfPurchase: true, totalCost: true, equipmentTypeId: true,
-                    equipmentType: { select: { equipmentTypeId: true, name: true } },
+                    yearOfPurchase: true, totalCost: true, equipmentTypeId: true, equipmentTypeOther: true,
+                    equipmentType: { select: { equipmentTypeId: true, name: true, isOther: true } },
                 }
             },
             equipmentStatus: { select: { equipmentStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
@@ -1981,7 +1981,8 @@ async function getEquipmentsForDropdown(kvkId, reportingYear) {
             companyBrandModel: true,
             identifierCode: true,
             equipmentTypeId: true,
-            equipmentType: { select: { equipmentTypeId: true, name: true } },
+            equipmentTypeOther: true,
+            equipmentType: { select: { equipmentTypeId: true, name: true, isOther: true } },
         },
         orderBy: [{ equipmentTypeId: 'asc' }, { equipmentName: 'asc' }],
     });

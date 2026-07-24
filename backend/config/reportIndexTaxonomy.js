@@ -88,7 +88,7 @@ const REPORT_INDEX_TAXONOMY = {
                     { label: 'OFT Summary', sectionId: '2.2' },
                     // Its own aggregated-only section (2.2.1) — excluded from the
                     // single-KVK report, so it drops out of the KVK-side TOC too.
-                    { label: 'State Wise OFT Details', sectionId: '2.2.1', aggregatedOnly: true },
+                    { label: 'State Wise Details of Farmers', sectionId: '2.2.1', aggregatedOnly: true },
                     { label: 'KVK Wise OFT Details', sectionId: '2.3' },
                 ],
             },
@@ -119,7 +119,7 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'Special Days',
                 features: [
                     { label: 'Technology Week', sectionId: '2.10' },
-                    { label: 'Celebration Days', sectionId: '2.11' },
+                    { label: 'Important Events', sectionId: '2.11' },
                     { label: 'World Soil Day', sectionId: '2.15' },
                     { label: 'Poshan Maah', sectionId: '5.8' },
                 ],

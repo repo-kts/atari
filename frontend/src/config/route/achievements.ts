@@ -95,7 +95,7 @@ export const achievementsRoutes: RouteConfig[] = [
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.CELEBRATION_DAYS,
-        title: 'Celebration Days',
+        title: 'Important Events',
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,

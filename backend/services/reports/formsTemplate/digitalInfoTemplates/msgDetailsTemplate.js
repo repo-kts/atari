@@ -27,6 +27,11 @@ function _channelValue(row, prefix, field) {
     return row[key];
 }
 
+function toNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
 function _renderTableHeader(ctx) {
     return `
         <thead>
@@ -67,6 +72,8 @@ function renderMsgDetailsSection(section, data, sectionId, isFirstSection) {
     } else {
         records.forEach(row => {
             const kvk = getKvkName(row);
+            let totalFarmersCovered = 0;
+            let totalAdvisoriesSent = 0;
             html += `
     <table class="data-table" style="width:100%;margin-bottom:20px;">
         ${_renderTableHeader(this)}
@@ -75,6 +82,10 @@ function renderMsgDetailsSection(section, data, sectionId, isFirstSection) {
             CHANNELS.forEach(ch => {
                 const covered = _channelValue(row, ch.prefix, 'noOfFarmersCovered');
                 const sent = _channelValue(row, ch.prefix, 'noOfAdvisoriesSent');
+                const coveredNumber = toNumber(covered);
+                const sentNumber = toNumber(sent);
+                totalFarmersCovered += coveredNumber;
+                totalAdvisoriesSent += sentNumber;
                 const crop = _channelValue(row, ch.prefix, 'crop');
                 const livestock = _channelValue(row, ch.prefix, 'livestock');
                 const weather = _channelValue(row, ch.prefix, 'weather');
@@ -86,8 +97,8 @@ function renderMsgDetailsSection(section, data, sectionId, isFirstSection) {
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>
                 <td>${this._escapeHtml(ch.label)}</td>
-                <td style="text-align:center;">${covered != null ? covered : '0'}</td>
-                <td style="text-align:center;">${sent != null ? sent : '0'}</td>
+                <td style="text-align:center;">${coveredNumber}</td>
+                <td style="text-align:center;">${sentNumber}</td>
                 <td style="text-align:center;">${this._escapeHtml(String(crop || '0'))}</td>
                 <td style="text-align:center;">${this._escapeHtml(String(livestock || '0'))}</td>
                 <td style="text-align:center;">${this._escapeHtml(String(weather || '0'))}</td>
@@ -98,6 +109,18 @@ function renderMsgDetailsSection(section, data, sectionId, isFirstSection) {
             });
 
             html += `
+            <tr style="font-weight:bold;background:#f5f5f5;page-break-inside:avoid;">
+                <td>Total</td>
+                <td>—</td>
+                <td style="text-align:center;">${totalFarmersCovered}</td>
+                <td style="text-align:center;">${totalAdvisoriesSent}</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+            </tr>
         </tbody>
     </table>`;
         });

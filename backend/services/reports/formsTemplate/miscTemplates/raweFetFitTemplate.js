@@ -18,6 +18,11 @@ function _computeDays(startDate, endDate) {
     return String(days);
 }
 
+function _number(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
 function renderRaweFetFitSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection
@@ -51,13 +56,17 @@ function renderRaweFetFitSection(section, data, sectionId, isFirstSection) {
             </tr>`;
     }
 
+    let totalStudentsTrained = 0;
+    let totalDaysStayed = 0;
     records.forEach((row) => {
         const kvk = row.kvk?.kvkName || '-';
         const typeName = row.attachmentType?.name || '-';
-        const male = Number(row.maleStudents) || 0;
-        const female = Number(row.femaleStudents) || 0;
+        const male = _number(row.maleStudents);
+        const female = _number(row.femaleStudents);
         const totalStudents = male + female;
         const days = _computeDays(row.startDate, row.endDate);
+        totalStudentsTrained += totalStudents;
+        totalDaysStayed += _number(days);
 
         html += `
             <tr>
@@ -67,6 +76,16 @@ function renderRaweFetFitSection(section, data, sectionId, isFirstSection) {
                 <td style="text-align:center;">${this._escapeHtml(days)}</td>
             </tr>`;
     });
+
+    if (records.length > 0) {
+        html += `
+            <tr style="font-weight:bold;background:#f5f5f5;page-break-inside:avoid;">
+                <td>Total</td>
+                <td>—</td>
+                <td style="text-align:center;">${totalStudentsTrained}</td>
+                <td style="text-align:center;">${totalDaysStayed}</td>
+            </tr>`;
+    }
 
     html += `
         </tbody>

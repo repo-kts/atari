@@ -352,7 +352,7 @@ class ReportTemplateService {
         const sections = getAllSections();
         const selectedSections = sections.filter(s => {
             if (s.hideInReport) return false;
-            // aggregatedOnly sections (e.g. State Wise OFT Details) render only in
+            // aggregatedOnly sections (e.g. State Wise Details of Farmers) render only in
             // aggregated reports — never on the single-KVK side (body + TOC).
             if (s.aggregatedOnly && !isAggregated) return false;
             const sectionData = sectionsData[s.id];

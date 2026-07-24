@@ -369,6 +369,48 @@ const getAggregatedReportJob = async (req, res) => {
     }
 };
 
+const getAggregatedReportJobFile = async (req, res) => {
+    try {
+        const jobId = String(req.params.jobId || '');
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(jobId)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid report job ID',
+            });
+        }
+        const result = await reportGenerationJobService.getJobFileForUser(
+            jobId,
+            req.user.userId,
+        );
+        if (!result) {
+            return res.status(404).json({
+                success: false,
+                error: 'Report file not found',
+            });
+        }
+
+        const disposition = req.query.disposition === 'attachment'
+            ? 'attachment'
+            : 'inline';
+        const safeFileName = String(result.fileName || 'report.pdf')
+            .replace(/[\r\n"]/g, '');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader(
+            'Content-Disposition',
+            `${disposition}; filename="${safeFileName}"`,
+        );
+        res.setHeader('Content-Length', result.buffer.length);
+        res.setHeader('Cache-Control', 'private, no-store');
+        return res.send(result.buffer);
+    } catch (error) {
+        console.error('Error getting local report job file:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to get report file',
+        });
+    }
+};
+
 const cancelAggregatedReportJob = async (req, res) => {
     try {
         const jobId = String(req.params.jobId || '');
@@ -552,6 +594,7 @@ module.exports = {
     generateAggregatedReport,
     createAggregatedReportJob,
     getAggregatedReportJob,
+    getAggregatedReportJobFile,
     cancelAggregatedReportJob,
     getScopeOptions,
     getFilteredChildren,

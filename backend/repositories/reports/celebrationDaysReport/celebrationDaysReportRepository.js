@@ -1,5 +1,5 @@
 /**
- * Important days celebration — `KvkImportantDayCelebration`.
+ * Important events — `KvkImportantDayCelebration`.
  * Page export: wide table — activities + Farmers / Extension Officials (Gen/OBC/SC/ST × M,F,T) + row Total.
  * Modular: important day × state matrix with KVK count, activities, participants.
  */

@@ -2,7 +2,7 @@
  * §1.5.A Equipment DETAILS — static attributes only (mirrors the Vehicle
  * Details table). Present status is reporting-year data shown in the separate
  * Equipment Status table (#235).
- * Source: getKvkEquipments → { kvkName, equipmentName, yearOfPurchase,
+ * Source: getKvkEquipments → { kvkName, equipmentTypeName, equipmentName, yearOfPurchase,
  * totalCost }.
  * Bound to reportTemplateService (`this`).
  */
@@ -36,6 +36,7 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection,
 
     const rows = records.map((row, index) => {
         const kvk = this._pickValue(row, ['KVK','kvkName', 'kvk.kvkName']) || '-'
+        const type = this._pickValue(row, ['Equipment Type', 'equipmentTypeName', 'equipmentType.name']) || '-'
         const name = this._pickValue(row, ['Equipment Name', 'equipmentName', 'equipmentMaster.name']) || '-'
         const year = dash(this._pickValue(row, ['Year of Purchase', 'yearOfPurchase']))
         const cost = dash(this._pickValue(row, ['Cost (Rs.)', 'totalCost']))
@@ -43,6 +44,7 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection,
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
                 <td class="s-no">${index + 1}</td>
                 <td>${this._escapeHtml(String(kvk))}</td>
+                <td>${this._escapeHtml(String(type))}</td>
                 <td>${this._escapeHtml(String(name))}</td>
                 <td>${this._escapeHtml(String(year))}</td>
                 <td>${this._escapeHtml(String(cost))}</td>
@@ -57,6 +59,7 @@ function renderEquipmentDetailsSection(section, data, sectionId, isFirstSection,
             <tr>
                 <th class="s-no">S. No.</th>
                 <th>KVK</th>
+                <th>Equipment Type</th>
                 <th>Equipment Name</th>
                 <th>Year of Purchase</th>
                 <th>Cost (Rs.)</th>

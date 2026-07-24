@@ -11,6 +11,11 @@ function getKvkName(row) {
     return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
 }
 
+function toNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
 function renderMobileAppSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -36,15 +41,21 @@ function renderMobileAppSection(section, data, sectionId, isFirstSection) {
             <tr><td colspan="6" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>`;
     }
 
+    let totalApps = 0;
+    let totalDownloads = 0;
     records.forEach(row => {
         const kvk = getKvkName(row);
         const countValue = pickValue(row.numberOfAppsDeveloped, row.numberOfMobileAppsDevelopedByKvk);
-        const count = countValue != null ? String(countValue) : '0';
+        const countNumber = toNumber(countValue);
+        const count = String(countNumber);
         const name = row.nameOfApp || '-';
         const language = row.languageOfApp || '-';
         const meantFor = row.meantFor || '-';
         const downloadsValue = pickValue(row.numberOfTimesDownloaded, row.noOfTimesDownloaded);
-        const downloads = downloadsValue != null ? String(downloadsValue) : '0';
+        const downloadsNumber = toNumber(downloadsValue);
+        const downloads = String(downloadsNumber);
+        totalApps += countNumber;
+        totalDownloads += downloadsNumber;
         html += `
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>
@@ -55,6 +66,18 @@ function renderMobileAppSection(section, data, sectionId, isFirstSection) {
                 <td style="text-align:center;">${this._escapeHtml(downloads)}</td>
             </tr>`;
     });
+
+    if (records.length > 0) {
+        html += `
+            <tr style="font-weight:bold;background:#f5f5f5;page-break-inside:avoid;">
+                <td>Total</td>
+                <td style="text-align:center;">${totalApps}</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td style="text-align:center;">${totalDownloads}</td>
+            </tr>`;
+    }
 
     html += `
         </tbody>

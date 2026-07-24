@@ -11,6 +11,11 @@ function getKvkName(row) {
     return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
 }
 
+function toNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
 function renderKmasSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -43,12 +48,18 @@ function renderKmasSection(section, data, sectionId, isFirstSection) {
             <tr><td colspan="10" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>`;
     }
 
+    let totalFarmersCovered = 0;
+    let totalAdvisoriesSent = 0;
     records.forEach(row => {
         const kvk = getKvkName(row);
         const coveredValue = pickValue(row.noOfFarmersCovered, row.numberOfFarmersCovered);
         const sentValue = pickValue(row.noOfAdvisoriesSent, row.numberOfAdvisoriesSent);
-        const covered = coveredValue != null ? String(coveredValue) : '0';
-        const sent = sentValue != null ? String(sentValue) : '0';
+        const coveredNumber = toNumber(coveredValue);
+        const sentNumber = toNumber(sentValue);
+        const covered = String(coveredNumber);
+        const sent = String(sentNumber);
+        totalFarmersCovered += coveredNumber;
+        totalAdvisoriesSent += sentNumber;
         html += `
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>
@@ -63,6 +74,22 @@ function renderKmasSection(section, data, sectionId, isFirstSection) {
                 <td>${this._escapeHtml(row.anyOther || '-')}</td>
             </tr>`;
     });
+
+    if (records.length > 0) {
+        html += `
+            <tr style="font-weight:bold;background:#f5f5f5;page-break-inside:avoid;">
+                <td>Total</td>
+                <td style="text-align:center;">${totalFarmersCovered}</td>
+                <td style="text-align:center;">${totalAdvisoriesSent}</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+            </tr>`;
+    }
 
     html += `
         </tbody>

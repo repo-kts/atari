@@ -38,6 +38,7 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection,
                 <th class="s-no">Sl. No.</th>
                 <th>Year</th>
                 <th>KVK</th>
+                <th>Equipment Type</th>
                 <th>Equipment Name</th>
                 <th>Year of purchase</th>
                 <th>Cost (Rs.)</th>
@@ -49,17 +50,19 @@ function renderEquipmentRecordsSection(section, data, sectionId, isFirstSection,
         <tbody>`;
 
     records.forEach((row, index) => {
+        const value = (keys) => this._pickValue(row, keys);
         html += `
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
                 <td class="s-no">${index + 1}</td>
-                <td>${cell(row.reportingYear)}</td>
-                <td>${cell(row.kvkName)}</td>
-                <td>${cell(row.equipmentName)}</td>
-                <td>${cell(row.yearOfPurchase)}</td>
-                <td>${cell(row.totalCost)}</td>
-                <td>${cell(row.sourceOfFunding)}</td>
-                <td>${cell(row.fundingAgencyName)}</td>
-                <td>${cell(row.presentStatus)}</td>
+                <td>${cell(value(['Year', 'reportingYear']))}</td>
+                <td>${cell(value(['KVK', 'kvkName', 'kvk.kvkName']))}</td>
+                <td>${cell(value(['Equipment Type', 'equipmentTypeName', 'equipment.equipmentType.name']))}</td>
+                <td>${cell(value(['Equipment Name', 'equipmentName', 'equipment.equipmentName']))}</td>
+                <td>${cell(value(['Year of purchase', 'yearOfPurchase', 'equipment.yearOfPurchase']))}</td>
+                <td>${cell(value(['Cost (Rs.)', 'totalCost', 'equipment.totalCost']))}</td>
+                <td>${cell(value(['Source of fund', 'sourceOfFunding', 'assetFundingSource.name']))}</td>
+                <td>${cell(value(['Funding Agency', 'fundingAgencyName']))}</td>
+                <td>${cell(value(['Present status', 'presentStatus', 'equipmentStatus.statusLabel']))}</td>
             </tr>`;
     });
 

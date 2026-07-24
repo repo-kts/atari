@@ -22,8 +22,9 @@ const ACTIVITY_ROWS = [
         group: null,
         itemLabel: 'Awareness camps, exposure visit etc',
         unitFallback: 'No.',
-        valueKeys: ['awareness_count'],
+        valueKeys: ['awareness_quantity'],
         specKeys: ['awareness_count'],
+        unitKeys: ['awareness_count_unit'],
         prefix: 'awareness_count_',
     },
     {
@@ -94,8 +95,9 @@ const ACTIVITY_ROWS = [
         group: null,
         itemLabel: 'Any other (specify)',
         unitFallback: 'N/A',
-        valueKeys: ['any_other_count'],
+        valueKeys: ['any_other_quantity'],
         specKeys: ['any_other_count'],
+        unitKeys: ['any_other_count_unit'],
         prefix: 'any_other_count_',
     },
 ];
@@ -127,11 +129,13 @@ function pickValue(record, keys = []) {
 
 function buildRowWithFallback(config, record, activitiesMap = {}) {
     const preNormalized = activitiesMap[config.activityType] || null;
-    const unit = preNormalized?.unit || pickValue(record, [`${config.valueKeys[0]}_unit`]) || config.unitFallback;
-    const quantityOrSpecification = preNormalized?.quantityOrSpecification
-        ?? preNormalized?.specification
-        ?? preNormalized?.quantity
-        ?? pickValue(record, [...config.specKeys, ...config.valueKeys])
+    const unitKeys = config.unitKeys || config.valueKeys.map(key => `${key}_unit`);
+    const unit = preNormalized?.unit || pickValue(record, unitKeys) || config.unitFallback;
+    const specification = preNormalized?.specification
+        ?? pickValue(record, config.specKeys)
+        ?? null;
+    const quantity = preNormalized?.quantity
+        ?? pickValue(record, config.valueKeys)
         ?? 0;
 
     const generalM = preNormalized?.generalM ?? toNumber(record?.[`${config.prefix}general_m`]);
@@ -155,7 +159,8 @@ function buildRowWithFallback(config, record, activitiesMap = {}) {
         group: config.group,
         itemLabel: config.itemLabel,
         unit,
-        quantityOrSpecification,
+        specification,
+        quantity,
         generalM,
         generalF,
         generalT,
@@ -205,14 +210,15 @@ function renderDrmrActivitySection(section, data, sectionId, isFirstSection) {
             previousGroup = row.group || previousGroup;
 
             const groupRow = showGroup
-                ? `<tr class="drmr-activity-group-row"><td colspan="18">${this._escapeHtml(row.group)}</td></tr>`
+                ? `<tr class="drmr-activity-group-row"><td colspan="19">${this._escapeHtml(row.group)}</td></tr>`
                 : '';
 
             return `${groupRow}
             <tr>
                 <td>${this._escapeHtml(row.itemLabel)}</td>
+                <td>${this._escapeHtml(row.specification || '-')}</td>
                 <td class="center">${this._escapeHtml(row.unit || '-')}</td>
-                <td class="center">${this._escapeHtml(formatValue(row.quantityOrSpecification))}</td>
+                <td class="center">${this._escapeHtml(formatValue(row.quantity))}</td>
                 <td class="center">${formatValue(row.generalM)}</td>
                 <td class="center">${formatValue(row.generalF)}</td>
                 <td class="center">${formatValue(row.generalT)}</td>
@@ -241,6 +247,7 @@ function renderDrmrActivitySection(section, data, sectionId, isFirstSection) {
                 <thead>
                     <tr>
                         <th rowspan="3" class="activity-col">Item/Activity</th>
+                        <th rowspan="3" class="specification-col">Name/Specification</th>
                         <th rowspan="3" class="unit-col">Unit</th>
                         <th rowspan="3" class="qty-col">Quantity</th>
                         <th colspan="12">No. of Participants</th>
@@ -311,7 +318,10 @@ function renderDrmrActivitySection(section, data, sectionId, isFirstSection) {
             background: #fff;
         }
         .drmr-activity-table .activity-col {
-            width: 31%;
+            width: 22%;
+        }
+        .drmr-activity-table .specification-col {
+            width: 10%;
         }
         .drmr-activity-table .unit-col {
             width: 4.5%;

@@ -349,7 +349,20 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     [FIELD_NAMES.EQUIPMENT_TYPE_NAME]: {
-        extractor: (item: any) => item.equipmentType?.name || item.equipmentTypeName || null,
+        extractor: (item: any) => {
+            const master =
+                item.equipmentType?.name ||
+                item.equipment?.equipmentType?.name ||
+                item.equipmentTypeName;
+            const other =
+                item.equipmentTypeOther ||
+                item.equipment?.equipmentTypeOther;
+            const isOther =
+                item.equipmentType?.isOther ??
+                item.equipment?.equipmentType?.isOther;
+            if (isOther && other) return other;
+            return master || other || null;
+        },
         priority: 5,
     },
     [FIELD_NAMES.COMPANY_BRAND_MODEL]: {

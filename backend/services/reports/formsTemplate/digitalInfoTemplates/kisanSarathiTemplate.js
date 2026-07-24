@@ -10,6 +10,11 @@ function getKvkName(row) {
     return pickValue(row?.kvk?.kvkName, row?.kvkName, row?.data?.kvkName) || '-';
 }
 
+function toNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
 function renderKisanSarathiSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -33,13 +38,22 @@ function renderKisanSarathiSection(section, data, sectionId, isFirstSection) {
             <tr><td colspan="4" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>`;
     }
 
+    let totalRegistered = 0;
+    let totalAddressed = 0;
+    let totalAnswered = 0;
     records.forEach(row => {
         const kvk = getKvkName(row);
         const registeredValue = pickValue(row.noOfFarmersRegisteredOnKspPortal, row.numberOfFarmersRegisteredOnKspPortal);
-        const registered = registeredValue != null ? String(registeredValue) : '0';
-        const addressed = row.phoneCallAddressed != null ? String(row.phoneCallAddressed) : '0';
+        const registeredNumber = toNumber(registeredValue);
+        const addressedNumber = toNumber(row.phoneCallAddressed);
         const answeredValue = pickValue(row.phoneCallAnswered, row.answeredCall);
-        const answered = answeredValue != null ? String(answeredValue) : '0';
+        const answeredNumber = toNumber(answeredValue);
+        const registered = String(registeredNumber);
+        const addressed = String(addressedNumber);
+        const answered = String(answeredNumber);
+        totalRegistered += registeredNumber;
+        totalAddressed += addressedNumber;
+        totalAnswered += answeredNumber;
         html += `
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>
@@ -48,6 +62,16 @@ function renderKisanSarathiSection(section, data, sectionId, isFirstSection) {
                 <td style="text-align:center;">${this._escapeHtml(answered)}</td>
             </tr>`;
     });
+
+    if (records.length > 0) {
+        html += `
+            <tr style="font-weight:bold;background:#f5f5f5;page-break-inside:avoid;">
+                <td>Total</td>
+                <td style="text-align:center;">${totalRegistered}</td>
+                <td style="text-align:center;">${totalAddressed}</td>
+                <td style="text-align:center;">${totalAnswered}</td>
+            </tr>`;
+    }
 
     html += `
         </tbody>

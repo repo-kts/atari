@@ -24,7 +24,7 @@ const DRMR_ACTIVITY_ROWS = [
         group: null,
         itemLabel: 'Awareness camps, exposure visit etc',
         unitFallback: 'No.',
-        quantityKey: null,
+        quantityKey: 'awareness_quantity',
         specificationKey: 'awareness_count',
         prefix: 'awareness_count_',
     },
@@ -96,7 +96,7 @@ const DRMR_ACTIVITY_ROWS = [
         group: null,
         itemLabel: 'Any other (specify)',
         unitFallback: 'N/A',
-        quantityKey: null,
+        quantityKey: 'any_other_quantity',
         specificationKey: 'any_other_count',
         prefix: 'any_other_count_',
     },
@@ -259,8 +259,14 @@ function mapRecord(record) {
         const row = activityRows.find(item => item.activityType === config.activityType);
         const quantityValue = row ? (row.quantity !== null ? row.quantity : '') : '';
         const specificationValue = row?.specification || '';
-        mapped[`${config.quantityKey || config.specificationKey}`] = config.specificationKey ? specificationValue : quantityValue;
-        mapped[`${config.quantityKey || config.specificationKey}_unit`] = row?.unit || config.unitFallback;
+        if (config.quantityKey) {
+            mapped[config.quantityKey] = quantityValue;
+            mapped[`${config.quantityKey}_unit`] = row?.unit || config.unitFallback;
+        }
+        if (config.specificationKey) {
+            mapped[config.specificationKey] = specificationValue;
+            mapped[`${config.specificationKey}_unit`] = row?.unit || config.unitFallback;
+        }
 
         const demographics = {
             general_m: row?.generalM ?? 0,
@@ -281,8 +287,11 @@ function mapRecord(record) {
     mapped.trainingProgram = pickFirstValue(mapped, ['training_count']) ?? '';
     mapped.frontlineDemonstration = pickFirstValue(mapped, ['fld_count']) ?? '';
     mapped.awarenessCamps = pickFirstValue(mapped, ['awareness_count']) ?? '';
+    mapped.awarenessCampsQuantity = pickFirstValue(mapped, ['awareness_quantity']) ?? '';
     mapped.distributionOfLiterature = pickFirstValue(mapped, ['lecture_count']) ?? '';
     mapped.kisanMela = pickFirstValue(mapped, ['kisan_mela_count']) ?? '';
+    mapped.drmrAnyOtherSpecification = pickFirstValue(mapped, ['any_other_count']) ?? '';
+    mapped.drmrAnyOtherQuantity = pickFirstValue(mapped, ['any_other_quantity']) ?? '';
 
     return mapped;
 }

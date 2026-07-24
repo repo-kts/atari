@@ -19,7 +19,13 @@ const OTHER_UNIT_BY_NORMALIZED_VALUE = new Map([
 const ACTIVITY_CONFIG = [
     { type: 'TRAINING', quantityKey: 'training_count', unitKey: 'training_count_unit', prefix: 'training_count_' },
     { type: 'FRONTLINE_DEMONSTRATION', quantityKey: 'fld_count', unitKey: 'fld_count_unit', prefix: 'fld_count_' },
-    { type: 'AWARENESS_CAMP', specificationKey: 'awareness_count', unitKey: 'awareness_count_unit', prefix: 'awareness_count_' },
+    {
+        type: 'AWARENESS_CAMP',
+        quantityKey: 'awareness_quantity',
+        specificationKey: 'awareness_count',
+        unitKey: 'awareness_count_unit',
+        prefix: 'awareness_count_',
+    },
     { type: 'INPUT_SEEDS', quantityKey: 'seeds_qty', unitKey: 'seeds_qty_unit', prefix: 'seeds_qty_' },
     { type: 'INPUT_SMALL_EQUIPMENT', quantityKey: 'small_equip_qty', unitKey: 'small_equip_qty_unit', prefix: 'small_equip_qty_' },
     { type: 'INPUT_LARGE_EQUIPMENT', quantityKey: 'large_equip_qty', unitKey: 'large_equip_qty_unit', prefix: 'large_equip_qty_' },
@@ -27,7 +33,13 @@ const ACTIVITY_CONFIG = [
     { type: 'INPUT_PPC', quantityKey: 'pp_chemicals_qty', unitKey: 'pp_chemicals_qty_unit', prefix: 'pp_chemicals_qty_' },
     { type: 'LITERATURE_DISTRIBUTION', quantityKey: 'lecture_count', unitKey: 'lecture_count_unit', prefix: 'lecture_count_' },
     { type: 'KISAN_MELA', quantityKey: 'kisan_mela_count', unitKey: 'kisan_mela_count_unit', prefix: 'kisan_mela_count_' },
-    { type: 'OTHER', specificationKey: 'any_other_count', unitKey: 'any_other_count_unit', prefix: 'any_other_count_' },
+    {
+        type: 'OTHER',
+        quantityKey: 'any_other_quantity',
+        specificationKey: 'any_other_count',
+        unitKey: 'any_other_count_unit',
+        prefix: 'any_other_count_',
+    },
 ];
 
 function toInt(value, fallback = 0) {
@@ -266,8 +278,11 @@ function _mapResponse(r) {
         trainingProgram: map.TRAINING?.quantity ?? null,
         frontlineDemonstration: map.FRONTLINE_DEMONSTRATION?.quantity ?? null,
         awarenessCamps: map.AWARENESS_CAMP?.specification ?? map.AWARENESS_CAMP?.quantity ?? null,
+        awarenessCampsQuantity: map.AWARENESS_CAMP?.quantity ?? null,
         distributionOfLiterature: map.LITERATURE_DISTRIBUTION?.quantity ?? null,
         kisanMela: map.KISAN_MELA?.quantity ?? null,
+        drmrAnyOtherSpecification: map.OTHER?.specification ?? null,
+        drmrAnyOtherQuantity: map.OTHER?.quantity ?? null,
 
         // Form aliases
         training_count: map.TRAINING?.quantity ?? '',
@@ -275,6 +290,7 @@ function _mapResponse(r) {
         fld_count: map.FRONTLINE_DEMONSTRATION?.quantity ?? '',
         fld_count_unit: map.FRONTLINE_DEMONSTRATION?.unit || 'Hectare',
         awareness_count: map.AWARENESS_CAMP?.specification || '',
+        awareness_quantity: map.AWARENESS_CAMP?.quantity ?? '',
         awareness_count_unit: 'No.',
         seeds_qty: map.INPUT_SEEDS?.quantity ?? '',
         seeds_qty_unit: map.INPUT_SEEDS?.unit || 'Kg',
@@ -291,6 +307,7 @@ function _mapResponse(r) {
         kisan_mela_count: map.KISAN_MELA?.quantity ?? '',
         kisan_mela_count_unit: 'No.',
         any_other_count: map.OTHER?.specification || '',
+        any_other_quantity: map.OTHER?.quantity ?? '',
         any_other_count_unit: canonicalOtherUnit(map.OTHER?.unit) || '',
     };
 

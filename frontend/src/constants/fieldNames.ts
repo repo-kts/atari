@@ -396,8 +396,11 @@ export const FIELD_NAMES = {
     NET_RETURN_FARMER_PRACTICE: 'netReturnFarmerPractice',
     FRONTLINE_DEMONSTRATION: 'frontlineDemonstration',
     AWARENESS_CAMPS: 'awarenessCamps',
+    AWARENESS_CAMPS_QUANTITY: 'awarenessCampsQuantity',
     DISTRIBUTION_OF_LITERATURE: 'distributionOfLiterature',
     KISAN_MELA: 'kisanMela',
+    DRMR_ANY_OTHER_SPECIFICATION: 'drmrAnyOtherSpecification',
+    DRMR_ANY_OTHER_QUANTITY: 'drmrAnyOtherQuantity',
 
     // NARI Fields
     NAME_OF_NUTRI_SMART_VILLAGE: 'nameOfNutriSmartVillage',
@@ -793,6 +796,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.TOTAL_AREA_SQ_M,
     ] as const,
     VIEW_VEHICLES: [
+        FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.VEHICLE_TYPE,
         FIELD_NAMES.VEHICLE_NAME,
         FIELD_NAMES.REGISTRATION_NO,
@@ -810,6 +814,7 @@ export const FIELD_GROUPS = {
     ] as const,
     VIEW_EQUIPMENTS: [
         FIELD_NAMES.KVK_NAME,
+        FIELD_NAMES.EQUIPMENT_TYPE_NAME,
         FIELD_NAMES.EQUIPMENT_NAME,
         FIELD_NAMES.COMPANY_BRAND_MODEL,
         FIELD_NAMES.YEAR_OF_PURCHASE,
@@ -924,8 +929,11 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.TRAINING_PROGRAM,
         FIELD_NAMES.FRONTLINE_DEMONSTRATION,
         FIELD_NAMES.AWARENESS_CAMPS,
+        FIELD_NAMES.AWARENESS_CAMPS_QUANTITY,
         FIELD_NAMES.DISTRIBUTION_OF_LITERATURE,
         FIELD_NAMES.KISAN_MELA,
+        FIELD_NAMES.DRMR_ANY_OTHER_SPECIFICATION,
+        FIELD_NAMES.DRMR_ANY_OTHER_QUANTITY,
     ] as const,
 
     // Projects Routes - NARI
@@ -1308,7 +1316,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.NO_OF_PARTICIPANTS,
     ] as const,
 
-    // Achievements Routes - Celebration Days
+    // Achievements Routes - Important Events
     CELEBRATION_DAYS: [
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.IMPORTANT_DAYS,

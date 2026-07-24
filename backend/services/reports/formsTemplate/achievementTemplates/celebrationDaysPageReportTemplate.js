@@ -48,7 +48,7 @@ function headHtml() {
     return `
       <thead>
         <tr>
-          <th rowspan="3" class="l">Celebration of Important Days</th>
+          <th rowspan="3" class="l">Important Events</th>
           <th rowspan="3">No. of activities</th>
           <th colspan="12">Farmers</th>
           <th colspan="12">Extension Officials</th>
@@ -121,7 +121,7 @@ function renderCelebrationDaysPageReportSection(section, data, sectionId, isFirs
         return `
         <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
             <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
-            <p class="no-data">No celebration days data for export.</p>
+            <p class="no-data">No important events data for export.</p>
         </div>`;
     }
 

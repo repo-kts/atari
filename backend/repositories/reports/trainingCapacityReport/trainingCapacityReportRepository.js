@@ -7,11 +7,28 @@ const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntrod
 const { yearLabelFromFilters } = require('../reportYearLabel.js');
 
 const DEBUG = process.env.DEBUG_TRAINING_CAPACITY_REPORT === '1' || process.env.DEBUG_TRAINING_CAPACITY_REPORT === 'true';
+const EXTENSION_FUNCTIONARIES_TRAINING_TYPE = 'Extension Functionaries/ Personnel';
 
 function debugLog(...args) {
     if (DEBUG) {
         console.log('[trainingCapacityReport]', new Date().toISOString(), ...args);
     }
+}
+
+function canonicalTrainingTypeName(value) {
+    const raw = String(value || '').trim();
+    const normalized = raw
+        .toLowerCase()
+        .replace(/\s*\/\s*/g, '/')
+        .replace(/\s+/g, ' ');
+
+    if (
+        normalized === 'extension personnel'
+        || normalized === 'extension functionaries/personnel'
+    ) {
+        return EXTENSION_FUNCTIONARIES_TRAINING_TYPE;
+    }
+    return raw || 'Not specified';
 }
 
 function safeInt(v) {
@@ -109,9 +126,9 @@ function isSponsoredTrainingRecord(r) {
 }
 
 function sponsoredClientCode(trainingTypeName) {
-    const value = String(trainingTypeName || '').trim().toLowerCase();
+    const value = canonicalTrainingTypeName(trainingTypeName).toLowerCase();
     if (value === 'rural youth') return 'RY';
-    if (value === 'extension personnel') return 'EF';
+    if (value === EXTENSION_FUNCTIONARIES_TRAINING_TYPE.toLowerCase()) return 'EF';
     return 'PF';
 }
 
@@ -129,11 +146,12 @@ function normalizePrismaRow(r) {
     const stateName = (r.kvk && r.kvk.state && r.kvk.state.stateName)
         ? r.kvk.state.stateName
         : 'Unknown';
-    const trainingTypeName = r.trainingTypeOther
+    const rawTrainingTypeName = r.trainingTypeOther
         ? String(r.trainingTypeOther).trim()
         : ((r.trainingType && r.trainingType.trainingTypeName)
             ? String(r.trainingType.trainingTypeName).trim()
             : 'Not specified');
+    const trainingTypeName = canonicalTrainingTypeName(rawTrainingTypeName);
     const trainingAreaName = r.trainingAreaOther
         ? String(r.trainingAreaOther).trim()
         : ((r.trainingArea && r.trainingArea.trainingAreaName)
@@ -234,20 +252,22 @@ function sortTrainingArea(a, b) {
 const TRAINING_TYPE_ORDER = [
     'Farmers and Farm Women',
     'Rural Youth',
-    'Extension Personnel',
+    EXTENSION_FUNCTIONARIES_TRAINING_TYPE,
 ];
 const TRAINING_TYPE_RANK = new Map(
     TRAINING_TYPE_ORDER.map((name, i) => [name.toLowerCase(), i]),
 );
 function sortTrainingType(a, b) {
-    const ra = TRAINING_TYPE_RANK.has(String(a || '').trim().toLowerCase())
-        ? TRAINING_TYPE_RANK.get(String(a || '').trim().toLowerCase())
+    const canonicalA = canonicalTrainingTypeName(a).toLowerCase();
+    const canonicalB = canonicalTrainingTypeName(b).toLowerCase();
+    const ra = TRAINING_TYPE_RANK.has(canonicalA)
+        ? TRAINING_TYPE_RANK.get(canonicalA)
         : Number.MAX_SAFE_INTEGER;
-    const rb = TRAINING_TYPE_RANK.has(String(b || '').trim().toLowerCase())
-        ? TRAINING_TYPE_RANK.get(String(b || '').trim().toLowerCase())
+    const rb = TRAINING_TYPE_RANK.has(canonicalB)
+        ? TRAINING_TYPE_RANK.get(canonicalB)
         : Number.MAX_SAFE_INTEGER;
     if (ra !== rb) return ra - rb;
-    return sortStr(a, b);
+    return sortStr(canonicalA, canonicalB);
 }
 
 const CLIENTELE_ORDER = [
@@ -497,13 +517,17 @@ function buildSuperadminClienteleSections(records) {
 
 /** Primary section key: **training type** (`trainingTypeId` → superadmin `TrainingType`). Campus is never used for A/B. */
 function primarySectionKey(r) {
+    const canonicalName = canonicalTrainingTypeName(r.trainingTypeName);
+    if (canonicalName === EXTENSION_FUNCTIONARIES_TRAINING_TYPE) {
+        return `canonical:${canonicalName.toLowerCase()}`;
+    }
     if (r.trainingTypeId != null) return `tid:${r.trainingTypeId}`;
     return 'tid:none';
 }
 
 function sectionTitleFromRows(rows) {
     const f = rows[0];
-    if (f && f.trainingTypeName) return f.trainingTypeName;
+    if (f && f.trainingTypeName) return canonicalTrainingTypeName(f.trainingTypeName);
     return 'Not specified';
 }
 
@@ -518,7 +542,12 @@ function buildPayloadFromRecords(records, filters = {}) {
             const looksNormalized = typeof r.stateName === 'string'
                 && r.trainingAchievementId != null
                 && r.trainingTypeName != null;
-            return looksNormalized ? r : normalizePrismaRow(r);
+            return looksNormalized
+                ? {
+                    ...r,
+                    trainingTypeName: canonicalTrainingTypeName(r.trainingTypeName),
+                }
+                : normalizePrismaRow(r);
         })
         : [];
     // Year label from the selected filter, not the data (#231/#223).
@@ -549,11 +578,12 @@ function buildPayloadFromRecords(records, filters = {}) {
         bySection.get(key).push(r);
     }
 
-    // Always render the three canonical clientele sections in a fixed order —
-    // Farmers and Farm Women → Rural Youth → Extension Personnel — even when a
+    // Always render the three canonical training-type sections in a fixed order —
+    // Farmers and Farm Women → Rural Youth → Extension Functionaries/ Personnel — even when a
     // section has no data (it renders as an empty table). Seed a placeholder key
-    // (with no rows) for any canonical training type missing from the data so the
-    // ordering below is stable and complete.
+    // (with no rows) for any canonical training type missing from the data. Alias
+    // normalization above prevents the obsolete "Extension Personnel" heading
+    // from being inserted beside the retained extension-functionaries section.
     const presentTitles = new Set(
         [...bySection.keys()].map((k) => sectionTitleFromRows(bySection.get(k) || []).trim().toLowerCase()),
     );

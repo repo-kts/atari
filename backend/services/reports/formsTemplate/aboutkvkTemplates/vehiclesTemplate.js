@@ -20,6 +20,7 @@ function renderVehiclesSection(section, data, sectionId, isFirstSection) {
             <tr>
                 <th class="s-no">S. No.</th>
                 <th>KVK</th>
+                <th>Vehicle Type</th>
                 <th>Name of vehicle</th>
                 <th>Registration No.</th>
                 <th>Year of purchase</th>
@@ -32,8 +33,9 @@ function renderVehiclesSection(section, data, sectionId, isFirstSection) {
         // Use ?? so a legitimate 0 (e.g. gifted/free vehicle) renders as "0"
         // instead of "-": _pickValue returns null when absent, 0 otherwise.
         const dash = (v) => (v === null || v === undefined || v === '' ? '-' : v)
-        const kvk = this._pickValue(row, ['KVK', 'kvk.kvkName']) || '-'
-        const type = this._pickValue(row, ['Type of vehicle', 'vehicleName']) || '-'
+        const kvk = this._pickValue(row, ['KVK', 'kvkName', 'kvk.kvkName']) || '-'
+        const type = this._pickValue(row, ['Vehicle Type', 'vehicleTypeName', 'vehicleType.name']) || '-'
+        const name = this._pickValue(row, ['Name of vehicle', 'Vehicle Name', 'vehicleName']) || '-'
         const reg = this._pickValue(row, ['Registration No.', 'registrationNo']) || '-'
         const year = dash(this._pickValue(row, ['Year of purchase', 'yearOfPurchase']))
         const cost = dash(this._pickValue(row, ['Cost (Rs.)', 'totalCost']))
@@ -43,6 +45,7 @@ function renderVehiclesSection(section, data, sectionId, isFirstSection) {
                 <td class="s-no">${index + 1}</td>
                 <td>${this._escapeHtml(String(kvk))}</td>
                 <td>${this._escapeHtml(String(type))}</td>
+                <td>${this._escapeHtml(String(name))}</td>
                 <td>${this._escapeHtml(String(reg))}</td>
                 <td>${this._escapeHtml(String(year))}</td>
                 <td>${this._escapeHtml(String(cost))}</td>
@@ -60,4 +63,3 @@ function renderVehiclesSection(section, data, sectionId, isFirstSection) {
 module.exports = {
     renderVehiclesSection,
 }
-

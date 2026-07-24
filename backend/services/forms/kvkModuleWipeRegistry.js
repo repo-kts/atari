@@ -42,7 +42,7 @@ const REGISTRY = {
     'achievement-extension': { label: 'Extension Activities', models: ['KvkExtensionActivity'] },
     'achievement-other-extension': { label: 'Other Extension Activities', models: ['KvkOtherExtensionActivity'] },
     'achievement-technology-week': { label: 'Technology Week', models: ['KvkTechnologyWeekCelebration'] },
-    'achievement-celebration-days': { label: 'Celebration Days', models: ['KvkImportantDayCelebration'] },
+    'achievement-celebration-days': { label: 'Important Events', models: ['KvkImportantDayCelebration'] },
     'achievement-production-supply': { label: 'Production & Supply', models: ['KvkProductionSupply'] },
     'achievement-publication-details': { label: 'Publication Details', models: ['KvkPublicationDetails'] },
     'achievement-soil-equipment': { label: 'Soil & Water Equipment', models: ['KkvSoilWaterEquipment'] },

@@ -26,9 +26,11 @@ function basePayload(overrides = {}) {
         totalBudget: 1000,
         fld_count: '5.5',
         awareness_count: 'Camp',
+        awareness_quantity: 4,
         lecture_count: 2,
         kisan_mela_count: 1,
         any_other_count: 'Custom activity',
+        any_other_quantity: 7,
         any_other_count_unit: 'kg',
         ...overrides,
     };
@@ -71,6 +73,16 @@ test('DRMR create enforces No. for fixed activities and preserves an allowed Oth
             capturedComponents.find((item) => item.activityType === 'FRONTLINE_DEMONSTRATION').quantity,
             5.5,
         );
+        assert.equal(
+            capturedComponents.find((item) => item.activityType === 'AWARENESS_CAMP').quantity,
+            4,
+        );
+        assert.equal(
+            capturedComponents.find((item) => item.activityType === 'OTHER').quantity,
+            7,
+        );
+        assert.equal(result.awareness_quantity, 4);
+        assert.equal(result.any_other_quantity, 7);
         assert.equal(result.awareness_count_unit, 'No.');
         assert.equal(result.lecture_count_unit, 'No.');
         assert.equal(result.kisan_mela_count_unit, 'No.');
@@ -101,6 +113,7 @@ test('DRMR edit mapping clears a legacy unsupported Any Other unit', async () =>
         totalBudgetUtilized: 1000,
         components: [{
             activityType: 'OTHER',
+            quantity: 6,
             specification: 'Legacy activity',
             unit: 'N/A',
         }],
@@ -108,6 +121,7 @@ test('DRMR edit mapping clears a legacy unsupported Any Other unit', async () =>
 
     try {
         const result = await drmrActivityRepository.findById(1);
+        assert.equal(result.any_other_quantity, 6);
         assert.equal(result.any_other_count_unit, '');
     } finally {
         prisma.drmrActivity.findFirst = originalFindFirst;
@@ -146,6 +160,8 @@ test('DRMR update saves an allowed Any Other unit and re-enforces fixed units', 
             basePayload({ any_other_count_unit: 'lt' }),
         );
         assert.equal(result.any_other_count_unit, 'lt');
+        assert.equal(result.awareness_quantity, 4);
+        assert.equal(result.any_other_quantity, 7);
         assert.equal(result.awareness_count_unit, 'No.');
         assert.equal(result.lecture_count_unit, 'No.');
         assert.equal(result.kisan_mela_count_unit, 'No.');
@@ -168,6 +184,14 @@ test('DRMR form renders fixed No. units and an allowed-unit dropdown for Any Oth
     );
 
     assert.match(form, /value="No\."/);
+    assert.match(
+        form,
+        /label="Quantity \(No\.\)"[\s\S]*?value=\{formData\.awareness_quantity/,
+    );
+    assert.match(
+        form,
+        /label="Quantity \(No\.\)"[\s\S]*?value=\{formData\.any_other_quantity/,
+    );
     assert.match(
         form,
         /label="Unit"[\s\S]*?value=\{formData\.any_other_count_unit[\s\S]*?options=\{DRMR_OTHER_UNIT_OPTIONS\}/,

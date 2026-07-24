@@ -99,3 +99,18 @@ test('local development runs report jobs without requiring Vercel OIDC', () => {
     assert.match(jobService, /scheduleLocalMessage\(message\)/);
     assert.match(jobService, /REPORT_USE_VERCEL_QUEUE !== 'true'/);
 });
+
+test('local development stores report parts without requiring S3', () => {
+    const storageService = read('services/reports/reportStorageService.js');
+    const jobService = read('services/reports/reportGenerationJobService.js');
+    const controller = read('controllers/reports/reportController.js');
+    const routes = read('routes/reports/reportRoutes.js');
+
+    assert.match(storageService, /USE_LOCAL_REPORT_STORAGE/);
+    assert.match(storageService, /REPORT_USE_S3 !== 'true'/);
+    assert.match(storageService, /atari-report-jobs/);
+    assert.match(jobService, /reportStorage\.putBuffer/);
+    assert.match(jobService, /getJobFileForUser/);
+    assert.match(controller, /getAggregatedReportJobFile/);
+    assert.match(routes, /aggregated\/jobs\/:jobId\/file/);
+});

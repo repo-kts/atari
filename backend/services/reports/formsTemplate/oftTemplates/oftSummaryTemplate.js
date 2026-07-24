@@ -215,7 +215,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection, repor
 
     // Section heading = group (e.g. "2.2 On Farm Trial"). Like the FLD report,
     // this single section renders two labeled sub-blocks: A. OFT Summary and
-    // B. State Wise OFT Details (KVK Wise OFT Details is its own section).
+    // B. State Wise Details of Farmers (KVK Wise OFT Details is its own section).
     html += `
     <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>`;
     if (isMultiState) {
@@ -246,7 +246,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection, repor
             html += `
                 <th style="text-align:center;">No. of technologies assessed</th>
                 <th style="text-align:center;">No. of Locations</th>
-                <th style="text-align:center;">No. of Trial/Replications</th>`;
+                <th style="text-align:center;">No. of Trial/Replication/Farmer</th>`;
         }
         html += `</tr>`;
     } else {
@@ -255,7 +255,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection, repor
                 <th>Sector wise Thematic Area</th>
                 <th style="text-align:center;">No. of technologies assessed</th>
                 <th style="text-align:center;">No. of Locations</th>
-                <th style="text-align:center;">No. of Trial/Replications</th>
+                <th style="text-align:center;">No. of Trial/Replication/Farmer</th>
             </tr>`;
     }
 
@@ -387,7 +387,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection, repor
         </tbody>
     </table>`;
 
-    // State Wise OFT Details (formerly the 2.2.B sub-block) is now its own
+    // State Wise Details of Farmers (formerly the 2.2.B sub-block) is now its own
     // section — see oftStateWiseTemplate.js / section 2.2.1.
 
     html += `

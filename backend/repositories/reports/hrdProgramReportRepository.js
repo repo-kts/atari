@@ -50,7 +50,12 @@ async function getHrdProgramReportData(kvkId, filters = {}) {
     const rows = await prisma.hrdProgram.findMany({
         where,
         include: {
-            kvk: { select: { kvkName: true } },
+            kvk: {
+                select: {
+                    kvkName: true,
+                    state: { select: { stateName: true } },
+                },
+            },
             staff: {
                 select: {
                     staffName: true,
@@ -70,7 +75,9 @@ async function getHrdProgramReportData(kvkId, filters = {}) {
         return {
             hrdProgramId: r.hrdProgramId,
             kvkId: r.kvkId,
+            kvkStaffId: r.kvkStaffId,
             kvkName: r.kvk?.kvkName || '',
+            stateName: r.kvk?.state?.stateName || 'Unknown',
             staffName,
             postName,
             staffAndDesignation,

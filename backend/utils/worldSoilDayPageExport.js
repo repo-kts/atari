@@ -26,6 +26,13 @@ const HEADERS = [
     'Total No. of Participants attended the program',
 ];
 const COLS = HEADERS.length;
+const STATE_HEADERS = [
+    'State',
+    'No. of KVKs',
+    'No. of activities conducted',
+    'No. of farmers benefited',
+    'Total number of participants',
+];
 
 function detailVals(r) {
     return [r.sl, r.activitiesConducted, r.soilHealthCards, r.farmersBenefitted, r.vipCount, r.vipNames, r.participants];
@@ -33,6 +40,16 @@ function detailVals(r) {
 
 function totalVals(r) {
     return ['—', r.label, r.soilHealthCards, r.farmersBenefitted, r.vipCount, '', r.participants];
+}
+
+function stateVals(r) {
+    return [
+        r.stateName,
+        r.noOfKvks,
+        r.activitiesConducted,
+        r.farmersBenefitted,
+        r.participants,
+    ];
 }
 
 // ---------------- Excel ----------------
@@ -46,7 +63,11 @@ function styleRow(row, opts = {}) {
     row.eachCell((c, col) => {
         c.border = allBorders();
         c.font = { size: 8, bold: Boolean(opts.bold) };
-        c.alignment = { horizontal: col === 6 ? 'left' : 'center', vertical: 'middle', wrapText: true };
+        c.alignment = {
+            horizontal: col === (opts.leftColumn || 6) ? 'left' : 'center',
+            vertical: 'middle',
+            wrapText: true,
+        };
         if (opts.fill) {
             c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: opts.fill } };
         }
@@ -56,19 +77,35 @@ function styleRow(row, opts = {}) {
 async function generateWorldSoilDayPageExcelBuffer(reportTitle, payload) {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('World Soil Day');
+    const isStateSummary = payload?.layout === 'state';
+    const titleColumns = isStateSummary ? STATE_HEADERS.length : COLS;
 
-    ws.mergeCells(1, 1, 1, COLS);
+    ws.mergeCells(1, 1, 1, titleColumns);
     const t1 = ws.getCell(1, 1);
     t1.value = MAIN_TITLE;
     t1.font = { bold: true, size: 12 };
     t1.alignment = { horizontal: 'center' };
 
-    ws.mergeCells(2, 1, 2, COLS);
+    ws.mergeCells(2, 1, 2, titleColumns);
     const t2 = ws.getCell(2, 1);
     t2.value = SUB_KVK;
     t2.font = { bold: true, size: 10 };
     t2.alignment = { horizontal: 'left' };
     ws.addRow([]);
+
+    if (isStateSummary) {
+        styleRow(ws.addRow(STATE_HEADERS), { bold: true, fill: 'FFE8E8E8', leftColumn: 1 });
+        (payload.rows || []).forEach((row) => styleRow(ws.addRow(stateVals(row)), { leftColumn: 1 }));
+        if (payload.grandTotal) {
+            styleRow(ws.addRow(stateVals(payload.grandTotal)), {
+                bold: true,
+                fill: 'FFF5F5F5',
+                leftColumn: 1,
+            });
+        }
+        [18, 14, 24, 24, 28].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+        return await wb.xlsx.writeBuffer();
+    }
 
     const groups = (payload && payload.groups) || [];
     if (groups.length === 0) {
@@ -153,6 +190,7 @@ function groupTable(g) {
 }
 
 async function generateWorldSoilDayPageWordBuffer(reportTitle, payload) {
+    const isStateSummary = payload?.layout === 'state';
     const groups = (payload && payload.groups) || [];
 
     const children = [
@@ -161,7 +199,36 @@ async function generateWorldSoilDayPageWordBuffer(reportTitle, payload) {
         new Paragraph({ text: '' }),
     ];
 
-    if (groups.length === 0) {
+    if (isStateSummary) {
+        const stateRows = [
+            new TableRow({
+                tableHeader: true,
+                children: STATE_HEADERS.map((header, index) => wcell(header, {
+                    bold: true,
+                    fill: 'E8E8E8',
+                    alignment: index === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
+                })),
+            }),
+            ...(payload.rows || []).map((row) => new TableRow({
+                children: stateVals(row).map((value, index) => wcell(value, {
+                    alignment: index === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
+                })),
+            })),
+        ];
+        if (payload.grandTotal) {
+            stateRows.push(new TableRow({
+                children: stateVals(payload.grandTotal).map((value, index) => wcell(value, {
+                    bold: true,
+                    fill: 'F5F5F5',
+                    alignment: index === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
+                })),
+            }));
+        }
+        children.push(new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: stateRows,
+        }));
+    } else if (groups.length === 0) {
         children.push(new Paragraph({ children: [tx('No World Soil Day celebration data for this period.')] }));
     } else {
         groups.forEach((g) => {

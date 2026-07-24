@@ -85,7 +85,10 @@ const {
     generateSoilWaterEquipmentPageExcelBuffer,
     generateSoilWaterEquipmentPageWordBuffer,
 } = require('../utils/soilWaterEquipmentPageExport.js');
-const { resolveWorldSoilDayGroupedPayload } = require('../repositories/reports/worldSoilDayReport/worldSoilDayReportRepository.js');
+const {
+    resolveWorldSoilDayGroupedPayload,
+    resolveWorldSoilDayStateSummaryPayload,
+} = require('../repositories/reports/worldSoilDayReport/worldSoilDayReportRepository.js');
 const {
     generateWorldSoilDayPageExcelBuffer,
     generateWorldSoilDayPageWordBuffer,
@@ -235,7 +238,15 @@ const KVK_GROUPED_HTML_EXPORT_TEMPLATES = new Set([
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
     { activityType: 'FRONTLINE_DEMONSTRATION', itemLabel: 'Area under FLDs', unitFallback: 'Hectare', valueKey: 'fld_count', prefix: 'fld_count_', group: 'Frontline demonstrations (FLDs) and other demonstrations' },
-    { activityType: 'AWARENESS_CAMP', itemLabel: 'Awareness camps, exposure visit etc', unitFallback: 'No.', valueKey: 'awareness_count', prefix: 'awareness_count_' },
+    {
+        activityType: 'AWARENESS_CAMP',
+        itemLabel: 'Awareness camps, exposure visit etc',
+        unitFallback: 'No.',
+        valueKey: 'awareness_quantity',
+        specificationKey: 'awareness_count',
+        unitKey: 'awareness_count_unit',
+        prefix: 'awareness_count_',
+    },
     { activityType: 'INPUT_SEEDS', itemLabel: 'Seeds (Field Crops)', unitFallback: 'Kg', valueKey: 'seeds_qty', prefix: 'seeds_qty_', group: 'Input Distribution' },
     { activityType: 'INPUT_SMALL_EQUIPMENT', itemLabel: 'Small equipments (Upto Rs.2000)', unitFallback: 'Number', valueKey: 'small_equip_qty', prefix: 'small_equip_qty_' },
     { activityType: 'INPUT_LARGE_EQUIPMENT', itemLabel: 'Large equipments (more than Rs.2000)', unitFallback: 'Number', valueKey: 'large_equip_qty', prefix: 'large_equip_qty_' },
@@ -243,7 +254,15 @@ const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'INPUT_PPC', itemLabel: 'Plant Protection chemicals', unitFallback: 'Lit.', valueKey: 'pp_chemicals_qty', prefix: 'pp_chemicals_qty_' },
     { activityType: 'LITERATURE_DISTRIBUTION', itemLabel: 'Distribution of Literature', unitFallback: 'No.', valueKey: 'lecture_count', prefix: 'lecture_count_' },
     { activityType: 'KISAN_MELA', itemLabel: 'Kisan Mela', unitFallback: 'No.', valueKey: 'kisan_mela_count', prefix: 'kisan_mela_count_' },
-    { activityType: 'OTHER', itemLabel: 'Any other (specify)', unitFallback: 'N/A', valueKey: 'any_other_count', prefix: 'any_other_count_' },
+    {
+        activityType: 'OTHER',
+        itemLabel: 'Any other (specify)',
+        unitFallback: 'N/A',
+        valueKey: 'any_other_quantity',
+        specificationKey: 'any_other_count',
+        unitKey: 'any_other_count_unit',
+        prefix: 'any_other_count_',
+    },
 ];
 
 // Frontend posts staff rows with the job type as a relation (jobTypeMaster.name)
@@ -260,6 +279,23 @@ function enrichEmployeesExport(rawData) {
     }));
 }
 
+// Vehicle Details (1.6): expose relation-backed type and KVK names as flat
+// values so the standalone PDF, Excel and Word exports share the same columns
+// as the comprehensive report.
+function enrichVehiclesExport(rawData) {
+    const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    return rows.map((row) => ({
+        ...row,
+        kvkName: pickVal(row?.kvkName, row?.kvk?.kvkName),
+        vehicleTypeName: pickVal(
+            row?.vehicleTypeName,
+            row?.vehicleType?.isOther ? row?.vehicleTypeOther : '',
+            row?.vehicleType?.name,
+            row?.vehicleTypeOther,
+        ),
+    }));
+}
+
 // Frontend posts vehicle-status rows with the static vehicle fields nested under
 // `vehicle`, status under `vehicleStatus`, funding under `assetFundingSource` —
 // but the report config / template read flat keys. Flatten so PDF, Excel and Word
@@ -269,6 +305,13 @@ function enrichVehicleDetailsExport(rawData) {
     const pick = (flat, nested) => (flat !== undefined && flat !== null && flat !== '' ? flat : (nested ?? ''));
     return rows.map((row) => ({
         ...row,
+        kvkName: pick(row?.kvkName, row?.kvk?.kvkName),
+        vehicleTypeName: pick(
+            row?.vehicleTypeName,
+            (row?.vehicle?.vehicleType?.isOther && row?.vehicle?.vehicleTypeOther)
+                ? row.vehicle.vehicleTypeOther
+                : (row?.vehicle?.vehicleType?.name || row?.vehicle?.vehicleTypeOther),
+        ),
         vehicleName: pick(row?.vehicleName, row?.vehicle?.vehicleName),
         registrationNo: pick(row?.registrationNo, row?.vehicle?.registrationNo),
         yearOfPurchase: pick(row?.yearOfPurchase, row?.vehicle?.yearOfPurchase),
@@ -290,6 +333,13 @@ function enrichEquipmentRecordsExport(rawData) {
     const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
     return rows.map((row) => ({
         ...row,
+        kvkName: pickVal(row?.kvkName, row?.kvk?.kvkName),
+        equipmentTypeName: pickVal(
+            row?.equipmentTypeName,
+            row?.equipment?.equipmentType?.isOther ? row?.equipment?.equipmentTypeOther : '',
+            row?.equipment?.equipmentType?.name,
+            row?.equipment?.equipmentTypeOther,
+        ),
         equipmentName: pickVal(row?.equipmentName, row?.equipment?.equipmentName, row?.equipment?.equipmentMaster?.name),
         yearOfPurchase: pickVal(row?.yearOfPurchase, row?.equipment?.yearOfPurchase),
         totalCost: pickVal(row?.totalCost, row?.equipment?.totalCost),
@@ -304,6 +354,13 @@ function enrichEquipmentDetailsExport(rawData) {
     const rows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
     return rows.map((row) => ({
         ...row,
+        kvkName: pickVal(row?.kvkName, row?.kvk?.kvkName),
+        equipmentTypeName: pickVal(
+            row?.equipmentTypeName,
+            row?.equipmentType?.isOther ? row?.equipmentTypeOther : '',
+            row?.equipmentType?.name,
+            row?.equipmentTypeOther,
+        ),
         equipmentName: pickVal(row?.equipmentName, row?.equipmentMaster?.name),
         sourceOfFunding: pickVal(row?.sourceOfFunding, row?.assetFundingSource?.name),
     }));
@@ -380,6 +437,9 @@ const exportData = async (req, res) => {
         }
         if (templateKey === 'about-kvk-employees-full' && rawData) {
             effectiveRawData = enrichEmployeesExport(rawData);
+        }
+        if (templateKey === 'about-kvk-vehicles' && rawData) {
+            effectiveRawData = enrichVehiclesExport(rawData);
         }
         if (templateKey === 'about-kvk-vehicle-details' && rawData) {
             effectiveRawData = enrichVehicleDetailsExport(rawData);
@@ -624,12 +684,16 @@ const exportData = async (req, res) => {
                 } else if (templateKey === 'world-soil-day-page-report') {
                     buffer = await generateWorldSoilDayPageExcelBuffer(
                         title,
-                        resolveWorldSoilDayGroupedPayload(effectiveRawData),
+                        isAggregatedReport
+                            ? resolveWorldSoilDayStateSummaryPayload(effectiveRawData)
+                            : resolveWorldSoilDayGroupedPayload(effectiveRawData),
                     );
                 } else if (templateKey === 'publication-details-detailed') {
                     buffer = await generatePublicationDetailsExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'hrd-programmes-report') {
-                    buffer = await generateHrdProgrammesExcelBuffer(title, effectiveRawData);
+                    buffer = await generateHrdProgrammesExcelBuffer(title, effectiveRawData, {
+                        isAggregatedReport: Boolean(isAggregatedReport),
+                    });
                 } else if (templateKey === 'scientist-award-detailed') {
                     buffer = await generateScientistAwardDetailedExcelBuffer(title, effectiveRawData);
                 } else if (templateKey === 'cfld-extension-activity') {
@@ -779,12 +843,16 @@ const exportData = async (req, res) => {
                 } else if (templateKey === 'world-soil-day-page-report') {
                     buffer = await generateWorldSoilDayPageWordBuffer(
                         title,
-                        resolveWorldSoilDayGroupedPayload(effectiveRawData),
+                        isAggregatedReport
+                            ? resolveWorldSoilDayStateSummaryPayload(effectiveRawData)
+                            : resolveWorldSoilDayGroupedPayload(effectiveRawData),
                     );
                 } else if (templateKey === 'publication-details-detailed') {
                     buffer = await generatePublicationDetailsWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'hrd-programmes-report') {
-                    buffer = await generateHrdProgrammesWordBuffer(title, effectiveRawData);
+                    buffer = await generateHrdProgrammesWordBuffer(title, effectiveRawData, {
+                        isAggregatedReport: Boolean(isAggregatedReport),
+                    });
                 } else if (templateKey === 'scientist-award-detailed') {
                     buffer = await generateScientistAwardDetailedWordBuffer(title, effectiveRawData);
                 } else if (templateKey === 'cfld-extension-activity') {
@@ -1241,6 +1309,7 @@ function buildDrmrActivityTabularData(rawData, format, fallbackHeaders, fallback
         'KVK',
         'Reporting Year',
         'Item/Activity',
+        'Name/Specification',
         'Unit',
         'Quantity',
         'General M',
@@ -1275,14 +1344,22 @@ function buildDrmrActivityTabularData(rawData, format, fallbackHeaders, fallback
 
         DRMR_ACTIVITY_ROW_CONFIG.forEach(config => {
             const activity = activitiesMap[config.activityType] || {};
-            const quantity = firstDefined(
-                activity.quantityOrSpecification,
+            const specification = firstDefined(
                 activity.specification,
+                config.specificationKey ? record[config.specificationKey] : null,
+                '-'
+            );
+            const quantity = firstDefined(
                 activity.quantity,
                 record[config.valueKey],
                 0
             );
-            const unit = firstDefined(activity.unit, record[`${config.valueKey}_unit`], config.unitFallback, '-');
+            const unit = firstDefined(
+                activity.unit,
+                record[config.unitKey || `${config.valueKey}_unit`],
+                config.unitFallback,
+                '-'
+            );
 
             const generalM = toNum(firstDefined(activity.generalM, record[`${config.prefix}general_m`], 0));
             const generalF = toNum(firstDefined(activity.generalF, record[`${config.prefix}general_f`], 0));
@@ -1305,6 +1382,7 @@ function buildDrmrActivityTabularData(rawData, format, fallbackHeaders, fallback
                 formatExportValue(kvkName, format),
                 formatExportValue(year, format),
                 formatExportValue(config.itemLabel, format),
+                formatExportValue(specification, format),
                 formatExportValue(unit, format),
                 formatExportValue(quantity, format),
                 formatExportValue(generalM, format),

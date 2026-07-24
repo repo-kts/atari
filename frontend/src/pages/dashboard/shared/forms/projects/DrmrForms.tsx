@@ -296,12 +296,22 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                     {/* Awareness Section */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold border-b border-gray-100 pb-2">Awareness Camps</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <FormInput
                                 label="Names"
                                 required
                                 value={formData.awareness_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, awareness_count: e.target.value })}
+                            />
+                            <FormInput
+                                label="Quantity (No.)"
+                                required
+                                type="number"
+                                wholeNumberOnly
+                                min={0}
+                                step={1}
+                                value={formData.awareness_quantity ?? ''}
+                                onChange={(e) => setFormData({ ...formData, awareness_quantity: e.target.value })}
                             />
                             <FormInput
                                 label="Unit"
@@ -473,12 +483,22 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                     {/* Any Other Section */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold border-b border-gray-100 pb-2">Any other(specify)</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <FormInput
                                 label="Specification"
                                 required
                                 value={formData.any_other_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, any_other_count: e.target.value })}
+                            />
+                            <FormInput
+                                label="Quantity (No.)"
+                                required
+                                type="number"
+                                wholeNumberOnly
+                                min={0}
+                                step={1}
+                                value={formData.any_other_quantity ?? ''}
+                                onChange={(e) => setFormData({ ...formData, any_other_quantity: e.target.value })}
                             />
                             <FormSelect
                                 label="Unit"

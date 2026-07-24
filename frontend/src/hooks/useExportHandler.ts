@@ -82,7 +82,9 @@ export function useExportHandler(): UseExportHandlerReturn {
                         format: format as 'pdf' | 'excel' | 'word',
                         templateKey,
                         rawData: templateKey ? data : undefined,
-                        ...(templateKey === 'world-soil-day-page-report' && isAggregatedReport !== undefined
+                        ...((templateKey === 'world-soil-day-page-report'
+                            || templateKey === 'hrd-programmes-report')
+                            && isAggregatedReport !== undefined
                             ? { isAggregatedReport }
                             : {}),
                     },

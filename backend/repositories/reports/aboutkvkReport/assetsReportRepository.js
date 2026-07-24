@@ -56,6 +56,9 @@ async function getKvkVehicles(kvkId, filters = {}) {
             kvk: {
                 select: { kvkId: true, kvkName: true },
             },
+            vehicleType: {
+                select: { name: true, isOther: true },
+            },
             // Total Run + Present Status live on the yearly detail, not on the
             // base vehicle. Pull the latest detail so the report can show them.
             vehicleDetails: {
@@ -74,6 +77,9 @@ async function getKvkVehicles(kvkId, filters = {}) {
         return {
             ...v,
             kvkName: v.kvk?.kvkName || '',
+            vehicleTypeName: v.vehicleType?.isOther && v.vehicleTypeOther
+                ? v.vehicleTypeOther
+                : (v.vehicleType?.name || v.vehicleTypeOther || ''),
             totalRun: latest?.totalRun ?? '',
             presentStatus: latest?.vehicleStatus?.statusLabel ?? '',
         };
@@ -92,7 +98,16 @@ async function getKvkVehicleDetails(kvkId, filters = {}) {
         where,
         include: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            vehicle: { select: { vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
+            vehicle: {
+                select: {
+                    vehicleName: true,
+                    registrationNo: true,
+                    yearOfPurchase: true,
+                    totalCost: true,
+                    vehicleTypeOther: true,
+                    vehicleType: { select: { name: true, isOther: true } },
+                },
+            },
             vehicleStatus: { select: { statusLabel: true } },
             assetFundingSource: { select: { name: true } },
         },
@@ -105,7 +120,11 @@ async function getKvkVehicleDetails(kvkId, filters = {}) {
     return rows.map((d) => ({
         reportingYear: yearOf(d.reportingYear),
         kvkId: d.kvkId,
+        kvk: d.kvk,
         kvkName: d.kvk?.kvkName || '',
+        vehicleTypeName: d.vehicle?.vehicleType?.isOther && d.vehicle?.vehicleTypeOther
+            ? d.vehicle.vehicleTypeOther
+            : (d.vehicle?.vehicleType?.name || d.vehicle?.vehicleTypeOther || ''),
         vehicleName: d.vehicle?.vehicleName || '',
         registrationNo: d.vehicle?.registrationNo || '',
         yearOfPurchase: num(d.vehicle?.yearOfPurchase),
@@ -128,6 +147,7 @@ async function getKvkEquipments(kvkId, filters = {}) {
         where,
         include: {
             kvk: { select: { kvkId: true, kvkName: true } },
+            equipmentType: { select: { name: true, isOther: true } },
             // equipmentName is free-text but often blank; fall back to the master.
             equipmentMaster: { select: { name: true } },
             assetFundingSource: { select: { name: true } },
@@ -152,6 +172,9 @@ async function getKvkEquipments(kvkId, filters = {}) {
         return {
             ...e,
             kvkName: e.kvk?.kvkName || '',
+            equipmentTypeName: e.equipmentType?.isOther && e.equipmentTypeOther
+                ? e.equipmentTypeOther
+                : (e.equipmentType?.name || e.equipmentTypeOther || ''),
             equipmentName: e.equipmentName || e.equipmentMaster?.name || '',
             sourceOfFunding: latest?.assetFundingSourceOther
                 || latest?.assetFundingSource?.name
@@ -179,6 +202,8 @@ async function getKvkEquipmentRecords(kvkId, filters = {}) {
                     equipmentName: true,
                     yearOfPurchase: true,
                     totalCost: true,
+                    equipmentTypeOther: true,
+                    equipmentType: { select: { name: true, isOther: true } },
                     equipmentMaster: { select: { name: true } },
                 },
             },
@@ -194,7 +219,11 @@ async function getKvkEquipmentRecords(kvkId, filters = {}) {
     return rows.map((d) => ({
         reportingYear: yearOf(d.reportingYear),
         kvkId: d.kvkId,
+        kvk: d.kvk,
         kvkName: d.kvk?.kvkName || '',
+        equipmentTypeName: d.equipment?.equipmentType?.isOther && d.equipment?.equipmentTypeOther
+            ? d.equipment.equipmentTypeOther
+            : (d.equipment?.equipmentType?.name || d.equipment?.equipmentTypeOther || ''),
         equipmentName: d.equipment?.equipmentName || d.equipment?.equipmentMaster?.name || '',
         yearOfPurchase: num(d.equipment?.yearOfPurchase),
         totalCost: num(d.equipment?.totalCost),

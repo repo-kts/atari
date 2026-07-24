@@ -93,6 +93,7 @@ const _mapResponse = (r) => {
         kvkStaffId: r.kvkStaffId,
         staffId: r.kvkStaffId, // Frontend compatibility
         kvkName: r.kvk?.kvkName,
+        stateName: r.kvk?.state?.stateName,
         staff: r.staffName || r.staff?.staffName,
         staffName: r.staffName || r.staff?.staffName,
         postName: r.staff?.sanctionedPost?.postName,
@@ -163,7 +164,12 @@ const hrdRepository = {
             const result = await prisma.hrdProgram.create({
                 data: createData,
                 include: {
-                    kvk: { select: { kvkName: true } },
+                    kvk: {
+                        select: {
+                            kvkName: true,
+                            state: { select: { stateName: true } },
+                        },
+                    },
                     staff: {
                         select: {
                             staffName: true,
@@ -212,7 +218,12 @@ const hrdRepository = {
             const records = await prisma.hrdProgram.findMany({
                 where,
                 include: {
-                    kvk: { select: { kvkName: true } },
+                    kvk: {
+                        select: {
+                            kvkName: true,
+                            state: { select: { stateName: true } },
+                        },
+                    },
                     staff: {
                         select: {
                             staffName: true,
@@ -250,7 +261,12 @@ const hrdRepository = {
             const record = await prisma.hrdProgram.findFirst({
                 where,
                 include: {
-                    kvk: { select: { kvkName: true } },
+                    kvk: {
+                        select: {
+                            kvkName: true,
+                            state: { select: { stateName: true } },
+                        },
+                    },
                     staff: {
                         select: {
                             staffName: true,
@@ -348,7 +364,12 @@ const hrdRepository = {
                 where: { hrdProgramId },
                 data: updateData,
                 include: {
-                    kvk: { select: { kvkName: true } },
+                    kvk: {
+                        select: {
+                            kvkName: true,
+                            state: { select: { stateName: true } },
+                        },
+                    },
                     staff: {
                         select: {
                             staffName: true,

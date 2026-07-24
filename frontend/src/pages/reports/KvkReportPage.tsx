@@ -38,7 +38,7 @@ export const KvkReportPage: React.FC = () => {
     const location = useLocation();
     const { user } = useAuth();
     // KVK-level users (kvk_admin/kvk_user) generate single-KVK reports, so
-    // aggregated-only modules like "State Wise OFT Details" are hidden for them.
+    // aggregated-only modules like "State Wise Details of Farmers" are hidden for them.
     // Everyone above KVK level (super/zone/state/district/org/host) can select them.
     const isAggregatedSide = !['kvk_admin', 'kvk_user', 'kvk_amdin'].includes(user?.role ?? '');
     const routeConfig = getRouteConfig(location.pathname);

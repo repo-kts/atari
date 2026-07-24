@@ -52,7 +52,7 @@ function renderCelebrationDaysStateMatrixReportSection(section, data, sectionId,
         return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <${headingTag} class="${headingClass}">${headingText}</${headingTag}>
-  <p class="no-data">No important days celebration data for this period.</p>
+  <p class="no-data">No important events data for this period.</p>
 </div>`;
     }
 
@@ -85,7 +85,7 @@ function renderCelebrationDaysStateMatrixReportSection(section, data, sectionId,
     <table class="cd-mx-tbl">
       <thead>
         <tr>
-          <th rowspan="2" class="l">Important Days</th>
+          <th rowspan="2" class="l">Important Events</th>
           ${topGroup}
           <th colspan="3">Total</th>
         </tr>

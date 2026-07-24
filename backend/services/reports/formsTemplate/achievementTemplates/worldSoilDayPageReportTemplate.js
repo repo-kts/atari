@@ -1,4 +1,7 @@
-const { resolveWorldSoilDayGroupedPayload } = require('../../../../repositories/reports/worldSoilDayReport/worldSoilDayReportRepository.js');
+const {
+    resolveWorldSoilDayGroupedPayload,
+    resolveWorldSoilDayStateSummaryPayload,
+} = require('../../../../repositories/reports/worldSoilDayReport/worldSoilDayReportRepository.js');
 
 function esc(t) {
     if (t === null || t === undefined) return '';
@@ -116,10 +119,67 @@ function renderGroup(g, showKvkHeader) {
       <table class="wsd-page-tbl">${colGroup()}${headHtml()}
         <tbody>${body}${sub}</tbody>
       </table>
-    </div>`;
+</div>`;
 }
 
-function renderWorldSoilDayPageReportSection(section, data, sectionId, isFirstSection) {
+function renderStateSummary(payload) {
+    const rows = [...(payload.rows || []), payload.grandTotal].filter(Boolean);
+    const body = rows.map((r) => {
+        const isTotal = r.stateName === 'Total';
+        return `
+      <tr${isTotal ? ' class="grand"' : ''}>
+        <td class="l">${esc(r.stateName)}</td>
+        <td class="c">${fmtInt(r.noOfKvks)}</td>
+        <td class="c">${fmtInt(r.activitiesConducted)}</td>
+        <td class="c">${fmtInt(r.farmersBenefitted)}</td>
+        <td class="c">${fmtInt(r.participants)}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+    <table class="wsd-page-tbl wsd-state-summary">
+      <colgroup>
+        <col style="width:22%" />
+        <col style="width:14%" />
+        <col style="width:21%" />
+        <col style="width:21%" />
+        <col style="width:22%" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="l">State</th>
+          <th>No. of KVKs</th>
+          <th>No. of activities conducted</th>
+          <th>No. of farmers benefited</th>
+          <th>Total number of participants</th>
+        </tr>
+      </thead>
+      <tbody>${body}</tbody>
+    </table>`;
+}
+
+function renderWorldSoilDayPageReportSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    const useStateSummary = Boolean(
+        reportContext.isAggregatedView
+        || (reportContext.isStandalone && reportContext.isAggregatedReport),
+    );
+    if (useStateSummary) {
+        const payload = resolveWorldSoilDayStateSummaryPayload(data);
+        const isPromotedFeature = section.featureNumber && section.id === section.featureNumber;
+        const headingTag = isPromotedFeature ? 'h2' : 'h1';
+        const headingClass = isPromotedFeature ? 'section-subtitle' : 'section-title';
+        const headingText = `${this._escapeHtml(section.id)} ${this._escapeHtml(section.title)}`;
+
+        return `
+<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
+  <style>${tableCss()}</style>
+  <div class="wsd-page-wrap">
+    <${headingTag} class="${headingClass}">${headingText}</${headingTag}>
+    ${renderStateSummary(payload)}
+  </div>
+</div>`;
+    }
+
     const payload = resolveWorldSoilDayGroupedPayload(data);
     const groups = payload.groups || [];
     const isPromotedFeature = section.featureNumber && section.id === section.featureNumber;

@@ -12,7 +12,10 @@ const {
     PageOrientation,
 } = require('docx');
 
-const { buildHrdGroups } = require('../services/reports/formsTemplate/achievementTemplates/hrdProgrammesTemplate.js');
+const {
+    buildHrdGroups,
+    buildHrdStateSummary,
+} = require('../services/reports/formsTemplate/achievementTemplates/hrdProgrammesTemplate.js');
 
 const HEADERS = [
     'Sl. No.',
@@ -27,9 +30,26 @@ const HEADERS = [
 const COLS = HEADERS.length;
 const FONT_HP = 13; // ~6.5pt, matches the PDF
 const CENTERED = new Set([0, 3, 4, 5]); // Sl, Start, End, Duration
+const STATE_HEADERS = [
+    'State',
+    'No. of KVKs',
+    'No. of HRD programmes',
+    'No. of personnel attended',
+    'Total duration (days)',
+];
 
 function rowVals(r) {
     return [r.sl, r.staffCol, r.course, r.start, r.end, r.dur, r.organizer, r.venue];
+}
+
+function stateVals(r) {
+    return [
+        r.stateName,
+        r.noOfKvks,
+        r.noOfProgrammes,
+        r.personnelAttended,
+        r.totalDurationDays,
+    ];
 }
 
 // ---------------- Excel ----------------
@@ -43,22 +63,56 @@ function styleRow(row, opts = {}) {
     row.eachCell((c, col) => {
         c.border = allBorders();
         c.font = { size: 8, bold: Boolean(opts.bold) };
-        c.alignment = { horizontal: CENTERED.has(col - 1) ? 'center' : 'left', vertical: 'top', wrapText: true };
+        c.alignment = {
+            horizontal: opts.stateSummary
+                ? (col === 1 ? 'left' : 'center')
+                : (CENTERED.has(col - 1) ? 'center' : 'left'),
+            vertical: opts.stateSummary ? 'middle' : 'top',
+            wrapText: true,
+        };
         if (opts.fill) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: opts.fill } };
     });
 }
 
-async function generateHrdProgrammesExcelBuffer(reportTitle, rawData) {
+async function generateHrdProgrammesExcelBuffer(reportTitle, rawData, options = {}) {
+    const isStateSummary = Boolean(options.isAggregatedReport);
+    const statePayload = isStateSummary ? buildHrdStateSummary(rawData) : null;
     const { groups } = buildHrdGroups(rawData);
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('HRD');
+    const titleColumns = isStateSummary ? STATE_HEADERS.length : COLS;
 
-    ws.mergeCells(1, 1, 1, COLS);
+    ws.mergeCells(1, 1, 1, titleColumns);
     const t1 = ws.getCell(1, 1);
     t1.value = reportTitle || 'Details of HRD';
     t1.font = { bold: true, size: 12 };
     t1.alignment = { horizontal: 'center' };
     ws.addRow([]);
+
+    if (isStateSummary) {
+        if (statePayload.rows.length === 0) {
+            ws.addRow(['No data found']);
+            return await wb.xlsx.writeBuffer();
+        }
+
+        styleRow(ws.addRow(STATE_HEADERS), {
+            bold: true,
+            fill: 'FFE8E8E8',
+            stateSummary: true,
+        });
+        statePayload.rows.forEach((row) => {
+            styleRow(ws.addRow(stateVals(row)), { stateSummary: true });
+        });
+        styleRow(ws.addRow(stateVals(statePayload.grandTotal)), {
+            bold: true,
+            fill: 'FFF5F5F5',
+            stateSummary: true,
+        });
+        [18, 14, 24, 25, 22].forEach((width, index) => {
+            ws.getColumn(index + 1).width = width;
+        });
+        return await wb.xlsx.writeBuffer();
+    }
 
     if (groups.length === 0) {
         ws.addRow(['No data found']);
@@ -120,7 +174,9 @@ function groupTable(g) {
     });
 }
 
-async function generateHrdProgrammesWordBuffer(reportTitle, rawData) {
+async function generateHrdProgrammesWordBuffer(reportTitle, rawData, options = {}) {
+    const isStateSummary = Boolean(options.isAggregatedReport);
+    const statePayload = isStateSummary ? buildHrdStateSummary(rawData) : null;
     const { groups } = buildHrdGroups(rawData);
 
     const children = [
@@ -128,7 +184,34 @@ async function generateHrdProgrammesWordBuffer(reportTitle, rawData) {
         new Paragraph({ text: '' }),
     ];
 
-    if (groups.length === 0) {
+    if (isStateSummary && statePayload.rows.length > 0) {
+        const rows = [
+            new TableRow({
+                tableHeader: true,
+                children: STATE_HEADERS.map((header, index) => wcell(header, {
+                    bold: true,
+                    fill: 'E8E8E8',
+                    alignment: index === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
+                })),
+            }),
+            ...statePayload.rows.map((row) => new TableRow({
+                children: stateVals(row).map((value, index) => wcell(value, {
+                    alignment: index === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
+                })),
+            })),
+            new TableRow({
+                children: stateVals(statePayload.grandTotal).map((value, index) => wcell(value, {
+                    bold: true,
+                    fill: 'F5F5F5',
+                    alignment: index === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
+                })),
+            }),
+        ];
+        children.push(new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows,
+        }));
+    } else if (groups.length === 0) {
         children.push(new Paragraph({ children: [tx('No data found')] }));
     } else {
         groups.forEach((g) => {

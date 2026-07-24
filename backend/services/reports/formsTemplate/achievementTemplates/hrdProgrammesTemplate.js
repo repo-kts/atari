@@ -58,6 +58,103 @@ function displayRow(row) {
     };
 }
 
+function identityText(value) {
+    return String(value ?? '').trim().toLowerCase();
+}
+
+function identityDate(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? identityText(value) : date.toISOString().slice(0, 10);
+}
+
+/**
+ * Builds the BLA-68 state summary.
+ *
+ * A programme is one distinct course/date/organizer/venue event. Personnel are
+ * counted once per programme attended, while duration is summed once per
+ * distinct programme so a three-day event is not multiplied by its attendees.
+ */
+function buildHrdStateSummary(rawData) {
+    const rows = Array.isArray(rawData)
+        ? rawData
+        : (Array.isArray(rawData?.records) ? rawData.records : (rawData ? [rawData] : []));
+    const byState = new Map();
+
+    for (const row of rows) {
+        const stateName = String(
+            row?.stateName
+            || row?.kvk?.state?.stateName
+            || 'Unknown',
+        ).trim() || 'Unknown';
+        const stateKey = stateName.toLowerCase();
+        if (!byState.has(stateKey)) {
+            byState.set(stateKey, {
+                stateName,
+                kvks: new Set(),
+                programmes: new Map(),
+                personnelAttendances: new Set(),
+            });
+        }
+        const state = byState.get(stateKey);
+
+        if (row?.kvkId != null) {
+            state.kvks.add(`id:${Number(row.kvkId)}`);
+        } else if (row?.kvkName || row?.kvk?.kvkName) {
+            state.kvks.add(`name:${identityText(row.kvkName || row.kvk.kvkName)}`);
+        }
+
+        const programmeKey = [
+            identityText(row?.courseName ?? row?.course),
+            identityDate(row?.startDate),
+            identityDate(row?.endDate),
+            identityText(row?.organizer ?? row?.organizerVenue),
+            identityText(row?.venue),
+        ].join('|');
+        if (!state.programmes.has(programmeKey)) {
+            const duration = Number(durationLabel(row));
+            state.programmes.set(programmeKey, Number.isFinite(duration) ? duration : 0);
+        }
+
+        const personnelKey = row?.kvkStaffId ?? row?.staffId;
+        const personnelName = identityText(
+            row?.staffName || row?.staffAndDesignation || row?.staff,
+        );
+        const recordIdentity = row?.hrdProgramId ?? row?.id ?? '';
+        const personnelIdentity = personnelKey != null
+            ? `id:${personnelKey}`
+            : (personnelName ? `name:${personnelName}` : `record:${recordIdentity}`);
+        state.personnelAttendances.add(`${programmeKey}|${personnelIdentity}`);
+    }
+
+    const summaryRows = [...byState.values()]
+        .sort((a, b) => sortStr(a.stateName, b.stateName))
+        .map((state) => ({
+            stateName: state.stateName,
+            noOfKvks: state.kvks.size,
+            noOfProgrammes: state.programmes.size,
+            personnelAttended: state.personnelAttendances.size,
+            totalDurationDays: [...state.programmes.values()]
+                .reduce((sum, duration) => sum + duration, 0),
+        }));
+
+    const grandTotal = summaryRows.reduce((total, row) => ({
+        stateName: 'Total',
+        noOfKvks: total.noOfKvks + row.noOfKvks,
+        noOfProgrammes: total.noOfProgrammes + row.noOfProgrammes,
+        personnelAttended: total.personnelAttended + row.personnelAttended,
+        totalDurationDays: total.totalDurationDays + row.totalDurationDays,
+    }), {
+        stateName: 'Total',
+        noOfKvks: 0,
+        noOfProgrammes: 0,
+        personnelAttended: 0,
+        totalDurationDays: 0,
+    });
+
+    return { rows: summaryRows, grandTotal, layout: 'state' };
+}
+
 /**
  * Groups HRD rows by KVK. Sl.No resets within each group.
  * @returns {{ groups: {kvkName: string, rows: object[]}[], isMultiKvk: boolean }}
@@ -77,7 +174,61 @@ function buildHrdGroups(rawData) {
     return { groups, isMultiKvk: groups.length > 1 };
 }
 
-function renderHrdProgrammesSection(section, data, sectionId, isFirstSection) {
+function renderHrdProgrammesSection(section, data, sectionId, isFirstSection, reportContext = {}) {
+    const useStateSummary = Boolean(
+        reportContext.isAggregatedView
+        || (reportContext.isStandalone && reportContext.isAggregatedReport),
+    );
+    if (useStateSummary) {
+        const payload = buildHrdStateSummary(data);
+        if (payload.rows.length === 0) {
+            return this._generateEmptySection(section, null, sectionId, isFirstSection);
+        }
+
+        const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+        const esc = (v) => this._escapeHtml(v ?? '');
+        const summaryRows = [...payload.rows, payload.grandTotal].map((row) => `
+            <tr${row.stateName === 'Total' ? ' class="hrd-summary-total"' : ''}>
+                <td>${esc(row.stateName)}</td>
+                <td>${row.noOfKvks}</td>
+                <td>${row.noOfProgrammes}</td>
+                <td>${row.personnelAttended}</td>
+                <td>${row.totalDurationDays}</td>
+            </tr>`).join('');
+
+        return `
+<div id="${sectionId}" class="${pageClass}">
+    <h1 class="section-title">${esc(section.id)} ${esc(section.title)}</h1>
+    <style>
+        .hrd-summary-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 7pt; }
+        .hrd-summary-table th, .hrd-summary-table td { border: 0.35pt solid #000; padding: 4px 5px; vertical-align: middle; }
+        .hrd-summary-table th { background: #e8e8e8; font-weight: bold; text-align: center; }
+        .hrd-summary-table th:first-child, .hrd-summary-table td:first-child { text-align: left; }
+        .hrd-summary-table td:not(:first-child) { text-align: center; }
+        .hrd-summary-total { background: #f5f5f5; font-weight: bold; }
+    </style>
+    <table class="hrd-summary-table">
+        <colgroup>
+            <col style="width:22%;" />
+            <col style="width:14%;" />
+            <col style="width:21%;" />
+            <col style="width:22%;" />
+            <col style="width:21%;" />
+        </colgroup>
+        <thead>
+            <tr>
+                <th>State</th>
+                <th>No. of KVKs</th>
+                <th>No. of HRD programmes</th>
+                <th>No. of personnel attended</th>
+                <th>Total duration (days)</th>
+            </tr>
+        </thead>
+        <tbody>${summaryRows}</tbody>
+    </table>
+</div>`;
+    }
+
     const { groups } = buildHrdGroups(data);
     if (groups.length === 0) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
@@ -169,4 +320,5 @@ module.exports = {
     renderHrdProgrammesSection,
     buildHrdProgrammesTabularData,
     buildHrdGroups,
+    buildHrdStateSummary,
 };
